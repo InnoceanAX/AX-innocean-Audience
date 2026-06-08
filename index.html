@@ -276,6 +276,114 @@ body.home-mode #betaBanner{display:none}
 /* 홈 본문(랜딩) 섹션들은 1280px 제한 안에서 풀폭처럼 보이도록 padding 제거 */
 body.home-mode .wrap.poffset{padding-left:0;padding-right:0}
 body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
+
+/* === Level 1 헤더 액션 영역 (CEO 2026-06-08 20:00) === */
+.hdr-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+.hdr-project-badge{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ts);padding:6px 10px;background:#F3F4F6;border:1px solid var(--bdr);font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-project-badge .ico{color:#6B7280;flex-shrink:0}
+.hdr-act-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;font-size:12px;font-weight:600;border:1px solid var(--bdr);background:#fff;color:var(--ts);cursor:pointer;transition:all .15s;border-radius:0}
+.hdr-act-btn:hover{border-color:#000;color:#000}
+.hdr-act-btn .ico{width:14px;height:14px}
+.hdr-act-pri{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;font-size:12px;font-weight:700;background:#000;color:#fff;border:1px solid #000;cursor:pointer;border-radius:0;margin-left:4px}
+.hdr-act-pri:hover{background:var(--ind);border-color:var(--ind)}
+
+/* 프로젝트 패널 (헤더 우측 드롭다운) */
+.projects-panel{position:absolute;right:24px;top:calc(var(--hh) + 4px);width:380px;max-height:480px;background:#fff;border:1px solid var(--bdr);box-shadow:0 12px 32px rgba(0,0,0,.18);z-index:1100;display:none;overflow:hidden;flex-direction:column}
+.projects-panel.on{display:flex}
+.proj-panel-hd{padding:14px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:flex-start;background:#FAFAFA}
+.proj-panel-t{font-size:13px;font-weight:800;color:#000}
+.proj-panel-s{font-size:11px;color:var(--tm);margin-top:2px}
+.proj-close{background:transparent;border:none;cursor:pointer;padding:4px;color:#6B7280}
+.proj-close:hover{color:#000}
+#projects-list{flex:1;overflow-y:auto;padding:8px 0}
+.proj-it{padding:10px 16px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+.proj-it:hover{background:#FAFAFA}
+.proj-it.on{background:#EEF2FF}
+.proj-it-l{flex:1;overflow:hidden;min-width:0}
+.proj-nm{font-size:12.5px;font-weight:700;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-cur-tag{display:inline-block;font-size:9px;font-weight:700;background:var(--ind);color:#fff;padding:1px 5px;margin-left:4px;letter-spacing:.3px;vertical-align:middle}
+.proj-sub{font-size:10.5px;color:var(--tm);margin-top:2px}
+.proj-it-actions{display:flex;gap:4px;flex-shrink:0}
+.proj-it-actions button{padding:4px 8px;font-size:10.5px;font-weight:600;background:#fff;border:1px solid var(--bdr);color:var(--ts);cursor:pointer}
+.proj-it-actions button:hover{border-color:#000;color:#000}
+.proj-it-actions button.del:hover{border-color:#B91C1C;color:#B91C1C}
+.proj-empty{padding:32px 16px;font-size:12px;color:var(--tm);text-align:center;font-style:italic}
+
+/* === Xtab 동적 테이블 === */
+#xtab-table{width:100%;border-collapse:collapse}
+#xtab-table th,#xtab-table td{padding:10px 12px;border-bottom:1px solid #F3F4F6;font-size:12.5px;text-align:right}
+#xtab-table th{background:#FAFAFA;font-weight:700;color:var(--ts);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+#xtab-table th:first-child,#xtab-table td.rl{text-align:left;font-weight:700;color:#000}
+#xtab-table td.hl{background:#EEF2FF;color:var(--ind);font-weight:700}
+#xtab-table tr:hover td{background:#FAFAFA}
+#xtab-table tr:hover td.hl{background:#E0E7FF}
+
+/* === Home Capability 카드에 sub-link === */
+.feat-sub-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--bdr)}
+.feat-sub-link{font-size:11px;color:var(--ts);font-weight:600;padding:3px 8px;background:#F3F4F6;border-radius:0;cursor:pointer}
+.feat-sub-link:hover{background:var(--ind);color:#fff}
+
+/* === Dark Mode 토큰 + 적용 === */
+body.dark{background:#0F172A;color:#F9FAFB}
+body.dark .header{background:#111827;border-bottom-color:#1F2937}
+body.dark .subheader{background:#111827}
+body.dark .subheader .sline{border-bottom-color:#F9FAFB}
+body.dark .sub-l{color:#F9FAFB}
+body.dark .sub-r{color:#9CA3AF}
+body.dark .brand img{filter:invert(1) brightness(1.2)}
+body.dark .brand .bar{background:#F9FAFB}
+body.dark .brand .sub{color:#9CA3AF}
+body.dark .hnav .ntab{color:#9CA3AF;background:transparent}
+body.dark .hnav .ntab.on,body.dark .hnav .ntab:hover{color:#F9FAFB;border-bottom-color:#F9FAFB}
+body.dark .hdr-project-badge{background:#1F2937;border-color:#374151;color:#D1D5DB}
+body.dark .hdr-act-btn{background:#1F2937;border-color:#374151;color:#D1D5DB}
+body.dark .hdr-act-btn:hover{color:#F9FAFB;border-color:#F9FAFB}
+body.dark .hdr-act-pri{background:#F9FAFB;color:#0F172A;border-color:#F9FAFB}
+body.dark .wrap{background:transparent}
+body.dark .beta-banner{background:#1F2937;border-color:#374151;color:#D1D5DB}
+body.dark .badge{background:#374151;color:#F9FAFB}
+body.dark .hero,body.dark .kpi{background:#1F2937;border-color:#374151;color:#F9FAFB}
+body.dark .kpi-t{color:#9CA3AF}
+body.dark .kpi-d{color:#9CA3AF}
+body.dark .bld-panel,body.dark .aud-preview,body.dark .chart-card,body.dark .xtab-wrap,body.dark .xtab-ctrls,body.dark .sec-hd{background:#1F2937;border-color:#374151;color:#F9FAFB}
+body.dark .bld-grp{border-color:#374151}
+body.dark .bld-grp-t{color:#9CA3AF}
+body.dark .chip{background:#0F172A;border-color:#374151;color:#D1D5DB}
+body.dark .chip.on{background:#F9FAFB;color:#0F172A;border-color:#F9FAFB}
+body.dark .chip:hover{border-color:#9CA3AF}
+body.dark .aud-summary{color:#D1D5DB}
+body.dark .aud-meta .l{color:#9CA3AF}
+body.dark .ccard-t{color:#F9FAFB}
+body.dark .ccard-s{color:#9CA3AF}
+body.dark .sec-t{color:#F9FAFB}
+body.dark .sec-s{color:#9CA3AF}
+body.dark .tabs button{background:#1F2937;border-color:#374151;color:#9CA3AF}
+body.dark .tabs button.on{background:#F9FAFB;color:#0F172A;border-color:#F9FAFB}
+body.dark .footer{background:#111827;border-top-color:#1F2937}
+body.dark .f-logo{color:#F9FAFB}
+body.dark .f-copy{color:#9CA3AF}
+body.dark .projects-panel{background:#1F2937;border-color:#374151}
+body.dark .proj-panel-hd{background:#0F172A;border-bottom-color:#374151}
+body.dark .proj-panel-t{color:#F9FAFB}
+body.dark .proj-it{border-bottom-color:#374151}
+body.dark .proj-it:hover{background:#0F172A}
+body.dark .proj-nm{color:#F9FAFB}
+body.dark .iv-list,body.dark .iv-chat,body.dark .iv-hd,body.dark .iv-msgs,body.dark .iv-in{background:#1F2937;border-color:#374151;color:#F9FAFB}
+body.dark .it{color:#F9FAFB}
+body.dark .iv-bubble{background:#0F172A;color:#F9FAFB;border-color:#374151}
+body.dark .iv-input{background:#0F172A;color:#F9FAFB;border-color:#374151}
+body.dark .persona{background:#1F2937;border-color:#374151}
+body.dark .persona-nm,body.dark .persona-q{color:#F9FAFB}
+body.dark .persona-sub{color:#9CA3AF}
+body.dark #xtab-table th{background:#0F172A;color:#9CA3AF}
+body.dark #xtab-table td.hl{background:#312E81;color:#A5B4FC}
+body.dark .disc{background:#1F2937;border-color:#374151;color:#F9FAFB}
+body.dark .disc-tag{background:#374151;color:#F9FAFB}
+body.dark .disc-meta{color:#9CA3AF}
+
+/* 빈 알림 (warning) 다크 */
+body.dark #builder-empty{background:#451A03;color:#FCD34D;border-color:#92400E}
+
 </style>
 </head>
 <body class="home-mode">
@@ -297,6 +405,28 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
         <button class="ntab" onclick="navTo('discover',this)">디스커버</button>
         <button class="ntab" onclick="navTo('interview',this)">페르소나 인터뷰</button>
       </nav>
+      <div class="hdr-actions">
+        <div class="hdr-project-badge" title="현재 프로젝트">
+          <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M4 7h16v12H4z"/><path d="M9 7V4h6v3"/></svg>
+          <span id="current-project-name">저장 안 됨</span>
+        </div>
+        <button id="btn-projects" class="hdr-act-btn" onclick="toggleProjectsPanel()" title="내 프로젝트"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/></svg><span>내 프로젝트</span></button>
+        <button class="hdr-act-btn" onclick="audSave()" title="저장 (Cmd+S)"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v5h6V3"/><rect x="8" y="13" width="8" height="6"/></svg><span>저장</span></button>
+        <button class="hdr-act-btn" onclick="audShareUrl()" title="공유 URL 복사"><svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.5 10.5l7-3M8.5 13.5l7 3"/></svg></button>
+        <button class="hdr-act-btn" onclick="audExport()" title="JSON으로 내보내기"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button>
+        <button class="hdr-act-btn" onclick="toggleTheme()" title="라이트/다크 토글"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+        <button class="hdr-act-pri" onclick="headerNewProject()" title="새 프로젝트"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>새 프로젝트</button>
+      </div>
+      <div class="projects-panel" id="projects-panel">
+        <div class="proj-panel-hd">
+          <div>
+            <div class="proj-panel-t">내 프로젝트</div>
+            <div class="proj-panel-s">localStorage에 저장된 오디언스 목록</div>
+          </div>
+          <button class="proj-close" onclick="closeProjectsPanel()"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M6 18L18 6"/></svg></button>
+        </div>
+        <div id="projects-list"></div>
+      </div>
     </div>
   </div>
 </header>
@@ -397,18 +527,21 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
             <div class="t">오디언스 정의</div>
             <div class="d">30+ 디멘션으로 타겟 세그먼트를 정의하고 사이즈·신뢰도를 실시간 산출합니다.</div>
             <span class="link">시작하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+            <div class="feat-sub-links"><span class="feat-sub-link" onclick="event.stopPropagation();navTo('builder', null)">빌더</span><span class="feat-sub-link" onclick="event.stopPropagation();navTo('compare', null)">모집단 비교</span></div>
           </div>
           <div class="home-feat-card" onclick="navTo('insights', null)">
             <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M3 21V8M9 21V4M15 21v-9M21 21v-5"/></svg></div>
             <div class="t">인사이트 분석</div>
             <div class="d">브랜드 선호·구매 트리거·미디어 소비를 차트·교차·비교 화면으로 자동 제공합니다.</div>
             <span class="link">살펴보기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+            <div class="feat-sub-links"><span class="feat-sub-link" onclick="event.stopPropagation();navTo('insights', null)">차트</span><span class="feat-sub-link" onclick="event.stopPropagation();navTo('xtab', null)">교차분석</span><span class="feat-sub-link" onclick="event.stopPropagation();navTo('discover', null)">디스커버</span></div>
           </div>
           <div class="home-feat-card" onclick="navTo('interview', null)">
             <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/><path d="M8 11h8M8 14h5" stroke-linecap="round"/></svg></div>
             <div class="t">페르소나 인터뷰</div>
             <div class="d">합성 페르소나와 1:1 채팅으로 광고 카피·컨셉·가격대 반응을 즉시 검증합니다.</div>
             <span class="link">대화하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+            <div class="feat-sub-links"><span class="feat-sub-link" onclick="event.stopPropagation();navTo('interview', null)">대화창</span></div>
           </div>
         </div>
       </div>
@@ -481,75 +614,125 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
   <!-- ============ Audience Builder ============ -->
   <div class="page" id="page-builder">
     <div class="hero">
-      <div class="kpi"><div class="kpi-t">Audience Size</div><div class="kpi-v">8,420</div><div class="kpi-d">전체 모집단 대비 <b>2.1%</b></div></div>
-      <div class="kpi"><div class="kpi-t">평균 연령</div><div class="kpi-v">34.2세</div><div class="kpi-d">기준: 25~44세</div></div>
-      <div class="kpi"><div class="kpi-t">평균 가구 소득</div><div class="kpi-v">7,820만원</div><div class="kpi-d">상위 <b>28%</b></div></div>
-      <div class="kpi"><div class="kpi-t">구매 의향 지수</div><div class="kpi-v">7.8<span style="font-size:14px;color:var(--tm)"> /10</span></div><div class="kpi-d">평균 대비 <b style="color:var(--pos)">+85%</b></div></div>
+      <div class="kpi"><div class="kpi-t">Audience Size</div><div class="kpi-v" id="kpi-size">8,420</div><div class="kpi-d">전체 모집단 대비 <b id="kpi-sizepct">100%</b></div></div>
+      <div class="kpi"><div class="kpi-t">평균 연령</div><div class="kpi-v"><span id="kpi-age">34.2</span>세</div><div class="kpi-d">필터에 따라 자동 갱신</div></div>
+      <div class="kpi"><div class="kpi-t">평균 가구 소득</div><div class="kpi-v"><span id="kpi-income">5.8</span>천만원</div><div class="kpi-d">연 단위</div></div>
+      <div class="kpi"><div class="kpi-t">구매 의향 지수</div><div class="kpi-v"><span id="kpi-intent">68</span><span style="font-size:14px;color:var(--tm)"> / 100</span></div><div class="kpi-d">baseline 68</div></div>
     </div>
 
     <div class="builder">
       <div class="bld-panel">
-        <div class="bld-grp">
-          <div class="bld-grp-t">인구통계</div>
-          <div class="bld-row" style="margin-bottom:8px">
-            <div class="chip">남성</div><div class="chip on">여성</div>
-          </div>
+        <div class="bld-grp" data-dim="gender">
+          <div class="bld-grp-t">성별</div>
           <div class="bld-row">
-            <div class="chip">20대</div>
-            <div class="chip on">30대 초반 <span class="cnt">3,210</span></div>
-            <div class="chip on">30대 후반 <span class="cnt">2,490</span></div>
-            <div class="chip on">40대 초반 <span class="cnt">2,720</span></div>
-            <div class="chip">40대 후반</div>
+            <div class="chip" data-value="여성">여성</div>
+            <div class="chip" data-value="남성">남성</div>
           </div>
         </div>
-        <div class="bld-grp">
+        <div class="bld-grp" data-dim="age">
+          <div class="bld-grp-t">연령</div>
+          <div class="bld-row">
+            <div class="chip" data-value="30-32">30-32세</div>
+            <div class="chip" data-value="33-35">33-35세</div>
+            <div class="chip" data-value="36-38">36-38세</div>
+            <div class="chip" data-value="39-40">39-40세</div>
+          </div>
+        </div>
+        <div class="bld-grp" data-dim="region">
           <div class="bld-grp-t">지역</div>
           <div class="bld-row">
-            <div class="chip on">서울/수도권</div>
-            <div class="chip on">부산</div>
-            <div class="chip">대구</div>
-            <div class="chip">대전</div>
-            <div class="chip">광주</div>
-            <div class="chip on">기타 광역시</div>
+            <div class="chip" data-value="수도권">수도권</div>
+            <div class="chip" data-value="광역시">광역시</div>
+            <div class="chip" data-value="지방">지방</div>
           </div>
         </div>
-        <div class="bld-grp">
-          <div class="bld-grp-t">소득 (가구)</div>
+        <div class="bld-grp" data-dim="income">
+          <div class="bld-grp-t">가구 소득</div>
           <div class="bld-row">
-            <div class="chip">~3천만</div>
-            <div class="chip">3~5천만</div>
-            <div class="chip on">5~8천만</div>
-            <div class="chip on">8천~1.2억</div>
-            <div class="chip on">1.2억 이상</div>
+            <div class="chip" data-value="3천만↓">3천만 이하</div>
+            <div class="chip" data-value="3-5천만">3-5천만</div>
+            <div class="chip" data-value="5-7천만">5-7천만</div>
+            <div class="chip" data-value="7천만-1억">7천만-1억</div>
+            <div class="chip" data-value="1억↑">1억 이상</div>
           </div>
         </div>
-        <div class="bld-grp">
+        <div class="bld-grp" data-dim="marriage">
+          <div class="bld-grp-t">결혼/가족</div>
+          <div class="bld-row">
+            <div class="chip" data-value="미혼">미혼</div>
+            <div class="chip" data-value="신혼">신혼</div>
+            <div class="chip" data-value="자녀있음">자녀 있음</div>
+            <div class="chip" data-value="자녀독립">자녀 독립</div>
+          </div>
+        </div>
+        <div class="bld-grp" data-dim="job">
+          <div class="bld-grp-t">직업</div>
+          <div class="bld-row">
+            <div class="chip" data-value="전문직">전문직</div>
+            <div class="chip" data-value="사무직">사무직</div>
+            <div class="chip" data-value="자영업">자영업</div>
+            <div class="chip" data-value="주부">주부</div>
+            <div class="chip" data-value="학생">학생</div>
+          </div>
+        </div>
+        <div class="bld-grp" data-dim="lifestyle">
           <div class="bld-grp-t">라이프스타일</div>
           <div class="bld-row">
-            <div class="chip on">친환경 가치 중시</div>
-            <div class="chip on">테크 얼리어답터</div>
-            <div class="chip">럭셔리 지향</div>
-            <div class="chip on">가족 중심</div>
-            <div class="chip">레저/아웃도어</div>
+            <div class="chip" data-value="캠핑">캠핑</div>
+            <div class="chip" data-value="육아">육아</div>
+            <div class="chip" data-value="피트니스">피트니스</div>
+            <div class="chip" data-value="맛집">맛집</div>
+            <div class="chip" data-value="반려동물">반려동물</div>
+            <div class="chip" data-value="테크얼리어답터">테크 얼리어답터</div>
           </div>
         </div>
-        <div class="bld-grp">
-          <div class="bld-grp-t">자동차 구매 행태</div>
+        <div class="bld-grp" data-dim="media">
+          <div class="bld-grp-t">주요 미디어</div>
           <div class="bld-row">
-            <div class="chip on">12개월 내 구매 예정</div>
-            <div class="chip on">현재 차량 보유 (1대)</div>
-            <div class="chip">무차 가구</div>
-            <div class="chip on">SUV 선호</div>
-            <div class="chip">세단 선호</div>
+            <div class="chip" data-value="YouTube">YouTube</div>
+            <div class="chip" data-value="Instagram">Instagram</div>
+            <div class="chip" data-value="네이버">네이버</div>
+            <div class="chip" data-value="카카오">카카오</div>
+            <div class="chip" data-value="TV">TV</div>
           </div>
         </div>
-        <div class="bld-grp">
-          <div class="bld-grp-t">파워트레인 선호</div>
+        <div class="bld-grp" data-dim="carNow">
+          <div class="bld-grp-t">현재 보유 차종</div>
           <div class="bld-row">
-            <div class="chip on">순수 전기차 (BEV)</div>
-            <div class="chip on">하이브리드</div>
-            <div class="chip">플러그인 하이브리드</div>
-            <div class="chip">내연기관</div>
+            <div class="chip" data-value="세단">세단</div>
+            <div class="chip" data-value="SUV">SUV</div>
+            <div class="chip" data-value="해치백">해치백</div>
+            <div class="chip" data-value="없음">없음</div>
+          </div>
+        </div>
+        <div class="bld-grp" data-dim="brand">
+          <div class="bld-grp-t">관심 브랜드</div>
+          <div class="bld-row">
+            <div class="chip" data-value="현대">현대</div>
+            <div class="chip" data-value="기아">기아</div>
+            <div class="chip" data-value="테슬라">테슬라</div>
+            <div class="chip" data-value="BMW">BMW</div>
+            <div class="chip" data-value="벤츠">벤츠</div>
+            <div class="chip" data-value="폭스바겐">폭스바겐</div>
+          </div>
+        </div>
+        <div class="bld-grp" data-dim="trigger">
+          <div class="bld-grp-t">구매 트리거</div>
+          <div class="bld-row">
+            <div class="chip" data-value="친환경">친환경</div>
+            <div class="chip" data-value="경제성">경제성</div>
+            <div class="chip" data-value="성능">성능</div>
+            <div class="chip" data-value="디자인">디자인</div>
+            <div class="chip" data-value="안전">안전</div>
+            <div class="chip" data-value="보조금">보조금</div>
+          </div>
+        </div>
+        <div class="bld-grp" data-dim="carWant">
+          <div class="bld-grp-t">관심 차종</div>
+          <div class="bld-row">
+            <div class="chip" data-value="EV">전기차 (EV)</div>
+            <div class="chip" data-value="하이브리드">하이브리드</div>
+            <div class="chip" data-value="내연기관">내연기관</div>
           </div>
         </div>
       </div>
@@ -563,9 +746,8 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <div class="aud-size-l">Synthetic Persona Pool · 신뢰도 92%</div>
             </div>
             <div class="aud-actions">
-              <button onclick="audSave()"><svg class="ico" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v5h6V3"/><rect x="8" y="13" width="8" height="6"/></svg>저장</button>
-              <button onclick="audDuplicate()"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>복제</button>
-              <button class="pri" onclick="navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>인터뷰 시작</button>
+              <button onclick="builderReset()"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/></svg>초기화</button>
+              <button class="pri" onclick="navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>인터뷰로</button>
             </div>
           </div>
           <div class="aud-summary">
@@ -666,38 +848,33 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
     </div>
 
     <div class="hero">
-      <div class="kpi"><div class="kpi-t">EV 구매 의향</div><div class="kpi-v">72%</div><div class="kpi-d">전체 평균 38% 대비 <b style="color:var(--pos)">+89%</b></div></div>
-      <div class="kpi"><div class="kpi-t">현대/기아 선호</div><div class="kpi-v">64%</div><div class="kpi-d">테슬라 27% · 외산 9%</div></div>
-      <div class="kpi"><div class="kpi-t">유튜브 일평균</div><div class="kpi-v">84분</div><div class="kpi-d">전체 평균 52분</div></div>
-      <div class="kpi"><div class="kpi-t">광고 회상도</div><div class="kpi-v">3.8 <span style="font-size:14px;color:var(--tm)">/5</span></div><div class="kpi-d">캠페인 평균 <b>+24%</b></div></div>
+      <div class="kpi"><div class="kpi-t">타겟 사이즈</div><div class="kpi-v">8,420</div><div class="kpi-d">현재 세그먼트 기준</div></div>
+      <div class="kpi"><div class="kpi-t">평균 연령</div><div class="kpi-v">34.2세</div><div class="kpi-d">필터 반영</div></div>
+      <div class="kpi"><div class="kpi-t">평균 가구소득</div><div class="kpi-v">5.8천만</div><div class="kpi-d">연 단위</div></div>
+      <div class="kpi"><div class="kpi-t">구매 의향</div><div class="kpi-v">68점</div><div class="kpi-d">/ 100</div></div>
     </div>
 
     <div class="grid-2">
       <div class="chart-card">
-        <div class="ccard-t">관심 브랜드 Top 8</div>
-        <div class="ccard-s">"구매 시 적극 고려 의향" 응답 비율 (%)</div>
-        <div class="chart-wrap"><canvas id="ch-brand"></canvas></div>
+        <div class="ccard-t">연령 분포</div>
+        <div class="ccard-s">선택 세그먼트 내 비율 (%)</div>
+        <div class="chart-wrap"><canvas id="chart-age"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="ccard-t">구매 트리거 가중치</div>
-        <div class="ccard-s">의사결정에 영향이 큰 요소 (Top 6)</div>
-        <div class="chart-wrap"><canvas id="ch-trigger"></canvas></div>
+        <div class="ccard-t">가구 소득 분포</div>
+        <div class="ccard-s">선택 세그먼트 내 비율 (%)</div>
+        <div class="chart-wrap"><canvas id="chart-income"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="ccard-t">미디어 소비 (주당 시간)</div>
-        <div class="ccard-s">디지털 채널별 평균 노출 시간</div>
-        <div class="chart-wrap"><canvas id="ch-media"></canvas></div>
+        <div class="ccard-t">관심 브랜드</div>
+        <div class="ccard-s">구성비</div>
+        <div class="chart-wrap"><canvas id="chart-brand"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="ccard-t">라이프스타일 프로파일</div>
-        <div class="ccard-s">전체 평균 대비 강도 (1.0 = 평균)</div>
-        <div class="chart-wrap"><canvas id="ch-lifestyle"></canvas></div>
+        <div class="ccard-t">구매 트리거</div>
+        <div class="ccard-s">의사결정 영향 요소</div>
+        <div class="chart-wrap"><canvas id="chart-trigger"></canvas></div>
       </div>
-    </div>
-
-    <div class="sec-hd"><div class="sec-t">월별 EV 구매 의향 추이</div><div class="sec-s">최근 6개월 · AI 페르소나 풀 추정치</div></div>
-    <div class="chart-card">
-      <div class="chart-wrap"><canvas id="ch-trend"></canvas></div>
     </div>
   </div>
 
@@ -705,171 +882,68 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
   <div class="page" id="page-xtab">
     <div class="sec-hd">
       <div>
-        <div class="sec-t">Cross-tabulation — 연령대 × 구매 의향 차종</div>
-        <div class="sec-s">전체 8,420명 페르소나 풀 기준 비율 (%)</div>
+        <div class="sec-t">교차 분석 (Cross-tabulation)</div>
+        <div class="sec-s">두 디멘션을 교차해 비율(%) 매트릭스를 확인합니다. 15% 이상 셀은 강조됩니다.</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="hdr-btn" onclick="xtabDim('행: 연령대')"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-        <button class="hdr-btn" onclick="xtabDim('열: 차종')"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-        <button class="hdr-btn" onclick="xtabDim('셀: %')"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--ts);font-weight:700">행</span>
+        <select id="xtab-dimy" onchange="rerenderXtab()" style="padding:6px 10px;border:1px solid var(--bdr);background:#fff;font-size:13px">
+          <option value="age" selected>연령</option><option value="income">소득</option><option value="marriage">결혼/가족</option><option value="brand">브랜드</option><option value="trigger">트리거</option><option value="lifestyle">라이프스타일</option><option value="media">매체</option>
+        </select>
+        <span style="font-size:12px;color:var(--ts);font-weight:700;margin-left:6px">열</span>
+        <select id="xtab-dimx" onchange="rerenderXtab()" style="padding:6px 10px;border:1px solid var(--bdr);background:#fff;font-size:13px">
+          <option value="carWant" selected>관심 차종</option><option value="brand">브랜드</option><option value="trigger">트리거</option><option value="media">매체</option><option value="income">소득</option><option value="lifestyle">라이프스타일</option>
+        </select>
       </div>
     </div>
-    <table class="xtab">
-      <thead>
-        <tr><th>연령</th><th>아이오닉5</th><th>아이오닉6</th><th>EV6</th><th>EV9</th><th>테슬라 모델Y</th><th>제네시스 GV60</th><th>합계</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>30대 초반</td><td>28.4</td><td>14.2</td><td class="hi">31.6</td><td>4.8</td><td>16.2</td><td>4.8</td><td>100</td></tr>
-        <tr><td>30대 후반</td><td>26.1</td><td>16.8</td><td>22.4</td><td>7.2</td><td>14.5</td><td>13.0</td><td>100</td></tr>
-        <tr><td>40대 초반</td><td>21.4</td><td>11.6</td><td>18.2</td><td class="hi">14.8</td><td>11.4</td><td>22.6</td><td>100</td></tr>
-        <tr><td>전체 평균</td><td>25.6</td><td>14.0</td><td>24.5</td><td>9.0</td><td>14.2</td><td>12.7</td><td>100</td></tr>
-      </tbody>
-    </table>
-
-    <div class="sec-hd"><div class="sec-t">소득 × 구매 의향 차종</div></div>
-    <table class="xtab">
-      <thead>
-        <tr><th>소득</th><th>아이오닉5</th><th>아이오닉6</th><th>EV6</th><th>EV9</th><th>테슬라 모델Y</th><th>제네시스 GV60</th><th>합계</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>5~8천만</td><td class="hi">34.2</td><td>15.6</td><td>28.8</td><td>3.2</td><td>12.4</td><td>5.8</td><td>100</td></tr>
-        <tr><td>8천~1.2억</td><td>24.8</td><td>14.6</td><td>22.0</td><td>11.4</td><td>14.2</td><td>13.0</td><td>100</td></tr>
-        <tr><td>1.2억 이상</td><td>16.2</td><td>10.4</td><td>18.2</td><td class="hi">14.8</td><td>16.8</td><td class="hi">23.6</td><td>100</td></tr>
-      </tbody>
-    </table>
-
-    <div class="sec-hd"><div class="sec-t">자녀 유무 × 구매 트리거</div></div>
-    <table class="xtab">
-      <thead>
-        <tr><th>구분</th><th>주행거리</th><th>충전 인프라</th><th>안전 사양</th><th>가격/보조금</th><th>디자인</th><th>자율주행</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>자녀 있음</td><td>22.4</td><td class="hi">29.6</td><td class="hi">21.8</td><td>12.4</td><td>8.2</td><td>5.6</td></tr>
-        <tr><td>자녀 없음</td><td>18.8</td><td>21.4</td><td>11.6</td><td>14.2</td><td class="hi">18.4</td><td class="hi">15.6</td></tr>
-      </tbody>
+    <table class="xtab" id="xtab-table">
+      <thead id="xtab-thead"></thead>
+      <tbody id="xtab-tbody"></tbody>
     </table>
   </div>
 
   <!-- ============ Audience Comparison ============ -->
   <div class="page" id="page-compare">
-    <div class="cmp">
-      <div class="cmp-side">
-        <div class="cmp-side-hd">
-          <span class="tag">A</span>
-          <div><div class="cmp-side-t">전기차 구매 의향 30대</div><div style="font-size:11px;color:var(--tm)">N=8,420</div></div>
-        </div>
-        <div class="cmp-row"><div class="l">평균 가구 소득</div><div class="vA">7,820만</div><div></div></div>
-        <div class="cmp-row"><div class="l">EV 구매 의향 (%)</div><div class="vA">72%</div><div></div></div>
-        <div class="cmp-row"><div class="l">YouTube 일평균 (분)</div><div class="vA">84분</div><div></div></div>
-        <div class="cmp-row"><div class="l">현대/기아 선호 (%)</div><div class="vA">64%</div><div></div></div>
-        <div class="cmp-row"><div class="l">안전 우선 (%)</div><div class="vA">68%</div><div></div></div>
-        <div class="cmp-row"><div class="l">자녀 보유율 (%)</div><div class="vA">82%</div><div></div></div>
-        <div class="cmp-row"><div class="l">충전 인프라 우려 (%)</div><div class="vA">76%</div><div></div></div>
-        <div class="cmp-row"><div class="l">광고 회상도 (5점)</div><div class="vA">3.8</div><div></div></div>
-      </div>
-      <div class="cmp-side b">
-        <div class="cmp-side-hd">
-          <span class="tag">B</span>
-          <div><div class="cmp-side-t">테슬라 검토 30대 (참고)</div><div style="font-size:11px;color:var(--tm)">N=3,140</div></div>
-        </div>
-        <div class="cmp-row"><div class="l">평균 가구 소득</div><div class="vB">1억 240만</div><div class="cmp-diff pos">+31%</div></div>
-        <div class="cmp-row"><div class="l">EV 구매 의향 (%)</div><div class="vB">88%</div><div class="cmp-diff pos">+22%</div></div>
-        <div class="cmp-row"><div class="l">YouTube 일평균 (분)</div><div class="vB">96분</div><div class="cmp-diff pos">+14%</div></div>
-        <div class="cmp-row"><div class="l">현대/기아 선호 (%)</div><div class="vB">28%</div><div class="cmp-diff neg">-56%</div></div>
-        <div class="cmp-row"><div class="l">안전 우선 (%)</div><div class="vB">42%</div><div class="cmp-diff neg">-38%</div></div>
-        <div class="cmp-row"><div class="l">자녀 보유율 (%)</div><div class="vB">54%</div><div class="cmp-diff neg">-34%</div></div>
-        <div class="cmp-row"><div class="l">충전 인프라 우려 (%)</div><div class="vB">48%</div><div class="cmp-diff neg">-37%</div></div>
-        <div class="cmp-row"><div class="l">광고 회상도 (5점)</div><div class="vB">4.2</div><div class="cmp-diff pos">+11%</div></div>
-      </div>
+    <div class="hero">
+      <div class="kpi"><div class="kpi-t">현재 비교</div><div class="kpi-v" style="font-size:18px"><span id="cmp-a-name">전체 모집단</span> vs 전체</div><div class="kpi-d">필터를 적용한 오디언스(A)와 모집단(B)을 좌우 비교</div></div>
+      <div class="kpi"><div class="kpi-t">A 강점</div><div class="kpi-v" id="cmp-badge" style="font-size:18px">-</div><div class="kpi-d">구매 의향 격차</div></div>
     </div>
-
-    <div class="sec-hd"><div class="sec-t">시각화 비교 — 라이프스타일/구매트리거</div></div>
     <div class="grid-2">
       <div class="chart-card">
-        <div class="ccard-t">라이프스타일 (평균 대비 강도)</div>
-        <div class="ccard-s">두 오디언스의 가치관 차이</div>
-        <div class="chart-wrap"><canvas id="ch-cmp-life"></canvas></div>
+        <div class="ccard-t">A: 선택 오디언스</div>
+        <div class="ccard-s">현재 빌더 필터 기준</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div><div style="font-size:11px;color:var(--tm)">사이즈</div><div style="font-size:28px;font-weight:800;color:var(--ind)" id="cmp-a-size">8,420</div></div>
+          <div><div style="font-size:11px;color:var(--tm)">평균 연령</div><div style="font-size:28px;font-weight:800" id="cmp-a-age">34.2세</div></div>
+          <div><div style="font-size:11px;color:var(--tm)">평균 소득</div><div style="font-size:28px;font-weight:800" id="cmp-a-income">5.8천만</div></div>
+          <div><div style="font-size:11px;color:var(--tm)">구매 의향</div><div style="font-size:28px;font-weight:800;color:var(--ind)" id="cmp-a-intent">68점</div></div>
+        </div>
       </div>
       <div class="chart-card">
-        <div class="ccard-t">구매 트리거 비중</div>
-        <div class="ccard-s">의사결정 핵심 요소 (%)</div>
-        <div class="chart-wrap"><canvas id="ch-cmp-trig"></canvas></div>
+        <div class="ccard-t">B: 전체 모집단</div>
+        <div class="ccard-s">한국 30대 EV 잠재 구매자 N=8,420</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div><div style="font-size:11px;color:var(--tm)">사이즈</div><div style="font-size:28px;font-weight:800;color:#9CA3AF" id="cmp-b-size">8,420</div></div>
+          <div><div style="font-size:11px;color:var(--tm)">평균 연령</div><div style="font-size:28px;font-weight:800" id="cmp-b-age">34.2세</div></div>
+          <div><div style="font-size:11px;color:var(--tm)">평균 소득</div><div style="font-size:28px;font-weight:800" id="cmp-b-income">5.8천만</div></div>
+          <div><div style="font-size:11px;color:var(--tm)">구매 의향</div><div style="font-size:28px;font-weight:800;color:#9CA3AF" id="cmp-b-intent">68점</div></div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ============ Discover ============ -->
   <div class="page" id="page-discover">
-    <div class="sec-hd">
-      <div><div class="sec-t">AI 자동 인사이트 — 통계적으로 두드러진 패턴</div><div class="sec-s">전체 평균 대비 차이가 큰 항목 자동 탐지 (Top 8)</div></div>
-      <button class="hdr-btn" onclick="discoverRefresh()"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>새로고침</button>
-    </div>
-
-    <div class="disc">
-      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
-      <div class="disc-body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span class="disc-tag">강한 신호</span><span class="disc-t" style="margin:0">자녀를 둔 30대 여성, 충전 인프라 우려가 의사결정의 최대 변수</span>
-        </div>
-        <div class="disc-d">자녀를 둔 30대 초·중반 여성 페르소나에서 <b>"충전 인프라 안정성"</b>이 구매 트리거 가중치 29.6%로 1위 (전체 평균 18.2% 대비 +63%). 광고 메시지가 충전소 접근성·고속 충전 경험에 집중되어야 함.</div>
-        <div class="disc-meta"><span>표본: <b>3,210명</b></span><span>신뢰도: <b>94%</b></span><span>전체 대비: <b>+63%</b></span></div>
+    <div class="aud-pre-hd" style="background:#fff;border:2px solid var(--bdr);padding:18px 22px;margin-bottom:18px;align-items:center">
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">자동 인사이트</div>
+        <div style="font-size:12px;color:var(--ts);margin-top:4px">현재 세그먼트에서 발견된 시그널을 6가지 카드로 정리합니다.</div>
+      </div>
+      <div class="aud-actions">
+        <button class="hdr-btn" onclick="discoverRefresh()"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>새로고침</button>
       </div>
     </div>
-
-    <div class="disc">
-      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
-      <div class="disc-body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span class="disc-tag">차별점</span><span class="disc-t" style="margin:0">현대/기아 선호자는 안전을, 테슬라 검토자는 자율주행을 우선</span>
-        </div>
-        <div class="disc-d">동일 가격대에서 <b>현대/기아 선호 그룹은 "안전 사양" 우선 68%</b>, <b>테슬라 검토 그룹은 "자율주행" 우선 52%</b>. 같은 EV 광고라도 두 그룹에 다른 톤이 필요함.</div>
-        <div class="disc-meta"><span>그룹 A: 5,380명</span><span>그룹 B: 3,140명</span><span>의미차: <b>유의 (p&lt;0.01)</b></span></div>
-      </div>
-    </div>
-
-    <div class="disc">
-      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
-      <div class="disc-body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span class="disc-tag">미디어 채널</span><span class="disc-t" style="margin:0">YouTube + Instagram 조합으로 도달률 92% 가능</span>
-        </div>
-        <div class="disc-d">타겟 페르소나의 <b>유튜브 일 84분 + 인스타 일 42분</b>이 1순위 채널. 네이버 검색(36분), 카카오톡(28분) 순. <b>YT + IG 광고만으로 92% 도달</b> 가능 — 기타 채널 ROI 재검토 필요.</div>
-        <div class="disc-meta"><span>도달 추정: 92%</span><span>예상 CPM: 4,200원</span></div>
-      </div>
-    </div>
-
-    <div class="disc">
-      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
-      <div class="disc-body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span class="disc-tag">광고 카피</span><span class="disc-t" style="margin:0">"안심하고 충전, 어디서나" 메시지가 가장 강한 반응 유도</span>
-        </div>
-        <div class="disc-d">인터뷰 64건 분석 결과 <b>"충전 안심"</b> 키워드가 광고 회상도 4.4/5 (전체 평균 3.2). "주행거리"(3.8), "디자인"(3.4), "가속력"(2.9). 카피 톤은 <b>실용적·안심형</b>이 효과적.</div>
-        <div class="disc-meta"><span>인터뷰 분석: 64건</span><span>키워드 신뢰도: 91%</span></div>
-      </div>
-    </div>
-
-    <div class="disc">
-      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
-      <div class="disc-body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span class="disc-tag">소득 분화</span><span class="disc-t" style="margin:0">소득 1.2억 이상에서 제네시스 GV60 선호도 4배</span>
-        </div>
-        <div class="disc-d">가구 소득 1.2억 이상 구간에서 <b>제네시스 GV60 선호도 23.6%</b> (전체 평균 5.8% 대비 4배). 럭셔리 라인 광고는 이 구간을 별도 타겟팅하는 것이 효율적.</div>
-        <div class="disc-meta"><span>표본: 1,242명</span><span>신뢰도: 88%</span></div>
-      </div>
-    </div>
-
-    <div class="disc">
-      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
-      <div class="disc-body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <span class="disc-tag">시간대</span><span class="disc-t" style="margin:0">평일 21~23시 광고 노출이 회상도 +38% 우수</span>
-        </div>
-        <div class="disc-d">자녀 보유 30대 페르소나 — 자녀 취침 후 <b>21~23시 디지털 콘텐츠 소비 피크</b>. 이 시간대 광고 회상도 평균 대비 +38%. 미디어 바이어 일정 조정 권장.</div>
-        <div class="disc-meta"><span>분석 기간: 30일</span><span>유의수준: p&lt;0.05</span></div>
-      </div>
-    </div>
+    <div class="grid-2" id="discover-grid"></div>
   </div>
 
   <!-- ============ Persona Interview ============ -->
@@ -945,6 +1019,324 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
 
 <script>
 // ============ Navigation ============
+
+// ============================================================
+// AUDIENCE DATA ENGINE — Level 1 (CEO 2026-06-08 20:00)
+// 8,420 합성 페르소나 풀 + chip → 세그먼트 계산
+// ============================================================
+
+const AUD_DIMS = {
+  age:       { label:'연령', opts:['30-32','33-35','36-38','39-40'] },
+  gender:    { label:'성별', opts:['여성','남성'] },
+  region:    { label:'지역', opts:['수도권','광역시','지방'] },
+  income:    { label:'가구소득', opts:['3천만↓','3-5천만','5-7천만','7천만-1억','1억↑'] },
+  marriage:  { label:'결혼', opts:['미혼','신혼','자녀있음','자녀독립'] },
+  job:       { label:'직업', opts:['전문직','사무직','자영업','주부','학생'] },
+  carNow:    { label:'현재차종', opts:['세단','SUV','해치백','없음'] },
+  carWant:   { label:'관심차종', opts:['EV','하이브리드','내연기관'] },
+  brand:     { label:'관심브랜드', opts:['현대','기아','테슬라','BMW','벤츠','폭스바겐'] },
+  trigger:   { label:'구매트리거', opts:['친환경','경제성','성능','디자인','안전','보조금'] },
+  media:     { label:'주요매체', opts:['YouTube','Instagram','네이버','카카오','TV'] },
+  lifestyle: { label:'라이프스타일', opts:['캠핑','육아','피트니스','맛집','반려동물','테크얼리어답터'] },
+};
+
+const POP_DIST = {
+  age:[{k:'30-32',p:0.30},{k:'33-35',p:0.32},{k:'36-38',p:0.24},{k:'39-40',p:0.14}],
+  gender:[{k:'여성',p:0.52},{k:'남성',p:0.48}],
+  region:[{k:'수도권',p:0.51},{k:'광역시',p:0.27},{k:'지방',p:0.22}],
+  income:[{k:'3천만↓',p:0.12},{k:'3-5천만',p:0.28},{k:'5-7천만',p:0.27},{k:'7천만-1억',p:0.21},{k:'1억↑',p:0.12}],
+  marriage:[{k:'미혼',p:0.28},{k:'신혼',p:0.18},{k:'자녀있음',p:0.46},{k:'자녀독립',p:0.08}],
+  job:[{k:'전문직',p:0.22},{k:'사무직',p:0.41},{k:'자영업',p:0.14},{k:'주부',p:0.18},{k:'학생',p:0.05}],
+  carNow:[{k:'세단',p:0.34},{k:'SUV',p:0.31},{k:'해치백',p:0.08},{k:'없음',p:0.27}],
+  carWant:[{k:'EV',p:0.36},{k:'하이브리드',p:0.38},{k:'내연기관',p:0.26}],
+  brand:[{k:'현대',p:0.31},{k:'기아',p:0.24},{k:'테슬라',p:0.14},{k:'BMW',p:0.10},{k:'벤츠',p:0.08},{k:'폭스바겐',p:0.13}],
+  trigger:[{k:'친환경',p:0.18},{k:'경제성',p:0.22},{k:'성능',p:0.14},{k:'디자인',p:0.15},{k:'안전',p:0.21},{k:'보조금',p:0.10}],
+  media:[{k:'YouTube',p:0.34},{k:'Instagram',p:0.24},{k:'네이버',p:0.18},{k:'카카오',p:0.14},{k:'TV',p:0.10}],
+  lifestyle:[{k:'캠핑',p:0.16},{k:'육아',p:0.30},{k:'피트니스',p:0.18},{k:'맛집',p:0.14},{k:'반려동물',p:0.12},{k:'테크얼리어답터',p:0.10}],
+};
+const POP_N = 8420;
+const BASE_INTENT = 68;
+const INTENT_LIFT = {
+  age:{'30-32':+2,'33-35':+5,'36-38':+8,'39-40':+4},
+  income:{'3천만↓':-12,'3-5천만':-4,'5-7천만':+6,'7천만-1억':+12,'1억↑':+18},
+  marriage:{'미혼':-6,'신혼':+10,'자녀있음':+8,'자녀독립':-2},
+  carWant:{'EV':+15,'하이브리드':+8,'내연기관':-10},
+  trigger:{'친환경':+6,'경제성':+3,'성능':+5,'디자인':+2,'안전':+8,'보조금':+10},
+  brand:{'테슬라':+10,'BMW':+6,'벤츠':+5,'현대':+4,'기아':+3,'폭스바겐':+2},
+};
+const INCOME_MID = {'3천만↓':2500,'3-5천만':4000,'5-7천만':6000,'7천만-1억':8500,'1억↑':12000};
+const AGE_MID = {'30-32':31,'33-35':34,'36-38':37,'39-40':39.5};
+
+window.AUD_STATE = window.AUD_STATE || { filters:{}, currentProjectId:null };
+
+function computeSegment(filters){
+  filters = filters || AUD_STATE.filters;
+  let ratio = 1;
+  Object.keys(filters||{}).forEach(dim=>{
+    const sel = filters[dim];
+    if(!sel || !sel.length) return;
+    const dist = POP_DIST[dim];
+    if(!dist) return;
+    const pctSel = dist.filter(d=>sel.includes(d.k)).reduce((a,b)=>a+b.p,0);
+    ratio *= Math.max(0.001, pctSel);
+  });
+  const size = Math.max(50, Math.round(POP_N * ratio));
+  let avgIntent = BASE_INTENT;
+  let avgIncome = 0, totIncomeW = 0;
+  let avgAge = 0, totAgeW = 0;
+  Object.keys(POP_DIST).forEach(dim=>{
+    const sel = (filters||{})[dim] || [];
+    const dist = POP_DIST[dim];
+    const distEff = sel.length ? dist.filter(d=>sel.includes(d.k)) : dist;
+    const wTot = distEff.reduce((a,b)=>a+b.p,0) || 1;
+    if(INTENT_LIFT[dim]){
+      distEff.forEach(d=>{
+        const lift = INTENT_LIFT[dim][d.k] || 0;
+        avgIntent += (lift * d.p / wTot) * (sel.length ? 1 : 0.3);
+      });
+    }
+    if(dim==='income'){
+      distEff.forEach(d=>{ avgIncome += (INCOME_MID[d.k]||0) * d.p; totIncomeW += d.p; });
+    }
+    if(dim==='age'){
+      distEff.forEach(d=>{ avgAge += (AGE_MID[d.k]||0) * d.p; totAgeW += d.p; });
+    }
+  });
+  if(totIncomeW) avgIncome /= totIncomeW;
+  if(totAgeW) avgAge /= totAgeW;
+  avgIntent = Math.max(15, Math.min(95, avgIntent));
+  function distFor(dim){
+    const sel = (filters||{})[dim] || [];
+    const dist = POP_DIST[dim].map(d=>({k:d.k, p: sel.length ? (sel.includes(d.k)?d.p:0) : d.p}));
+    const tot = dist.reduce((a,b)=>a+b.p,0)||1;
+    return dist.map(d=>({k:d.k, p:d.p/tot, count: Math.round(size*d.p/tot)}));
+  }
+  return {
+    size, sizePct: (size/POP_N*100),
+    avgIntent: Math.round(avgIntent),
+    avgIncome: avgIncome ? (avgIncome/10000).toFixed(1) : '5.8',
+    avgAge: avgAge ? avgAge.toFixed(1) : '34.2',
+    distFor
+  };
+}
+
+function computeCrosstab(dimX, dimY){
+  const seg = computeSegment();
+  const xDist = seg.distFor(dimX);
+  const yDist = seg.distFor(dimY);
+  const matrix = [];
+  yDist.forEach(yi=>{
+    const row = { label:yi.k, cells:[] };
+    xDist.forEach(xi=>{
+      const cellPct = xi.p * yi.p * 100;
+      row.cells.push({ x:xi.k, val: cellPct.toFixed(1), highlight: cellPct>15 });
+    });
+    matrix.push(row);
+  });
+  return { xLabels: xDist.map(d=>d.k), rows: matrix };
+}
+
+function generateInsights(){
+  const seg = computeSegment();
+  const insights = [];
+  if(seg.size < 1000){
+    insights.push({ tag:'주의', conf:91, title:'타겟 사이즈 좁음', body:'현재 세그먼트가 N='+seg.size+'명으로 작아 통계 신뢰도가 떨어질 수 있습니다. 필터 한두 개 완화를 권장합니다.'});
+  } else if(seg.size > 5000){
+    insights.push({ tag:'기회', conf:94, title:'타겟 사이즈 충분', body:'N='+seg.size.toLocaleString()+'명으로 대규모 광고 캠페인 운영에 적합합니다.'});
+  } else {
+    insights.push({ tag:'기회', conf:93, title:'적정 타겟 사이즈', body:'N='+seg.size.toLocaleString()+'명 — 정밀 타겟팅과 통계 신뢰도 모두 확보됐습니다.'});
+  }
+  if(seg.avgIntent >= 75){
+    insights.push({ tag:'강한 신호', conf:92, title:'구매 의향 매우 높음', body:'평균 구매 의향 '+seg.avgIntent+'점 — 전체 대비 +'+(seg.avgIntent-BASE_INTENT)+'점. 직접 전환 캠페인 권장.'});
+  } else if(seg.avgIntent < 55){
+    insights.push({ tag:'약한 신호', conf:85, title:'구매 의향 낮음', body:'평균 구매 의향 '+seg.avgIntent+'점 — 전체 대비 -'+(BASE_INTENT-seg.avgIntent)+'점. 인지/관심 단계 컨텐츠 권장.'});
+  } else {
+    insights.push({ tag:'중간 신호', conf:88, title:'구매 의향 중간', body:'평균 구매 의향 '+seg.avgIntent+'점 — 검토(consideration) 단계 컨텐츠 권장.'});
+  }
+  const topMedia = seg.distFor('media').slice().sort((a,b)=>b.p-a.p)[0];
+  insights.push({ tag:'미디어', conf:90, title:'최적 채널: '+topMedia.k, body:'세그먼트의 '+Math.round(topMedia.p*100)+'%가 '+topMedia.k+'를 주요 매체로 사용. 광고 예산의 '+Math.min(70,Math.round(topMedia.p*100*1.3))+'%를 이 채널에 우선 배분 권장.'});
+  const tt = seg.distFor('trigger').slice().sort((a,b)=>b.p-a.p)[0];
+  const copyMap = {'친환경':'지구를 위한 선택','경제성':'유지비의 새로운 기준','성능':'다른 차원의 가속','디자인':'시선이 머무는 라인','안전':'가족이 가장 먼저','보조금':'지금이 가장 저렴'};
+  insights.push({ tag:'카피', conf:87, title:"광고 카피 톤: '"+tt.k+"'", body:"이 세그먼트가 가장 반응하는 키워드는 '"+tt.k+"'. 헤드라인 예시: \""+(copyMap[tt.k]||tt.k)+"\""});
+  const incomeDist = seg.distFor('income');
+  const high = incomeDist.filter(d=>['7천만-1억','1억↑'].includes(d.k)).reduce((a,b)=>a+b.p,0);
+  if(high > 0.35){
+    insights.push({ tag:'프리미엄', conf:89, title:'고소득 비중 높음', body:'고소득(7천만+) 비중 '+Math.round(high*100)+'% — 프리미엄 라인 / BMW·벤츠 비교 컨텐츠 효과적.'});
+  } else {
+    insights.push({ tag:'가성비', conf:86, title:'중·저소득 중심', body:'중·저소득 비중 '+Math.round((1-high)*100)+'% — 보조금·할부·금융 혜택 강조 필요.'});
+  }
+  const ls = seg.distFor('lifestyle').slice().sort((a,b)=>b.p-a.p)[0];
+  const lsMap = {'캠핑':'V2L · 적재공간','육아':'안전 사양 · 후방 카메라','피트니스':'바이크 거치 · 자율주행','맛집':'주차 편의 · 도심 주행','반려동물':'펫 모드 · 가죽 시트','테크얼리어답터':'OTA · 자율주행'};
+  insights.push({ tag:'라이프', conf:88, title:'핵심 라이프: '+ls.k, body:Math.round(ls.p*100)+'%가 '+ls.k+'을 추구. 어필 포인트: '+(lsMap[ls.k]||'라이프스타일 일치')+'.'});
+  return insights;
+}
+
+const AUD_STORAGE_KEY = 'innocean.audience.projects';
+function loadProjects(){ try{ return JSON.parse(localStorage.getItem(AUD_STORAGE_KEY)||'[]'); }catch(e){return [];} }
+function saveProjects(list){ try{ localStorage.setItem(AUD_STORAGE_KEY, JSON.stringify(list)); return true; }catch(e){return false;} }
+function nameFromFilters(){
+  const f = AUD_STATE.filters || {};
+  const parts = [];
+  if(f.age && f.age.length) parts.push(f.age[0]+(f.age.length>1?'+':'')+'세');
+  if(f.carWant && f.carWant.length) parts.push(f.carWant.join('/'));
+  if(f.income && f.income.length) parts.push(f.income[0]+(f.income.length>1?'+':''));
+  if(!parts.length) parts.push('전체 모집단');
+  return parts.join(' · ') + ' 오디언스';
+}
+function audSaveProject(name){
+  const list = loadProjects();
+  if(AUD_STATE.currentProjectId){
+    const p = list.find(x=>x.id===AUD_STATE.currentProjectId);
+    if(p){
+      if(name) p.name = name;
+      p.updatedAt = new Date().toISOString();
+      p.filters = JSON.parse(JSON.stringify(AUD_STATE.filters));
+      const seg = computeSegment();
+      p.summary = { size:seg.size, avgIntent:seg.avgIntent, avgIncome:seg.avgIncome, avgAge:seg.avgAge };
+      saveProjects(list);
+      return p;
+    }
+  }
+  const id='p_'+Date.now();
+  const seg=computeSegment();
+  const proj = {
+    id, name: name || nameFromFilters(),
+    createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
+    filters: JSON.parse(JSON.stringify(AUD_STATE.filters)),
+    summary:{ size:seg.size, avgIntent:seg.avgIntent, avgIncome:seg.avgIncome, avgAge:seg.avgAge }
+  };
+  list.unshift(proj);
+  saveProjects(list);
+  AUD_STATE.currentProjectId = id;
+  return proj;
+}
+function audDeleteProject(id){
+  const list = loadProjects().filter(x=>x.id!==id);
+  saveProjects(list);
+  if(AUD_STATE.currentProjectId === id) AUD_STATE.currentProjectId = null;
+}
+function audLoadProject(id){
+  const proj = loadProjects().find(x=>x.id===id);
+  if(!proj) return null;
+  AUD_STATE.filters = JSON.parse(JSON.stringify(proj.filters));
+  AUD_STATE.currentProjectId = id;
+  applyFiltersToUI();
+  rerenderAll();
+  return proj;
+}
+function audNewProject(){
+  AUD_STATE.filters = {};
+  AUD_STATE.currentProjectId = null;
+  applyFiltersToUI();
+  rerenderAll();
+  navTo('builder', null);
+}
+
+function serializeFiltersToHash(){
+  const f = AUD_STATE.filters || {};
+  const parts = [];
+  Object.keys(f).forEach(dim=>{
+    if(f[dim] && f[dim].length){
+      parts.push(dim+':'+f[dim].map(encodeURIComponent).join(','));
+    }
+  });
+  return parts.join('|');
+}
+function parseFiltersFromHash(qs){
+  const out = {};
+  if(!qs) return out;
+  qs.split('|').forEach(part=>{
+    const [dim,vals] = part.split(':');
+    if(dim && vals) out[dim] = vals.split(',').map(decodeURIComponent);
+  });
+  return out;
+}
+function audShareUrl(){
+  const qs = serializeFiltersToHash();
+  const url = location.origin + location.pathname + (qs?('?f='+encodeURIComponent(qs)):'') + '#builder';
+  navigator.clipboard.writeText(url).then(
+    ()=>showToast('공유 URL이 클립보드에 복사되었습니다','ok'),
+    ()=>{ window.prompt('아래 URL을 복사하세요', url); }
+  );
+}
+function audExport(){
+  const seg = computeSegment();
+  const data = {
+    name: nameFromFilters(),
+    exportedAt: new Date().toISOString(),
+    filters: AUD_STATE.filters,
+    summary: { size:seg.size, avgIntent:seg.avgIntent, avgIncome:seg.avgIncome+'천만원', avgAge:seg.avgAge+'세' },
+    distribution: { age:seg.distFor('age'), income:seg.distFor('income'), brand:seg.distFor('brand'), trigger:seg.distFor('trigger'), media:seg.distFor('media') },
+    insights: generateInsights()
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (nameFromFilters().replace(/\s/g,'_'))+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('오디언스 데이터가 JSON으로 내보내졌습니다','ok');
+}
+
+function applyFiltersToUI(){
+  const f = AUD_STATE.filters || {};
+  document.querySelectorAll('.bld-grp').forEach(grp=>{
+    const dim = grp.dataset.dim;
+    if(!dim) return;
+    const sel = f[dim] || [];
+    grp.querySelectorAll('.chip').forEach(c=>{
+      const val = c.dataset.value || c.textContent.trim();
+      c.classList.toggle('on', sel.includes(val));
+    });
+  });
+}
+function readFiltersFromUI(){
+  const f = {};
+  document.querySelectorAll('.bld-grp').forEach(grp=>{
+    const dim = grp.dataset.dim;
+    if(!dim) return;
+    const sel = [];
+    grp.querySelectorAll('.chip.on').forEach(c=>{
+      sel.push(c.dataset.value || c.textContent.trim());
+    });
+    if(sel.length) f[dim] = sel;
+  });
+  AUD_STATE.filters = f;
+}
+
+function showToast(msg, kind){
+  let t = document.getElementById('aud-toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'aud-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 22px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .2s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = kind==='err' ? '#B91C1C' : (kind==='ok' ? '#065F46' : '#111827');
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>{ t.style.opacity='0'; }, 2400);
+}
+
+function rerenderAll(){
+  if(typeof rerenderBuilder === 'function') rerenderBuilder();
+  if(typeof rerenderInsights === 'function') rerenderInsights();
+  if(typeof rerenderXtab === 'function') rerenderXtab();
+  if(typeof rerenderDiscover === 'function') rerenderDiscover();
+  if(typeof rerenderCompare === 'function') rerenderCompare();
+  updateProjectBadge();
+}
+function updateProjectBadge(){
+  const el = document.getElementById('current-project-name');
+  if(!el) return;
+  const list = loadProjects();
+  const cur = AUD_STATE.currentProjectId ? list.find(x=>x.id===AUD_STATE.currentProjectId) : null;
+  el.textContent = cur ? cur.name : '저장 안 됨';
+}
+
+
 // ============ Navigation + Browser History ============
 const PAGES = ['home','builder','insights','xtab','compare','discover','interview'];
 function renderPage(id){
@@ -1064,28 +1456,10 @@ function renderCharts(){
 // ============ Builder: chip 토글 + size 재산출 ============
 function toggleChip(el){
   el.classList.toggle('on');
-  recomputeAudienceSize();
+  readFiltersFromUI();
+  rerenderAll();
 }
-function recomputeAudienceSize(){
-  // 각 그룹별 선택칩 수 × 고정 계수로 사이즈 mock 업데이트
-  const groups = document.querySelectorAll('#page-builder .bld-grp');
-  let onCount=0, totCount=0;
-  groups.forEach(g=>{
-    const chips=g.querySelectorAll('.chip');
-    totCount += chips.length;
-    onCount += g.querySelectorAll('.chip.on').length;
-  });
-  const ratio = totCount? (onCount/totCount):0.5;
-  // 1500~14000 범위 mock
-  const size = Math.round(1500 + ratio*12500);
-  const pct = (size/400000*100).toFixed(1);
-  const sizeEl = document.querySelector('.aud-size');
-  if(sizeEl) sizeEl.textContent = size.toLocaleString()+'명';
-  const kpi = document.querySelector('#page-builder .hero .kpi:first-child .kpi-v');
-  if(kpi) kpi.textContent = size.toLocaleString();
-  const kpiDesc = document.querySelector('#page-builder .hero .kpi:first-child .kpi-d');
-  if(kpiDesc) kpiDesc.innerHTML = '전체 모집단 대비 <b>'+pct+'%</b>';
-}
+function recomputeAudienceSize(){ rerenderAll(); }
 // 자동 한 번에 chip 클릭 핸들러 부착
 function bindChips(){
   document.querySelectorAll('.chip').forEach(c=>{
@@ -1100,56 +1474,44 @@ function bindChips(){
 function insightsTab(btn){
   document.querySelectorAll('#page-insights .tabs button').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  // 반동 — KPI 렌더링 값 약간 흔들기 (mock 필터링 효과)
-  const factor = 0.85 + Math.random()*0.3;
-  document.querySelectorAll('#page-insights .hero .kpi-v').forEach(v=>{
-    const orig = v.dataset.orig || v.textContent;
-    v.dataset.orig = orig;
-    const num = parseFloat(orig);
-    if(!isNaN(num)){
-      const newNum = (num*factor);
-      const suffix = orig.replace(/[\d.,\s]+/,'').trim();
-      v.textContent = (newNum<10? newNum.toFixed(1): Math.round(newNum)) + (suffix? ' '+suffix:'');
-    }
-  });
+  rerenderInsights();
 }
 
 // ============ Cross-tab dimension swap ============
-function xtabDim(label){
-  const t = '조합을 "' + label + '"으로 변경했습니다.\n\n(데모 단계 — Phase 2에서 실데이터 연동 시 열·행 동적 재집계 제공)';
-  alert(t);
-}
+function xtabDim(label){ rerenderXtab(); }
 
 // ============ Discover refresh ============
-function discoverRefresh(){
-  const cards = document.querySelectorAll('#page-discover .disc');
-  cards.forEach((c,i)=>{
-    c.style.opacity='0.3';
-    setTimeout(()=>{
-      c.style.opacity='1';
-      // 신뢰도·표본 수치 추가
-      const meta = c.querySelector('.disc-meta');
-      if(meta){
-        const newConf = (88 + Math.floor(Math.random()*10));
-        meta.innerHTML = meta.innerHTML.replace(/신뢰도: <b>\d+%<\/b>/, '신뢰도: <b>'+newConf+'%</b>');
-      }
-    }, 150+i*80);
-  });
-}
+function discoverRefresh(){ rerenderDiscover(); showToast('인사이트가 갱신되었습니다','ok'); }
 
 // ============ Header buttons ============
-function headerExport(){
-  alert('현재 오디언스 설정과 인사이트를 PDF·Excel로 내보냅니다.\n\n(데모 단계 — Phase 2 백엔드 연동 시 활성화)');
-}
+function headerExport(){ audExport(); }
 function headerNewProject(){
-  if(confirm('새 프로젝트를 시작하면 현재 오디언스 설정이 초기화됩니다. 계속하시겠습니까?')){
-    document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
-    recomputeAudienceSize();
-    navTo('builder', document.querySelectorAll('.hnav .ntab')[1]);
-  }
+  if(Object.keys(AUD_STATE.filters||{}).length && !confirm('새 프로젝트를 시작하면 현재 필터가 초기화됩니다. 계속하시겠습니까?')) return;
+  audNewProject();
+  showToast('새 프로젝트가 시작되었습니다','ok');
 }
-function audSave(){ alert('오디언스가 저장되었습니다: "전기차 구매 의향 30대"'); }
-function audDuplicate(){ alert('오디언스가 복제되었습니다. 복제본을 수정해보세요.'); }
+function audSave(){
+  const cur = AUD_STATE.currentProjectId;
+  let name = nameFromFilters();
+  if(!cur){
+    const input = prompt('프로젝트 이름을 입력하세요', name);
+    if(input===null) return;
+    name = input.trim() || name;
+  }
+  const proj = audSaveProject(name);
+  showToast('저장 완료: '+proj.name+' · 우측 상단 \'내 프로젝트\'에서 확인', 'ok');
+  updateProjectBadge();
+  renderProjectsList();
+}
+function audDuplicate(){
+  AUD_STATE.currentProjectId = null;
+  const input = prompt('복제본 이름을 입력하세요', nameFromFilters()+' (복제)');
+  if(input===null) return;
+  const proj = audSaveProject(input.trim() || (nameFromFilters()+' (복제)'));
+  showToast('복제 완료: '+proj.name,'ok');
+  updateProjectBadge();
+  renderProjectsList();
+}
 
 // ============ Interview ============
 const PERSONAS = {
@@ -1222,6 +1584,232 @@ function mockReply(q){
   return '음, 그건 저도 한 번도 깊게 생각해본 적은 없는데... 일단 <b>가족 안전 + 충전 안심</b>이 1순위라는 건 확실해요. 다른 건 부수적이에요.';
 }
 
+
+// ============ Level 1 Rerender Functions ============
+
+function rerenderBuilder(){
+  const seg = computeSegment();
+  const el = (id)=>document.getElementById(id);
+  if(el('kpi-size')) el('kpi-size').textContent = seg.size.toLocaleString();
+  if(el('kpi-sizepct')) el('kpi-sizepct').textContent = seg.sizePct.toFixed(1)+'%';
+  if(el('kpi-age')) el('kpi-age').textContent = seg.avgAge;
+  if(el('kpi-income')) el('kpi-income').textContent = seg.avgIncome;
+  if(el('kpi-intent')) el('kpi-intent').textContent = seg.avgIntent;
+
+  // aud-preview 갱신
+  const sizeEl = document.querySelector('.aud-size');
+  if(sizeEl) sizeEl.textContent = seg.size.toLocaleString()+'명';
+  const lblEl = document.querySelector('.aud-size-l');
+  if(lblEl) lblEl.textContent = 'Synthetic Persona Pool · 신뢰도 92% · 평균 의향 '+seg.avgIntent+'점';
+
+  // 동적 요약문
+  const sumEl = document.querySelector('.aud-summary');
+  if(sumEl){
+    const f = AUD_STATE.filters||{};
+    const tags = [];
+    if(f.age) tags.push(f.age.join('/')+'세');
+    if(f.income) tags.push('가구소득 '+f.income.join('/'));
+    if(f.lifestyle) tags.push(f.lifestyle.join('+'));
+    if(f.carWant) tags.push(f.carWant.join('/')+' 관심');
+    const summary = tags.length ? tags.join(' · ') : '전체 모집단';
+    const liftPct = Math.round((seg.avgIntent - BASE_INTENT)/BASE_INTENT*100);
+    sumEl.innerHTML = '<b>"'+summary+'"</b><br>이 오디언스는 평균 구매 의향 <b>'+seg.avgIntent+'점</b> ('+(liftPct>=0?'+':'')+liftPct+'%), 평균 가구소득 <b>'+seg.avgIncome+'천만원</b>, 평균 연령 <b>'+seg.avgAge+'세</b>입니다.';
+  }
+
+  // aud-meta 갱신
+  const metaEl = document.querySelector('.aud-meta');
+  if(metaEl){
+    const gd = seg.distFor('gender');
+    const ms = seg.distFor('media').slice().sort((a,b)=>b.p-a.p).slice(0,2).map(d=>d.k).join(' · ');
+    const carD = seg.distFor('carWant').slice().sort((a,b)=>b.p-a.p)[0];
+    metaEl.innerHTML = '<div class="it"><div class="l">성별</div><div class="v">F '+Math.round((gd.find(d=>d.k==='여성')||{p:0.5}).p*100)+' / M '+Math.round((gd.find(d=>d.k==='남성')||{p:0.5}).p*100)+'</div></div>'
+      + '<div class="it"><div class="l">선호 차종</div><div class="v">'+carD.k+' '+Math.round(carD.p*100)+'%</div></div>'
+      + '<div class="it"><div class="l">디지털 채널</div><div class="v">'+ms+'</div></div>';
+  }
+
+  // 빈 상태
+  const empty = Object.keys(AUD_STATE.filters||{}).every(k=>!AUD_STATE.filters[k]||!AUD_STATE.filters[k].length);
+  const emptyEl = document.getElementById('builder-empty');
+  if(empty && !emptyEl){
+    const note = document.createElement('div');
+    note.id = 'builder-empty';
+    note.style.cssText = 'padding:10px 16px;background:#FEF3C7;border:1px solid #F59E0B;color:#92400E;font-size:12px;margin-bottom:12px;font-weight:600';
+    note.textContent = '필터를 선택해 타겟 세그먼트를 좁히세요. 현재는 전체 모집단(N=8,420)을 보고 있습니다.';
+    const builder = document.querySelector('#page-builder .builder');
+    if(builder) builder.parentNode.insertBefore(note, builder);
+  } else if(!empty && emptyEl){
+    emptyEl.remove();
+  }
+}
+
+function rerenderInsights(){
+  const seg = computeSegment();
+  // KPI 4개
+  const kpis = document.querySelectorAll('#page-insights .hero .kpi-v');
+  if(kpis[0]) kpis[0].textContent = seg.size.toLocaleString();
+  if(kpis[1]) kpis[1].textContent = seg.avgAge+'세';
+  if(kpis[2]) kpis[2].textContent = seg.avgIncome+'천만';
+  if(kpis[3]) kpis[3].textContent = seg.avgIntent+'점';
+
+  // 차트 재렌더링 — 활성 탭 기준
+  const activeTab = document.querySelector('#page-insights .tabs button.on');
+  const tabName = activeTab ? activeTab.textContent.trim() : '전체';
+  renderInsightsCharts(seg, tabName);
+}
+
+function renderInsightsCharts(seg, tabName){
+  const charts = ['chart-age','chart-income','chart-brand','chart-trigger'];
+  const dimMap = {'chart-age':'age','chart-income':'income','chart-brand':'brand','chart-trigger':'trigger'};
+  const typeMap = {'chart-age':'bar','chart-income':'bar','chart-brand':'doughnut','chart-trigger':'radar'};
+  Object.keys(dimMap).forEach(canvasId=>{
+    const el = document.getElementById(canvasId);
+    if(!el) return;
+    const dim = dimMap[canvasId];
+    const dist = seg.distFor(dim);
+    const ctx = el.getContext('2d');
+    if(el._chart) el._chart.destroy();
+    const type = typeMap[canvasId];
+    const labels = dist.map(d=>d.k);
+    const values = dist.map(d=>+(d.p*100).toFixed(1));
+    const colors = ['#4F46E5','#7C3AED','#EC4899','#F59E0B','#10B981','#06B6D4','#6366F1','#8B5CF6'];
+    const cfg = {
+      type: type,
+      data: { labels, datasets: [{ label: '비율 (%)', data: values, backgroundColor: type==='doughnut'?colors.slice(0,labels.length):'rgba(79,70,229,0.7)', borderColor:'#4F46E5', borderWidth:1.5, pointRadius:3 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:type==='doughnut'||type==='radar', position:'bottom', labels:{font:{size:10}} } }, scales: type==='doughnut'||type==='radar'?{}:{ y:{ beginAtZero:true, ticks:{callback:v=>v+'%'} } } }
+    };
+    el._chart = new Chart(ctx, cfg);
+  });
+}
+
+function rerenderXtab(){
+  const dimXSel = document.getElementById('xtab-dimx');
+  const dimYSel = document.getElementById('xtab-dimy');
+  const dimX = dimXSel ? dimXSel.value : 'age';
+  const dimY = dimYSel ? dimYSel.value : 'carWant';
+  const ct = computeCrosstab(dimX, dimY);
+  const tbody = document.getElementById('xtab-tbody');
+  const thead = document.getElementById('xtab-thead');
+  if(thead){
+    thead.innerHTML = '<tr><th></th>'+ct.xLabels.map(l=>'<th>'+l+'</th>').join('')+'</tr>';
+  }
+  if(tbody){
+    tbody.innerHTML = ct.rows.map(r=>'<tr><td class="rl">'+r.label+'</td>'+r.cells.map(c=>'<td class="'+(c.highlight?'hl':'')+'">'+c.val+'%</td>').join('')+'</tr>').join('');
+  }
+}
+
+function rerenderDiscover(){
+  const insights = generateInsights();
+  const grid = document.getElementById('discover-grid');
+  if(!grid) return;
+  grid.innerHTML = insights.map(i=>(
+    '<div class="disc">'
+    + '<div class="disc-tag">'+i.tag+'</div>'
+    + '<div class="disc-title">'+i.title+'</div>'
+    + '<div class="disc-body">'+i.body+'</div>'
+    + '<div class="disc-meta">표본: N='+computeSegment().size.toLocaleString()+' · 신뢰도: <b>'+i.conf+'%</b></div>'
+    + '</div>'
+  )).join('');
+}
+
+function rerenderCompare(){
+  const segA = computeSegment(AUD_STATE.filters);
+  // B = 전체 모집단
+  const segB = computeSegment({});
+  const set = (id, val)=>{ const el = document.getElementById(id); if(el) el.textContent = val; };
+  set('cmp-a-size', segA.size.toLocaleString());
+  set('cmp-a-age', segA.avgAge+'세');
+  set('cmp-a-income', segA.avgIncome+'천만');
+  set('cmp-a-intent', segA.avgIntent+'점');
+  set('cmp-b-size', segB.size.toLocaleString());
+  set('cmp-b-age', segB.avgAge+'세');
+  set('cmp-b-income', segB.avgIncome+'천만');
+  set('cmp-b-intent', segB.avgIntent+'점');
+  // 차이 배지
+  const liftIntent = segA.avgIntent - segB.avgIntent;
+  set('cmp-a-name', nameFromFilters());
+  const badge = document.getElementById('cmp-badge');
+  if(badge){
+    if(liftIntent > 5) badge.innerHTML = 'A가 구매 의향 +'+liftIntent+'점 강함';
+    else if(liftIntent < -5) badge.innerHTML = 'A가 구매 의향 '+liftIntent+'점 약함';
+    else badge.innerHTML = '두 세그먼트 비슷한 의향';
+  }
+}
+
+
+
+// === 프로젝트 패널 렌더 ===
+function renderProjectsList(){
+  const list = loadProjects();
+  const ul = document.getElementById('projects-list');
+  if(!ul) return;
+  if(!list.length){
+    ul.innerHTML = '<div class="proj-empty">저장된 프로젝트가 없습니다. 빌더에서 필터 설정 후 저장하세요.</div>';
+    return;
+  }
+  ul.innerHTML = list.map(p=>{
+    const dt = new Date(p.updatedAt).toLocaleDateString('ko-KR')+' '+new Date(p.updatedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    const isCur = AUD_STATE.currentProjectId===p.id;
+    return '<div class="proj-it'+(isCur?' on':'')+'" data-id="'+p.id+'">'
+      + '<div class="proj-it-l">'
+      +   '<div class="proj-nm">'+p.name+(isCur?' <span class="proj-cur-tag">현재</span>':'')+'</div>'
+      +   '<div class="proj-sub">'+p.summary.size.toLocaleString()+'명 · 의향 '+p.summary.avgIntent+'점 · '+dt+'</div>'
+      + '</div>'
+      + '<div class="proj-it-actions">'
+      +   '<button onclick="event.stopPropagation();audLoadProject(\''+p.id+'\');closeProjectsPanel();showToast(\'프로젝트 로드 완료\',\'ok\')">불러오기</button>'
+      +   '<button class="del" onclick="event.stopPropagation();if(confirm(\'삭제하시겠습니까?\')){audDeleteProject(\''+p.id+'\');renderProjectsList();updateProjectBadge();showToast(\'삭제됨\',\'err\');}">삭제</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+function toggleProjectsPanel(){
+  const p = document.getElementById('projects-panel');
+  if(!p) return;
+  if(p.classList.contains('on')) closeProjectsPanel();
+  else { p.classList.add('on'); renderProjectsList(); }
+}
+function closeProjectsPanel(){
+  const p = document.getElementById('projects-panel');
+  if(p) p.classList.remove('on');
+}
+document.addEventListener('click', e=>{
+  const p = document.getElementById('projects-panel');
+  const btn = document.getElementById('btn-projects');
+  if(p && p.classList.contains('on') && !p.contains(e.target) && btn && !btn.contains(e.target)){
+    closeProjectsPanel();
+  }
+});
+
+// === 다크 모드 토글 ===
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  try{ localStorage.setItem('aud.theme', document.body.classList.contains('dark')?'dark':'light'); }catch(e){}
+}
+(function restoreTheme(){
+  try{ if(localStorage.getItem('aud.theme')==='dark') document.body.classList.add('dark'); }catch(e){}
+})();
+
+// === Builder Reset ===
+function builderReset(){
+  if(!Object.keys(AUD_STATE.filters||{}).length){ showToast('이미 모든 필터가 해제되어 있습니다'); return; }
+  if(!confirm('모든 필터를 해제하시겠습니까?')) return;
+  AUD_STATE.filters = {};
+  AUD_STATE.currentProjectId = null;
+  applyFiltersToUI();
+  rerenderAll();
+  showToast('필터가 모두 해제되었습니다','ok');
+}
+
+// === URL 쿼리에서 필터 복원 ===
+(function loadFromQuery(){
+  const qm = location.search.match(/[?&]f=([^&]+)/);
+  if(qm){
+    try{
+      AUD_STATE.filters = parseFiltersFromHash(decodeURIComponent(qm[1]));
+    }catch(e){}
+  }
+})();
+
+
 // init: chip 바인딩 + iv-list 이벤트﻿
 window.addEventListener('DOMContentLoaded', ()=>{
   bindChips();
@@ -1230,6 +1818,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
       it.addEventListener('click', ()=>selectPersona(it.dataset.persona));
     }
   });
+  applyFiltersToUI();
+  rerenderAll();
+  renderProjectsList();
+  updateProjectBadge();
   renderCharts();
 });
 </script>
