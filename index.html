@@ -167,9 +167,105 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .beta-banner .l{font-size:13px;font-weight:700;letter-spacing:-.2px}
 .beta-banner .r{font-size:11.5px;color:#D1D5DB;line-height:1.4}
 .beta-banner .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;padding:3px 8px;background:#fff;color:#000;margin-right:8px}
+
+/* === Icons (line-style SVG) === */
+.ico{display:inline-block;width:14px;height:14px;vertical-align:-2px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ico-sm{width:12px;height:12px;vertical-align:-1px}
+.ico-lg{width:18px;height:18px;vertical-align:-3px}
+button .ico{margin-right:5px}
+.disc-icon .ico{width:18px;height:18px;stroke:#fff;stroke-width:2}
+
+/* === Landing (home) === */
+.home-hero{padding:96px 0 80px;border-bottom:1px solid var(--bdr);background:#fff}
+.home-hero-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1.15fr 1fr;gap:60px;align-items:center}
+.home-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;color:var(--ind);letter-spacing:.5px;text-transform:uppercase;padding:5px 11px;border:1.5px solid var(--ind);background:rgba(79,70,229,.05);margin-bottom:24px}
+.home-h1{font-size:46px;font-weight:800;letter-spacing:-1.2px;line-height:1.15;color:#000}
+.home-h1 em{font-style:normal;color:var(--ind)}
+.home-sub{font-size:16px;color:var(--ts);line-height:1.65;margin-top:18px;max-width:560px}
+.home-cta{display:flex;gap:10px;margin-top:30px;flex-wrap:wrap}
+.home-cta .pri,.home-cta .sec{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;font-size:14px;font-weight:700;border:1.5px solid #000;cursor:pointer}
+.home-cta .pri{background:#000;color:#fff}
+.home-cta .pri:hover{background:#1F2937}
+.home-cta .sec{background:#fff;color:#000}
+.home-cta .sec:hover{background:#000;color:#fff}
+.home-trust{font-size:11.5px;color:var(--tm);margin-top:20px;display:flex;gap:18px;flex-wrap:wrap}
+.home-trust span{display:inline-flex;align-items:center;gap:5px}
+.home-trust b{color:#000;font-weight:700}
+
+.home-viz{background:#000;color:#fff;padding:30px;position:relative;border:1px solid #000}
+.home-viz-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.home-viz-t{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#9CA3AF}
+.home-viz-tag{font-size:10.5px;font-weight:700;padding:3px 7px;background:var(--ind);color:#fff;letter-spacing:.3px}
+.home-viz-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.home-viz-av{width:36px;height:36px;background:linear-gradient(135deg,var(--ind),var(--ind2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.home-viz-bubble{flex:1;background:#1F2937;padding:10px 13px;font-size:12.5px;color:#E5E7EB;line-height:1.55;border-left:2px solid var(--ind)}
+.home-viz-bubble b{color:#fff}
+.home-viz-bubble.you{background:#374151;border-left-color:#9CA3AF;text-align:right;border-left:none;border-right:2px solid #9CA3AF}
+.home-viz-row.you{flex-direction:row-reverse}
+.home-viz-row.you .home-viz-av{background:#374151;color:#9CA3AF;font-weight:700;font-size:11px}
+.home-viz-foot{margin-top:18px;padding-top:14px;border-top:1px solid #374151;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9CA3AF}
+.home-viz-foot b{color:#fff}
+
+.home-stats{background:var(--bg);padding:60px 0;border-bottom:1px solid var(--bdr)}
+.home-stats-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+.home-stats .v{font-size:42px;font-weight:800;letter-spacing:-1.2px;color:#000}
+.home-stats .v em{color:var(--ind);font-style:normal}
+.home-stats .l{font-size:12.5px;color:var(--tm);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+
+.home-feat{padding:80px 0;background:#fff;border-bottom:1px solid var(--bdr)}
+.home-feat-inner{max-width:1180px;margin:0 auto;padding:0 24px}
+.home-feat-hd{text-align:center;margin-bottom:48px}
+.home-feat-eb{font-size:11.5px;font-weight:700;color:var(--ind);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.home-feat-t{font-size:32px;font-weight:800;letter-spacing:-.6px;color:#000}
+.home-feat-s{font-size:14px;color:var(--ts);margin-top:10px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.6}
+.home-feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.home-feat-card{padding:28px 24px;border:2px solid var(--bdr);background:#fff;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:12px}
+.home-feat-card:hover{border-color:#000}
+.home-feat-card .icoBox{width:44px;height:44px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center}
+.home-feat-card .icoBox .ico{width:22px;height:22px;stroke-width:1.8}
+.home-feat-card .t{font-size:15px;font-weight:700;color:#000}
+.home-feat-card .d{font-size:13px;color:var(--ts);line-height:1.6}
+.home-feat-card .link{font-size:12px;font-weight:700;color:#000;margin-top:auto;display:inline-flex;align-items:center;gap:5px}
+.home-feat-card:hover .link{color:var(--ind)}
+
+.home-flow{padding:80px 0;background:var(--bg);border-bottom:1px solid var(--bdr)}
+.home-flow-inner{max-width:1180px;margin:0 auto;padding:0 24px}
+.home-flow-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px}
+.home-flow-step{background:#fff;padding:24px 22px;border:2px solid var(--bdr);position:relative}
+.home-flow-step .n{font-size:11px;font-weight:800;color:var(--ind);letter-spacing:.5px;margin-bottom:8px}
+.home-flow-step .t{font-size:14px;font-weight:700;color:#000;margin-bottom:6px}
+.home-flow-step .d{font-size:12.5px;color:var(--ts);line-height:1.55}
+
+.home-cmp{padding:80px 0;background:#fff;border-bottom:1px solid var(--bdr)}
+.home-cmp-inner{max-width:1180px;margin:0 auto;padding:0 24px}
+.home-cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
+.home-cmp-col{background:#fff;border:2px solid var(--bdr);padding:28px 24px}
+.home-cmp-col.b{border-color:#000}
+.home-cmp-tag{font-size:10.5px;font-weight:700;padding:3px 8px;background:#9CA3AF;color:#fff;display:inline-block;margin-bottom:14px;letter-spacing:.3px}
+.home-cmp-col.b .home-cmp-tag{background:var(--ind)}
+.home-cmp-h{font-size:18px;font-weight:800;color:#000;margin-bottom:18px;letter-spacing:-.3px}
+.home-cmp-li{display:flex;gap:10px;padding:9px 0;font-size:13px;color:var(--ts);border-bottom:1px solid var(--bdr);align-items:flex-start}
+.home-cmp-li:last-child{border-bottom:none}
+.home-cmp-li .ico{margin-top:2px;flex-shrink:0;color:var(--tm)}
+.home-cmp-col.b .home-cmp-li .ico{color:var(--ind)}
+.home-cmp-li b{color:#000;font-weight:700}
+
+.home-final{padding:80px 0;background:#0F172A;color:#fff;text-align:center}
+.home-final-inner{max-width:760px;margin:0 auto;padding:0 24px}
+.home-final-t{font-size:34px;font-weight:800;letter-spacing:-.8px;line-height:1.2}
+.home-final-t em{font-style:normal;color:#A5B4FC}
+.home-final-s{font-size:14px;color:#D1D5DB;margin-top:14px;line-height:1.6}
+.home-final-cta{margin-top:30px;display:inline-flex;gap:10px}
+.home-final-cta button{display:inline-flex;align-items:center;gap:8px;padding:13px 24px;font-size:14px;font-weight:700;border:1.5px solid #fff;background:#fff;color:#000;cursor:pointer}
+.home-final-cta .sec{background:transparent;color:#fff}
+.home-final-cta .sec:hover{background:#fff;color:#000}
+
+/* hide subheader + beta-banner only on home */
+body.home-mode .subhdr,body.home-mode .beta-banner{display:none}
+body.home-mode .wrap{padding:0;max-width:100%}
 </style>
 </head>
-<body>
+<body class="home-mode">
 
 <header class="hdr">
   <div class="hdr-inner">
@@ -179,15 +275,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <div class="sub">AI PERSONA INSIGHTS · BETA</div>
     </div>
     <nav class="nav">
-      <button class="on" onclick="navTo('builder',this)">Audience Builder</button>
+      <button class="on" onclick="navTo('home',this)">Home</button>
+      <button onclick="navTo('builder',this)">Audience Builder</button>
       <button onclick="navTo('insights',this)">Charts &amp; Insights</button>
       <button onclick="navTo('xtab',this)">Cross-tab</button>
-      <button onclick="navTo('compare',this)">Audience Comparison</button>
+      <button onclick="navTo('compare',this)">Comparison</button>
       <button onclick="navTo('discover',this)">Discover</button>
       <button onclick="navTo('interview',this)">Persona Interview</button>
     </nav>
     <div class="hdr-r">
-      <button class="hdr-btn">📥 내보내기</button>
+      <button class="hdr-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>내보내기</button>
       <button class="hdr-pri">+ 새 프로젝트</button>
     </div>
   </div>
@@ -204,8 +301,189 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     <div class="r">캘리브레이션: 통계청 인구센서스 + KOSIS + 자동차산업협회 공개 데이터 기준 보정 적용</div>
   </div>
 
+  <!-- ============ HOME / Landing ============ -->
+  <div class="page active" id="page-home">
+    <!-- Hero -->
+    <section class="home-hero">
+      <div class="home-hero-inner">
+        <div>
+          <div class="home-eyebrow">
+            <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+            AI Persona Insights
+          </div>
+          <div class="home-h1">데이터를 묻지 말고,<br><em>타겟에게 직접 물어보세요.</em></div>
+          <div class="home-sub">INNOCEAN Audience는 합성 페르소나 기반 AI 인터뷰로 GWI 수준의 타겟 인사이트를 제공합니다. 캠페인 출시 전 가설을 검증하고, 광고 카피·미디어 전략의 방향을 정합니다.</div>
+          <div class="home-cta">
+            <button class="pri" onclick="navTo('builder',document.querySelectorAll('.nav button')[1])">
+              <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3.5-7 7-7s7 3 7 7"/></svg>
+              오디언스 만들기
+            </button>
+            <button class="sec" onclick="navTo('interview',document.querySelectorAll('.nav button')[6])">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/><path d="M8 11h8M8 14h5" stroke-linecap="round"/></svg>
+              페르소나 인터뷰
+            </button>
+          </div>
+          <div class="home-trust">
+            <span><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>합성 페르소나 <b>8,420</b>명</span>
+            <span><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>통계청·KOSIS 기반 보정</span>
+            <span><svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>3분 내 인사이트</span>
+          </div>
+        </div>
+        <!-- Right hero viz: mock interview card -->
+        <div class="home-viz">
+          <div class="home-viz-hd">
+            <div class="home-viz-t">Live Interview · 민지 (32)</div>
+            <span class="home-viz-tag">AI PERSONA</span>
+          </div>
+          <div class="home-viz-row you">
+            <div class="home-viz-av">YOU</div>
+            <div class="home-viz-bubble you">다음 차 살 때 가장 중요한 게 뭐예요?</div>
+          </div>
+          <div class="home-viz-row">
+            <div class="home-viz-av">민</div>
+            <div class="home-viz-bubble">저희 아이가 두 살이라 <b>안전</b>이 1순위에요. 그 다음이 <b>충전 편의성</b>이고요. EV는 좋은 거 알겠는데, 시댁 가다가 충전 못 하면 어떡하나 — 그게 제일 무서워요.</div>
+          </div>
+          <div class="home-viz-row you">
+            <div class="home-viz-av">YOU</div>
+            <div class="home-viz-bubble you">광고 카피로 어떤 메시지가 와닿아요?</div>
+          </div>
+          <div class="home-viz-row">
+            <div class="home-viz-av">민</div>
+            <div class="home-viz-bubble">"이 차가 멋있어요"는 식상해요. <b>"어디서든 충전 안심, E-Pit이 있으니까"</b> 같은 카피가 마음에 더 와닿아요.</div>
+          </div>
+          <div class="home-viz-foot">
+            <span>인터뷰 누적 <b>1,240</b>건</span>
+            <span><svg class="ico ico-sm" viewBox="0 0 24 24" style="stroke:#10B981"><circle cx="12" cy="12" r="4" fill="#10B981" stroke="#10B981"/></svg> 실시간 활성</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats band -->
+    <section class="home-stats">
+      <div class="home-stats-inner">
+        <div><div class="v"><em>8,420</em></div><div class="l">합성 페르소나 풀</div></div>
+        <div><div class="v">92<em style="font-size:28px">%</em></div><div class="l">캘리브레이션 정확도</div></div>
+        <div><div class="v"><em>3</em>분</div><div class="l">인사이트 도출 평균</div></div>
+        <div><div class="v">1/<em>40</em></div><div class="l">전통 리서치 대비 비용</div></div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="home-feat">
+      <div class="home-feat-inner">
+        <div class="home-feat-hd">
+          <div class="home-feat-eb">CAPABILITIES</div>
+          <div class="home-feat-t">캠페인 가설 검증의 새로운 표준</div>
+          <div class="home-feat-s">기존 패널 리서치의 5%만큼 빠르고 저렴하게, GWI 수준의 분석 표면을 그대로 제공합니다.</div>
+        </div>
+        <div class="home-feat-grid">
+          <div class="home-feat-card" onclick="navTo('builder',document.querySelectorAll('.nav button')[1])">
+            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+            <div class="t">Audience Builder</div>
+            <div class="d">인구통계·라이프스타일·구매행태 등 30+ 디멘션으로 세그먼트를 즉시 정의하고 사이즈를 산출합니다.</div>
+            <span class="link">시작하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="home-feat-card" onclick="navTo('insights',document.querySelectorAll('.nav button')[2])">
+            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M3 21V8M9 21V4M15 21v-9M21 21v-5"/></svg></div>
+            <div class="t">Charts &amp; Insights</div>
+            <div class="d">브랜드 선호·구매 트리거·미디어 소비·라이프스타일을 한 화면에서 비교합니다. 모든 수치는 캘리브레이션 보정.</div>
+            <span class="link">살펴보기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="home-feat-card" onclick="navTo('xtab',document.querySelectorAll('.nav button')[3])">
+            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M9 6v12M15 6v12M3 12h18"/></svg></div>
+            <div class="t">Cross-tabulation</div>
+            <div class="d">두 디멘션을 교차시켜 유의미한 셀을 자동 하이라이트. 연령×차종, 소득×트리거, 자녀×관심사 등.</div>
+            <span class="link">분석하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="home-feat-card" onclick="navTo('compare',document.querySelectorAll('.nav button')[4])">
+            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M8 4v16M16 4v16"/><path d="M3 8h5M3 16h5M16 8h5M16 16h5"/></svg></div>
+            <div class="t">Audience Comparison</div>
+            <div class="d">두 오디언스를 좌우로 비교해 가구소득·구매의향·미디어 소비 차이를 한눈에 파악합니다.</div>
+            <span class="link">비교하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="home-feat-card" onclick="navTo('discover',document.querySelectorAll('.nav button')[5])">
+            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
+            <div class="t">Discover</div>
+            <div class="d">AI가 통계적으로 두드러진 패턴을 자동 추출합니다. 미처 보지 못한 시그널과 기회 영역을 발견합니다.</div>
+            <span class="link">발견하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+          <div class="home-feat-card" onclick="navTo('interview',document.querySelectorAll('.nav button')[6])">
+            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/><path d="M8 11h8M8 14h5" stroke-linecap="round"/></svg></div>
+            <div class="t">Persona Interview</div>
+            <div class="d">합성 페르소나와 1:1 채팅으로 광고 카피·컨셉 반응을 즉시 확인합니다. 핵심 키워드 자동 추출 포함.</div>
+            <span class="link">대화하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flow -->
+    <section class="home-flow">
+      <div class="home-flow-inner">
+        <div class="home-feat-hd">
+          <div class="home-feat-eb">HOW IT WORKS</div>
+          <div class="home-feat-t">4단계로 끝나는 캠페인 인사이트</div>
+        </div>
+        <div class="home-flow-grid">
+          <div class="home-flow-step"><div class="n">STEP 01</div><div class="t">오디언스 정의</div><div class="d">필터로 타겟 세그먼트를 좁힙니다. 사이즈와 신뢰도가 실시간으로 표시됩니다.</div></div>
+          <div class="home-flow-step"><div class="n">STEP 02</div><div class="t">자동 분석</div><div class="d">합성 페르소나 풀에서 통계적 지표·라이프스타일·구매 트리거를 추출합니다.</div></div>
+          <div class="home-flow-step"><div class="n">STEP 03</div><div class="t">페르소나 인터뷰</div><div class="d">대표 페르소나와 직접 채팅. 광고 카피·컨셉·가격대 반응을 검증합니다.</div></div>
+          <div class="home-flow-step"><div class="n">STEP 04</div><div class="t">인사이트 리포트</div><div class="d">자동 추출된 시그널을 정리해 카피·미디어·세그먼테이션 전략으로 연결합니다.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Compare -->
+    <section class="home-cmp">
+      <div class="home-cmp-inner">
+        <div class="home-feat-hd">
+          <div class="home-feat-eb">WHY AI PERSONA</div>
+          <div class="home-feat-t">전통 리서치 vs INNOCEAN Audience</div>
+        </div>
+        <div class="home-cmp-grid">
+          <div class="home-cmp-col">
+            <span class="home-cmp-tag">기존 패널 리서치</span>
+            <div class="home-cmp-h">2~4주, 수천만원의 진입 장벽</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>패널 모집·필드 작업에 2~4주 소요</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>설문 1건당 <b>2,000~5,000만원</b></div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>가설 수정마다 재진행 필요</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>응답자 정직성·기억 의존</div>
+          </div>
+          <div class="home-cmp-col b">
+            <span class="home-cmp-tag">INNOCEAN Audience</span>
+            <div class="home-cmp-h">3분, 1/40 비용으로 가설 검증</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg><b>3분 내</b> 오디언스 정의~인사이트 도출</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>월 정액 — 인터뷰 횟수 무제한</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>가설 반복 검증·즉시 분기</div>
+            <div class="home-cmp-li"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>공공 통계 기반 캘리브레이션 보정</div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:24px;font-size:11.5px;color:var(--tm);font-style:italic">* 실제 리서치를 완전히 대체하지 않습니다. 가설 생성·우선순위 도구로 활용하세요.</div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="home-final">
+      <div class="home-final-inner">
+        <div class="home-final-t">다음 캠페인을 <em>가설 그대로 출시</em>하실 건가요?</div>
+        <div class="home-final-s">3분만 투자하면 타겟의 진짜 반응을 미리 봅니다. 데모 데이터로 바로 둘러보세요.</div>
+        <div class="home-final-cta">
+          <button onclick="navTo('builder',document.querySelectorAll('.nav button')[1])">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3.5-7 7-7s7 3 7 7"/></svg>
+            오디언스 만들기
+          </button>
+          <button class="sec" onclick="navTo('interview',document.querySelectorAll('.nav button')[6])">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>
+            인터뷰 데모 보기
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <!-- ============ Audience Builder ============ -->
-  <div class="page active" id="page-builder">
+  <div class="page" id="page-builder">
     <div class="hero">
       <div class="kpi"><div class="kpi-t">Audience Size</div><div class="kpi-v">8,420</div><div class="kpi-d">전체 모집단 대비 <b>2.1%</b></div></div>
       <div class="kpi"><div class="kpi-t">평균 연령</div><div class="kpi-v">34.2세</div><div class="kpi-d">기준: 25~44세</div></div>
@@ -289,9 +567,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <div class="aud-size-l">Synthetic Persona Pool · 신뢰도 92%</div>
             </div>
             <div class="aud-actions">
-              <button>💾 저장</button>
-              <button>📋 복제</button>
-              <button class="pri">💬 인터뷰 시작</button>
+              <button><svg class="ico" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v5h6V3"/><rect x="8" y="13" width="8" height="6"/></svg>저장</button>
+              <button><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>복제</button>
+              <button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>인터뷰 시작</button>
             </div>
           </div>
           <div class="aud-summary">
@@ -319,7 +597,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="persona-tag">맞벌이</span><span class="persona-tag">2세 자녀</span><span class="persona-tag">친환경</span><span class="persona-tag">아이오닉5 검토중</span>
             </div>
             <div class="persona-q">"충전 스트레스 없이 아이 어린이집까지 안전하게 가고 싶어요"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -330,7 +608,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="persona-tag">테크 얼리어답터</span><span class="persona-tag">테슬라 비교중</span><span class="persona-tag">럭셔리</span>
             </div>
             <div class="persona-q">"제네시스 GV60 vs 테슬라 모델Y, 자율주행 성능이 결정 포인트"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -341,7 +619,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="persona-tag">EV6 보유</span><span class="persona-tag">SNS 인플루언서</span><span class="persona-tag">SUV</span>
             </div>
             <div class="persona-q">"두번째 차는 가족용 큰 SUV로 — 충전 인프라 위주로 선택"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -352,7 +630,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="persona-tag">하이브리드 우선</span><span class="persona-tag">3세 자녀</span><span class="persona-tag">실용주의</span>
             </div>
             <div class="persona-q">"EV가 부담스럽다면 우선 하이브리드부터 — 보조금이 큰 변수"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -363,7 +641,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="persona-tag">신혼</span><span class="persona-tag">레저</span><span class="persona-tag">캠핑</span>
             </div>
             <div class="persona-q">"V2L로 캠핑 가능한 EV — 라이프스타일과 잘 맞는지가 중요"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -374,7 +652,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="persona-tag">대형 SUV</span><span class="persona-tag">제네시스</span><span class="persona-tag">2세 자녀</span>
             </div>
             <div class="persona-q">"GV80 EV 출시되면 무조건 — 안 나오면 EV9도 고려"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
         </div>
       </div>
@@ -435,9 +713,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <div class="sec-s">전체 8,420명 페르소나 풀 기준 비율 (%)</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="hdr-btn">행: 연령대 ▾</button>
-        <button class="hdr-btn">열: 차종 ▾</button>
-        <button class="hdr-btn">셀: % ▾</button>
+        <button class="hdr-btn">행: 연령대 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="hdr-btn">열: 차종 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="hdr-btn">셀: % <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
       </div>
     </div>
     <table class="xtab">
@@ -528,11 +806,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <div class="page" id="page-discover">
     <div class="sec-hd">
       <div><div class="sec-t">AI 자동 인사이트 — 통계적으로 두드러진 패턴</div><div class="sec-s">전체 평균 대비 차이가 큰 항목 자동 탐지 (Top 8)</div></div>
-      <button class="hdr-btn">🔄 새로고침</button>
+      <button class="hdr-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>새로고침</button>
     </div>
 
     <div class="disc">
-      <div class="disc-icon">✦</div>
+      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
       <div class="disc-body">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="disc-tag">강한 신호</span><span class="disc-t" style="margin:0">자녀를 둔 30대 여성, 충전 인프라 우려가 의사결정의 최대 변수</span>
@@ -543,7 +821,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     </div>
 
     <div class="disc">
-      <div class="disc-icon">✦</div>
+      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
       <div class="disc-body">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="disc-tag">차별점</span><span class="disc-t" style="margin:0">현대/기아 선호자는 안전을, 테슬라 검토자는 자율주행을 우선</span>
@@ -554,7 +832,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     </div>
 
     <div class="disc">
-      <div class="disc-icon">✦</div>
+      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
       <div class="disc-body">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="disc-tag">미디어 채널</span><span class="disc-t" style="margin:0">YouTube + Instagram 조합으로 도달률 92% 가능</span>
@@ -565,7 +843,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     </div>
 
     <div class="disc">
-      <div class="disc-icon">✦</div>
+      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
       <div class="disc-body">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="disc-tag">광고 카피</span><span class="disc-t" style="margin:0">"안심하고 충전, 어디서나" 메시지가 가장 강한 반응 유도</span>
@@ -576,7 +854,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     </div>
 
     <div class="disc">
-      <div class="disc-icon">✦</div>
+      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
       <div class="disc-body">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="disc-tag">소득 분화</span><span class="disc-t" style="margin:0">소득 1.2억 이상에서 제네시스 GV60 선호도 4배</span>
@@ -587,7 +865,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     </div>
 
     <div class="disc">
-      <div class="disc-icon">✦</div>
+      <div class="disc-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/></svg></div>
       <div class="disc-body">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="disc-tag">시간대</span><span class="disc-t" style="margin:0">평일 21~23시 광고 노출이 회상도 +38% 우수</span>
@@ -631,7 +909,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <div class="iv-hd">
           <div class="av">민</div>
           <div><div class="nm">민지, 32세</div><div class="sub">서울 마포구 · 맞벌이 · 2세 자녀 1명 · 아이오닉5 검토 중</div></div>
-          <div class="badge">✦ AI Persona</div>
+          <div class="badge">AI PERSONA</div>
         </div>
         <div class="iv-msgs" id="iv-msgs">
           <div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>안녕하세요. 광고 리서치 관련해서 편하게 물어보세요. 저는 솔직하게 답변드릴게요 :)</div></div>
@@ -671,7 +949,8 @@ function navTo(id, btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  if(btn) btn.classList.add('on');
+  document.body.classList.toggle('home-mode', id==='home');
   window.scrollTo(0,0);
   setTimeout(renderCharts, 50);
 }
