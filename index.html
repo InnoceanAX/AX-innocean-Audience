@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INNOCEAN Audience — AI 페르소나 인사이트</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--ind:#4F46E5;--ind2:#4338CA;--bdr:#E5E7EB;--ts:#555;--tm:#767676;--bg:#FAFAFA;--pos:#10B981;--neg:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:#111;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+.hdr{border-bottom:1px solid #E5E7EB;background:#fff;position:sticky;top:0;z-index:50}
+.hdr-inner{max-width:1280px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
+.brand .bar{width:4px;height:32px;background:#000}
+.brand .sub{font-size:11px;color:var(--tm);font-weight:500;margin-left:8px;letter-spacing:.4px}
+.nav{display:flex;gap:4px;margin-left:24px}
+.nav button{padding:10px 14px;font-size:13px;font-weight:600;color:var(--ts);border-bottom:2px solid transparent;border-radius:0}
+.nav button:hover{color:#000}
+.nav button.on{color:#000;border-bottom-color:#000}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hdr-btn{padding:8px 14px;font-size:12px;font-weight:600;color:#000;border:1px solid #000;background:#fff}
+.hdr-btn:hover{background:#000;color:#fff}
+.hdr-pri{padding:8px 14px;font-size:12px;font-weight:700;color:#fff;background:#000}
+
+.subhdr{max-width:1280px;margin:0 auto;padding:24px;border-bottom:2px solid #000}
+.subhdr-t{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.subhdr-s{font-size:13px;color:var(--tm);margin-top:6px}
+
+.wrap{max-width:1280px;margin:0 auto;padding:24px}
+.page{display:none}
+.page.active{display:block}
+
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin:24px 0 12px}
+.sec-t{font-size:15px;font-weight:700;color:#000}
+.sec-s{font-size:12px;color:var(--tm)}
+
+.kpi{background:#fff;border:2px solid var(--bdr);padding:18px;transition:border-color .15s}
+.kpi:hover{border-color:#000}
+.kpi-t{font-size:11.5px;color:var(--tm);font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.kpi-v{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-top:6px}
+.kpi-d{font-size:11.5px;color:var(--tm);margin-top:4px}
+.kpi-d b{color:#000;font-weight:700}
+.hero{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+
+.builder{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:flex-start}
+.bld-panel{background:#fff;border:2px solid var(--bdr);padding:0}
+.bld-grp{padding:16px 18px;border-bottom:1px solid var(--bdr)}
+.bld-grp:last-child{border-bottom:none}
+.bld-grp-t{font-size:11.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.bld-row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;font-size:12px;font-weight:600;color:#000;background:#fff;border:1.5px solid var(--bdr);cursor:pointer;transition:all .12s;line-height:1.2}
+.chip:hover{border-color:#000}
+.chip.on{background:#000;color:#fff;border-color:#000}
+.chip .cnt{font-size:10.5px;color:var(--tm);margin-left:3px}
+.chip.on .cnt{color:#9CA3AF}
+
+.aud-preview{background:#fff;border:2px solid var(--bdr);padding:22px 24px}
+.aud-pre-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.aud-size{font-size:32px;font-weight:800;letter-spacing:-.6px}
+.aud-size-l{font-size:12px;color:var(--tm);margin-top:2px;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.aud-actions{display:flex;gap:8px}
+.aud-actions button{padding:8px 14px;font-size:12px;font-weight:700;border:1.5px solid #000;background:#fff;color:#000}
+.aud-actions button.pri{background:#000;color:#fff}
+.aud-summary{font-size:13px;color:var(--ts);line-height:1.65;padding:14px 16px;background:#FAFAFA;border-left:3px solid #000;margin-top:10px}
+.aud-summary b{color:#000;font-weight:700}
+.aud-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.aud-meta .it{padding:10px 12px;border:1.5px solid var(--bdr);text-align:center}
+.aud-meta .it .l{font-size:10.5px;color:var(--tm);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.aud-meta .it .v{font-size:15px;font-weight:800;margin-top:3px;letter-spacing:-.3px}
+
+.persona-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.persona{background:#fff;border:2px solid var(--bdr);padding:18px;display:flex;flex-direction:column;gap:10px;transition:all .15s;cursor:pointer}
+.persona:hover{border-color:#000}
+.persona-hd{display:flex;align-items:center;gap:12px}
+.persona-av{width:48px;height:48px;background:linear-gradient(135deg,var(--ind),var(--ind2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.persona-nm{font-size:14px;font-weight:700;color:#000}
+.persona-sub{font-size:11.5px;color:var(--tm);margin-top:2px}
+.persona-tags{display:flex;flex-wrap:wrap;gap:4px}
+.persona-tag{font-size:10.5px;padding:2px 7px;background:#F3F4F6;color:var(--ts);border:1px solid var(--bdr);font-weight:600}
+.persona-q{font-size:12px;color:var(--ts);font-style:italic;border-left:2px solid #000;padding:4px 10px;background:#FAFAFA;line-height:1.5}
+.persona-actions{display:flex;gap:6px;margin-top:auto}
+.persona-actions button{flex:1;padding:7px 8px;font-size:11px;font-weight:700;border:1.5px solid #000;background:#fff;color:#000}
+.persona-actions button.pri{background:#000;color:#fff}
+
+.chart-card{background:#fff;border:2px solid var(--bdr);padding:18px}
+.chart-card .ccard-t{font-size:14px;font-weight:700;color:#000}
+.chart-card .ccard-s{font-size:12px;color:var(--tm);margin-top:3px;margin-bottom:14px}
+.chart-wrap{position:relative;height:280px}
+.chart-wrap-sm{position:relative;height:200px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);margin-bottom:16px}
+.tabs button{padding:10px 16px;font-size:13px;font-weight:600;color:var(--ts);border-bottom:2px solid transparent;border-radius:0}
+.tabs button.on{color:#000;border-bottom-color:#000;font-weight:700}
+
+.xtab{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border:2px solid var(--bdr)}
+.xtab th,.xtab td{padding:10px 12px;border-bottom:1px solid var(--bdr);text-align:right}
+.xtab th:first-child,.xtab td:first-child{text-align:left;background:#FAFAFA;font-weight:700}
+.xtab thead th{background:#000;color:#fff;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.xtab tbody tr:hover{background:#FAFAFA}
+.xtab .hi{background:rgba(79,70,229,0.1);font-weight:700}
+
+.disc{background:#fff;border:2px solid var(--bdr);padding:20px;display:flex;gap:16px;align-items:flex-start;transition:border-color .15s;margin-bottom:12px}
+.disc:hover{border-color:#000}
+.disc-icon{width:38px;height:38px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.disc-body{flex:1}
+.disc-t{font-size:14px;font-weight:700;color:#000;margin-bottom:6px}
+.disc-d{font-size:13px;color:var(--ts);line-height:1.6}
+.disc-meta{font-size:11px;color:var(--tm);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
+.disc-meta b{color:#000}
+.disc-tag{display:inline-block;font-size:10px;padding:2px 7px;background:rgba(79,70,229,.1);color:var(--ind);font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:flex-start}
+.cmp-side{background:#fff;border:2px solid var(--bdr);padding:18px}
+.cmp-side.b{border-color:#000}
+.cmp-side-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.cmp-side-hd .tag{font-size:10.5px;font-weight:700;padding:3px 8px;background:#9CA3AF;color:#fff;letter-spacing:.4px}
+.cmp-side.b .cmp-side-hd .tag{background:#000}
+.cmp-side-t{font-size:14px;font-weight:700}
+.cmp-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:10px 0;border-bottom:1px solid var(--bdr);font-size:12.5px;align-items:center}
+.cmp-row:last-child{border-bottom:none}
+.cmp-row .l{color:var(--ts)}
+.cmp-row .vA{text-align:right;font-weight:700}
+.cmp-row .vB{text-align:right;font-weight:700;color:var(--ind)}
+.cmp-diff{display:inline-block;font-size:10.5px;padding:1px 5px;margin-left:4px;font-weight:700}
+.cmp-diff.pos{background:rgba(16,185,129,.12);color:var(--pos)}
+.cmp-diff.neg{background:rgba(239,68,68,.12);color:var(--neg)}
+
+.iv{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:flex-start}
+.iv-list{background:#fff;border:2px solid var(--bdr);padding:0;max-height:620px;overflow-y:auto}
+.iv-list .it{padding:14px 16px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:all .12s;display:flex;gap:10px;align-items:center}
+.iv-list .it:hover{background:#FAFAFA}
+.iv-list .it.on{background:#000;color:#fff}
+.iv-list .it .av{width:32px;height:32px;background:linear-gradient(135deg,var(--ind),var(--ind2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.iv-list .it.on .av{background:#fff;color:#000}
+.iv-list .it .nm{font-size:12.5px;font-weight:700}
+.iv-list .it .sub{font-size:11px;color:var(--tm);margin-top:1px}
+.iv-list .it.on .sub{color:#9CA3AF}
+.iv-main{background:#fff;border:2px solid var(--bdr);padding:0;display:flex;flex-direction:column;height:620px}
+.iv-hd{padding:16px 20px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px}
+.iv-hd .av{width:40px;height:40px;background:linear-gradient(135deg,var(--ind),var(--ind2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.iv-hd .nm{font-size:14px;font-weight:700}
+.iv-hd .sub{font-size:11.5px;color:var(--tm);margin-top:2px}
+.iv-hd .badge{margin-left:auto;font-size:10.5px;padding:3px 8px;background:rgba(79,70,229,.1);color:var(--ind);font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.iv-msgs{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px;background:#FAFAFA}
+.iv-msg{display:flex;gap:10px}
+.iv-msg.user{justify-content:flex-end}
+.iv-bubble{max-width:74%;padding:10px 14px;font-size:13px;line-height:1.55;background:#fff;border:1.5px solid var(--bdr);color:#111}
+.iv-msg.user .iv-bubble{background:#000;color:#fff;border-color:#000}
+.iv-bubble .role{font-size:10.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.iv-msg.user .iv-bubble .role{color:#9CA3AF}
+.iv-input{padding:14px 16px;border-top:1px solid var(--bdr);display:flex;gap:8px;align-items:center}
+.iv-input input{flex:1;padding:10px 12px;border:1.5px solid var(--bdr);font-size:13px;font-family:inherit;outline:none}
+.iv-input input:focus{border-color:#000}
+.iv-input button{padding:10px 16px;font-size:13px;font-weight:700;background:#000;color:#fff}
+.iv-quick{display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap}
+.iv-quick .q{font-size:11px;padding:4px 10px;border:1.5px solid var(--bdr);color:var(--ts);font-weight:600;cursor:pointer;background:#fff}
+.iv-quick .q:hover{border-color:#000;color:#000}
+
+.beta-banner{background:linear-gradient(120deg,#0F172A,#1E3A8A 70%,#5B21B6);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+.beta-banner .l{font-size:13px;font-weight:700;letter-spacing:-.2px}
+.beta-banner .r{font-size:11.5px;color:#D1D5DB;line-height:1.4}
+.beta-banner .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;padding:3px 8px;background:#fff;color:#000;margin-right:8px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="brand">
+      <div class="bar"></div>
+      <div>INNOCEAN <span style="color:var(--ind)">Audience</span></div>
+      <div class="sub">AI PERSONA INSIGHTS · BETA</div>
+    </div>
+    <nav class="nav">
+      <button class="on" onclick="navTo('builder',this)">Audience Builder</button>
+      <button onclick="navTo('insights',this)">Charts &amp; Insights</button>
+      <button onclick="navTo('xtab',this)">Cross-tab</button>
+      <button onclick="navTo('compare',this)">Audience Comparison</button>
+      <button onclick="navTo('discover',this)">Discover</button>
+      <button onclick="navTo('interview',this)">Persona Interview</button>
+    </nav>
+    <div class="hdr-r">
+      <button class="hdr-btn">📥 내보내기</button>
+      <button class="hdr-pri">+ 새 프로젝트</button>
+    </div>
+  </div>
+</header>
+
+<div class="subhdr">
+  <div class="subhdr-t">전기차 구매 의향 30대 — Gen MZ Premium EV Buyers</div>
+  <div class="subhdr-s">2026년 6월 기준 · 한국 · AI 페르소나 풀 N=8,420 · 마지막 보정 2026-06-05</div>
+</div>
+
+<div class="wrap">
+  <div class="beta-banner">
+    <div class="l"><span class="badge">BETA</span>합성 페르소나 기반 AI 추정치입니다 — 의사결정 보조용</div>
+    <div class="r">캘리브레이션: 통계청 인구센서스 + KOSIS + 자동차산업협회 공개 데이터 기준 보정 적용</div>
+  </div>
+
+  <!-- ============ Audience Builder ============ -->
+  <div class="page active" id="page-builder">
+    <div class="hero">
+      <div class="kpi"><div class="kpi-t">Audience Size</div><div class="kpi-v">8,420</div><div class="kpi-d">전체 모집단 대비 <b>2.1%</b></div></div>
+      <div class="kpi"><div class="kpi-t">평균 연령</div><div class="kpi-v">34.2세</div><div class="kpi-d">기준: 25~44세</div></div>
+      <div class="kpi"><div class="kpi-t">평균 가구 소득</div><div class="kpi-v">7,820만원</div><div class="kpi-d">상위 <b>28%</b></div></div>
+      <div class="kpi"><div class="kpi-t">구매 의향 지수</div><div class="kpi-v">7.8<span style="font-size:14px;color:var(--tm)"> /10</span></div><div class="kpi-d">평균 대비 <b style="color:var(--pos)">+85%</b></div></div>
+    </div>
+
+    <div class="builder">
+      <div class="bld-panel">
+        <div class="bld-grp">
+          <div class="bld-grp-t">인구통계</div>
+          <div class="bld-row" style="margin-bottom:8px">
+            <div class="chip">남성</div><div class="chip on">여성</div>
+          </div>
+          <div class="bld-row">
+            <div class="chip">20대</div>
+            <div class="chip on">30대 초반 <span class="cnt">3,210</span></div>
+            <div class="chip on">30대 후반 <span class="cnt">2,490</span></div>
+            <div class="chip on">40대 초반 <span class="cnt">2,720</span></div>
+            <div class="chip">40대 후반</div>
+          </div>
+        </div>
+        <div class="bld-grp">
+          <div class="bld-grp-t">지역</div>
+          <div class="bld-row">
+            <div class="chip on">서울/수도권</div>
+            <div class="chip on">부산</div>
+            <div class="chip">대구</div>
+            <div class="chip">대전</div>
+            <div class="chip">광주</div>
+            <div class="chip on">기타 광역시</div>
+          </div>
+        </div>
+        <div class="bld-grp">
+          <div class="bld-grp-t">소득 (가구)</div>
+          <div class="bld-row">
+            <div class="chip">~3천만</div>
+            <div class="chip">3~5천만</div>
+            <div class="chip on">5~8천만</div>
+            <div class="chip on">8천~1.2억</div>
+            <div class="chip on">1.2억 이상</div>
+          </div>
+        </div>
+        <div class="bld-grp">
+          <div class="bld-grp-t">라이프스타일</div>
+          <div class="bld-row">
+            <div class="chip on">친환경 가치 중시</div>
+            <div class="chip on">테크 얼리어답터</div>
+            <div class="chip">럭셔리 지향</div>
+            <div class="chip on">가족 중심</div>
+            <div class="chip">레저/아웃도어</div>
+          </div>
+        </div>
+        <div class="bld-grp">
+          <div class="bld-grp-t">자동차 구매 행태</div>
+          <div class="bld-row">
+            <div class="chip on">12개월 내 구매 예정</div>
+            <div class="chip on">현재 차량 보유 (1대)</div>
+            <div class="chip">무차 가구</div>
+            <div class="chip on">SUV 선호</div>
+            <div class="chip">세단 선호</div>
+          </div>
+        </div>
+        <div class="bld-grp">
+          <div class="bld-grp-t">파워트레인 선호</div>
+          <div class="bld-row">
+            <div class="chip on">순수 전기차 (BEV)</div>
+            <div class="chip on">하이브리드</div>
+            <div class="chip">플러그인 하이브리드</div>
+            <div class="chip">내연기관</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Right -->
+      <div>
+        <div class="aud-preview">
+          <div class="aud-pre-hd">
+            <div>
+              <div class="aud-size">8,420명</div>
+              <div class="aud-size-l">Synthetic Persona Pool · 신뢰도 92%</div>
+            </div>
+            <div class="aud-actions">
+              <button>💾 저장</button>
+              <button>📋 복제</button>
+              <button class="pri">💬 인터뷰 시작</button>
+            </div>
+          </div>
+          <div class="aud-summary">
+            <b>"30대 초·중반 친환경 가치 중시 + 가구소득 5천만 이상의 가족 중심 SUV 구매자"</b><br>
+            이 오디언스는 전체 대비 <b>구매 의향 +85%</b>, <b>모바일 광고 반응률 +42%</b>를 보이며,
+            현대 아이오닉5 / 기아 EV6 / 테슬라 모델Y에 높은 관심을 가집니다. 핵심 구매 트리거는
+            <b>충전 인프라 안정성</b>과 <b>가족 안전 사양</b>입니다.
+          </div>
+          <div class="aud-meta">
+            <div class="it"><div class="l">성별</div><div class="v">F 58 / M 42</div></div>
+            <div class="it"><div class="l">평균 보유 차량</div><div class="v">1.2대</div></div>
+            <div class="it"><div class="l">디지털 채널</div><div class="v">YT · IG</div></div>
+            <div class="it"><div class="l">관심 브랜드 Top1</div><div class="v">현대</div></div>
+          </div>
+        </div>
+
+        <div class="sec-hd"><div class="sec-t">대표 페르소나 6명</div><div class="sec-s">합성 페르소나 풀에서 군집 중심 샘플링</div></div>
+        <div class="persona-grid">
+          <div class="persona">
+            <div class="persona-hd">
+              <div class="persona-av">민</div>
+              <div><div class="persona-nm">민지 (32)</div><div class="persona-sub">서울 마포구 · 가구소득 9천만</div></div>
+            </div>
+            <div class="persona-tags">
+              <span class="persona-tag">맞벌이</span><span class="persona-tag">2세 자녀</span><span class="persona-tag">친환경</span><span class="persona-tag">아이오닉5 검토중</span>
+            </div>
+            <div class="persona-q">"충전 스트레스 없이 아이 어린이집까지 안전하게 가고 싶어요"</div>
+            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+          </div>
+          <div class="persona">
+            <div class="persona-hd">
+              <div class="persona-av">준</div>
+              <div><div class="persona-nm">준호 (38)</div><div class="persona-sub">성남 분당 · 가구소득 1.4억</div></div>
+            </div>
+            <div class="persona-tags">
+              <span class="persona-tag">테크 얼리어답터</span><span class="persona-tag">테슬라 비교중</span><span class="persona-tag">럭셔리</span>
+            </div>
+            <div class="persona-q">"제네시스 GV60 vs 테슬라 모델Y, 자율주행 성능이 결정 포인트"</div>
+            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+          </div>
+          <div class="persona">
+            <div class="persona-hd">
+              <div class="persona-av">서</div>
+              <div><div class="persona-nm">서연 (34)</div><div class="persona-sub">부산 해운대 · 가구소득 7천만</div></div>
+            </div>
+            <div class="persona-tags">
+              <span class="persona-tag">EV6 보유</span><span class="persona-tag">SNS 인플루언서</span><span class="persona-tag">SUV</span>
+            </div>
+            <div class="persona-q">"두번째 차는 가족용 큰 SUV로 — 충전 인프라 위주로 선택"</div>
+            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+          </div>
+          <div class="persona">
+            <div class="persona-hd">
+              <div class="persona-av">현</div>
+              <div><div class="persona-nm">현우 (36)</div><div class="persona-sub">대전 유성구 · 가구소득 8천만</div></div>
+            </div>
+            <div class="persona-tags">
+              <span class="persona-tag">하이브리드 우선</span><span class="persona-tag">3세 자녀</span><span class="persona-tag">실용주의</span>
+            </div>
+            <div class="persona-q">"EV가 부담스럽다면 우선 하이브리드부터 — 보조금이 큰 변수"</div>
+            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+          </div>
+          <div class="persona">
+            <div class="persona-hd">
+              <div class="persona-av">지</div>
+              <div><div class="persona-nm">지원 (31)</div><div class="persona-sub">서울 송파구 · 가구소득 6천만</div></div>
+            </div>
+            <div class="persona-tags">
+              <span class="persona-tag">신혼</span><span class="persona-tag">레저</span><span class="persona-tag">캠핑</span>
+            </div>
+            <div class="persona-q">"V2L로 캠핑 가능한 EV — 라이프스타일과 잘 맞는지가 중요"</div>
+            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+          </div>
+          <div class="persona">
+            <div class="persona-hd">
+              <div class="persona-av">은</div>
+              <div><div class="persona-nm">은채 (40)</div><div class="persona-sub">인천 송도 · 가구소득 1.1억</div></div>
+            </div>
+            <div class="persona-tags">
+              <span class="persona-tag">대형 SUV</span><span class="persona-tag">제네시스</span><span class="persona-tag">2세 자녀</span>
+            </div>
+            <div class="persona-q">"GV80 EV 출시되면 무조건 — 안 나오면 EV9도 고려"</div>
+            <div class="persona-actions"><button>프로필</button><button class="pri">💬 인터뷰</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Charts & Insights ============ -->
+  <div class="page" id="page-insights">
+    <div class="tabs">
+      <button class="on">전체</button>
+      <button>인구통계</button>
+      <button>구매 행태</button>
+      <button>미디어 소비</button>
+      <button>브랜드 인식</button>
+    </div>
+
+    <div class="hero">
+      <div class="kpi"><div class="kpi-t">EV 구매 의향</div><div class="kpi-v">72%</div><div class="kpi-d">전체 평균 38% 대비 <b style="color:var(--pos)">+89%</b></div></div>
+      <div class="kpi"><div class="kpi-t">현대/기아 선호</div><div class="kpi-v">64%</div><div class="kpi-d">테슬라 27% · 외산 9%</div></div>
+      <div class="kpi"><div class="kpi-t">유튜브 일평균</div><div class="kpi-v">84분</div><div class="kpi-d">전체 평균 52분</div></div>
+      <div class="kpi"><div class="kpi-t">광고 회상도</div><div class="kpi-v">3.8 <span style="font-size:14px;color:var(--tm)">/5</span></div><div class="kpi-d">캠페인 평균 <b>+24%</b></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="ccard-t">관심 브랜드 Top 8</div>
+        <div class="ccard-s">"구매 시 적극 고려 의향" 응답 비율 (%)</div>
+        <div class="chart-wrap"><canvas id="ch-brand"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="ccard-t">구매 트리거 가중치</div>
+        <div class="ccard-s">의사결정에 영향이 큰 요소 (Top 6)</div>
+        <div class="chart-wrap"><canvas id="ch-trigger"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="ccard-t">미디어 소비 (주당 시간)</div>
+        <div class="ccard-s">디지털 채널별 평균 노출 시간</div>
+        <div class="chart-wrap"><canvas id="ch-media"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="ccard-t">라이프스타일 프로파일</div>
+        <div class="ccard-s">전체 평균 대비 강도 (1.0 = 평균)</div>
+        <div class="chart-wrap"><canvas id="ch-lifestyle"></canvas></div>
+      </div>
+    </div>
+
+    <div class="sec-hd"><div class="sec-t">월별 EV 구매 의향 추이</div><div class="sec-s">최근 6개월 · AI 페르소나 풀 추정치</div></div>
+    <div class="chart-card">
+      <div class="chart-wrap"><canvas id="ch-trend"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ============ Cross-tab ============ -->
+  <div class="page" id="page-xtab">
+    <div class="sec-hd">
+      <div>
+        <div class="sec-t">Cross-tabulation — 연령대 × 구매 의향 차종</div>
+        <div class="sec-s">전체 8,420명 페르소나 풀 기준 비율 (%)</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="hdr-btn">행: 연령대 ▾</button>
+        <button class="hdr-btn">열: 차종 ▾</button>
+        <button class="hdr-btn">셀: % ▾</button>
+      </div>
+    </div>
+    <table class="xtab">
+      <thead>
+        <tr><th>연령</th><th>아이오닉5</th><th>아이오닉6</th><th>EV6</th><th>EV9</th><th>테슬라 모델Y</th><th>제네시스 GV60</th><th>합계</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>30대 초반</td><td>28.4</td><td>14.2</td><td class="hi">31.6</td><td>4.8</td><td>16.2</td><td>4.8</td><td>100</td></tr>
+        <tr><td>30대 후반</td><td>26.1</td><td>16.8</td><td>22.4</td><td>7.2</td><td>14.5</td><td>13.0</td><td>100</td></tr>
+        <tr><td>40대 초반</td><td>21.4</td><td>11.6</td><td>18.2</td><td class="hi">14.8</td><td>11.4</td><td>22.6</td><td>100</td></tr>
+        <tr><td>전체 평균</td><td>25.6</td><td>14.0</td><td>24.5</td><td>9.0</td><td>14.2</td><td>12.7</td><td>100</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sec-hd"><div class="sec-t">소득 × 구매 의향 차종</div></div>
+    <table class="xtab">
+      <thead>
+        <tr><th>소득</th><th>아이오닉5</th><th>아이오닉6</th><th>EV6</th><th>EV9</th><th>테슬라 모델Y</th><th>제네시스 GV60</th><th>합계</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>5~8천만</td><td class="hi">34.2</td><td>15.6</td><td>28.8</td><td>3.2</td><td>12.4</td><td>5.8</td><td>100</td></tr>
+        <tr><td>8천~1.2억</td><td>24.8</td><td>14.6</td><td>22.0</td><td>11.4</td><td>14.2</td><td>13.0</td><td>100</td></tr>
+        <tr><td>1.2억 이상</td><td>16.2</td><td>10.4</td><td>18.2</td><td class="hi">14.8</td><td>16.8</td><td class="hi">23.6</td><td>100</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sec-hd"><div class="sec-t">자녀 유무 × 구매 트리거</div></div>
+    <table class="xtab">
+      <thead>
+        <tr><th>구분</th><th>주행거리</th><th>충전 인프라</th><th>안전 사양</th><th>가격/보조금</th><th>디자인</th><th>자율주행</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>자녀 있음</td><td>22.4</td><td class="hi">29.6</td><td class="hi">21.8</td><td>12.4</td><td>8.2</td><td>5.6</td></tr>
+        <tr><td>자녀 없음</td><td>18.8</td><td>21.4</td><td>11.6</td><td>14.2</td><td class="hi">18.4</td><td class="hi">15.6</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ Audience Comparison ============ -->
+  <div class="page" id="page-compare">
+    <div class="cmp">
+      <div class="cmp-side">
+        <div class="cmp-side-hd">
+          <span class="tag">A</span>
+          <div><div class="cmp-side-t">전기차 구매 의향 30대</div><div style="font-size:11px;color:var(--tm)">N=8,420</div></div>
+        </div>
+        <div class="cmp-row"><div class="l">평균 가구 소득</div><div class="vA">7,820만</div><div></div></div>
+        <div class="cmp-row"><div class="l">EV 구매 의향 (%)</div><div class="vA">72%</div><div></div></div>
+        <div class="cmp-row"><div class="l">YouTube 일평균 (분)</div><div class="vA">84분</div><div></div></div>
+        <div class="cmp-row"><div class="l">현대/기아 선호 (%)</div><div class="vA">64%</div><div></div></div>
+        <div class="cmp-row"><div class="l">안전 우선 (%)</div><div class="vA">68%</div><div></div></div>
+        <div class="cmp-row"><div class="l">자녀 보유율 (%)</div><div class="vA">82%</div><div></div></div>
+        <div class="cmp-row"><div class="l">충전 인프라 우려 (%)</div><div class="vA">76%</div><div></div></div>
+        <div class="cmp-row"><div class="l">광고 회상도 (5점)</div><div class="vA">3.8</div><div></div></div>
+      </div>
+      <div class="cmp-side b">
+        <div class="cmp-side-hd">
+          <span class="tag">B</span>
+          <div><div class="cmp-side-t">테슬라 검토 30대 (참고)</div><div style="font-size:11px;color:var(--tm)">N=3,140</div></div>
+        </div>
+        <div class="cmp-row"><div class="l">평균 가구 소득</div><div class="vB">1억 240만</div><div class="cmp-diff pos">+31%</div></div>
+        <div class="cmp-row"><div class="l">EV 구매 의향 (%)</div><div class="vB">88%</div><div class="cmp-diff pos">+22%</div></div>
+        <div class="cmp-row"><div class="l">YouTube 일평균 (분)</div><div class="vB">96분</div><div class="cmp-diff pos">+14%</div></div>
+        <div class="cmp-row"><div class="l">현대/기아 선호 (%)</div><div class="vB">28%</div><div class="cmp-diff neg">-56%</div></div>
+        <div class="cmp-row"><div class="l">안전 우선 (%)</div><div class="vB">42%</div><div class="cmp-diff neg">-38%</div></div>
+        <div class="cmp-row"><div class="l">자녀 보유율 (%)</div><div class="vB">54%</div><div class="cmp-diff neg">-34%</div></div>
+        <div class="cmp-row"><div class="l">충전 인프라 우려 (%)</div><div class="vB">48%</div><div class="cmp-diff neg">-37%</div></div>
+        <div class="cmp-row"><div class="l">광고 회상도 (5점)</div><div class="vB">4.2</div><div class="cmp-diff pos">+11%</div></div>
+      </div>
+    </div>
+
+    <div class="sec-hd"><div class="sec-t">시각화 비교 — 라이프스타일/구매트리거</div></div>
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="ccard-t">라이프스타일 (평균 대비 강도)</div>
+        <div class="ccard-s">두 오디언스의 가치관 차이</div>
+        <div class="chart-wrap"><canvas id="ch-cmp-life"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="ccard-t">구매 트리거 비중</div>
+        <div class="ccard-s">의사결정 핵심 요소 (%)</div>
+        <div class="chart-wrap"><canvas id="ch-cmp-trig"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Discover ============ -->
+  <div class="page" id="page-discover">
+    <div class="sec-hd">
+      <div><div class="sec-t">AI 자동 인사이트 — 통계적으로 두드러진 패턴</div><div class="sec-s">전체 평균 대비 차이가 큰 항목 자동 탐지 (Top 8)</div></div>
+      <button class="hdr-btn">🔄 새로고침</button>
+    </div>
+
+    <div class="disc">
+      <div class="disc-icon">✦</div>
+      <div class="disc-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="disc-tag">강한 신호</span><span class="disc-t" style="margin:0">자녀를 둔 30대 여성, 충전 인프라 우려가 의사결정의 최대 변수</span>
+        </div>
+        <div class="disc-d">자녀를 둔 30대 초·중반 여성 페르소나에서 <b>"충전 인프라 안정성"</b>이 구매 트리거 가중치 29.6%로 1위 (전체 평균 18.2% 대비 +63%). 광고 메시지가 충전소 접근성·고속 충전 경험에 집중되어야 함.</div>
+        <div class="disc-meta"><span>표본: <b>3,210명</b></span><span>신뢰도: <b>94%</b></span><span>전체 대비: <b>+63%</b></span></div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <div class="disc-icon">✦</div>
+      <div class="disc-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="disc-tag">차별점</span><span class="disc-t" style="margin:0">현대/기아 선호자는 안전을, 테슬라 검토자는 자율주행을 우선</span>
+        </div>
+        <div class="disc-d">동일 가격대에서 <b>현대/기아 선호 그룹은 "안전 사양" 우선 68%</b>, <b>테슬라 검토 그룹은 "자율주행" 우선 52%</b>. 같은 EV 광고라도 두 그룹에 다른 톤이 필요함.</div>
+        <div class="disc-meta"><span>그룹 A: 5,380명</span><span>그룹 B: 3,140명</span><span>의미차: <b>유의 (p&lt;0.01)</b></span></div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <div class="disc-icon">✦</div>
+      <div class="disc-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="disc-tag">미디어 채널</span><span class="disc-t" style="margin:0">YouTube + Instagram 조합으로 도달률 92% 가능</span>
+        </div>
+        <div class="disc-d">타겟 페르소나의 <b>유튜브 일 84분 + 인스타 일 42분</b>이 1순위 채널. 네이버 검색(36분), 카카오톡(28분) 순. <b>YT + IG 광고만으로 92% 도달</b> 가능 — 기타 채널 ROI 재검토 필요.</div>
+        <div class="disc-meta"><span>도달 추정: 92%</span><span>예상 CPM: 4,200원</span></div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <div class="disc-icon">✦</div>
+      <div class="disc-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="disc-tag">광고 카피</span><span class="disc-t" style="margin:0">"안심하고 충전, 어디서나" 메시지가 가장 강한 반응 유도</span>
+        </div>
+        <div class="disc-d">인터뷰 64건 분석 결과 <b>"충전 안심"</b> 키워드가 광고 회상도 4.4/5 (전체 평균 3.2). "주행거리"(3.8), "디자인"(3.4), "가속력"(2.9). 카피 톤은 <b>실용적·안심형</b>이 효과적.</div>
+        <div class="disc-meta"><span>인터뷰 분석: 64건</span><span>키워드 신뢰도: 91%</span></div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <div class="disc-icon">✦</div>
+      <div class="disc-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="disc-tag">소득 분화</span><span class="disc-t" style="margin:0">소득 1.2억 이상에서 제네시스 GV60 선호도 4배</span>
+        </div>
+        <div class="disc-d">가구 소득 1.2억 이상 구간에서 <b>제네시스 GV60 선호도 23.6%</b> (전체 평균 5.8% 대비 4배). 럭셔리 라인 광고는 이 구간을 별도 타겟팅하는 것이 효율적.</div>
+        <div class="disc-meta"><span>표본: 1,242명</span><span>신뢰도: 88%</span></div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <div class="disc-icon">✦</div>
+      <div class="disc-body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="disc-tag">시간대</span><span class="disc-t" style="margin:0">평일 21~23시 광고 노출이 회상도 +38% 우수</span>
+        </div>
+        <div class="disc-d">자녀 보유 30대 페르소나 — 자녀 취침 후 <b>21~23시 디지털 콘텐츠 소비 피크</b>. 이 시간대 광고 회상도 평균 대비 +38%. 미디어 바이어 일정 조정 권장.</div>
+        <div class="disc-meta"><span>분석 기간: 30일</span><span>유의수준: p&lt;0.05</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Persona Interview ============ -->
+  <div class="page" id="page-interview">
+    <div class="iv">
+      <div class="iv-list">
+        <div class="it on">
+          <div class="av">민</div>
+          <div><div class="nm">민지 (32)</div><div class="sub">서울 마포 · 맞벌이</div></div>
+        </div>
+        <div class="it">
+          <div class="av">준</div>
+          <div><div class="nm">준호 (38)</div><div class="sub">분당 · 테크 얼리어답터</div></div>
+        </div>
+        <div class="it">
+          <div class="av">서</div>
+          <div><div class="nm">서연 (34)</div><div class="sub">부산 · EV6 보유</div></div>
+        </div>
+        <div class="it">
+          <div class="av">현</div>
+          <div><div class="nm">현우 (36)</div><div class="sub">대전 · 실용주의</div></div>
+        </div>
+        <div class="it">
+          <div class="av">지</div>
+          <div><div class="nm">지원 (31)</div><div class="sub">송파 · 신혼/캠핑</div></div>
+        </div>
+        <div class="it">
+          <div class="av">은</div>
+          <div><div class="nm">은채 (40)</div><div class="sub">송도 · 럭셔리 지향</div></div>
+        </div>
+      </div>
+      <div class="iv-main">
+        <div class="iv-hd">
+          <div class="av">민</div>
+          <div><div class="nm">민지, 32세</div><div class="sub">서울 마포구 · 맞벌이 · 2세 자녀 1명 · 아이오닉5 검토 중</div></div>
+          <div class="badge">✦ AI Persona</div>
+        </div>
+        <div class="iv-msgs" id="iv-msgs">
+          <div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>안녕하세요. 광고 리서치 관련해서 편하게 물어보세요. 저는 솔직하게 답변드릴게요 :)</div></div>
+          <div class="iv-msg user"><div class="iv-bubble"><div class="role">마케터</div>다음 차 살 때 가장 중요한 게 뭐예요?</div></div>
+          <div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>저희 아이가 두 살이라 무엇보다 <b>안전</b>이에요. 그 다음이 <b>충전 편의성</b>이고요. 솔직히 EV가 좋다는 건 알겠는데, 시댁 가다가 충전 못 하면 아이랑 어떻게 하나 — 그게 제일 무서워요.</div></div>
+          <div class="iv-msg user"><div class="iv-bubble"><div class="role">마케터</div>충전 인프라가 충분하다고 느끼시면 EV 사실 것 같으세요?</div></div>
+          <div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>아마요. 90% 이상이요. 지금은 <b>현대 E-Pit이나 테슬라 슈퍼차저 같은 게 동선 안에 충분한지</b>가 핵심이에요. 광고에서 "이 차 좋아요"보다 "어디서든 충전 안심"이 더 와닿아요.</div></div>
+          <div class="iv-msg user"><div class="iv-bubble"><div class="role">마케터</div>아이오닉5 vs EV6, 둘 중 선호도는요?</div></div>
+          <div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>아이오닉5요. 이유는 <b>실내 공간이 더 평평해서 카시트 설치가 편하다는 후기</b>가 많아서요. EV6는 디자인은 더 멋진데 우리 가족용은 아닌 것 같아요. EV9도 잠깐 봤는데 너무 커요.</div></div>
+        </div>
+        <div class="iv-quick">
+          <div class="q" onclick="ivQ(this)">광고에서 어떤 메시지가 와닿아요?</div>
+          <div class="q" onclick="ivQ(this)">충전소 외에 또 무서운 점 있어요?</div>
+          <div class="q" onclick="ivQ(this)">제네시스 EV도 고려하세요?</div>
+          <div class="q" onclick="ivQ(this)">가격은 어느 정도면 사실 거예요?</div>
+        </div>
+        <div class="iv-input">
+          <input type="text" id="iv-input" placeholder="페르소나에게 질문하기..." onkeydown="if(event.key==='Enter')ivSend()">
+          <button onclick="ivSend()">전송</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-hd"><div class="sec-t">인터뷰 인사이트 자동 추출</div><div class="sec-s">현재 대화에서 마케팅 시사점</div></div>
+    <div class="grid-3">
+      <div class="kpi"><div class="kpi-t">핵심 키워드</div><div style="font-size:13px;font-weight:700;margin-top:6px;color:#000;line-height:1.5">안전 · 충전 안심<br>실내 공간 · E-Pit</div></div>
+      <div class="kpi"><div class="kpi-t">반대/우려 사항</div><div style="font-size:13px;font-weight:700;margin-top:6px;color:#000;line-height:1.5">충전소 부족<br>장거리 불안</div></div>
+      <div class="kpi"><div class="kpi-t">광고 카피 제안</div><div style="font-size:13px;font-weight:700;margin-top:6px;color:#000;line-height:1.5">"어디든 안심.<br>E-Pit이 있으니까."</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ Navigation ============
+function navTo(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  window.scrollTo(0,0);
+  setTimeout(renderCharts, 50);
+}
+
+// ============ Chart.js Defaults ============
+Chart.defaults.font.family = "Pretendard, sans-serif";
+Chart.defaults.color = '#555';
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.plugins.legend.labels.padding = 8;
+Chart.defaults.borderRadius = 0;
+
+const IND = '#4F46E5', IND2 = '#4338CA', GRAY = '#9CA3AF', BLACK = '#000';
+
+// ============ Charts ============
+let charts = {};
+function renderCharts(){
+  // Brand preference
+  if(!charts.brand && document.getElementById('ch-brand')){
+    charts.brand = new Chart(document.getElementById('ch-brand'),{
+      type:'bar',
+      data:{labels:['현대 아이오닉5','기아 EV6','테슬라 모델Y','현대 아이오닉6','제네시스 GV60','기아 EV9','BMW iX3','벤츠 EQE'],
+        datasets:[{label:'선호도 (%)',data:[28,25,18,14,11,9,6,4],backgroundColor:BLACK,borderRadius:0}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+  // Trigger weights
+  if(!charts.trigger && document.getElementById('ch-trigger')){
+    charts.trigger = new Chart(document.getElementById('ch-trigger'),{
+      type:'doughnut',
+      data:{labels:['충전 인프라','안전 사양','주행거리','가격/보조금','디자인','자율주행'],
+        datasets:[{data:[26,21,19,14,12,8],backgroundColor:[BLACK,'#374151','#6B7280','#9CA3AF',IND2,IND]}]},
+      options:{plugins:{legend:{position:'right'}}}
+    });
+  }
+  // Media consumption
+  if(!charts.media && document.getElementById('ch-media')){
+    charts.media = new Chart(document.getElementById('ch-media'),{
+      type:'bar',
+      data:{labels:['YouTube','Instagram','네이버 검색','카카오톡','네이버 블로그','TikTok','Twitter/X','지상파 TV'],
+        datasets:[
+          {label:'타겟 오디언스',data:[84,42,36,28,22,14,8,18],backgroundColor:BLACK},
+          {label:'전체 평균',data:[52,28,30,32,20,12,11,42],backgroundColor:GRAY}
+        ]},
+      options:{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'분'}}}}
+    });
+  }
+  // Lifestyle radar
+  if(!charts.life && document.getElementById('ch-lifestyle')){
+    charts.life = new Chart(document.getElementById('ch-lifestyle'),{
+      type:'radar',
+      data:{labels:['친환경 가치','테크 얼리','가족 중심','럭셔리','레저/캠핑','실용주의'],
+        datasets:[{label:'타겟',data:[1.8,1.6,2.1,0.9,1.1,1.4],borderColor:BLACK,backgroundColor:'rgba(0,0,0,.1)',borderWidth:2,pointBackgroundColor:BLACK},
+                  {label:'평균',data:[1,1,1,1,1,1],borderColor:GRAY,backgroundColor:'transparent',borderDash:[4,4],pointBackgroundColor:GRAY}]},
+      options:{plugins:{legend:{position:'top'}},scales:{r:{beginAtZero:true,max:2.5}}}
+    });
+  }
+  // Trend
+  if(!charts.trend && document.getElementById('ch-trend')){
+    charts.trend = new Chart(document.getElementById('ch-trend'),{
+      type:'line',
+      data:{labels:['1월','2월','3월','4월','5월','6월'],
+        datasets:[{label:'타겟 오디언스',data:[58,62,65,68,70,72],borderColor:BLACK,backgroundColor:'rgba(0,0,0,.05)',borderWidth:2.5,tension:.3,fill:true,pointBackgroundColor:BLACK,pointRadius:4},
+                  {label:'전체 평균',data:[32,33,35,36,37,38],borderColor:GRAY,borderWidth:2,tension:.3,borderDash:[4,4],pointBackgroundColor:GRAY}]},
+      options:{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:false,ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+  // Compare life
+  if(!charts.cmpLife && document.getElementById('ch-cmp-life')){
+    charts.cmpLife = new Chart(document.getElementById('ch-cmp-life'),{
+      type:'radar',
+      data:{labels:['친환경','테크 얼리','가족 중심','럭셔리','레저','실용주의'],
+        datasets:[{label:'A: EV 의향 30대',data:[1.8,1.6,2.1,0.9,1.1,1.4],borderColor:GRAY,backgroundColor:'rgba(156,163,175,.15)',borderWidth:2,pointBackgroundColor:GRAY},
+                  {label:'B: 테슬라 검토 30대',data:[1.4,2.2,1.2,1.8,1.3,0.9],borderColor:IND,backgroundColor:'rgba(79,70,229,.1)',borderWidth:2,pointBackgroundColor:IND}]},
+      options:{plugins:{legend:{position:'top'}},scales:{r:{beginAtZero:true,max:2.5}}}
+    });
+  }
+  if(!charts.cmpTrig && document.getElementById('ch-cmp-trig')){
+    charts.cmpTrig = new Chart(document.getElementById('ch-cmp-trig'),{
+      type:'bar',
+      data:{labels:['충전 인프라','안전 사양','주행거리','가격/보조금','디자인','자율주행'],
+        datasets:[{label:'A',data:[26,21,19,14,12,8],backgroundColor:GRAY},
+                  {label:'B',data:[14,9,16,11,18,32],backgroundColor:IND}]},
+      options:{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+}
+
+// ============ Interview ============
+function ivQ(el){ document.getElementById('iv-input').value = el.textContent; }
+function ivSend(){
+  const inp = document.getElementById('iv-input');
+  const q = inp.value.trim(); if(!q) return;
+  const msgs = document.getElementById('iv-msgs');
+  msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg user"><div class="iv-bubble"><div class="role">마케터</div>${q}</div></div>`);
+  inp.value=''; msgs.scrollTop = msgs.scrollHeight;
+  // Typing indicator
+  msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg" id="iv-typing"><div class="iv-bubble"><div class="role">민지</div><div class="iv-typing"><span></span><span></span><span></span></div></div></div>`);
+  msgs.scrollTop = msgs.scrollHeight;
+  // Mock response
+  setTimeout(()=>{
+    document.getElementById('iv-typing').remove();
+    const r = mockReply(q);
+    msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>${r}</div></div>`);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1100);
+}
+function mockReply(q){
+  const t = q.toLowerCase();
+  if(/카피|메시지|광고/.test(t))
+    return '솔직히 <b>"이 차가 멋있어요"는 식상해요</b>. 차라리 "아이 카시트 설치 편하고, 어디서든 충전 안심"이라고 직접 말해주는 게 와닿아요. 부모 마음을 알아주는 광고요.';
+  if(/충전|충전소/.test(t))
+    return '음... 충전소 외에는 <b>겨울 주행거리 단축</b>이 가장 무서워요. 그리고 <b>중고차 가격이 빨리 떨어진다는 얘기</b>요. 5년 뒤에 팔 때 얼마나 손해볼지 모르겠어서요.';
+  if(/제네시스|gv/.test(t))
+    return '관심은 있는데 솔직히 <b>예산이 안 맞아요</b>. 7천만원 넘어가면 부담스럽고, 그 돈이면 차라리 아이오닉5 풀옵션에 인테리어 옵션 다 넣을 것 같아요.';
+  if(/가격|보조금/.test(t))
+    return '실수령가 <b>5천만원 안쪽</b>이면 결정할 것 같아요. 보조금은 솔직히 내년에 더 줄어든다는 얘기 때문에 마음이 급해요. 그래서 광고에서 "올해 보조금 마감 임박" 메시지가 효과 있을 거예요.';
+  return '음, 그건 저도 한 번도 깊게 생각해본 적은 없는데... 일단 <b>가족 안전 + 충전 안심</b>이 1순위라는 건 확실해요. 다른 건 부수적이에요.';
+}
+
+// init
+renderCharts();
+</script>
+</body>
+</html>
