@@ -267,10 +267,15 @@ button .ico{margin-right:5px}
 .home-final-cta .sec{background:transparent;color:#fff}
 .home-final-cta .sec:hover{background:#fff;color:#000}
 
-/* home 페이지: subheader + beta-banner 숨김 + 풀폭 레이아웃 */
-body.home-mode .subheader,body.home-mode #betaBanner{display:none}
-body.home-mode .wrap.poffset{padding-top:var(--hh);padding-left:0;padding-right:0;max-width:none}
-body:not(.home-mode) .wrap.poffset{max-width:1280px;margin:0 auto;padding-left:24px;padding-right:24px;padding-bottom:24px}
+/* 페이지 공통: 헤더/서브헤더 fixed 오프셋만 적용 (다른 페이지처럼 1280px 정렬 유지) */
+.wrap.poffset{max-width:1280px;margin:0 auto;padding-left:24px;padding-right:24px;padding-bottom:24px}
+
+/* 홈에서는 베타 배너만 숨김 — 헤더/서브헤더/푸터는 동일하게 표시 */
+body.home-mode #betaBanner{display:none}
+
+/* 홈 본문(랜딩) 섹션들은 1280px 제한 안에서 풀폭처럼 보이도록 padding 제거 */
+body.home-mode .wrap.poffset{padding-left:0;padding-right:0}
+body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
 </style>
 </head>
 <body class="home-mode">
