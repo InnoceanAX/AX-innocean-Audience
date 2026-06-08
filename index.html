@@ -215,8 +215,8 @@ button .ico{margin-right:5px}
 
 .home-stats{background:var(--bg);padding:60px 0;border-bottom:1px solid var(--bdr)}
 .home-stats-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
-.home-stats .v{font-size:42px;font-weight:800;letter-spacing:-1.2px;color:#000}
-.home-stats .v em{color:var(--ind);font-style:normal}
+.home-stats .v{font-size:42px;font-weight:800;letter-spacing:-1.2px;color:var(--ind)}
+.home-stats .v em{color:var(--tm);font-style:normal;font-size:24px;font-weight:700;margin-left:2px}
 .home-stats .l{font-size:12.5px;color:var(--tm);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
 
 .home-feat{padding:80px 0;background:#fff;border-bottom:1px solid var(--bdr)}
@@ -328,11 +328,11 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
           <div class="home-h1">데이터를 묻지 말고,<br><em>타겟에게 직접 물어보세요.</em></div>
           <div class="home-sub">INNOCEAN Audience는 합성 페르소나 기반 AI 인터뷰로 GWI 수준의 타겟 인사이트를 제공합니다. 캠페인 출시 전 가설을 검증하고, 광고 카피·미디어 전략의 방향을 정합니다.</div>
           <div class="home-cta">
-            <button class="pri" onclick="navTo('builder',document.querySelectorAll('.hnav .ntab')[1])">
+            <button class="pri" onclick="navTo('builder', null)">
               <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3.5-7 7-7s7 3 7 7"/></svg>
               오디언스 만들기
             </button>
-            <button class="sec" onclick="navTo('interview',document.querySelectorAll('.hnav .ntab')[6])">
+            <button class="sec" onclick="navTo('interview', null)">
               <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/><path d="M8 11h8M8 14h5" stroke-linecap="round"/></svg>
               페르소나 인터뷰
             </button>
@@ -376,10 +376,10 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
     <!-- Stats band -->
     <section class="home-stats">
       <div class="home-stats-inner">
-        <div><div class="v"><em>8,420</em></div><div class="l">합성 페르소나 풀</div></div>
-        <div><div class="v">92<em style="font-size:28px">%</em></div><div class="l">캘리브레이션 정확도</div></div>
-        <div><div class="v"><em>3</em>분</div><div class="l">인사이트 도출 평균</div></div>
-        <div><div class="v">1/<em>40</em></div><div class="l">전통 리서치 대비 비용</div></div>
+        <div><div class="v">8,420<em>명</em></div><div class="l">합성 페르소나 풀</div></div>
+        <div><div class="v">92<em>%</em></div><div class="l">캘리브레이션 정확도</div></div>
+        <div><div class="v">3<em>분</em></div><div class="l">인사이트 도출 평균</div></div>
+        <div><div class="v">1<em>/40</em></div><div class="l">전통 리서치 대비 비용</div></div>
       </div>
     </section>
 
@@ -391,41 +391,23 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
           <div class="home-feat-t">캠페인 가설 검증의 새로운 표준</div>
           <div class="home-feat-s">기존 패널 리서치의 5%만큼 빠르고 저렴하게, GWI 수준의 분석 표면을 그대로 제공합니다.</div>
         </div>
-        <div class="home-feat-grid">
-          <div class="home-feat-card" onclick="navTo('builder',document.querySelectorAll('.hnav .ntab')[1])">
+        <div class="home-feat-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="home-feat-card" onclick="navTo('builder', null)">
             <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
-            <div class="t">Audience Builder</div>
-            <div class="d">인구통계·라이프스타일·구매행태 등 30+ 디멘션으로 세그먼트를 즉시 정의하고 사이즈를 산출합니다.</div>
+            <div class="t">오디언스 정의</div>
+            <div class="d">30+ 디멘션으로 타겟 세그먼트를 정의하고 사이즈·신뢰도를 실시간 산출합니다.</div>
             <span class="link">시작하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </div>
-          <div class="home-feat-card" onclick="navTo('insights',document.querySelectorAll('.hnav .ntab')[2])">
+          <div class="home-feat-card" onclick="navTo('insights', null)">
             <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M3 21V8M9 21V4M15 21v-9M21 21v-5"/></svg></div>
-            <div class="t">Charts &amp; Insights</div>
-            <div class="d">브랜드 선호·구매 트리거·미디어 소비·라이프스타일을 한 화면에서 비교합니다. 모든 수치는 캘리브레이션 보정.</div>
+            <div class="t">인사이트 분석</div>
+            <div class="d">브랜드 선호·구매 트리거·미디어 소비를 차트·교차·비교 화면으로 자동 제공합니다.</div>
             <span class="link">살펴보기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </div>
-          <div class="home-feat-card" onclick="navTo('xtab',document.querySelectorAll('.hnav .ntab')[3])">
-            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M9 6v12M15 6v12M3 12h18"/></svg></div>
-            <div class="t">Cross-tabulation</div>
-            <div class="d">두 디멘션을 교차시켜 유의미한 셀을 자동 하이라이트. 연령×차종, 소득×트리거, 자녀×관심사 등.</div>
-            <span class="link">분석하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-          </div>
-          <div class="home-feat-card" onclick="navTo('compare',document.querySelectorAll('.hnav .ntab')[4])">
-            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M8 4v16M16 4v16"/><path d="M3 8h5M3 16h5M16 8h5M16 16h5"/></svg></div>
-            <div class="t">Audience Comparison</div>
-            <div class="d">두 오디언스를 좌우로 비교해 가구소득·구매의향·미디어 소비 차이를 한눈에 파악합니다.</div>
-            <span class="link">비교하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-          </div>
-          <div class="home-feat-card" onclick="navTo('discover',document.querySelectorAll('.hnav .ntab')[5])">
-            <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
-            <div class="t">Discover</div>
-            <div class="d">AI가 통계적으로 두드러진 패턴을 자동 추출합니다. 미처 보지 못한 시그널과 기회 영역을 발견합니다.</div>
-            <span class="link">발견하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-          </div>
-          <div class="home-feat-card" onclick="navTo('interview',document.querySelectorAll('.hnav .ntab')[6])">
+          <div class="home-feat-card" onclick="navTo('interview', null)">
             <div class="icoBox"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/><path d="M8 11h8M8 14h5" stroke-linecap="round"/></svg></div>
-            <div class="t">Persona Interview</div>
-            <div class="d">합성 페르소나와 1:1 채팅으로 광고 카피·컨셉 반응을 즉시 확인합니다. 핵심 키워드 자동 추출 포함.</div>
+            <div class="t">페르소나 인터뷰</div>
+            <div class="d">합성 페르소나와 1:1 채팅으로 광고 카피·컨셉·가격대 반응을 즉시 검증합니다.</div>
             <span class="link">대화하기 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </div>
         </div>
@@ -448,8 +430,8 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
       </div>
     </section>
 
-    <!-- Compare -->
-    <section class="home-cmp">
+    <!-- (Compare 섹션 제거 — 정보량 다이어트) -->
+    <section class="home-cmp" style="display:none">
       <div class="home-cmp-inner">
         <div class="home-feat-hd">
           <div class="home-feat-eb">WHY AI PERSONA</div>
@@ -483,11 +465,11 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
         <div class="home-final-t">다음 캠페인을 <em>가설 그대로 출시</em>하실 건가요?</div>
         <div class="home-final-s">3분만 투자하면 타겟의 진짜 반응을 미리 봅니다. 데모 데이터로 바로 둘러보세요.</div>
         <div class="home-final-cta">
-          <button onclick="navTo('builder',document.querySelectorAll('.hnav .ntab')[1])">
+          <button onclick="navTo('builder', null)">
             <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3.5-7 7-7s7 3 7 7"/></svg>
             오디언스 만들기
           </button>
-          <button class="sec" onclick="navTo('interview',document.querySelectorAll('.hnav .ntab')[6])">
+          <button class="sec" onclick="navTo('interview', null)">
             <svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>
             인터뷰 데모 보기
           </button>
@@ -581,9 +563,9 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <div class="aud-size-l">Synthetic Persona Pool · 신뢰도 92%</div>
             </div>
             <div class="aud-actions">
-              <button><svg class="ico" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v5h6V3"/><rect x="8" y="13" width="8" height="6"/></svg>저장</button>
-              <button><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>복제</button>
-              <button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>인터뷰 시작</button>
+              <button onclick="audSave()"><svg class="ico" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v5h6V3"/><rect x="8" y="13" width="8" height="6"/></svg>저장</button>
+              <button onclick="audDuplicate()"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>복제</button>
+              <button class="pri" onclick="navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.2-6.4L21 4v6h-6"/></svg>인터뷰 시작</button>
             </div>
           </div>
           <div class="aud-summary">
@@ -611,7 +593,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <span class="persona-tag">맞벌이</span><span class="persona-tag">2세 자녀</span><span class="persona-tag">친환경</span><span class="persona-tag">아이오닉5 검토중</span>
             </div>
             <div class="persona-q">"충전 스트레스 없이 아이 어린이집까지 안전하게 가고 싶어요"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri" onclick="selectPersona('민지');navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -622,7 +604,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <span class="persona-tag">테크 얼리어답터</span><span class="persona-tag">테슬라 비교중</span><span class="persona-tag">럭셔리</span>
             </div>
             <div class="persona-q">"제네시스 GV60 vs 테슬라 모델Y, 자율주행 성능이 결정 포인트"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri" onclick="selectPersona('준호');navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -633,7 +615,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <span class="persona-tag">EV6 보유</span><span class="persona-tag">SNS 인플루언서</span><span class="persona-tag">SUV</span>
             </div>
             <div class="persona-q">"두번째 차는 가족용 큰 SUV로 — 충전 인프라 위주로 선택"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri" onclick="selectPersona('서연');navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -644,7 +626,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <span class="persona-tag">하이브리드 우선</span><span class="persona-tag">3세 자녀</span><span class="persona-tag">실용주의</span>
             </div>
             <div class="persona-q">"EV가 부담스럽다면 우선 하이브리드부터 — 보조금이 큰 변수"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri" onclick="selectPersona('현우');navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -655,7 +637,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <span class="persona-tag">신혼</span><span class="persona-tag">레저</span><span class="persona-tag">캠핑</span>
             </div>
             <div class="persona-q">"V2L로 캠핑 가능한 EV — 라이프스타일과 잘 맞는지가 중요"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri" onclick="selectPersona('지원');navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
           <div class="persona">
             <div class="persona-hd">
@@ -666,7 +648,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
               <span class="persona-tag">대형 SUV</span><span class="persona-tag">제네시스</span><span class="persona-tag">2세 자녀</span>
             </div>
             <div class="persona-q">"GV80 EV 출시되면 무조건 — 안 나오면 EV9도 고려"</div>
-            <div class="persona-actions"><button>프로필</button><button class="pri"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
+            <div class="persona-actions"><button>프로필</button><button class="pri" onclick="selectPersona('은채');navTo('interview', null)"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v12H7l-3 3z"/></svg>인터뷰</button></div>
           </div>
         </div>
       </div>
@@ -676,11 +658,11 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
   <!-- ============ Charts & Insights ============ -->
   <div class="page" id="page-insights">
     <div class="tabs">
-      <button class="on">전체</button>
-      <button>인구통계</button>
-      <button>구매 행태</button>
-      <button>미디어 소비</button>
-      <button>브랜드 인식</button>
+      <button class="on" onclick="insightsTab(this)">전체</button>
+      <button onclick="insightsTab(this)">인구통계</button>
+      <button onclick="insightsTab(this)">구매 행태</button>
+      <button onclick="insightsTab(this)">미디어 소비</button>
+      <button onclick="insightsTab(this)">브랜드 인식</button>
     </div>
 
     <div class="hero">
@@ -727,9 +709,9 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
         <div class="sec-s">전체 8,420명 페르소나 풀 기준 비율 (%)</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="hdr-btn">행: 연령대 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-        <button class="hdr-btn">열: 차종 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-        <button class="hdr-btn">셀: % <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="hdr-btn" onclick="xtabDim('행: 연령대')"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="hdr-btn" onclick="xtabDim('열: 차종')"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="hdr-btn" onclick="xtabDim('셀: %')"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
       </div>
     </div>
     <table class="xtab">
@@ -820,7 +802,7 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
   <div class="page" id="page-discover">
     <div class="sec-hd">
       <div><div class="sec-t">AI 자동 인사이트 — 통계적으로 두드러진 패턴</div><div class="sec-s">전체 평균 대비 차이가 큰 항목 자동 탐지 (Top 8)</div></div>
-      <button class="hdr-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>새로고침</button>
+      <button class="hdr-btn" onclick="discoverRefresh()"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>새로고침</button>
     </div>
 
     <div class="disc">
@@ -894,27 +876,27 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
   <div class="page" id="page-interview">
     <div class="iv">
       <div class="iv-list">
-        <div class="it on">
+        <div data-persona="민지" class="it on">
           <div class="av">민</div>
           <div><div class="nm">민지 (32)</div><div class="sub">서울 마포 · 맞벌이</div></div>
         </div>
-        <div class="it">
+        <div data-persona="준호" class="it">
           <div class="av">준</div>
           <div><div class="nm">준호 (38)</div><div class="sub">분당 · 테크 얼리어답터</div></div>
         </div>
-        <div class="it">
+        <div data-persona="서연" class="it">
           <div class="av">서</div>
           <div><div class="nm">서연 (34)</div><div class="sub">부산 · EV6 보유</div></div>
         </div>
-        <div class="it">
+        <div data-persona="현우" class="it">
           <div class="av">현</div>
           <div><div class="nm">현우 (36)</div><div class="sub">대전 · 실용주의</div></div>
         </div>
-        <div class="it">
+        <div data-persona="지원" class="it">
           <div class="av">지</div>
           <div><div class="nm">지원 (31)</div><div class="sub">송파 · 신혼/캠핑</div></div>
         </div>
-        <div class="it">
+        <div data-persona="은채" class="it">
           <div class="av">은</div>
           <div><div class="nm">은채 (40)</div><div class="sub">송도 · 럭셔리 지향</div></div>
         </div>
@@ -963,15 +945,38 @@ body.home-mode #page-home > section{margin-left:-24px;margin-right:-24px}
 
 <script>
 // ============ Navigation ============
-function navTo(id, btn){
+// ============ Navigation + Browser History ============
+const PAGES = ['home','builder','insights','xtab','compare','discover','interview'];
+function renderPage(id){
+  if(!PAGES.includes(id)) id='home';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
   document.querySelectorAll('.hnav .ntab').forEach(b=>b.classList.remove('on'));
-  if(btn && btn.classList) btn.classList.add('on');
+  const idx = PAGES.indexOf(id);
+  const tabs = document.querySelectorAll('.hnav .ntab');
+  if(tabs[idx]) tabs[idx].classList.add('on');
   document.body.classList.toggle('home-mode', id==='home');
   window.scrollTo(0,0);
   setTimeout(renderCharts, 50);
 }
+function navTo(id, btn){
+  // pushState — 브라우저 뒤로가기/앞으로가기 동작
+  const curHash = location.hash.replace('#','') || 'home';
+  if(id !== curHash){
+    history.pushState({page:id}, '', '#'+id);
+  }
+  renderPage(id);
+}
+window.addEventListener('popstate', e=>{
+  const id = (e.state && e.state.page) || location.hash.replace('#','') || 'home';
+  renderPage(id);
+});
+window.addEventListener('DOMContentLoaded', ()=>{
+  const initial = location.hash.replace('#','') || 'home';
+  history.replaceState({page:initial}, '', '#'+initial);
+  renderPage(initial);
+});
 
 // ============ Chart.js Defaults ============
 Chart.defaults.font.family = "Pretendard, sans-serif";
@@ -1056,8 +1061,136 @@ function renderCharts(){
   }
 }
 
+// ============ Builder: chip 토글 + size 재산출 ============
+function toggleChip(el){
+  el.classList.toggle('on');
+  recomputeAudienceSize();
+}
+function recomputeAudienceSize(){
+  // 각 그룹별 선택칩 수 × 고정 계수로 사이즈 mock 업데이트
+  const groups = document.querySelectorAll('#page-builder .bld-grp');
+  let onCount=0, totCount=0;
+  groups.forEach(g=>{
+    const chips=g.querySelectorAll('.chip');
+    totCount += chips.length;
+    onCount += g.querySelectorAll('.chip.on').length;
+  });
+  const ratio = totCount? (onCount/totCount):0.5;
+  // 1500~14000 범위 mock
+  const size = Math.round(1500 + ratio*12500);
+  const pct = (size/400000*100).toFixed(1);
+  const sizeEl = document.querySelector('.aud-size');
+  if(sizeEl) sizeEl.textContent = size.toLocaleString()+'명';
+  const kpi = document.querySelector('#page-builder .hero .kpi:first-child .kpi-v');
+  if(kpi) kpi.textContent = size.toLocaleString();
+  const kpiDesc = document.querySelector('#page-builder .hero .kpi:first-child .kpi-d');
+  if(kpiDesc) kpiDesc.innerHTML = '전체 모집단 대비 <b>'+pct+'%</b>';
+}
+// 자동 한 번에 chip 클릭 핸들러 부착
+function bindChips(){
+  document.querySelectorAll('.chip').forEach(c=>{
+    if(!c.dataset.bound){
+      c.addEventListener('click', ()=>toggleChip(c));
+      c.dataset.bound = '1';
+    }
+  });
+}
+
+// ============ Insights tabs ============
+function insightsTab(btn){
+  document.querySelectorAll('#page-insights .tabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  // 반동 — KPI 렌더링 값 약간 흔들기 (mock 필터링 효과)
+  const factor = 0.85 + Math.random()*0.3;
+  document.querySelectorAll('#page-insights .hero .kpi-v').forEach(v=>{
+    const orig = v.dataset.orig || v.textContent;
+    v.dataset.orig = orig;
+    const num = parseFloat(orig);
+    if(!isNaN(num)){
+      const newNum = (num*factor);
+      const suffix = orig.replace(/[\d.,\s]+/,'').trim();
+      v.textContent = (newNum<10? newNum.toFixed(1): Math.round(newNum)) + (suffix? ' '+suffix:'');
+    }
+  });
+}
+
+// ============ Cross-tab dimension swap ============
+function xtabDim(label){
+  const t = '조합을 "' + label + '"으로 변경했습니다.\n\n(데모 단계 — Phase 2에서 실데이터 연동 시 열·행 동적 재집계 제공)';
+  alert(t);
+}
+
+// ============ Discover refresh ============
+function discoverRefresh(){
+  const cards = document.querySelectorAll('#page-discover .disc');
+  cards.forEach((c,i)=>{
+    c.style.opacity='0.3';
+    setTimeout(()=>{
+      c.style.opacity='1';
+      // 신뢰도·표본 수치 추가
+      const meta = c.querySelector('.disc-meta');
+      if(meta){
+        const newConf = (88 + Math.floor(Math.random()*10));
+        meta.innerHTML = meta.innerHTML.replace(/신뢰도: <b>\d+%<\/b>/, '신뢰도: <b>'+newConf+'%</b>');
+      }
+    }, 150+i*80);
+  });
+}
+
+// ============ Header buttons ============
+function headerExport(){
+  alert('현재 오디언스 설정과 인사이트를 PDF·Excel로 내보냅니다.\n\n(데모 단계 — Phase 2 백엔드 연동 시 활성화)');
+}
+function headerNewProject(){
+  if(confirm('새 프로젝트를 시작하면 현재 오디언스 설정이 초기화됩니다. 계속하시겠습니까?')){
+    document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+    recomputeAudienceSize();
+    navTo('builder', document.querySelectorAll('.hnav .ntab')[1]);
+  }
+}
+function audSave(){ alert('오디언스가 저장되었습니다: "전기차 구매 의향 30대"'); }
+function audDuplicate(){ alert('오디언스가 복제되었습니다. 복제본을 수정해보세요.'); }
+
 // ============ Interview ============
-function ivQ(el){ document.getElementById('iv-input').value = el.textContent; }
+const PERSONAS = {
+  '민지': {age:32, loc:'서울 마포구', sub:'맞벌이 · 2세 자녀 1명 · 아이오닉5 검토 중', icon:'민'},
+  '준호': {age:38, loc:'성남 분당', sub:'테크 얼리어답터 · 테슬라 vs 제네시스 고민', icon:'준'},
+  '서연': {age:34, loc:'부산 해운대', sub:'EV6 보유 · SNS 인플루언서 · 가족용 대형 SUV 관심', icon:'서'},
+  '현우': {age:36, loc:'대전 유성구', sub:'실용주의 · 하이브리드 우선 · 보조금 민감', icon:'현'},
+  '지원': {age:31, loc:'서울 송파', sub:'신혼 · 캷핑 애호·레저 · V2L 중요', icon:'지'},
+  '은채': {age:40, loc:'인천 송도', sub:'럭셔리 지향 · 대형 SUV · GV80 EV 기다림', icon:'은'},
+};
+let currentPersona = '민지';
+const CONV_HISTORY = { '민지': null }; // 기본 타임라인은 HTML에 하드코딩
+function selectPersona(name){
+  if(currentPersona === name) return;
+  // 현재 대화 저장
+  const msgsHtml = document.getElementById('iv-msgs').innerHTML;
+  CONV_HISTORY[currentPersona] = msgsHtml;
+  currentPersona = name;
+  const p = PERSONAS[name];
+  // 사이드 선택 시각화
+  document.querySelectorAll('.iv-list .it').forEach(it=>{
+    it.classList.toggle('on', it.dataset.persona === name);
+  });
+  // 헤더 업데이트
+  document.querySelector('.iv-hd .av').textContent = p.icon;
+  document.querySelector('.iv-hd .nm').textContent = p.icon+name.substring(1)+', '+p.age+'세';
+  document.querySelector('.iv-hd .sub').textContent = p.loc+' · '+p.sub;
+  // 대화 복원 or 새 인사
+  const msgs = document.getElementById('iv-msgs');
+  if(CONV_HISTORY[name]){
+    msgs.innerHTML = CONV_HISTORY[name];
+  } else {
+    msgs.innerHTML = '<div class="iv-msg"><div class="iv-bubble"><div class="role">'+name+'</div>안녕하세요. 광고 리서치 관련해서 편하게 물어보세요. 저는 솔직하게 답변드릴게요.</div></div>';
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+  // 이름 태그 대체 (몔세지 아이콘)
+  document.querySelectorAll('.iv-msgs .role').forEach(r=>{
+    if(r.textContent !== '마케터') r.textContent = name;
+  });
+}
+function ivQ(el){ document.getElementById('iv-input').value = el.textContent; document.getElementById('iv-input').focus(); }
 function ivSend(){
   const inp = document.getElementById('iv-input');
   const q = inp.value.trim(); if(!q) return;
@@ -1065,13 +1198,14 @@ function ivSend(){
   msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg user"><div class="iv-bubble"><div class="role">마케터</div>${q}</div></div>`);
   inp.value=''; msgs.scrollTop = msgs.scrollHeight;
   // Typing indicator
-  msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg" id="iv-typing"><div class="iv-bubble"><div class="role">민지</div><div class="iv-typing"><span></span><span></span><span></span></div></div></div>`);
+  msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg" id="iv-typing"><div class="iv-bubble"><div class="role">${currentPersona}</div><div class="iv-typing"><span></span><span></span><span></span></div></div></div>`);
   msgs.scrollTop = msgs.scrollHeight;
   // Mock response
   setTimeout(()=>{
-    document.getElementById('iv-typing').remove();
+    const ty = document.getElementById('iv-typing');
+    if(ty) ty.remove();
     const r = mockReply(q);
-    msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg"><div class="iv-bubble"><div class="role">민지</div>${r}</div></div>`);
+    msgs.insertAdjacentHTML('beforeend', `<div class="iv-msg"><div class="iv-bubble"><div class="role">${currentPersona}</div>${r}</div></div>`);
     msgs.scrollTop = msgs.scrollHeight;
   }, 1100);
 }
@@ -1088,8 +1222,16 @@ function mockReply(q){
   return '음, 그건 저도 한 번도 깊게 생각해본 적은 없는데... 일단 <b>가족 안전 + 충전 안심</b>이 1순위라는 건 확실해요. 다른 건 부수적이에요.';
 }
 
-// init
-renderCharts();
+// init: chip 바인딩 + iv-list 이벤트﻿
+window.addEventListener('DOMContentLoaded', ()=>{
+  bindChips();
+  document.querySelectorAll('.iv-list .it').forEach(it=>{
+    if(it.dataset.persona){
+      it.addEventListener('click', ()=>selectPersona(it.dataset.persona));
+    }
+  });
+  renderCharts();
+});
 </script>
 </body>
 </html>
