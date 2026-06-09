@@ -79,6 +79,86 @@ ${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}
   }
 });
 
+// POST /api/interview/influencer-match — 페르소나 → 적합 인플루언서 매체 매핑
+interviewRouter.post("/influencer-match", async (req, res) => {
+  const { persona, country = "KR" } = req.body || {};
+  if (!persona || !persona.name) return res.status(400).json({ ok: false, error: "persona required" });
+  const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());
+  if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
+
+  // 규칙 기반 1차 매칭 (age → platform fit)
+  const age = Number(persona.age) || 30;
+  const gender = (persona.gender || "").toLowerCase();
+  const occupation = (persona.occupation || "").toLowerCase();
+  const matches = [];
+
+  // 연령대별 플랫폼 적합도
+  const ageBuckets = {
+    young: age < 25,
+    millennial: age >= 25 && age < 40,
+    middle: age >= 40 && age < 55,
+    senior: age >= 55,
+  };
+
+  // 인플루언서 매체별 fit 계산
+  const influencerMedia = [
+    { id: "inf_tiktok",     label: "TikTok 인플루언서",  ageScore: { young: 95, millennial: 70, middle: 30, senior: 10 } },
+    { id: "inf_instagram",  label: "Instagram 인플루언서", ageScore: { young: 85, millennial: 90, middle: 55, senior: 25 } },
+    { id: "inf_youtube",    label: "YouTube 인플루언서",   ageScore: { young: 90, millennial: 85, middle: 70, senior: 45 } },
+    { id: "inf_twitch",     label: "Twitch 스트리머",       ageScore: { young: 80, millennial: 50, middle: 15, senior: 5 } },
+    { id: "inf_pinterest",  label: "Pinterest Pinner",       ageScore: { young: 45, millennial: 70, middle: 60, senior: 35 } },
+    { id: "inf_naver_blog", label: "Naver Blog (KR)",        ageScore: { young: 30, millennial: 75, middle: 80, senior: 60 }, countryFit: { KR: 1.5 } },
+    { id: "inf_substack",   label: "Substack 뉴스레터",   ageScore: { young: 25, millennial: 65, middle: 70, senior: 50 } },
+    { id: "inf_linkedin",   label: "LinkedIn Creator",       ageScore: { young: 25, millennial: 75, middle: 80, senior: 55 }, occBoost: ["마케팅", "영업", "관리", "director", "manager"] },
+    { id: "inf_x_kol",      label: "X (Twitter) KOL",        ageScore: { young: 50, millennial: 65, middle: 50, senior: 30 } },
+  ];
+
+  for (const inf of influencerMedia) {
+    // age 점수
+    let score = 0;
+    if (ageBuckets.young) score = inf.ageScore.young;
+    else if (ageBuckets.millennial) score = inf.ageScore.millennial;
+    else if (ageBuckets.middle) score = inf.ageScore.middle;
+    else score = inf.ageScore.senior;
+
+    // 국가 fit
+    if (inf.countryFit?.[country]) score *= inf.countryFit[country];
+
+    // 직업 부스트
+    if (inf.occBoost && inf.occBoost.some(kw => occupation.includes(kw))) score += 15;
+
+    // 국가 오버라이드 반영 (예: CN은 IG/YT 차단)
+    if (country === "CN" && ["inf_youtube", "inf_instagram", "inf_twitch"].includes(inf.id)) score = 0;
+    if (country === "RU" && inf.id === "inf_instagram") score *= 0.3;
+    if (country !== "KR" && inf.id === "inf_naver_blog") score = 0;
+
+    matches.push({ id: inf.id, label: inf.label, fitScore: Math.round(score) });
+  }
+
+  matches.sort((a, b) => b.fitScore - a.fitScore);
+  const top = matches.slice(0, 5);
+
+  // 추가 제안: 콘텐츠 주제
+  const contentTopics = [];
+  const interests = persona.values || [];
+  if (interests.some(v => /건강|운동|피트니스/.test(v))) contentTopics.push("피트니스·웰빙");
+  if (interests.some(v => /육아|자녀|육아·양육/.test(v))) contentTopics.push("육아·패런팅");
+  if (interests.some(v => /패션|뉴트|스타일/.test(v))) contentTopics.push("패션·뉴트");
+  if (interests.some(v => /아름다움|뷰티|디자인/.test(v))) contentTopics.push("뛷·뷰티");
+  if (occupation.includes("마케팅") || occupation.includes("영업")) contentTopics.push("B2B·커리어");
+  if (!contentTopics.length) contentTopics.push("라이프스타일 일반");
+
+  res.json({
+    ok: true,
+    persona: { name: persona.name, age: persona.age },
+    country: meta,
+    topMatches: top,
+    allMatches: matches,
+    contentTopics,
+    summary: `${persona.name}은 ${top.map(t => t.label).slice(0, 3).join(", ")} 순으로 적합도가 높으며, 주요 콘텐츠 주제는 ${contentTopics.slice(0, 3).join(", ")}입니다.`,
+  });
+});
+
 // POST /api/interview/panel  — 동일 세그먼트 안 다양성 패널 (3-5명)
 interviewRouter.post("/panel", async (req, res) => {
   const { country = "KR", filters = {}, count = 4 } = req.body || {};

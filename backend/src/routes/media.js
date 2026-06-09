@@ -45,6 +45,38 @@ function computeCPM(m, ind) {
   return Math.round(base * gdpAdj * 100) / 100;
 }
 
+// 국가별 총 광고비 추정 (Statista AMO baseline + GDP 계수)
+// 2024 기준 글로벌 광고비 ~$1T, 채널별 합 점유율 대입
+const CHANNEL_SPEND_SHARE = {
+  tv_video:    0.21,  // TV · 이전 점유율 30%에서 하락 중
+  search:      0.20,  // Google·Naver·Baidu
+  social:      0.17,  // Meta·TikTok·X
+  banner:      0.13,  // Display·Programmatic
+  ooh:         0.07,  // OOH 전체 (DOOH 포함)
+  print:       0.05,  // 신문·잡지 계속 감소
+  audio:       0.04,  // 라디오 + 팟캐스트
+  classifieds: 0.07,  // Indeed·Zillow 등
+  influencer:  0.06,  // 2024 명시, 고성장 추세
+};
+
+function estimateCountryAdSpend(ind) {
+  // 글로벌 광고비 = $1T, 각국 광고비 ≈ GDP × 0.8% (개발도상국 기준)
+  // GDP per capita가 높을수록 광고비/GDP 비율도 증가 (US≈1.3%, 신흥국≈0.5%)
+  const gdpPerCap = ind.gdpPerCapita || 15000;
+  const ratio = 0.005 + (gdpPerCap > 30000 ? 0.005 : (gdpPerCap > 15000 ? 0.003 : 0));
+  // 국가별 추정 GDP 총해 (괄호안에 실제 수치가 있으면 더 좋지만, 없으면 인구 × GDP 추정)
+  const popB = (ind.population || 50_000_000);
+  const gdpUSD = gdpPerCap * popB;
+  return gdpUSD * ratio;  // 달러
+}
+
+function spendShareForMedia(m, allMediaInChannel) {
+  // 채널 안 매체별 점유율은 reach × cpm의 상대비
+  const weight = (m.reach || 0) * (m.cpm || 1);
+  const totalWeight = allMediaInChannel.reduce((s, x) => s + (x.reach || 0) * (x.cpm || 1), 0);
+  return totalWeight > 0 ? weight / totalWeight : 0;
+}
+
 // GET /api/media/landscape?country=KR
 // 전체 매체 풀 도달·신뢰·CPM (호환 유지)
 mediaRouter.get("/landscape", async (req, res) => {
@@ -61,22 +93,34 @@ mediaRouter.get("/landscape", async (req, res) => {
     mobileSubs: ind.mobileSubs?.value,
   };
 
+  // 국가 총 광고비 추정 + Pop 보완
+  const indFlatWithPop = { ...indFlat, population: ind.population?.value };
+  const totalAdSpend = estimateCountryAdSpend(indFlatWithPop);
+
   const allMedia = flattenMedia();
-  const items = allMedia.map(m => {
+  // 1차 계산: reach/trust/cpm
+  let items = allMedia.map(m => {
     const reach = computeReach(m, code, indFlat);
     const trust = computeTrust(m, code, indFlat);
     const cpm = computeCPM(m, indFlat);
     return {
-      id: m.id,
-      label: m.label,
-      channel: m.channelLabel,
-      channelId: m.channelId,
-      subchannel: m.subchannelLabel,
-      subchannelId: m.subchannelId,
+      id: m.id, label: m.label,
+      channel: m.channelLabel, channelId: m.channelId,
+      subchannel: m.subchannelLabel, subchannelId: m.subchannelId,
       reach, trust, cpm,
       effIndex: cpm > 0 ? Number((reach * trust / cpm).toFixed(1)) : 0,
     };
-  }).sort((a, b) => b.reach - a.reach);
+  });
+  // 2차: 채널별 광고비 분배 → 매체별 광고비
+  for (const m of items) {
+    const chShare = CHANNEL_SPEND_SHARE[m.channelId] || 0.02;
+    const channelSpend = totalAdSpend * chShare;
+    const sameChannel = items.filter(x => x.channelId === m.channelId);
+    const myShare = spendShareForMedia(m, sameChannel);
+    m.spend = Math.round(channelSpend * myShare);
+    m.spendShare = Number((chShare * myShare * 100).toFixed(2));  // 전체 광고비 대비 %
+  }
+  items.sort((a, b) => b.reach - a.reach);
 
   // 인사이트
   const insights = [];
@@ -101,16 +145,40 @@ mediaRouter.get("/landscape", async (req, res) => {
     });
   }
 
+  // 광고비 인사이트
+  const topSpend = [...items].sort((a, b) => b.spend - a.spend)[0];
+  insights.push({
+    type: "top-spend",
+    title: "광고비 1위 매체",
+    text: `${topSpend.label} (${topSpend.channel}) — 연 추정 $${(topSpend.spend / 1_000_000).toFixed(1)}M (전체 광고시장의 ${topSpend.spendShare}%)`,
+  });
+
+  // 채널별 광고비 요약
+  const channelSpendSummary = Object.entries(CHANNEL_SPEND_SHARE).map(([id, share]) => ({
+    channelId: id,
+    label: CHANNELS.find(c => c.id === id)?.label || id,
+    share: Number((share * 100).toFixed(1)),
+    spend: Math.round(totalAdSpend * share),
+  })).sort((a, b) => b.spend - a.spend);
+
   res.json({
     ok: true,
     country: meta,
     items,
     insights,
+    spend: {
+      totalEstimated: Math.round(totalAdSpend),
+      totalEstimatedB: Number((totalAdSpend / 1_000_000_000).toFixed(2)),
+      currency: "USD",
+      channels: channelSpendSummary,
+      methodology: "GDP × 광고비 비율 (선진국 1.0%, 중진국 0.8%, 신흥국 0.5%) + Statista AMO 채널 점유율",
+    },
     chart: {
       labels: items.slice(0, 15).map(i => i.label),
       reach: items.slice(0, 15).map(i => i.reach),
       trust: items.slice(0, 15).map(i => i.trust),
       cpm: items.slice(0, 15).map(i => i.cpm),
+      spend: items.slice(0, 15).map(i => i.spend),
     },
     sources: {
       active: [SOURCE_META.worldBank],

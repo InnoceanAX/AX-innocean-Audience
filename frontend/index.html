@@ -456,6 +456,29 @@ a{color:inherit;text-decoration:none}
 .md-media-bar-fill{height:100%}
 .md-media-vals{font-size:10.5px;color:var(--tm);font-variant-numeric:tabular-nums;white-space:nowrap}
 .md-media-vals b{color:var(--ts);font-weight:700}
+/* 광고비 요약 뷰 */
+.md-spend-h{background:#fff;border:1px solid var(--bdr);border-radius:8px;padding:14px 18px;margin-bottom:14px}
+.md-spend-total{font-size:14px;font-weight:700;color:#111}
+.md-spend-total b{color:var(--ind);font-size:18px}
+.md-spend-method{font-size:11px;color:var(--tm);margin-top:6px;line-height:1.5}
+.md-spend-table{background:#fff;border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:14px}
+.md-spend-row{display:grid;grid-template-columns:200px 1fr 130px;gap:12px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--bg2);font-size:12px}
+.md-spend-row:last-child{border-bottom:none}
+.md-spend-label{font-weight:600;color:#111}
+.md-spend-ch{font-size:10px;color:var(--tm);font-weight:500;margin-left:6px;padding:1px 6px;background:var(--bg2);border-radius:3px}
+.md-spend-bar-wrap{height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.md-spend-bar{height:100%;transition:width .4s ease}
+.md-spend-val{text-align:right;font-variant-numeric:tabular-nums;color:#111;font-weight:700;font-size:12.5px}
+.md-spend-share{display:block;font-size:10px;color:var(--tm);font-weight:500;margin-top:1px}
+/* 인플루언서 매칭 */
+.iv-match-card{background:linear-gradient(135deg,#FCE7F3 0%,#FAF5FF 100%);border:1px solid #F9A8D4;border-radius:10px;padding:14px 16px;margin-top:14px}
+.iv-match-h{font-size:11px;font-weight:700;color:#9D174D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.iv-match-x{font-size:12.5px;color:#111;line-height:1.6;margin-bottom:10px}
+.iv-match-list{display:flex;flex-wrap:wrap;gap:6px}
+.iv-match-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#fff;border:1px solid #F9A8D4;border-radius:14px;font-size:11px;font-weight:600;color:#831843}
+.iv-match-chip-fit{padding:1px 6px;background:#EC4899;color:#fff;border-radius:8px;font-size:9.5px}
+.iv-match-topics{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.iv-match-topic{padding:2px 8px;background:#FFF;border:1px solid #F9A8D4;color:#831843;border-radius:3px;font-size:10.5px;font-weight:600}
 /* Interview 탭 */
 .iv-gen-btn{margin-top:14px;padding:10px 20px;background:var(--ind);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s}
 .iv-gen-btn:hover{background:var(--ind2)}
@@ -741,9 +764,10 @@ a{color:inherit;text-decoration:none}
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
             <div class="md-view-tabs">
-              <button class="md-vt active" data-view="tree" onclick="switchMediaView('tree')">채널 트리 (3단)</button>
+              <button class="md-vt active" data-view="tree" onclick="switchMediaView('tree')">채널 트리 (Statista 9)</button>
               <button class="md-vt" data-view="flat" onclick="switchMediaView('flat')">전체 매체 표</button>
               <button class="md-vt" data-view="chart" onclick="switchMediaView('chart')">차트</button>
+              <button class="md-vt" data-view="spend" onclick="switchMediaView('spend')">광고비 요약</button>
             </div>
             <!-- View 1: 채널 트리 -->
             <div id="md-view-tree" class="md-view">
@@ -752,6 +776,10 @@ a{color:inherit;text-decoration:none}
             <!-- View 2: 전체 매체 표 -->
             <div id="md-view-flat" class="md-view hide">
               <div class="md-table-wrap"><table id="md-table" class="md-table"></table></div>
+            </div>
+            <!-- View 4: 광고비 요약 -->
+            <div id="md-view-spend" class="md-view hide">
+              <div id="md-spend-summary"></div>
             </div>
             <!-- View 3: 차트 -->
             <div id="md-view-chart" class="md-view hide">
@@ -1161,7 +1189,7 @@ async function refreshMediaTab(){
 
 function switchMediaView(view){
   document.querySelectorAll('.md-vt').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  ['tree','flat','chart'].forEach(v => {
+  ['tree','flat','chart','spend'].forEach(v => {
     document.getElementById(`md-view-${v}`).classList.toggle('hide', v !== view);
   });
 }
@@ -1223,7 +1251,50 @@ const chColors = {
   tv: '#4F46E5', digital: '#7C3AED', dooh: '#EC4899',
 };
 
+async function renderMediaSpend(data){
+  if(!data.spend) return;
+  const s = data.spend;
+  const sortedCh = s.channels.sort((a,b) => b.spend - a.spend);
+  const maxSpend = sortedCh[0]?.spend || 1;
+  let html = `<div class="md-spend-h">
+    <div class="md-spend-total">연 추정 광고비 <b>$${s.totalEstimatedB}B</b></div>
+    <div class="md-spend-method">${s.methodology}</div>
+  </div>
+  <div class="md-spend-table">`;
+  for(const ch of sortedCh){
+    const color = chColors[ch.channelId] || '#4F46E5';
+    const pct = (ch.spend / maxSpend) * 100;
+    const dollarB = (ch.spend / 1_000_000_000).toFixed(2);
+    const dollarM = (ch.spend / 1_000_000).toFixed(0);
+    const display = ch.spend > 1_000_000_000 ? `$${dollarB}B` : `$${dollarM}M`;
+    html += `<div class="md-spend-row">
+      <div class="md-spend-label">${ch.label}</div>
+      <div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="md-spend-val">${display}<span class="md-spend-share">${ch.share}%</span></div>
+    </div>`;
+  }
+  html += `</div>`;
+  // 매체별 광고비 상위 10
+  const topMedia = [...data.items].sort((a,b) => (b.spend||0) - (a.spend||0)).slice(0, 10);
+  html += `<div class="md-spend-h" style="margin-top:18px"><div class="md-spend-total">매체별 상위 10</div></div><div class="md-spend-table">`;
+  const maxMed = topMedia[0]?.spend || 1;
+  for(const m of topMedia){
+    const color = chColors[m.channelId] || '#4F46E5';
+    const pct = (m.spend / maxMed) * 100;
+    const display = m.spend > 1_000_000_000 ? `$${(m.spend/1_000_000_000).toFixed(2)}B` : `$${(m.spend/1_000_000).toFixed(0)}M`;
+    html += `<div class="md-spend-row">
+      <div class="md-spend-label">${m.label} <span class="md-spend-ch">${m.channel}</span></div>
+      <div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="md-spend-val">${display}<span class="md-spend-share">${m.spendShare}%</span></div>
+    </div>`;
+  }
+  html += `</div>`;
+  document.getElementById('md-spend-summary').innerHTML = html;
+}
+
 async function renderMediaTab(data){
+  // 광고비 리더링
+  renderMediaSpend(data);
   // 인사이트
   let insightHtml = data.insights.map(i => `
     <div class="ov-insight ${i.type==='blocked'?'notice':''}">
@@ -1272,6 +1343,33 @@ async function renderMediaTab(data){
 }
 
 // ============ INTERVIEW TAB ============
+async function fetchInfluencerMatch(persona){
+  try {
+    const res = await fetch(`${API}/interview/influencer-match`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ persona, country: state.currentCountry }),
+    });
+    const data = await res.json();
+    if(!data.ok) return;
+    renderInfluencerMatch(data);
+  } catch(e){ /* silent */ }
+}
+
+function renderInfluencerMatch(data){
+  const card = document.getElementById('iv-card');
+  if(!card) return;
+  const html = `<div class="iv-match-card">
+    <div class="iv-match-h">추천 인플루언서 매체</div>
+    <div class="iv-match-x">${data.summary}</div>
+    <div class="iv-match-list">${data.topMatches.map(m => `<span class="iv-match-chip">${m.label}<span class="iv-match-chip-fit">${m.fitScore}</span></span>`).join('')}</div>
+    <div class="iv-match-topics">${data.contentTopics.map(t => `<span class="iv-match-topic">${t}</span>`).join('')}</div>
+  </div>`;
+  // 이미 있으면 교체, 없으면 추가
+  const existing = card.querySelector('.iv-match-card');
+  if(existing) existing.outerHTML = html;
+  else card.insertAdjacentHTML('beforeend', html);
+}
+
 function backToPanelEmpty(){
   document.getElementById('iv-body').classList.add('hide');
   document.getElementById('iv-empty').classList.remove('hide');
@@ -1307,6 +1405,8 @@ async function generatePersona(persona){
     if(!data.ok) throw new Error(data.error);
     state.ivPersona = data.persona;
     renderPersonaCard(data.persona, data.meta);
+    // 인플루언서 자동 매칭
+    fetchInfluencerMatch(data.persona);
   } catch(e){
     toast('페르소나 생성 실패: ' + e.message);
   }
