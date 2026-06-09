@@ -619,6 +619,92 @@ body.dark .emb-item{border-color:#374151}
 body.dark .emb-btn{background:#1F2937;border-color:#374151;color:#D1D5DB}
 body.dark .emb-btn:hover{border-color:#F9FAFB;color:#F9FAFB}
 
+
+/* === Phase D: 국가 셀렉터 + 국가 비교 카드 === */
+.country-wrap{position:relative;display:inline-block}
+.country-btn{display:flex;align-items:center;gap:4px;padding:7px 12px;font-size:12.5px;font-weight:600;color:#000;background:#fff;border:1px solid var(--bdr);cursor:pointer;font-family:inherit;transition:all .15s;line-height:1}
+.country-btn:hover{border-color:#000;background:#F9FAFB}
+.country-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--bdr);box-shadow:0 8px 24px rgba(0,0,0,.08);min-width:220px;z-index:1500;padding:6px 0}
+.country-menu.open{display:block}
+.country-opt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;font-size:12.5px;color:#000;background:#fff;border:none;cursor:pointer;text-align:left;font-family:inherit;transition:background .12s}
+.country-opt:hover{background:#F9FAFB}
+.country-opt.on{background:#EEF2FF;font-weight:700}
+.country-opt span:first-of-type{flex:1}
+.country-opt .opt-meta{font-size:10.5px;color:var(--tm);font-weight:500}
+
+.dash-country-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.dash-country-card{padding:18px 16px;border:1px solid var(--bdr);background:#fff;position:relative;transition:all .15s}
+.dash-country-card:hover{border-color:#000;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.05)}
+.dash-country-card.active{border-color:var(--ind);background:#EEF2FF}
+.dash-cc-flag{font-size:22px;line-height:1;margin-bottom:6px}
+.dash-cc-n{font-size:12px;color:var(--tm);font-weight:700;margin-bottom:8px}
+.dash-cc-size{font-size:22px;font-weight:900;color:#000;line-height:1}
+.dash-cc-size-s{font-size:10.5px;color:var(--tm);margin-top:2px;letter-spacing:.3px}
+.dash-cc-intent{margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6}
+.dash-cc-intent-v{font-size:18px;font-weight:800;color:var(--ind)}
+.dash-cc-intent-s{font-size:10.5px;color:var(--tm)}
+.dash-cc-rank{position:absolute;top:8px;right:10px;font-size:10px;font-weight:800;color:#fff;background:#000;padding:2px 6px}
+.dash-cc-active-tag{position:absolute;top:8px;right:10px;font-size:9.5px;font-weight:800;color:#fff;background:var(--ind);padding:2px 6px;letter-spacing:.3px}
+
+body.dark .country-btn{background:#1F2937;border-color:#374151;color:#F9FAFB}
+body.dark .country-btn:hover{border-color:#F9FAFB;background:#111827}
+body.dark .country-menu{background:#1F2937;border-color:#374151}
+body.dark .country-opt{background:#1F2937;color:#F9FAFB}
+body.dark .country-opt:hover{background:#111827}
+body.dark .country-opt.on{background:#312E81;color:#F9FAFB}
+body.dark .dash-country-card{background:#1F2937;border-color:#374151}
+body.dark .dash-country-card.active{background:#312E81;border-color:var(--ind)}
+
+@media (max-width:980px){
+  .dash-country-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+
+/* === Phase E: Media Insights === */
+.med-cat-grp{margin-bottom:24px}
+.med-cat-h{font-size:12px;font-weight:700;color:#000;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr)}
+.med-cat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.med-cat-item{padding:14px 12px;border:1px solid var(--bdr);background:#fff;position:relative;transition:all .15s}
+.med-cat-item:hover{border-color:#000;transform:translateY(-1px)}
+.med-cat-item.off{opacity:.4;background:#FAFAFA}
+.med-emoji{font-size:18px;font-weight:900;color:#4F46E5;margin-bottom:4px}
+.med-name{font-size:13px;font-weight:800;color:#000}
+.med-desc{font-size:10.5px;color:var(--tm);margin-top:3px;line-height:1.4}
+.med-pct{font-size:18px;font-weight:900;color:#000;margin-top:8px;line-height:1}
+.med-pct.na{font-size:11px;font-weight:700;color:#9CA3AF}
+.med-lift{font-size:10.5px;font-weight:700;margin-top:4px;letter-spacing:.3px}
+.med-lift.up{color:#10B981}
+.med-lift.dn{color:#EF4444}
+
+.med-drv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.med-drv{padding:12px 14px;border-left:3px solid #4F46E5;background:#F9FAFB;display:flex;flex-direction:column;gap:3px}
+.med-drv.up{border-color:#10B981}
+.med-drv.dn{border-color:#EF4444;background:#FEF2F2}
+.med-drv-k{font-size:13px;font-weight:800;color:#000}
+.med-drv-v{font-size:14px;font-weight:900}
+.med-drv.up .med-drv-v{color:#10B981}
+.med-drv.dn .med-drv-v{color:#EF4444}
+.med-drv-p{font-size:10.5px;color:var(--tm)}
+
+.med-reco-wrap{background:#fff;border:1px solid var(--bdr);padding:18px 20px}
+.med-reco-h{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.med-reco-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.med-reco-name{width:90px;font-size:12px;font-weight:700;color:#000;flex-shrink:0}
+.med-reco-bar{flex:1;height:8px;background:#F3F4F6;position:relative}
+.med-reco-bar i{display:block;height:100%;background:linear-gradient(90deg,#4F46E5,#7C3AED)}
+.med-reco-w{font-size:11.5px;font-weight:800;color:#4F46E5;min-width:35px;text-align:right}
+
+body.dark .med-cat-item{background:#1F2937;border-color:#374151}
+body.dark .med-cat-item.off{background:#111827}
+body.dark .med-name,body.dark .med-pct,body.dark .med-drv-k{color:#F9FAFB}
+body.dark .med-drv,body.dark .med-reco-wrap{background:#1F2937;border-color:#374151}
+body.dark .med-cat-h{color:#F9FAFB;border-color:#374151}
+
+@media (max-width:980px){
+  .med-cat-row{grid-template-columns:repeat(2,1fr)}
+  .med-drv-grid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body class="home-mode">
@@ -648,6 +734,18 @@ body.dark .emb-btn:hover{border-color:#F9FAFB;color:#F9FAFB}
         <button class="hdr-act-btn" onclick="audExport()" title="리포트 다운로드 (HTML)"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button>
         <button class="hdr-act-btn" onclick="audExportSlides()" title="슬라이드 다운로드 (HTML · 가로 A4)"><svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14"/><path d="M3 18l4-4 4 4 6-6 4 4"/></svg></button>
         <button class="hdr-act-btn" onclick="openEmbedModal()" title="임베드 코드"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 7l-6 5 6 5"/><path d="M15 7l6 5-6 5"/></svg></button>
+        <div class="country-wrap">
+          <button class="country-btn" id="country-btn" onclick="toggleCountryMenu()" title="국가 데이터 전환">
+            <span id="country-cur">🇰🇷 <span style="font-weight:700">대한민국</span></span>
+            <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-left:4px"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="country-menu" id="country-menu" role="menu">
+            <button class="country-opt" data-code="KR" onclick="setActiveCountry('KR')">🇰🇷 <span>대한민국</span><span class="opt-meta">N=8,420 · 의향 68</span></button>
+            <button class="country-opt" data-code="JP" onclick="setActiveCountry('JP')">🇯🇵 <span>일본</span><span class="opt-meta">N=12,480 · 의향 54</span></button>
+            <button class="country-opt" data-code="US" onclick="setActiveCountry('US')">🇺🇸 <span>미국</span><span class="opt-meta">N=35,200 · 의향 62</span></button>
+            <button class="country-opt" data-code="DE" onclick="setActiveCountry('DE')">🇩🇪 <span>독일</span><span class="opt-meta">N=10,240 · 의향 71</span></button>
+          </div>
+        </div>
         <button class="hdr-act-btn" onclick="toggleTheme()" title="라이트/다크 토글"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
         <button class="hdr-act-pri" onclick="headerNewProject()" title="새 프로젝트"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>새 프로젝트</button>
       </div>
@@ -680,6 +778,7 @@ body.dark .emb-btn:hover{border-color:#F9FAFB;color:#F9FAFB}
     <div class="side-it" data-page="insights" onclick="navTo('insights', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-7"/></svg><span>차트</span></div>
     <div class="side-it" data-page="xtab" onclick="navTo('xtab', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span>교차분석</span></div>
     <div class="side-it" data-page="trends" onclick="navTo('trends', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span>트렌드</span></div>
+    <div class="side-it" data-page="media" onclick="navTo('media', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h6M14 14h4"/></svg><span>미디어 인사이트</span></div>
     <div class="side-it" data-page="discover" onclick="navTo('discover', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg><span>디스커버</span></div>
   </div>
   <div class="side-grp">
@@ -905,6 +1004,9 @@ body.dark .emb-btn:hover{border-color:#F9FAFB;color:#F9FAFB}
       <div class="aud-actions">
         <button class="hdr-btn" onclick="window.print()" title="인쇄/PDF"><svg class="ico ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6"/><path d="M6 18H4v-7h16v7h-2"/><path d="M6 14h12v7H6z"/></svg>인쇄</button>
       </div>
+      <div class="sec-hd" style="margin-top:30px"><div><div class="sec-t">🌐 국가별 비교 — 동일 필터, 다른 시장</div><div class="sec-s">현재 적용된 필터를 4개국에 동시 적용한 결과입니다. 시장별 의향 격차를 한눈에.</div></div></div>
+      <div id="dash-country-compare" class="dash-country-grid"></div>
+
     </div>
 
     <!-- 헤드라인 인덱스 (Phase A 카드 재사용) -->
@@ -1275,6 +1377,62 @@ body.dark .emb-btn:hover{border-color:#F9FAFB;color:#F9FAFB}
 
   <!-- ============ Discover ============ -->
   
+  
+  <!-- ============ Media Insights ============ -->
+  <div class="page" id="page-media">
+    <div class="sec-hd">
+      <div>
+        <div class="sec-t">미디어 인사이트 — 도달·시간·신뢰·믹스</div>
+        <div class="sec-s">활성 국가의 미디어 분포 + 의향 lift 기여도. 국가를 바꾸면 LINE(일본), 네이버(한국), 팟캐스트(미국)처럼 시장 특성이 드러납니다.</div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="kpi"><div class="kpi-t">TOP 매체</div><div class="kpi-v" id="med-kpi-top">-</div><div class="kpi-d" id="med-kpi-top-s">도달률</div></div>
+      <div class="kpi"><div class="kpi-t">헤비 유저</div><div class="kpi-v" id="med-kpi-heavy">-</div><div class="kpi-d" id="med-kpi-heavy-s">3시간↑ 미디어</div></div>
+      <div class="kpi"><div class="kpi-t">신뢰 매체</div><div class="kpi-v" id="med-kpi-trust">-</div><div class="kpi-d" id="med-kpi-trust-s">신뢰도</div></div>
+      <div class="kpi"><div class="kpi-t">도달 가능 채널</div><div class="kpi-v" id="med-kpi-reach">-</div><div class="kpi-d" id="med-kpi-reach-s">5%↑ 매체 수</div></div>
+    </div>
+
+    <div class="grid-2" style="margin-top:24px">
+      <div class="chart-card">
+        <div class="ccard-t">매체별 도달률 (TOP 10)</div>
+        <div class="ccard-s">현재 세그먼트 내 비율 (%)</div>
+        <div class="chart-wrap"><canvas id="chart-media-rank"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="ccard-t">일평균 미디어 소비 시간</div>
+        <div class="ccard-s">소비 강도 분포</div>
+        <div class="chart-wrap"><canvas id="chart-media-time"></canvas></div>
+      </div>
+      <div class="chart-card" style="grid-column: span 2">
+        <div class="ccard-t">가장 신뢰하는 매체</div>
+        <div class="ccard-s">광고 메시지 신뢰도 영향 — 신뢰 매체 1개 + 도달 매체 2개 조합 권장</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="chart-media-trust"></canvas></div>
+      </div>
+    </div>
+
+    <div class="sec-hd" style="margin-top:32px">
+      <div>
+        <div class="sec-t">미디어 카탈로그 — 그룹별 도달률 + 의향 lift</div>
+        <div class="sec-s">현재 국가에서 사용 불가한 채널은 비활성(N/A) 표시</div>
+      </div>
+    </div>
+    <div id="med-catalog"></div>
+
+    <div class="grid-2" style="margin-top:24px;gap:24px">
+      <div>
+        <div class="sec-hd"><div><div class="sec-t">의향 lift TOP 6 매체</div><div class="sec-s">광고 효율이 가장 높은 채널</div></div></div>
+        <div id="med-drivers" class="med-drv-grid"></div>
+      </div>
+      <div>
+        <div class="sec-hd"><div><div class="sec-t">권장 미디어 믹스</div><div class="sec-s">도달률 × 의향 lift로 가중</div></div></div>
+        <div id="med-reco" class="med-reco-wrap"></div>
+      </div>
+    </div>
+
+  </div>
+
   <!-- ============ Trends ============ -->
   <div class="page" id="page-trends">
     <div class="aud-pre-hd" style="background:#fff;border:2px solid var(--bdr);padding:18px 22px;margin-bottom:18px">
@@ -1442,8 +1600,8 @@ const POP_DIST = {
   media:[{k:'YouTube',p:0.34},{k:'Instagram',p:0.24},{k:'네이버',p:0.18},{k:'카카오',p:0.14},{k:'TV',p:0.10}],
   lifestyle:[{k:'캠핑',p:0.16},{k:'육아',p:0.30},{k:'피트니스',p:0.18},{k:'맛집',p:0.14},{k:'반려동물',p:0.12},{k:'테크얼리어답터',p:0.10}],
 };
-const POP_N = 8420;
-const BASE_INTENT = 68;
+let POP_N = 8420;
+let BASE_INTENT = 68;
 const INTENT_LIFT = {
   age:{'30-32':+2,'33-35':+5,'36-38':+8,'39-40':+4},
   income:{'3천만↓':-12,'3-5천만':-4,'5-7천만':+6,'7천만-1억':+12,'1억↑':+18},
@@ -1457,7 +1615,31 @@ const AGE_MID = {'30-32':31,'33-35':34,'36-38':37,'39-40':39.5};
 
 window.AUD_STATE = window.AUD_STATE || { filters:{}, currentProjectId:null };
 
+// === Phase D: 활성 국가 데이터로 POP_DIST/INTENT_LIFT/INCOME_MID/POP_N/BASE_INTENT 통째 교체 ===
+function _aud_applyCountryData(){
+  try{
+    const code = (window.AUD_STATE && window.AUD_STATE.country) || 'KR';
+    const p = (typeof COUNTRY_PROFILES !== 'undefined') ? COUNTRY_PROFILES[code] : null;
+    if(!p) return;
+    // 글로벌 변수 통째 교체
+    for(const k in POP_DIST){ delete POP_DIST[k]; }
+    for(const k in p.POP_DIST){ POP_DIST[k] = p.POP_DIST[k]; }
+    for(const k in INTENT_LIFT){ delete INTENT_LIFT[k]; }
+    for(const k in p.INTENT_LIFT){ INTENT_LIFT[k] = p.INTENT_LIFT[k]; }
+    for(const k in INCOME_MID){ delete INCOME_MID[k]; }
+    for(const k in p.INCOME_MID){ INCOME_MID[k] = p.INCOME_MID[k]; }
+    window.POP_N_ACTIVE = p.N;
+    window.BASE_INTENT_ACTIVE = p.BASE_INTENT;
+  }catch(e){ console.warn('country data swap failed', e); }
+}
+window._aud_applyCountryData = _aud_applyCountryData;
+
+
 function computeSegment(filters){
+  if(typeof _aud_applyCountryData === 'function') _aud_applyCountryData();
+  if(typeof _aud_applyMediaData === 'function') _aud_applyMediaData();
+  if(window.POP_N_ACTIVE) POP_N = window.POP_N_ACTIVE;
+  if(window.BASE_INTENT_ACTIVE) BASE_INTENT = window.BASE_INTENT_ACTIVE;
   filters = filters || AUD_STATE.filters;
   let ratio = 1;
   Object.keys(filters||{}).forEach(dim=>{
@@ -1502,7 +1684,7 @@ function computeSegment(filters){
   return {
     size, sizePct: (size/POP_N*100),
     avgIntent: Math.round(avgIntent),
-    avgIncome: avgIncome ? (avgIncome/1000).toFixed(1) : '5.8',
+    avgIncome: (function(){ try{ const cp = (typeof COUNTRY_PROFILES!=='undefined' && AUD_STATE && AUD_STATE.country) ? COUNTRY_PROFILES[AUD_STATE.country] : null; const div = (cp && cp.INCOME_DIV) || 1000; return avgIncome ? (avgIncome/div).toFixed(1) : '5.8'; }catch(e){ return avgIncome ? (avgIncome/1000).toFixed(1) : '5.8'; } })(),
     avgAge: avgAge ? avgAge.toFixed(1) : '34.2',
     distFor
   };
@@ -1546,8 +1728,8 @@ function computeIndex(){
   if(Math.abs(incomeIdx-100) >= 5){
     out.push({
       kind:'income', dim:'income', dimLabel:'가구소득',
-      k:seg.avgIncome+'천만', idx:incomeIdx, lift:incomeIdx-100,
-      msg: '모집단 '+baseSeg.avgIncome+'천만 대비 '+(incomeIdx>=100?'+':'')+(incomeIdx-100)+'% — '+seg.avgIncome+'천만',
+      k:_aud_incomeFmt(seg.avgIncome), idx:incomeIdx, lift:incomeIdx-100,
+      msg: '모집단 '+_aud_incomeFmt(baseSeg.avgIncome)+' 대비 '+(incomeIdx>=100?'+':'')+(incomeIdx-100)+'% — '+_aud_incomeFmt(seg.avgIncome),
     });
   }
 
@@ -1996,7 +2178,7 @@ function updateProjectBadge(){
 
 
 // ============ Navigation + Browser History ============
-const PAGES = ['home','dashboard','builder','insights','xtab','trends','compare','discover','interview'];
+const PAGES = ['home','dashboard','builder','insights','xtab','trends','compare','discover','interview','media'];
 function renderPage(id){
   if(!PAGES.includes(id)) id='home';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2012,7 +2194,7 @@ function renderPage(id){
     s.classList.toggle('on', s.dataset.page===id);
   });
   // 헤더 페이지 타이틀
-  const titles = {home:'',dashboard:'대시보드',builder:'오디언스 빌더',insights:'차트 & 인사이트',xtab:'교차 분석',trends:'트렌드',compare:'오디언스 비교',discover:'디스커버',interview:'페르소나 인터뷰'};
+  const titles = {home:'',dashboard:'대시보드', media:'미디어 인사이트',builder:'오디언스 빌더',insights:'차트 & 인사이트',xtab:'교차 분석',trends:'트렌드',compare:'오디언스 비교',discover:'디스커버',interview:'페르소나 인터뷰'};
   const hpt = document.getElementById('hdrPageTitle');
   if(hpt) hpt.textContent = titles[id] || '';
   window.scrollTo(0,0);
@@ -2318,7 +2500,7 @@ function rerenderInsights(){
   const kpis = document.querySelectorAll('#page-insights .hero .kpi-v');
   if(kpis[0]) kpis[0].textContent = seg.size.toLocaleString();
   if(kpis[1]) kpis[1].textContent = seg.avgAge+'세';
-  if(kpis[2]) kpis[2].textContent = seg.avgIncome+'천만';
+  if(kpis[2]) kpis[2].textContent = _aud_incomeFmt(seg.avgIncome);
   if(kpis[3]) kpis[3].textContent = seg.avgIntent+'점';
 
   // 차트 재렌더링 — 활성 탭 기준
@@ -2328,6 +2510,73 @@ function rerenderInsights(){
 }
 
 function renderInsightsCharts(seg, tabName){
+  // 탭별 4개 차트 (디멘션 + 차트 종류 + 타이틀/부제 차별화)
+  const TAB_CHARTS = {
+    '전체': [
+      {id:'chart-age', dim:'age', type:'bar', t:'연령 분포', s:'선택 세그먼트 내 비율 (%)'},
+      {id:'chart-income', dim:'income', type:'bar', t:'가구 소득 분포', s:'선택 세그먼트 내 비율 (%)'},
+      {id:'chart-brand', dim:'brand', type:'doughnut', t:'관심 브랜드', s:'구성비'},
+      {id:'chart-trigger', dim:'trigger', type:'radar', t:'구매 트리거', s:'의사결정 영향 요소'},
+    ],
+    '인구통계': [
+      {id:'chart-age', dim:'age', type:'bar', t:'연령 분포', s:'세그먼트 내 비율 (%)'},
+      {id:'chart-income', dim:'gender', type:'doughnut', t:'성별 분포', s:'세그먼트 내 비율 (%)'},
+      {id:'chart-brand', dim:'region', type:'bar', t:'지역 분포', s:'수도권 / 광역시 / 지방'},
+      {id:'chart-trigger', dim:'income', type:'bar', t:'가구 소득 분포', s:'국가별 통화 단위 적용'},
+    ],
+    '구매 행태': [
+      {id:'chart-age', dim:'carWant', type:'doughnut', t:'관심 차종', s:'EV / 하이브리드 / 내연기관'},
+      {id:'chart-income', dim:'carNow', type:'bar', t:'현재 보유 차종', s:'세그먼트 내 비율 (%)'},
+      {id:'chart-brand', dim:'trigger', type:'radar', t:'구매 트리거', s:'의사결정 영향 요소'},
+      {id:'chart-trigger', dim:'marriage', type:'bar', t:'가족 구성', s:'미혼 / 신혼 / 자녀있음 / 자녀독립'},
+    ],
+    '미디어 소비': [
+      {id:'chart-age', dim:'media', type:'bar', t:'주요 매체', s:'세그먼트 내 도달률 (%)'},
+      {id:'chart-income', dim:'lifestyle', type:'radar', t:'라이프스타일', s:'관심·취미 영역'},
+      {id:'chart-brand', dim:'media', type:'doughnut', t:'매체 구성비', s:'YouTube / Instagram / 네이버 / 카카오 / TV'},
+      {id:'chart-trigger', dim:'job', type:'bar', t:'직업 분포', s:'미디어 소비 패턴 차이의 배경'},
+    ],
+    '브랜드 인식': [
+      {id:'chart-age', dim:'brand', type:'doughnut', t:'관심 브랜드 구성', s:'세그먼트 내 비율 (%)'},
+      {id:'chart-income', dim:'brand', type:'bar', t:'관심 브랜드 (막대)', s:'국가별 브랜드 강도 비교'},
+      {id:'chart-brand', dim:'carWant', type:'doughnut', t:'관심 차종', s:'브랜드 선호와의 상관'},
+      {id:'chart-trigger', dim:'income', type:'bar', t:'가구 소득', s:'프리미엄 브랜드 인식의 기반'},
+    ],
+  };
+  const tab = TAB_CHARTS[tabName] || TAB_CHARTS['전체'];
+
+  // 카드 헤더 (ccard-t/ccard-s) 텍스트도 탭에 맞게 갱신
+  const cards = document.querySelectorAll('#page-insights .grid-2 .chart-card');
+  tab.forEach((cfg, i)=>{
+    const card = cards[i];
+    if(card){
+      const t = card.querySelector('.ccard-t');
+      const s = card.querySelector('.ccard-s');
+      if(t) t.textContent = cfg.t;
+      if(s) s.textContent = cfg.s;
+    }
+  });
+
+  tab.forEach(cfg=>{
+    const el = document.getElementById(cfg.id);
+    if(!el) return;
+    const dist = seg.distFor(cfg.dim);
+    const ctx = el.getContext('2d');
+    if(el._chart) el._chart.destroy();
+    const type = cfg.type;
+    const labels = dist.map(d=>d.k);
+    const values = dist.map(d=>+(d.p*100).toFixed(1));
+    const colors = ['#4F46E5','#7C3AED','#EC4899','#F59E0B','#10B981','#06B6D4','#6366F1','#8B5CF6'];
+    const chartCfg = {
+      type: type,
+      data: { labels, datasets: [{ label: '비율 (%)', data: values, backgroundColor: (type==='doughnut'||type==='pie')?colors.slice(0,labels.length):'rgba(79,70,229,0.7)', borderColor:'#4F46E5', borderWidth:1.5, pointRadius:3 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:type==='doughnut'||type==='radar'||type==='pie', position:'bottom', labels:{font:{size:10}} } }, scales: (type==='doughnut'||type==='radar'||type==='pie')?{}:{ y:{ beginAtZero:true, ticks:{callback:v=>v+'%'} } } }
+    };
+    el._chart = new Chart(ctx, chartCfg);
+  });
+}
+
+function _legacy_renderInsightsCharts_unused(seg, tabName){
   const charts = ['chart-age','chart-income','chart-brand','chart-trigger'];
   const dimMap = {'chart-age':'age','chart-income':'income','chart-brand':'brand','chart-trigger':'trigger'};
   const typeMap = {'chart-age':'bar','chart-income':'bar','chart-brand':'doughnut','chart-trigger':'radar'};
@@ -2475,11 +2724,11 @@ function rerenderCompare(){
   const set = (id, val)=>{ const el = document.getElementById(id); if(el) el.textContent = val; };
   set('cmp-a-size', segA.size.toLocaleString());
   set('cmp-a-age', segA.avgAge+'세');
-  set('cmp-a-income', segA.avgIncome+'천만');
+  set('cmp-a-income', _aud_incomeFmt(segA.avgIncome));
   set('cmp-a-intent', segA.avgIntent+'점');
   set('cmp-b-size', segB.size.toLocaleString());
   set('cmp-b-age', segB.avgAge+'세');
-  set('cmp-b-income', segB.avgIncome+'천만');
+  set('cmp-b-income', _aud_incomeFmt(segB.avgIncome));
   set('cmp-b-intent', segB.avgIntent+'점');
   // 차이 배지
   const liftIntent = segA.avgIntent - segB.avgIntent;
@@ -2735,7 +2984,7 @@ function rerenderDashboard(){
   set('dash-kpi-size', seg.size.toLocaleString());
   set('dash-kpi-size-s', '모집단 '+baseSeg.size.toLocaleString()+'의 '+(seg.size/baseSeg.size*100).toFixed(1)+'%');
   set('dash-kpi-age', seg.avgAge+'세');
-  set('dash-kpi-income', seg.avgIncome+'천만');
+  set('dash-kpi-income', _aud_incomeFmt(seg.avgIncome));
   set('dash-kpi-intent', seg.avgIntent+'점');
   const lift = seg.avgIntent - baseSeg.avgIntent;
   set('dash-kpi-intent-s', '모집단 '+baseSeg.avgIntent+'점 대비 '+(lift>=0?'+':'')+lift+'점');
@@ -2791,7 +3040,43 @@ function rerenderDashboard(){
       return '<li><b>'+d.dimLabel+' '+d.opt+':</b> 의향 '+sign+d.lift+'pt '+(d.selected?'<span style="color:#059669;font-weight:700">✓ 적용중</span>':'')+'</li>';
     }).join('');
   }
+  // 국가 비교
+  if(typeof renderCountryCompare === 'function') renderCountryCompare();
 }
+
+function renderCountryCompare(){
+  const wrap = document.getElementById('dash-country-compare');
+  if(!wrap || typeof COUNTRY_PROFILES === 'undefined') return;
+  const active = getActiveCountry();
+  const filters = (window.AUD_STATE && window.AUD_STATE.filters) || {};
+  const results = Object.keys(COUNTRY_PROFILES).map(code=>{
+    const p = COUNTRY_PROFILES[code];
+    const orig = window.AUD_STATE.country;
+    window.AUD_STATE.country = code;
+    if(typeof _aud_applyCountryData === 'function') _aud_applyCountryData();
+    const s = computeSegment(filters);
+    window.AUD_STATE.country = orig;
+    if(typeof _aud_applyCountryData === 'function') _aud_applyCountryData();
+    return { code, profile: p, seg: s };
+  });
+  const sorted = results.slice().sort((a,b)=>b.seg.avgIntent - a.seg.avgIntent);
+  const rankMap = {};
+  sorted.forEach((r,i)=>{ rankMap[r.code] = i+1; });
+
+  wrap.innerHTML = results.map(r=>{
+    const isActive = r.code === active;
+    const incomeStr = r.profile.INCOME_FMT ? r.profile.INCOME_FMT(r.seg.avgIncome) : (r.seg.avgIncome + r.profile.INCOME_UNIT);
+    return '<div class="dash-country-card'+(isActive?' active':'')+'" onclick="setActiveCountry(\''+r.code+'\')">'
+      + (isActive ? '<div class="dash-cc-active-tag">현재</div>' : '<div class="dash-cc-rank">#'+rankMap[r.code]+'</div>')
+      + '<div class="dash-cc-flag">'+r.profile.emoji+'</div>'
+      + '<div class="dash-cc-n">'+r.profile.label+'</div>'
+      + '<div class="dash-cc-size">'+r.seg.size.toLocaleString()+'</div>'
+      + '<div class="dash-cc-size-s">N의 '+(r.seg.size/r.profile.N*100).toFixed(1)+'% · 평균소득 '+incomeStr+'</div>'
+      + '<div class="dash-cc-intent"><div class="dash-cc-intent-v">'+r.seg.avgIntent+'점</div><div class="dash-cc-intent-s">의향 (base '+r.profile.BASE_INTENT+')</div></div>'
+      + '</div>';
+  }).join('');
+}
+
 
 // --- B-7. Trends rerender ---
 let _trdCharts = {};
@@ -3073,7 +3358,7 @@ function getEmbedHTML(type){
   if(type === 'kpi-summary'){
     content = '<div style="font-size:11px;color:#6B7280;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px">INNOCEAN AUDIENCE · '+esc(filterDesc)+'</div>'
       + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
-      + ['타겟 사이즈 / '+seg.size.toLocaleString(), '평균 연령 / '+seg.avgAge+'세', '평균 가구소득 / '+seg.avgIncome+'천만', '구매 의향 / '+seg.avgIntent+'점'].map(s=>{
+      + ['타겟 사이즈 / '+seg.size.toLocaleString(), '평균 연령 / '+seg.avgAge+'세', '평균 가구소득 / '+_aud_incomeFmt(seg.avgIncome), '구매 의향 / '+seg.avgIntent+'점'].map(s=>{
         const [t,v] = s.split(' / ');
         return '<div style="padding:14px;background:#F9FAFB;border-left:3px solid #4F46E5"><div style="font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase">'+t+'</div><div style="font-size:22px;font-weight:900;color:#000;margin-top:4px;line-height:1">'+v+'</div></div>';
       }).join('')
@@ -3174,6 +3459,427 @@ function fallbackCopy(text, label){
   catch(e) { showToast('복사 실패 — HTML 다운로드 사용해주세요','warn'); }
   document.body.removeChild(ta);
 }
+
+
+// ===========================================================
+// Phase D: 국가별 데이터셋 (한국·일본·미국·독일) + 차트 탭 차별화
+// ===========================================================
+
+// --- D-1. 국가 프로필 (POP_DIST·INTENT_LIFT·INCOME_MID·BASE_INTENT 통째) ---
+const COUNTRY_PROFILES = {
+  KR: {
+    label: '대한민국', emoji: '🇰🇷', N: 8420, BASE_INTENT: 68,
+    INCOME_UNIT: '천만원', INCOME_DIV: 1000, INCOME_FMT: v=>v+'천만',
+    POP_DIST: {
+      age:[{k:'30-32',p:0.30},{k:'33-35',p:0.32},{k:'36-38',p:0.24},{k:'39-40',p:0.14}],
+      gender:[{k:'여성',p:0.52},{k:'남성',p:0.48}],
+      region:[{k:'수도권',p:0.51},{k:'광역시',p:0.27},{k:'지방',p:0.22}],
+      income:[{k:'3천만↓',p:0.12},{k:'3-5천만',p:0.28},{k:'5-7천만',p:0.27},{k:'7천만-1억',p:0.21},{k:'1억↑',p:0.12}],
+      marriage:[{k:'미혼',p:0.28},{k:'신혼',p:0.18},{k:'자녀있음',p:0.46},{k:'자녀독립',p:0.08}],
+      job:[{k:'전문직',p:0.22},{k:'사무직',p:0.41},{k:'자영업',p:0.14},{k:'주부',p:0.18},{k:'학생',p:0.05}],
+      carNow:[{k:'세단',p:0.34},{k:'SUV',p:0.31},{k:'해치백',p:0.08},{k:'없음',p:0.27}],
+      carWant:[{k:'EV',p:0.36},{k:'하이브리드',p:0.38},{k:'내연기관',p:0.26}],
+      brand:[{k:'현대',p:0.31},{k:'기아',p:0.24},{k:'테슬라',p:0.14},{k:'BMW',p:0.10},{k:'벤츠',p:0.08},{k:'폭스바겐',p:0.13}],
+      trigger:[{k:'친환경',p:0.18},{k:'경제성',p:0.22},{k:'성능',p:0.14},{k:'디자인',p:0.15},{k:'안전',p:0.21},{k:'보조금',p:0.10}],
+      media:[{k:'YouTube',p:0.34},{k:'Instagram',p:0.24},{k:'네이버',p:0.18},{k:'카카오',p:0.14},{k:'TV',p:0.10}],
+      lifestyle:[{k:'캠핑',p:0.16},{k:'육아',p:0.30},{k:'피트니스',p:0.18},{k:'맛집',p:0.14},{k:'반려동물',p:0.12},{k:'테크얼리어답터',p:0.10}],
+    },
+    INTENT_LIFT: {
+      age:{'30-32':+2,'33-35':+5,'36-38':+8,'39-40':+4},
+      income:{'3천만↓':-12,'3-5천만':-4,'5-7천만':+6,'7천만-1억':+12,'1억↑':+18},
+      marriage:{'미혼':-6,'신혼':+10,'자녀있음':+8,'자녀독립':-2},
+      carWant:{'EV':+15,'하이브리드':+8,'내연기관':-10},
+      trigger:{'친환경':+6,'경제성':+3,'성능':+5,'디자인':+2,'안전':+8,'보조금':+10},
+      brand:{'테슬라':+10,'BMW':+6,'벤츠':+5,'현대':+4,'기아':+3,'폭스바겐':+2},
+    },
+    INCOME_MID:{'3천만↓':2500,'3-5천만':4000,'5-7천만':6000,'7천만-1억':8500,'1억↑':12000},
+  },
+  JP: {
+    label: '일본', emoji: '🇯🇵', N: 12480, BASE_INTENT: 54,
+    INCOME_UNIT: '만엔', INCOME_DIV: 1, INCOME_FMT: v=>v+'만엔',
+    POP_DIST: {
+      age:[{k:'30-32',p:0.26},{k:'33-35',p:0.28},{k:'36-38',p:0.26},{k:'39-40',p:0.20}],
+      gender:[{k:'여성',p:0.51},{k:'남성',p:0.49}],
+      region:[{k:'수도권',p:0.42},{k:'광역시',p:0.30},{k:'지방',p:0.28}],
+      income:[{k:'3천만↓',p:0.18},{k:'3-5천만',p:0.34},{k:'5-7천만',p:0.26},{k:'7천만-1억',p:0.16},{k:'1억↑',p:0.06}],
+      marriage:[{k:'미혼',p:0.36},{k:'신혼',p:0.14},{k:'자녀있음',p:0.40},{k:'자녀독립',p:0.10}],
+      job:[{k:'전문직',p:0.18},{k:'사무직',p:0.46},{k:'자영업',p:0.13},{k:'주부',p:0.19},{k:'학생',p:0.04}],
+      carNow:[{k:'세단',p:0.28},{k:'SUV',p:0.22},{k:'해치백',p:0.18},{k:'없음',p:0.32}],
+      carWant:[{k:'EV',p:0.18},{k:'하이브리드',p:0.54},{k:'내연기관',p:0.28}],
+      brand:[{k:'현대',p:0.03},{k:'기아',p:0.02},{k:'테슬라',p:0.09},{k:'BMW',p:0.16},{k:'벤츠',p:0.14},{k:'폭스바겐',p:0.56}],
+      trigger:[{k:'친환경',p:0.14},{k:'경제성',p:0.28},{k:'성능',p:0.10},{k:'디자인',p:0.10},{k:'안전',p:0.32},{k:'보조금',p:0.06}],
+      media:[{k:'YouTube',p:0.30},{k:'Instagram',p:0.18},{k:'네이버',p:0.02},{k:'카카오',p:0.02},{k:'TV',p:0.48}],
+      lifestyle:[{k:'캠핑',p:0.12},{k:'육아',p:0.26},{k:'피트니스',p:0.14},{k:'맛집',p:0.22},{k:'반려동물',p:0.10},{k:'테크얼리어답터',p:0.16}],
+    },
+    INTENT_LIFT: {
+      age:{'30-32':-3,'33-35':+1,'36-38':+5,'39-40':+8},
+      income:{'3천만↓':-10,'3-5천만':-2,'5-7천만':+5,'7천만-1억':+10,'1억↑':+14},
+      marriage:{'미혼':-8,'신혼':+6,'자녀있음':+5,'자녀독립':+2},
+      carWant:{'EV':+8,'하이브리드':+15,'내연기관':-4},
+      trigger:{'친환경':+4,'경제성':+8,'성능':+3,'디자인':+2,'안전':+10,'보조금':+4},
+      brand:{'테슬라':+8,'BMW':+10,'벤츠':+9,'현대':+1,'기아':+1,'폭스바겐':+12},
+    },
+    INCOME_MID:{'3천만↓':350,'3-5천만':500,'5-7천만':700,'7천만-1억':900,'1억↑':1300},
+  },
+  US: {
+    label: '미국', emoji: '🇺🇸', N: 35200, BASE_INTENT: 62,
+    INCOME_UNIT: 'K USD', INCOME_DIV: 1, INCOME_FMT: v=>'$'+v+'K',
+    POP_DIST: {
+      age:[{k:'30-32',p:0.28},{k:'33-35',p:0.27},{k:'36-38',p:0.24},{k:'39-40',p:0.21}],
+      gender:[{k:'여성',p:0.50},{k:'남성',p:0.50}],
+      region:[{k:'수도권',p:0.36},{k:'광역시',p:0.38},{k:'지방',p:0.26}],
+      income:[{k:'3천만↓',p:0.16},{k:'3-5천만',p:0.22},{k:'5-7천만',p:0.24},{k:'7천만-1억',p:0.22},{k:'1억↑',p:0.16}],
+      marriage:[{k:'미혼',p:0.32},{k:'신혼',p:0.14},{k:'자녀있음',p:0.42},{k:'자녀독립',p:0.12}],
+      job:[{k:'전문직',p:0.26},{k:'사무직',p:0.34},{k:'자영업',p:0.17},{k:'주부',p:0.16},{k:'학생',p:0.07}],
+      carNow:[{k:'세단',p:0.22},{k:'SUV',p:0.46},{k:'해치백',p:0.04},{k:'없음',p:0.28}],
+      carWant:[{k:'EV',p:0.32},{k:'하이브리드',p:0.30},{k:'내연기관',p:0.38}],
+      brand:[{k:'현대',p:0.06},{k:'기아',p:0.05},{k:'테슬라',p:0.34},{k:'BMW',p:0.18},{k:'벤츠',p:0.15},{k:'폭스바겐',p:0.22}],
+      trigger:[{k:'친환경',p:0.16},{k:'경제성',p:0.18},{k:'성능',p:0.20},{k:'디자인',p:0.16},{k:'안전',p:0.22},{k:'보조금',p:0.08}],
+      media:[{k:'YouTube',p:0.40},{k:'Instagram',p:0.28},{k:'네이버',p:0.01},{k:'카카오',p:0.01},{k:'TV',p:0.30}],
+      lifestyle:[{k:'캠핑',p:0.18},{k:'육아',p:0.22},{k:'피트니스',p:0.20},{k:'맛집',p:0.12},{k:'반려동물',p:0.18},{k:'테크얼리어답터',p:0.10}],
+    },
+    INTENT_LIFT: {
+      age:{'30-32':+3,'33-35':+6,'36-38':+7,'39-40':+5},
+      income:{'3천만↓':-10,'3-5천만':-3,'5-7천만':+5,'7천만-1억':+11,'1억↑':+17},
+      marriage:{'미혼':-4,'신혼':+8,'자녀있음':+7,'자녀독립':-3},
+      carWant:{'EV':+13,'하이브리드':+5,'내연기관':-6},
+      trigger:{'친환경':+5,'경제성':+4,'성능':+8,'디자인':+5,'안전':+6,'보조금':+7},
+      brand:{'테슬라':+14,'BMW':+8,'벤츠':+7,'현대':+3,'기아':+2,'폭스바겐':+4},
+    },
+    INCOME_MID:{'3천만↓':35,'3-5천만':55,'5-7천만':80,'7천만-1억':110,'1억↑':165},
+  },
+  DE: {
+    label: '독일', emoji: '🇩🇪', N: 10240, BASE_INTENT: 71,
+    INCOME_UNIT: 'K EUR', INCOME_DIV: 1, INCOME_FMT: v=>'€'+v+'K',
+    POP_DIST: {
+      age:[{k:'30-32',p:0.27},{k:'33-35',p:0.29},{k:'36-38',p:0.25},{k:'39-40',p:0.19}],
+      gender:[{k:'여성',p:0.50},{k:'남성',p:0.50}],
+      region:[{k:'수도권',p:0.34},{k:'광역시',p:0.40},{k:'지방',p:0.26}],
+      income:[{k:'3천만↓',p:0.10},{k:'3-5천만',p:0.24},{k:'5-7천만',p:0.30},{k:'7천만-1억',p:0.24},{k:'1억↑',p:0.12}],
+      marriage:[{k:'미혼',p:0.30},{k:'신혼',p:0.16},{k:'자녀있음',p:0.42},{k:'자녀독립',p:0.12}],
+      job:[{k:'전문직',p:0.24},{k:'사무직',p:0.42},{k:'자영업',p:0.12},{k:'주부',p:0.16},{k:'학생',p:0.06}],
+      carNow:[{k:'세단',p:0.30},{k:'SUV',p:0.34},{k:'해치백',p:0.20},{k:'없음',p:0.16}],
+      carWant:[{k:'EV',p:0.42},{k:'하이브리드',p:0.34},{k:'내연기관',p:0.24}],
+      brand:[{k:'현대',p:0.04},{k:'기아',p:0.03},{k:'테슬라',p:0.16},{k:'BMW',p:0.24},{k:'벤츠',p:0.22},{k:'폭스바겐',p:0.31}],
+      trigger:[{k:'친환경',p:0.24},{k:'경제성',p:0.16},{k:'성능',p:0.20},{k:'디자인',p:0.18},{k:'안전',p:0.16},{k:'보조금',p:0.06}],
+      media:[{k:'YouTube',p:0.32},{k:'Instagram',p:0.22},{k:'네이버',p:0.01},{k:'카카오',p:0.01},{k:'TV',p:0.44}],
+      lifestyle:[{k:'캠핑',p:0.20},{k:'육아',p:0.24},{k:'피트니스',p:0.22},{k:'맛집',p:0.10},{k:'반려동물',p:0.14},{k:'테크얼리어답터',p:0.10}],
+    },
+    INTENT_LIFT: {
+      age:{'30-32':+2,'33-35':+5,'36-38':+7,'39-40':+6},
+      income:{'3천만↓':-11,'3-5천만':-3,'5-7천만':+6,'7천만-1억':+12,'1억↑':+16},
+      marriage:{'미혼':-5,'신혼':+8,'자녀있음':+7,'자녀독립':-2},
+      carWant:{'EV':+17,'하이브리드':+7,'내연기관':-8},
+      trigger:{'친환경':+10,'경제성':+3,'성능':+8,'디자인':+7,'안전':+5,'보조금':+3},
+      brand:{'테슬라':+9,'BMW':+12,'벤츠':+11,'현대':+2,'기아':+2,'폭스바겐':+10},
+    },
+    INCOME_MID:{'3천만↓':25,'3-5천만':40,'5-7천만':60,'7천만-1억':85,'1억↑':130},
+  },
+};
+
+
+// === Phase D 후속: 활성 국가 단위로 income 라벨 동적화 ===
+function _aud_incomeUnit(){
+  try{
+    const code = (window.AUD_STATE && window.AUD_STATE.country) || 'KR';
+    const cp = (typeof COUNTRY_PROFILES !== 'undefined') ? COUNTRY_PROFILES[code] : null;
+    return (cp && cp.INCOME_UNIT) || '천만';
+  }catch(e){ return '천만'; }
+}
+function _aud_incomeFmt(v){
+  try{
+    const code = (window.AUD_STATE && window.AUD_STATE.country) || 'KR';
+    const cp = (typeof COUNTRY_PROFILES !== 'undefined') ? COUNTRY_PROFILES[code] : null;
+    if(cp && cp.INCOME_FMT) return cp.INCOME_FMT(v);
+    return v+'천만';
+  }catch(e){ return v+'천만'; }
+}
+window._aud_incomeFmt = _aud_incomeFmt;
+window._aud_incomeUnit = _aud_incomeUnit;
+
+// --- D-2. 활성 국가 헬퍼 ---
+function getActiveCountry(){
+  return (window.AUD_STATE && window.AUD_STATE.country) || 'KR';
+}
+function getCountryProfile(code){
+  return COUNTRY_PROFILES[code || getActiveCountry()] || COUNTRY_PROFILES.KR;
+}
+function setActiveCountry(code){
+  if(!COUNTRY_PROFILES[code]) return;
+  window.AUD_STATE.country = code;
+  try{ localStorage.setItem('innocean.audience.country', code); }catch(e){}
+  // 모든 페이지 재렌더
+  if(typeof rerenderAll === 'function') rerenderAll();
+  // 헤더 표시 갱신
+  updateCountryUI();
+  if(typeof showToast === 'function') showToast(COUNTRY_PROFILES[code].emoji+' '+COUNTRY_PROFILES[code].label+' 데이터로 전환되었습니다','ok');
+}
+function updateCountryUI(){
+  const cur = getCountryProfile();
+  const cv = document.getElementById('country-cur');
+  if(cv) cv.innerHTML = cur.emoji + ' <span style="font-weight:700">'+cur.label+'</span>';
+  document.querySelectorAll('.country-opt').forEach(o=>{
+    o.classList.toggle('on', o.dataset.code === getActiveCountry());
+  });
+}
+function toggleCountryMenu(){
+  const m = document.getElementById('country-menu');
+  if(m) m.classList.toggle('open');
+}
+// 외부 클릭으로 닫기
+document.addEventListener('click', function(e){
+  const m = document.getElementById('country-menu');
+  const b = document.getElementById('country-btn');
+  if(m && b && m.classList.contains('open') && !m.contains(e.target) && !b.contains(e.target)){
+    m.classList.remove('open');
+  }
+});
+
+// localStorage에서 복원
+try{
+  const saved = localStorage.getItem('innocean.audience.country');
+  if(saved && COUNTRY_PROFILES[saved]){
+    if(!window.AUD_STATE) window.AUD_STATE = {filters:{},currentProjectId:null};
+    window.AUD_STATE.country = saved;
+  }
+}catch(e){}
+
+
+// === Phase D boot: 국가 데이터 적용 + UI 동기화 ===
+(function(){
+  function boot(){
+    if(typeof _aud_applyCountryData === 'function') _aud_applyCountryData();
+    if(typeof updateCountryUI === 'function') updateCountryUI();
+    if(typeof rerenderAll === 'function') rerenderAll();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    setTimeout(boot, 50);
+  }
+})();
+
+
+// ===========================================================
+// Phase E: 미디어 디멘션 확장 + 미디어 인사이트 페이지
+// ===========================================================
+
+// E-1. 새 디멘션 정의 (기존 AUD_DIMS·POP_DIST에 추가)
+const MEDIA_DIMS_EXT = {
+  mediaTime:  { label:'일평균 미디어 시간', opts:['1시간↓','1-3시간','3-5시간','5시간↑'] },
+  mediaTrust: { label:'가장 신뢰하는 매체', opts:['유튜브','SNS','포털 뉴스','TV 뉴스','종이매체','지인'] },
+};
+
+// E-2. 미디어 옵션 카탈로그 — 그룹별 정리
+const MEDIA_CATALOG = [
+  { group: 'Video Platforms', items: [
+    { k:'YouTube', desc:'유튜브 — 글로벌 1위 동영상', emoji:'▶' },
+    { k:'TikTok', desc:'틱톡 — 숏폼 (10·20대 강세)', emoji:'♪' },
+    { k:'Netflix/OTT', desc:'넷플릭스 등 OTT', emoji:'🎬' },
+  ]},
+  { group: 'Social', items: [
+    { k:'Instagram', desc:'인스타그램 — 비주얼 SNS', emoji:'📷' },
+    { k:'Facebook', desc:'페이스북 — 30대+ 잔존', emoji:'f' },
+    { k:'X', desc:'X (구 Twitter)', emoji:'𝕏' },
+    { k:'카카오스토리', desc:'카카오스토리 — 한국 30대 자녀', emoji:'💬' },
+  ]},
+  { group: 'Local Portals & Messaging', items: [
+    { k:'네이버', desc:'네이버 — 한국 검색·뉴스', emoji:'N' },
+    { k:'다음', desc:'다음 — 한국 포털', emoji:'D' },
+    { k:'카카오톡', desc:'카카오톡 (오픈채팅 광고)', emoji:'K' },
+    { k:'LINE', desc:'LINE — 일본 메신저 1위', emoji:'L' },
+  ]},
+  { group: 'Traditional', items: [
+    { k:'TV-지상파', desc:'지상파 TV — 30대 자녀+', emoji:'📺' },
+    { k:'TV-케이블', desc:'케이블 TV — 라이프스타일', emoji:'📻' },
+    { k:'팟캐스트', desc:'팟캐스트 — 운전·통근', emoji:'🎙' },
+    { k:'종이매체', desc:'신문·잡지 — 50대+', emoji:'📰' },
+  ]},
+];
+
+// E-3. 국가별 확장 미디어 분포
+const MEDIA_DIST_BY_COUNTRY = {
+  KR: [
+    {k:'YouTube',p:0.32},{k:'Instagram',p:0.20},{k:'TikTok',p:0.08},{k:'Facebook',p:0.03},{k:'X',p:0.04},
+    {k:'카카오스토리',p:0.04},{k:'네이버',p:0.16},{k:'다음',p:0.02},{k:'카카오톡',p:0.18},{k:'LINE',p:0.01},
+    {k:'TV-지상파',p:0.10},{k:'TV-케이블',p:0.06},{k:'Netflix/OTT',p:0.14},{k:'팟캐스트',p:0.03},{k:'종이매체',p:0.02},
+  ],
+  JP: [
+    {k:'YouTube',p:0.28},{k:'Instagram',p:0.16},{k:'TikTok',p:0.06},{k:'Facebook',p:0.04},{k:'X',p:0.18},
+    {k:'카카오스토리',p:0.00},{k:'네이버',p:0.01},{k:'다음',p:0.00},{k:'카카오톡',p:0.00},{k:'LINE',p:0.42},
+    {k:'TV-지상파',p:0.34},{k:'TV-케이블',p:0.10},{k:'Netflix/OTT',p:0.12},{k:'팟캐스트',p:0.04},{k:'종이매체',p:0.08},
+  ],
+  US: [
+    {k:'YouTube',p:0.38},{k:'Instagram',p:0.26},{k:'TikTok',p:0.16},{k:'Facebook',p:0.18},{k:'X',p:0.10},
+    {k:'카카오스토리',p:0.00},{k:'네이버',p:0.00},{k:'다음',p:0.00},{k:'카카오톡',p:0.00},{k:'LINE',p:0.00},
+    {k:'TV-지상파',p:0.16},{k:'TV-케이블',p:0.18},{k:'Netflix/OTT',p:0.32},{k:'팟캐스트',p:0.14},{k:'종이매체',p:0.04},
+  ],
+  DE: [
+    {k:'YouTube',p:0.30},{k:'Instagram',p:0.22},{k:'TikTok',p:0.08},{k:'Facebook',p:0.16},{k:'X',p:0.06},
+    {k:'카카오스토리',p:0.00},{k:'네이버',p:0.00},{k:'다음',p:0.00},{k:'카카오톡',p:0.00},{k:'LINE',p:0.00},
+    {k:'TV-지상파',p:0.26},{k:'TV-케이블',p:0.20},{k:'Netflix/OTT',p:0.24},{k:'팟캐스트',p:0.10},{k:'종이매체',p:0.06},
+  ],
+};
+
+const MEDIA_TIME_DIST_BY_COUNTRY = {
+  KR: [{k:'1시간↓',p:0.10},{k:'1-3시간',p:0.32},{k:'3-5시간',p:0.36},{k:'5시간↑',p:0.22}],
+  JP: [{k:'1시간↓',p:0.18},{k:'1-3시간',p:0.40},{k:'3-5시간',p:0.28},{k:'5시간↑',p:0.14}],
+  US: [{k:'1시간↓',p:0.08},{k:'1-3시간',p:0.26},{k:'3-5시간',p:0.34},{k:'5시간↑',p:0.32}],
+  DE: [{k:'1시간↓',p:0.14},{k:'1-3시간',p:0.36},{k:'3-5시간',p:0.30},{k:'5시간↑',p:0.20}],
+};
+
+const MEDIA_TRUST_DIST_BY_COUNTRY = {
+  KR: [{k:'유튜브',p:0.22},{k:'SNS',p:0.18},{k:'포털 뉴스',p:0.26},{k:'TV 뉴스',p:0.20},{k:'종이매체',p:0.04},{k:'지인',p:0.10}],
+  JP: [{k:'유튜브',p:0.14},{k:'SNS',p:0.10},{k:'포털 뉴스',p:0.14},{k:'TV 뉴스',p:0.38},{k:'종이매체',p:0.16},{k:'지인',p:0.08}],
+  US: [{k:'유튜브',p:0.26},{k:'SNS',p:0.18},{k:'포털 뉴스',p:0.14},{k:'TV 뉴스',p:0.22},{k:'종이매체',p:0.06},{k:'지인',p:0.14}],
+  DE: [{k:'유튜브',p:0.18},{k:'SNS',p:0.12},{k:'포털 뉴스',p:0.18},{k:'TV 뉴스',p:0.28},{k:'종이매체',p:0.14},{k:'지인',p:0.10}],
+};
+
+// E-4. 의향 lift — 미디어별 (광고 효율과 의향의 상관)
+const MEDIA_INTENT_LIFT = {
+  KR: { 'YouTube':+8, 'Instagram':+6, 'TikTok':+4, 'Facebook':-2, 'X':+2, 'Netflix/OTT':+5, 'TV-지상파':-3, 'TV-케이블':+1, '네이버':+7, '카카오톡':+5, '팟캐스트':+4, '종이매체':-5 },
+  JP: { 'YouTube':+6, 'LINE':+8, 'Instagram':+4, 'TV-지상파':+3, 'X':+5, 'Facebook':-1, 'Netflix/OTT':+6, '종이매체':-2 },
+  US: { 'YouTube':+9, 'Instagram':+7, 'TikTok':+5, 'Netflix/OTT':+8, 'Facebook':-1, 'TV-케이블':+2, '팟캐스트':+6, 'X':+3 },
+  DE: { 'YouTube':+7, 'Instagram':+5, 'TV-지상파':+4, 'Facebook':-1, 'Netflix/OTT':+6, '종이매체':+1, '팟캐스트':+5 },
+};
+
+// E-5. 국가 전환 시 미디어 데이터도 함께 swap (computeSegment 게이트 확장)
+function _aud_applyMediaData(){
+  try{
+    const code = (window.AUD_STATE && window.AUD_STATE.country) || 'KR';
+    if(MEDIA_DIST_BY_COUNTRY[code]) POP_DIST.media = MEDIA_DIST_BY_COUNTRY[code];
+    if(MEDIA_TIME_DIST_BY_COUNTRY[code]) POP_DIST.mediaTime = MEDIA_TIME_DIST_BY_COUNTRY[code];
+    if(MEDIA_TRUST_DIST_BY_COUNTRY[code]) POP_DIST.mediaTrust = MEDIA_TRUST_DIST_BY_COUNTRY[code];
+    if(MEDIA_INTENT_LIFT[code]) INTENT_LIFT.media = MEDIA_INTENT_LIFT[code];
+    // AUD_DIMS에 미디어 추가 디멘션
+    if(typeof AUD_DIMS !== 'undefined'){
+      AUD_DIMS.media = { label:'주요매체', opts: (MEDIA_DIST_BY_COUNTRY[code]||[]).map(x=>x.k) };
+      AUD_DIMS.mediaTime = MEDIA_DIMS_EXT.mediaTime;
+      AUD_DIMS.mediaTrust = MEDIA_DIMS_EXT.mediaTrust;
+    }
+  }catch(e){ console.warn('media swap fail', e); }
+}
+window._aud_applyMediaData = _aud_applyMediaData;
+
+// E-6. 미디어 인사이트 페이지 rerender
+function rerenderMedia(){
+  if(typeof _aud_applyCountryData === 'function') _aud_applyCountryData();
+  _aud_applyMediaData();
+  const seg = computeSegment();
+  const baseSeg = computeSegment({});
+  const code = (window.AUD_STATE && window.AUD_STATE.country) || 'KR';
+  const profile = (typeof COUNTRY_PROFILES !== 'undefined') ? COUNTRY_PROFILES[code] : null;
+
+  // 상단 KPI 4종 — 미디어 관점
+  const md = seg.distFor('media').slice().sort((a,b)=>b.p-a.p);
+  const top1 = md[0] || {k:'-',p:0};
+  const mt = seg.distFor('mediaTime').slice();
+  const heavyShare = mt.filter(x=>x.k==='3-5시간' || x.k==='5시간↑').reduce((a,b)=>a+b.p,0);
+  const mtrust = seg.distFor('mediaTrust').slice().sort((a,b)=>b.p-a.p);
+  const reachableMedia = md.filter(d=>d.p >= 0.05).length;
+
+  const set = (id,val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+  set('med-kpi-top', top1.k);
+  set('med-kpi-top-s', '도달률 '+(top1.p*100).toFixed(1)+'%');
+  set('med-kpi-heavy', (heavyShare*100).toFixed(0)+'%');
+  set('med-kpi-heavy-s', '하루 3시간 이상 미디어 소비');
+  set('med-kpi-trust', (mtrust[0]||{k:'-'}).k);
+  set('med-kpi-trust-s', '신뢰도 '+((mtrust[0]||{p:0}).p*100).toFixed(0)+'%');
+  set('med-kpi-reach', reachableMedia+'개');
+  set('med-kpi-reach-s', '도달률 5%↑ 매체 수');
+
+  // 차트: 미디어 막대 (Top 10)
+  if(window.Chart && document.getElementById('chart-media-rank')){
+    if(window._medRankChart) window._medRankChart.destroy();
+    const top10 = md.slice(0,10);
+    window._medRankChart = new Chart(document.getElementById('chart-media-rank'),{
+      type:'bar',
+      data:{labels:top10.map(d=>d.k),datasets:[{data:top10.map(d=>+(d.p*100).toFixed(1)),backgroundColor:'#4F46E5',borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'도달률 '+ctx.parsed.x+'%'}}},scales:{x:{ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+
+  // 차트: 미디어 소비 시간 도넛
+  if(window.Chart && document.getElementById('chart-media-time')){
+    if(window._medTimeChart) window._medTimeChart.destroy();
+    window._medTimeChart = new Chart(document.getElementById('chart-media-time'),{
+      type:'doughnut',
+      data:{labels:mt.map(d=>d.k),datasets:[{data:mt.map(d=>+(d.p*100).toFixed(1)),backgroundColor:['#E5E7EB','#A5B4FC','#4F46E5','#1E1B4B']}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:10,padding:6,font:{size:11}}}}}
+    });
+  }
+
+  // 차트: 신뢰도 막대
+  if(window.Chart && document.getElementById('chart-media-trust')){
+    if(window._medTrustChart) window._medTrustChart.destroy();
+    window._medTrustChart = new Chart(document.getElementById('chart-media-trust'),{
+      type:'bar',
+      data:{labels:mtrust.map(d=>d.k),datasets:[{data:mtrust.map(d=>+(d.p*100).toFixed(1)),backgroundColor:'#000',borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+
+  // 미디어 카테고리 그룹별 카드
+  const catEl = document.getElementById('med-catalog');
+  if(catEl && typeof MEDIA_CATALOG !== 'undefined'){
+    const lookupP = (k) => { const f = md.find(x=>x.k===k); return f ? f.p : 0; };
+    catEl.innerHTML = MEDIA_CATALOG.map(g=>(
+      '<div class="med-cat-grp"><div class="med-cat-h">'+g.group+'</div><div class="med-cat-row">'
+      + g.items.map(it=>{
+        const p = lookupP(it.k);
+        const pct = (p*100).toFixed(1);
+        const lift = (MEDIA_INTENT_LIFT[code]||{})[it.k] || 0;
+        const live = p > 0;
+        return '<div class="med-cat-item'+(live?'':' off')+'">'
+          + '<div class="med-emoji">'+it.emoji+'</div>'
+          + '<div class="med-name">'+it.k+'</div>'
+          + '<div class="med-desc">'+it.desc+'</div>'
+          + (live ? '<div class="med-pct">'+pct+'%</div>' : '<div class="med-pct na">N/A</div>')
+          + (lift ? '<div class="med-lift '+(lift>0?'up':'dn')+'">의향 '+(lift>0?'+':'')+lift+'pt</div>' : '')
+          + '</div>';
+      }).join('')
+      + '</div></div>'
+    )).join('');
+  }
+
+  // 미디어 의향 기여 — Top 5 lift
+  const drvEl = document.getElementById('med-drivers');
+  if(drvEl){
+    const liftMap = MEDIA_INTENT_LIFT[code] || {};
+    const items = Object.keys(liftMap).map(k=>({k, lift:liftMap[k], p: lookupReach(md, k)}))
+      .filter(x=>x.p>0.02)
+      .sort((a,b)=>Math.abs(b.lift)-Math.abs(a.lift)).slice(0,6);
+    drvEl.innerHTML = items.map(it=>{
+      const sign = it.lift>0?'+':'';
+      const cls = it.lift>0?'up':'dn';
+      return '<div class="med-drv '+cls+'">'
+        + '<div class="med-drv-k">'+it.k+'</div>'
+        + '<div class="med-drv-v">의향 '+sign+it.lift+'pt</div>'
+        + '<div class="med-drv-p">도달률 '+(it.p*100).toFixed(1)+'%</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // 권장 미디어 믹스 (사이즈*lift)
+  const recoEl = document.getElementById('med-reco');
+  if(recoEl){
+    const liftMap = MEDIA_INTENT_LIFT[code] || {};
+    const items = md.filter(x=>x.p>0.03).map(x=>({k:x.k, p:x.p, lift:liftMap[x.k]||0, score: x.p*100*(1+(liftMap[x.k]||0)/50)}))
+      .sort((a,b)=>b.score-a.score).slice(0,5);
+    const totScore = items.reduce((a,b)=>a+b.score,0)||1;
+    recoEl.innerHTML = '<div class="med-reco-h">권장 미디어 믹스 (도달률 × 의향 lift)</div>'
+      + items.map(it=>{
+        const w = (it.score/totScore*100).toFixed(0);
+        return '<div class="med-reco-row"><div class="med-reco-name">'+it.k+'</div><div class="med-reco-bar"><i style="width:'+w+'%"></i></div><div class="med-reco-w">'+w+'%</div></div>';
+      }).join('');
+  }
+}
+
+function lookupReach(md, k){
+  const f = md.find(x=>x.k===k);
+  return f ? f.p : 0;
+}
+
 
 </script>
 </body>
