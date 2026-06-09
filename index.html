@@ -447,7 +447,9 @@ body.home-mode .wrap.poffset{padding-top:calc(var(--hh) + var(--sh));padding-lef
 .hl-card .idx{font-size:36px;font-weight:900;color:#000;line-height:1;letter-spacing:-1px}
 .hl-card .lift{font-size:13px;font-weight:700;padding:2px 7px}
 .hl-card .lift.up{color:#4F46E5;background:#EEF2FF}
-.hl-card .lift.dn{color:#6B7280;background:#F3F4F6}
+.hl-card .lift.dn{color:#DC2626;background:#FEE2E2}
+.hl-card .lift.sharp{color:#059669;background:#D1FAE5}
+.hl-card .lift.flat{color:#6B7280;background:#F3F4F6}
 .hl-card .msg{font-size:13px;font-weight:600;color:#1F2937;line-height:1.45}
 .hl-card .meta{font-size:11px;color:var(--tm);margin-top:auto}
 
@@ -1212,10 +1214,10 @@ function computeSegment(filters){
     const dist = POP_DIST[dim];
     const distEff = sel.length ? dist.filter(d=>sel.includes(d.k)) : dist;
     const wTot = distEff.reduce((a,b)=>a+b.p,0) || 1;
-    if(INTENT_LIFT[dim]){
+    if(INTENT_LIFT[dim] && sel.length){
       distEff.forEach(d=>{
         const lift = INTENT_LIFT[dim][d.k] || 0;
-        avgIntent += (lift * d.p / wTot) * (sel.length ? 1 : 0.3);
+        avgIntent += (lift * d.p / wTot);
       });
     }
     if(dim==='income'){
@@ -1237,7 +1239,7 @@ function computeSegment(filters){
   return {
     size, sizePct: (size/POP_N*100),
     avgIntent: Math.round(avgIntent),
-    avgIncome: avgIncome ? (avgIncome/10000).toFixed(1) : '5.8',
+    avgIncome: avgIncome ? (avgIncome/1000).toFixed(1) : '5.8',
     avgAge: avgAge ? avgAge.toFixed(1) : '34.2',
     distFor
   };
@@ -1246,71 +1248,118 @@ function computeSegment(filters){
 // === Phase A: Insight Engine Extensions ===
 
 // A-1. 인덱스 계산: 세그먼트 점유율 vs 모집단 점유율 (100=평균)
+// A-1/A-2. 모집단 vs 세그먼트 비교 시그널
+// 컨셉 재설계:
+//   - 단순 점유율 비율(seg100% vs pop12%)은 자명해서 의미 약함
+//   - 대신 "이 세그먼트의 핵심 시그널" 3종 추출:
+//     [intent] 구매 의향이 모집단 대비 얼마나 강한가
+//     [size]   사이즈가 얼마나 좁은가 (sharper segment = better targeting)
+//     [signal] 가장 lift가 큰 선택 옵션 (INTENT_LIFT 기반)
 function computeIndex(){
+  const filters = AUD_STATE.filters || {};
   const seg = computeSegment();
+  const baseSeg = computeSegment({});
+  const out = [];
+
+  // 1) 구매 의향 인덱스
+  const intentIdx = Math.round((seg.avgIntent / baseSeg.avgIntent) * 100);
+  out.push({
+    kind:'intent', dim:'intent', dimLabel:'구매 의향',
+    k:seg.avgIntent+'점', idx:intentIdx, lift:intentIdx-100,
+    msg: '모집단 평균 의향 '+baseSeg.avgIntent+'점 대비 '+(intentIdx>=100?'+':'')+(intentIdx-100)+'% (세그먼트 '+seg.avgIntent+'점)',
+  });
+
+  // 2) 사이즈 인덱스 (작을수록 sharper = 시그널 강함)
+  const sizePct = (seg.size / baseSeg.size) * 100;
+  const sizeIdx = Math.round(sizePct);
+  out.push({
+    kind:'size', dim:'size', dimLabel:'세그먼트 사이즈',
+    k:seg.size.toLocaleString()+'명', idx:sizeIdx, lift:sizeIdx-100,
+    msg: '모집단의 '+sizePct.toFixed(1)+'% ('+(seg.size).toLocaleString()+' / '+(baseSeg.size).toLocaleString()+') — '+(sizePct<10?'고도 타겟팅':sizePct<30?'명확한 세그먼트':'광범위'),
+  });
+
+  // 3) 가구소득 인덱스
+  const incomeIdx = Math.round((parseFloat(seg.avgIncome) / parseFloat(baseSeg.avgIncome)) * 100);
+  if(Math.abs(incomeIdx-100) >= 5){
+    out.push({
+      kind:'income', dim:'income', dimLabel:'가구소득',
+      k:seg.avgIncome+'천만', idx:incomeIdx, lift:incomeIdx-100,
+      msg: '모집단 '+baseSeg.avgIncome+'천만 대비 '+(incomeIdx>=100?'+':'')+(incomeIdx-100)+'% — '+seg.avgIncome+'천만',
+    });
+  }
+
+  // 4) 가장 큰 INTENT_LIFT 선택 옵션
+  const liftSignals = [];
+  Object.keys(INTENT_LIFT).forEach(dim=>{
+    const sel = filters[dim] || [];
+    sel.forEach(opt=>{
+      const lift = (INTENT_LIFT[dim]||{})[opt];
+      if(typeof lift !== 'number') return;
+      liftSignals.push({
+        kind:'driver', dim, dimLabel:(AUD_DIMS[dim]?AUD_DIMS[dim].label:dim),
+        opt, lift,
+      });
+    });
+  });
+  liftSignals.sort((a,b)=>Math.abs(b.lift)-Math.abs(a.lift));
+  liftSignals.slice(0, 2).forEach(d=>{
+    const idx = 100 + d.lift * 2; // lift를 인덱스화
+    out.push({
+      kind:'driver', dim:d.dim, dimLabel:d.dimLabel, k:d.opt,
+      idx, lift:d.lift,
+      msg: d.dimLabel+' \''+d.opt+'\' 선택 — 의향 '+(d.lift>=0?'+':'')+d.lift+'pt 기여',
+    });
+  });
+
+  return out;
+}
+
+// A-1. 헤드라인 카드 TOP 3 (intent / size / 가장 큰 driver)
+function computeHeadlines(){
+  const all = computeIndex();
+  // 우선순위: intent > size > driver > income (변별력 순서)
+  const priority = { intent:1, size:2, driver:3, income:4 };
+  all.sort((a,b)=>{
+    const pa = priority[a.kind] || 9;
+    const pb = priority[b.kind] || 9;
+    if(pa !== pb) return pa - pb;
+    return Math.abs(b.lift) - Math.abs(a.lift);
+  });
+  const top = all.slice(0, 3);
+  if(top.length === 0 || (top.length === 2 && top.every(t=>t.lift===0))){
+    return [{ dim:'overview', dimLabel:'세그먼트', k:'모집단', idx:100, lift:0,
+              msg:'필터를 추가해보세요 — 특이점이 도출됩니다.' }];
+  }
+  return top;
+}
+
+// A-2. Benchmark Index — 디멘션별 선택 옵션 vs 모집단 점유율 (희소성)
+function computeBenchmark(){
+  const filters = AUD_STATE.filters || {};
   const out = [];
   Object.keys(POP_DIST).forEach(dim=>{
-    const sel = (AUD_STATE.filters||{})[dim] || [];
-    if(sel.length === 0){
-      // 필터 안 걸린 디멘션 — 분포 자체로 표시 (인덱스 비교 의미 약함)
-      return;
-    }
-    // 선택된 옵션의 모집단 점유율 vs 세그먼트 내 점유율
-    POP_DIST[dim].forEach(d=>{
-      if(!sel.includes(d.k)) return;
-      const popPct = d.p * 100;
-      // 세그먼트 내에서 이 옵션의 비율 ≈ 100% (필터 통과한 것만 카운트되므로)
-      // 대신: 다른 디멘션의 분포 인덱스로 표현
+    const sel = filters[dim] || [];
+    if(sel.length === 0) return;
+    const selPopPct = POP_DIST[dim].filter(d=>sel.includes(d.k)).reduce((a,b)=>a+b.p,0) * 100;
+    if(selPopPct < 1) return;
+    // 희소성 인덱스: 모집단의 100%를 기준으로 선택된 옵션의 점유율 역수
+    // 예: 1억↑ (12%) → 833 (cap 220)
+    // 단순 선택 자체가 시그널이라기보다, "이 세그먼트가 모집단에서 얼마나 작은 영역인지" 표시
+    const rawIdx = (100 / selPopPct) * 100; // pop 50% → idx 200 / pop 12% → idx 833
+    // 더 의미있게: 선택된 옵션 그룹의 모집단 점유율 자체를 인덱스로
+    // 220 = 매우 niche (~5%), 100 = 일반적 (50%), 50 = 광범위 (200%? 불가)
+    // 정규화: log scale
+    const idxVal = Math.round(Math.max(50, Math.min(220, 100 + (50 - selPopPct) * 2.5)));
+    const lift = idxVal - 100;
+    out.push({
+      label: (AUD_DIMS[dim]?AUD_DIMS[dim].label:dim) + ' · ' + sel.join(', '),
+      idx: idxVal,
+      lift,
+      popPct: selPopPct,
+      color: lift > 30 ? '#4F46E5' : (lift > 0 ? '#818CF8' : '#94A3B8'),
     });
   });
-  // 더 의미있는 방식: 필터 안 걸린 디멘션에서 세그먼트 vs 모집단 비교
-  Object.keys(POP_DIST).forEach(dim=>{
-    const sel = (AUD_STATE.filters||{})[dim] || [];
-    if(sel.length > 0) return; // 필터 걸린 디멘션은 자명하므로 제외
-    const segDist = seg.distFor(dim);
-    POP_DIST[dim].forEach(d=>{
-      const segItem = segDist.find(s=>s.k===d.k);
-      const segPct = segItem ? segItem.p*100 : 0;
-      const popPct = d.p*100;
-      if(popPct < 1) return; // 너무 작은 값 제외
-      const idx = Math.round((segPct/popPct)*100);
-      const lift = idx - 100;
-      out.push({ dim, dimLabel:(AUD_DIMS[dim]?AUD_DIMS[dim].label:dim), k:d.k, idx, lift, segPct, popPct });
-    });
-  });
-  return out.sort((a,b)=>Math.abs(b.lift)-Math.abs(a.lift));
-}
-
-// A-1. 헤드라인 인덱스 카드 TOP 3 (가장 큰 lift)
-function computeHeadlines(){
-  const idx = computeIndex();
-  const top = idx.filter(x=>Math.abs(x.lift) >= 8).slice(0, 3);
-  if(top.length === 0){
-    // 필터가 거의 없으면 — 가장 일반적인 시그널 노출
-    return [
-      { dim:'overview', dimLabel:'세그먼트', k:'모집단', idx:100, lift:0, msg:'필터를 추가해보세요 — 특이점이 도출됩니다.' }
-    ];
-  }
-  return top.map(t=>{
-    const sign = t.lift > 0 ? '+' : '';
-    const dir = t.lift > 0 ? '높음' : '낮음';
-    return {
-      ...t,
-      msg: t.dimLabel + ' \'' + t.k + '\' 비중 ' + dir + ' (' + sign + t.lift + 'pt vs 모집단)',
-    };
-  });
-}
-
-// A-2. Benchmark Index 차트 데이터 (전체 디멘션, 100=평균선)
-function computeBenchmark(){
-  const idx = computeIndex();
-  // 의미 있는 항목만 (lift |≥3|)
-  return idx.filter(x=>Math.abs(x.lift) >= 3).slice(0, 12).map(x=>({
-    label: x.dimLabel + ' · ' + x.k,
-    idx: Math.max(20, Math.min(220, x.idx)),
-    lift: x.lift,
-    color: x.lift > 0 ? '#4F46E5' : '#94A3B8',
-  }));
+  return out.sort((a,b)=>b.idx - a.idx).slice(0, 12);
 }
 
 // A-3. Verbatim Pool — 페르소나별 시드 발언
@@ -2058,14 +2107,25 @@ function rerenderDiscover(){
   if(hg){
     const hs = computeHeadlines();
     hg.innerHTML = hs.map(h=>{
-      const dir = h.lift > 0 ? 'up' : 'dn';
-      const sign = h.lift > 0 ? '+' : '';
-      const liftPct = h.lift !== 0 ? (sign + Math.round((h.idx-100))+'%') : '–';
+      // size 카드는 작을수록 좋은(정밀타겟) 시그널이므로 세 구분:
+      //   intent/income/driver: lift>0 = up(인디고), lift<0 = dn(회색)
+      //   size: lift<0(작아짐)이 좋은 시그널 → sharp 배지
+      let dir, badge, label;
+      if(h.kind === 'size'){
+        dir = 'sharp';
+        label = (h.idx).toFixed ? h.idx.toFixed(1)+'%' : h.idx+'%';
+        badge = h.idx < 10 ? '니치 타겟' : (h.idx < 30 ? '명확한 세그먼트' : '광범위');
+      } else {
+        dir = h.lift > 0 ? 'up' : (h.lift < 0 ? 'dn' : 'flat');
+        const sign = h.lift > 0 ? '+' : '';
+        label = h.lift !== 0 ? (sign + h.lift + (h.kind==='driver'?'pt 의향':'%')) : '–';
+        badge = h.lift > 20 ? '시그널 강' : (h.lift > 0 ? '양의 시그널' : (h.lift < -20 ? '하향' : '중성'));
+      }
       return '<div class="hl-card">'
         + '<div class="tag">'+h.dimLabel+'</div>'
-        + '<div class="idx-row"><div class="idx">'+h.idx+'</div><div class="lift '+dir+'">'+liftPct+' vs 100</div></div>'
+        + '<div class="idx-row"><div class="idx">'+(h.k||h.idx)+'</div><div class="lift '+dir+'">'+label+'</div></div>'
         + '<div class="msg">'+h.msg+'</div>'
-        + '<div class="meta">N='+seg.size.toLocaleString()+' · 표본 신뢰도 92%</div>'
+        + '<div class="meta">N='+seg.size.toLocaleString()+' · '+badge+'</div>'
         + '</div>';
     }).join('');
   }
