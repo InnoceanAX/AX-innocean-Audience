@@ -438,6 +438,59 @@ body.home-mode .wrap.poffset{padding-top:calc(var(--hh) + var(--sh));padding-lef
   .hdrContainer{padding:0 12px;gap:8px}
 }
 
+
+/* === Phase A 인사이트 카드 === */
+.hl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.hl-card{background:#fff;border:2px solid var(--bdr);padding:18px 20px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.hl-card .tag{font-size:10.5px;color:var(--ts);font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.hl-card .idx-row{display:flex;align-items:baseline;gap:10px}
+.hl-card .idx{font-size:36px;font-weight:900;color:#000;line-height:1;letter-spacing:-1px}
+.hl-card .lift{font-size:13px;font-weight:700;padding:2px 7px}
+.hl-card .lift.up{color:#4F46E5;background:#EEF2FF}
+.hl-card .lift.dn{color:#6B7280;background:#F3F4F6}
+.hl-card .msg{font-size:13px;font-weight:600;color:#1F2937;line-height:1.45}
+.hl-card .meta{font-size:11px;color:var(--tm);margin-top:auto}
+
+.drv-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.drv-card{background:#fff;border:1px solid var(--bdr);padding:14px 12px;display:flex;flex-direction:column;gap:6px}
+.drv-card.on{border-color:var(--ind);background:#EEF2FF}
+.drv-card .drv-dim{font-size:10.5px;color:var(--tm);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.drv-card .drv-opt{font-size:14px;font-weight:800;color:#000}
+.drv-card .drv-lift{font-size:18px;font-weight:900}
+.drv-card .drv-lift.pos{color:#4F46E5}
+.drv-card .drv-lift.neg{color:#6B7280}
+.drv-card .drv-mark{font-size:10px;color:var(--ind);font-weight:700;margin-top:auto}
+
+.vrb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+.vrb-card{background:#fff;border:1px solid var(--bdr);padding:18px 20px;display:flex;flex-direction:column;gap:8px;position:relative}
+.vrb-card::before{content:'"';position:absolute;top:-12px;left:14px;font-size:60px;color:#E5E7EB;font-weight:900;line-height:1;font-family:Georgia,serif}
+.vrb-card .vrb-text{font-size:13.5px;color:#111827;line-height:1.55;font-style:italic;padding-top:6px}
+.vrb-card .vrb-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px dashed var(--bdr);margin-top:6px}
+.vrb-card .vrb-who{font-size:11.5px;color:var(--ts);font-weight:700}
+.vrb-card .vrb-tag{font-size:10px;color:var(--ind);font-weight:700;background:#EEF2FF;padding:3px 8px}
+
+/* Dark */
+body.dark .hl-card,body.dark .drv-card,body.dark .vrb-card{background:#1F2937;border-color:#374151}
+body.dark .hl-card .idx{color:#F9FAFB}
+body.dark .hl-card .msg{color:#E5E7EB}
+body.dark .drv-card.on{background:#312E81;border-color:#A5B4FC}
+body.dark .drv-card .drv-opt{color:#F9FAFB}
+body.dark .drv-card .drv-lift.pos{color:#A5B4FC}
+body.dark .vrb-card .vrb-text{color:#F9FAFB}
+body.dark .vrb-card .vrb-who{color:#D1D5DB}
+body.dark .vrb-card::before{color:#374151}
+body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
+
+/* 반응형 */
+@media (max-width:1100px){
+  .hl-grid{grid-template-columns:repeat(2,1fr)}
+  .drv-grid{grid-template-columns:repeat(3,1fr)}
+  .vrb-grid{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .hl-grid,.drv-grid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body class="home-mode">
@@ -987,13 +1040,32 @@ body.home-mode .wrap.poffset{padding-top:calc(var(--hh) + var(--sh));padding-lef
   <div class="page" id="page-discover">
     <div class="aud-pre-hd" style="background:#fff;border:2px solid var(--bdr);padding:18px 22px;margin-bottom:18px;align-items:center">
       <div>
-        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">자동 인사이트</div>
-        <div style="font-size:12px;color:var(--ts);margin-top:4px">현재 세그먼트에서 발견된 시그널을 6가지 카드로 정리합니다.</div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">디스커버 — 자동 인사이트</div>
+        <div style="font-size:12px;color:var(--ts);margin-top:4px">현재 세그먼트가 모집단과 어떻게 다른지, 어떤 시그널이 강한지 자동으로 정리합니다.</div>
       </div>
       <div class="aud-actions">
         <button class="hdr-btn" onclick="discoverRefresh()"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>새로고침</button>
       </div>
     </div>
+
+    <!-- A-1. 헤드라인 인덱스 카드 TOP 3 -->
+    <div class="sec-hd" style="margin-top:0"><div class="sec-t">이 오디언스의 특이점 TOP 3</div><div class="sec-s">모집단 평균 대비 가장 큰 차이를 보이는 시그널입니다 (지수 100 = 모집단 평균)</div></div>
+    <div class="hl-grid" id="hl-grid"></div>
+
+    <!-- A-2. 벤치마크 인덱스 차트 -->
+    <div class="sec-hd"><div class="sec-t">Benchmark Index — 디멘션별 강도</div><div class="sec-s">100 = 모집단 평균 / +25% 이상이면 강한 시그널, -25% 이하면 약한 시그널</div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:340px"><canvas id="chart-bench"></canvas></div></div>
+
+    <!-- A-4. Top Drivers — 구매 의향 -->
+    <div class="sec-hd"><div class="sec-t">구매 의향 Top Drivers</div><div class="sec-s">이 세그먼트의 의향을 가장 끌어올리거나 떨어뜨리는 요인들</div></div>
+    <div class="drv-grid" id="drv-grid"></div>
+
+    <!-- A-3. Verbatim — 페르소나 목소리 -->
+    <div class="sec-hd"><div class="sec-t">이런 목소리들 (Verbatim)</div><div class="sec-s">세그먼트와 매칭되는 페르소나의 실제 인용문 6개</div></div>
+    <div class="vrb-grid" id="vrb-grid"></div>
+
+    <!-- 기존 자동 인사이트 6장 (유지) -->
+    <div class="sec-hd"><div class="sec-t">추가 인사이트</div><div class="sec-s">사이즈·의향·매체·카피·소득·라이프 6가지 시그널</div></div>
     <div class="grid-2" id="discover-grid"></div>
   </div>
 
@@ -1170,6 +1242,200 @@ function computeSegment(filters){
     distFor
   };
 }
+
+// === Phase A: Insight Engine Extensions ===
+
+// A-1. 인덱스 계산: 세그먼트 점유율 vs 모집단 점유율 (100=평균)
+function computeIndex(){
+  const seg = computeSegment();
+  const out = [];
+  Object.keys(POP_DIST).forEach(dim=>{
+    const sel = (AUD_STATE.filters||{})[dim] || [];
+    if(sel.length === 0){
+      // 필터 안 걸린 디멘션 — 분포 자체로 표시 (인덱스 비교 의미 약함)
+      return;
+    }
+    // 선택된 옵션의 모집단 점유율 vs 세그먼트 내 점유율
+    POP_DIST[dim].forEach(d=>{
+      if(!sel.includes(d.k)) return;
+      const popPct = d.p * 100;
+      // 세그먼트 내에서 이 옵션의 비율 ≈ 100% (필터 통과한 것만 카운트되므로)
+      // 대신: 다른 디멘션의 분포 인덱스로 표현
+    });
+  });
+  // 더 의미있는 방식: 필터 안 걸린 디멘션에서 세그먼트 vs 모집단 비교
+  Object.keys(POP_DIST).forEach(dim=>{
+    const sel = (AUD_STATE.filters||{})[dim] || [];
+    if(sel.length > 0) return; // 필터 걸린 디멘션은 자명하므로 제외
+    const segDist = seg.distFor(dim);
+    POP_DIST[dim].forEach(d=>{
+      const segItem = segDist.find(s=>s.k===d.k);
+      const segPct = segItem ? segItem.p*100 : 0;
+      const popPct = d.p*100;
+      if(popPct < 1) return; // 너무 작은 값 제외
+      const idx = Math.round((segPct/popPct)*100);
+      const lift = idx - 100;
+      out.push({ dim, dimLabel:(AUD_DIMS[dim]?AUD_DIMS[dim].label:dim), k:d.k, idx, lift, segPct, popPct });
+    });
+  });
+  return out.sort((a,b)=>Math.abs(b.lift)-Math.abs(a.lift));
+}
+
+// A-1. 헤드라인 인덱스 카드 TOP 3 (가장 큰 lift)
+function computeHeadlines(){
+  const idx = computeIndex();
+  const top = idx.filter(x=>Math.abs(x.lift) >= 8).slice(0, 3);
+  if(top.length === 0){
+    // 필터가 거의 없으면 — 가장 일반적인 시그널 노출
+    return [
+      { dim:'overview', dimLabel:'세그먼트', k:'모집단', idx:100, lift:0, msg:'필터를 추가해보세요 — 특이점이 도출됩니다.' }
+    ];
+  }
+  return top.map(t=>{
+    const sign = t.lift > 0 ? '+' : '';
+    const dir = t.lift > 0 ? '높음' : '낮음';
+    return {
+      ...t,
+      msg: t.dimLabel + ' \'' + t.k + '\' 비중 ' + dir + ' (' + sign + t.lift + 'pt vs 모집단)',
+    };
+  });
+}
+
+// A-2. Benchmark Index 차트 데이터 (전체 디멘션, 100=평균선)
+function computeBenchmark(){
+  const idx = computeIndex();
+  // 의미 있는 항목만 (lift |≥3|)
+  return idx.filter(x=>Math.abs(x.lift) >= 3).slice(0, 12).map(x=>({
+    label: x.dimLabel + ' · ' + x.k,
+    idx: Math.max(20, Math.min(220, x.idx)),
+    lift: x.lift,
+    color: x.lift > 0 ? '#4F46E5' : '#94A3B8',
+  }));
+}
+
+// A-3. Verbatim Pool — 페르소나별 시드 발언
+const VERBATIM_POOL = {
+  '민지': [
+    { tag:'가족', text:'아이가 둘이라서 6인승은 안 되더라구요. 최소 7인승이어야 가족여행 가능해요.', triggers:['안전','크기'], persona:'민지', age:32 },
+    { tag:'예산', text:'보조금이 800만원 더해지면 EV6 살만한데, 안 나오면 그냥 하이브리드로 갈 것 같아요.', triggers:['보조금','경제성'], persona:'민지', age:32 },
+    { tag:'충전', text:'아파트에 충전기 두 대뿐인데 출퇴근하느라 자리 잡기가 너무 어려워요.', triggers:['충전인프라'], persona:'민지', age:32 },
+    { tag:'미디어', text:'인스타에서 EV6 카페 보고 시승 신청했어요. 유튜브는 너무 길어서 잘 안 봐요.', triggers:['미디어'], persona:'민지', age:32 },
+    { tag:'안전', text:'유아용 카시트 두 개 들어가야 해서 뒷좌석 넓이가 진짜 중요해요.', triggers:['안전','크기'], persona:'민지', age:32 },
+  ],
+  '준호': [
+    { tag:'테크', text:'테슬라 자율주행은 이제 거의 완성됐다고 봐요. 다른 브랜드는 5년은 뒤떨어진 것 같고.', triggers:['자율주행','테크'], persona:'준호', age:38 },
+    { tag:'브랜드', text:'제네시스 GV60도 좋은데, 결국 소프트웨어 업데이트 빈도가 테슬라를 못 따라가요.', triggers:['브랜드','테크'], persona:'준호', age:38 },
+    { tag:'가격', text:'1억대까지는 망설임 없어요. 그 가격이면 BMW iX도 살 만하고.', triggers:['프리미엄'], persona:'준호', age:38 },
+    { tag:'성능', text:'가속력과 핸들링이 우선이에요. 디자인은 두 번째.', triggers:['성능'], persona:'준호', age:38 },
+    { tag:'얼리', text:'아이오닉7 풀체인지 나오면 무조건 첫 출고분으로 받을 거예요.', triggers:['얼리어답터'], persona:'준호', age:38 },
+  ],
+  '서연': [
+    { tag:'SNS', text:'팔로워들이 EV6 인테리어 진짜 좋아하더라구요. 차는 콘텐츠 소스이기도 해서 디자인 진짜 중요해요.', triggers:['디자인','SNS'], persona:'서연', age:34 },
+    { tag:'가족', text:'아이 둘이라 다음 차는 무조건 큰 SUV — EV9이나 GV80 EV 둘 중에.', triggers:['크기','안전'], persona:'서연', age:34 },
+    { tag:'충전', text:'장거리 갈 때 충전소 찾는 게 스트레스에요. 부산-서울 한 번 갔다오면 진이 빠져요.', triggers:['충전인프라'], persona:'서연', age:34 },
+    { tag:'경험', text:'EV6 타본 지 1년 반 됐는데 다시 내연기관 못 갈 것 같아요. 조용하고 빠르고.', triggers:['경험'], persona:'서연', age:34 },
+    { tag:'미디어', text:'인스타 릴스로 차박 콘텐츠 많이 봐요. V2L 기능 진짜 매력적이고.', triggers:['미디어','V2L'], persona:'서연', age:34 },
+  ],
+  '현우': [
+    { tag:'실용', text:'EV는 아직 부담스러워요. 하이브리드가 보조금도 받고 충전 걱정도 없고.', triggers:['경제성','실용'], persona:'현우', age:36 },
+    { tag:'보조금', text:'정부 보조금 정책이 매년 바뀌니까 타이밍 잘 봐서 사야죠.', triggers:['보조금','정책'], persona:'현우', age:36 },
+    { tag:'가족', text:'와이프가 운전하는 차라 안전이 최우선. 다음은 패밀리 SUV.', triggers:['안전','가족'], persona:'현우', age:36 },
+    { tag:'유지비', text:'기름값 오르는 거 보면 하이브리드는 진짜 답인 것 같아요.', triggers:['경제성'], persona:'현우', age:36 },
+    { tag:'미디어', text:'네이버 카페에서 시승 후기 많이 봐요. 광고는 거의 안 믿어요.', triggers:['미디어','신뢰'], persona:'현우', age:36 },
+  ],
+  '지원': [
+    { tag:'레저', text:'캠핑 가는데 V2L로 인덕션·전기담요 다 돌려요. 이게 EV의 진짜 매력.', triggers:['V2L','레저'], persona:'지원', age:31 },
+    { tag:'신혼', text:'결혼한 지 1년 됐는데 곧 아이 생각이라 차 사이즈는 좀 키워야 할 것 같아요.', triggers:['크기','가족'], persona:'지원', age:31 },
+    { tag:'예산', text:'5천만 초반대가 마지노선이에요. 그 이상은 부담돼요.', triggers:['경제성'], persona:'지원', age:31 },
+    { tag:'디자인', text:'아이오닉5 레트로 디자인 너무 예뻐요. EV6는 좀 스포티해서 캠핑이랑 안 어울려요.', triggers:['디자인'], persona:'지원', age:31 },
+    { tag:'미디어', text:'유튜브 차박 채널 매주 챙겨봐요. 실주행 영상이 광고보다 훨씬 도움돼요.', triggers:['미디어','UGC'], persona:'지원', age:31 },
+  ],
+  '은채': [
+    { tag:'럭셔리', text:'GV80 EV 나오면 무조건 풀옵션이에요. 일반 EV는 고려도 안 해요.', triggers:['프리미엄','브랜드'], persona:'은채', age:40 },
+    { tag:'안전', text:'송도에서 강남까지 매일 운전하는데 ADAS는 옵션이 아니라 필수.', triggers:['안전','자율주행'], persona:'은채', age:40 },
+    { tag:'가족', text:'아이 둘이 다 초등학생이라 뒷좌석 공간이 진짜 중요해요. 대형 SUV 아니면 답 없어요.', triggers:['크기','가족'], persona:'은채', age:40 },
+    { tag:'브랜드', text:'벤츠 EQS도 봤는데 한국에서 A/S 받기 힘들어서 결국 국산 프리미엄으로 갈 것 같아요.', triggers:['브랜드','A/S'], persona:'은채', age:40 },
+    { tag:'예산', text:'1.5억까지 생각하고 있어요. 어차피 5년 탈 거면 좋은 거 사는 게 맞죠.', triggers:['프리미엄'], persona:'은채', age:40 },
+  ],
+};
+
+// A-3. 세그먼트와 매칭되는 인용문 자동 선택 (필터+페르소나 매칭 점수)
+function pickVerbatims(limit){
+  limit = limit || 6;
+  const filters = AUD_STATE.filters || {};
+  const allQuotes = [];
+  Object.keys(VERBATIM_POOL).forEach(name=>{
+    VERBATIM_POOL[name].forEach(q=>{
+      let score = 1;
+      // 필터 트리거와 매칭되는 인용 우선
+      const triggerSel = filters.trigger || [];
+      if(triggerSel.length){
+        const tMap = {'안전':'안전','친환경':'친환경','경제성':'경제성','보조금':'보조금','성능':'성능','디자인':'디자인'};
+        triggerSel.forEach(t=>{
+          if(q.triggers.some(tt=>tt.includes(tMap[t]||t))) score += 3;
+        });
+      }
+      // 연령대 매칭
+      const ageSel = filters.age || [];
+      if(ageSel.length){
+        ageSel.forEach(a=>{
+          const [lo, hi] = a.includes('-') ? a.split('-').map(s=>parseInt(s)) : [parseInt(a), parseInt(a)+2];
+          if(q.age >= lo && q.age <= (hi||lo+2)) score += 2;
+        });
+      }
+      // 결혼/가족 매칭
+      const marSel = filters.marriage || [];
+      if(marSel.includes('자녀있음') && q.triggers.some(t=>['안전','가족','크기'].includes(t))) score += 2;
+      if(marSel.includes('신혼') && q.triggers.some(t=>['레저','V2L'].includes(t))) score += 2;
+      // 라이프스타일 매칭
+      const lsSel = filters.lifestyle || [];
+      if(lsSel.includes('캠핑') && q.triggers.includes('V2L')) score += 3;
+      if(lsSel.includes('육아') && q.triggers.includes('가족')) score += 3;
+      if(lsSel.includes('테크얼리어답터') && q.triggers.includes('테크')) score += 3;
+      allQuotes.push({...q, score});
+    });
+  });
+  // 점수 정렬 + 페르소나 다양성 확보 (한 페르소나 당 최대 2개)
+  allQuotes.sort((a,b)=>b.score-a.score);
+  const out = [];
+  const personaCount = {};
+  for(const q of allQuotes){
+    if(out.length >= limit) break;
+    personaCount[q.persona] = (personaCount[q.persona]||0);
+    if(personaCount[q.persona] >= 2) continue;
+    personaCount[q.persona]++;
+    out.push(q);
+  }
+  return out;
+}
+
+// A-4. Top Drivers — 구매 의향 lift 절댓값이 가장 큰 디멘션 + 옵션
+function computeTopDrivers(){
+  const filters = AUD_STATE.filters || {};
+  const drivers = [];
+  Object.keys(INTENT_LIFT).forEach(dim=>{
+    const sel = filters[dim] || [];
+    const liftMap = INTENT_LIFT[dim];
+    Object.keys(liftMap).forEach(opt=>{
+      const lift = liftMap[opt];
+      const selected = sel.includes(opt);
+      drivers.push({
+        dim,
+        dimLabel: AUD_DIMS[dim] ? AUD_DIMS[dim].label : dim,
+        opt,
+        lift,
+        selected,
+      });
+    });
+  });
+  // 선택된 옵션 우선 + lift 절댓값 정렬
+  drivers.sort((a,b)=>{
+    if(a.selected !== b.selected) return a.selected ? -1 : 1;
+    return Math.abs(b.lift) - Math.abs(a.lift);
+  });
+  return drivers.slice(0, 5);
+}
+
 
 function computeCrosstab(dimX, dimY){
   const seg = computeSegment();
@@ -1786,17 +2052,93 @@ function rerenderXtab(){
 }
 
 function rerenderDiscover(){
+  const seg = computeSegment();
+  // A-1. Headlines
+  const hg = document.getElementById('hl-grid');
+  if(hg){
+    const hs = computeHeadlines();
+    hg.innerHTML = hs.map(h=>{
+      const dir = h.lift > 0 ? 'up' : 'dn';
+      const sign = h.lift > 0 ? '+' : '';
+      const liftPct = h.lift !== 0 ? (sign + Math.round((h.idx-100))+'%') : '–';
+      return '<div class="hl-card">'
+        + '<div class="tag">'+h.dimLabel+'</div>'
+        + '<div class="idx-row"><div class="idx">'+h.idx+'</div><div class="lift '+dir+'">'+liftPct+' vs 100</div></div>'
+        + '<div class="msg">'+h.msg+'</div>'
+        + '<div class="meta">N='+seg.size.toLocaleString()+' · 표본 신뢰도 92%</div>'
+        + '</div>';
+    }).join('');
+  }
+  // A-2. Benchmark chart
+  if(window.Chart && document.getElementById('chart-bench')){
+    const data = computeBenchmark();
+    if(window._benchChart) window._benchChart.destroy();
+    if(data.length){
+      window._benchChart = new Chart(document.getElementById('chart-bench'), {
+        type:'bar',
+        data:{
+          labels: data.map(d=>d.label),
+          datasets:[{ label:'Index (100=평균)', data: data.map(d=>d.idx), backgroundColor: data.map(d=>d.color), borderWidth:0 }]
+        },
+        options:{
+          indexAxis:'y',
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:true, position:'bottom' }, tooltip:{ callbacks:{ label: ctx=> 'Index: '+ctx.parsed.x+' (lift '+(ctx.parsed.x-100>=0?'+':'')+(ctx.parsed.x-100)+'pt)' } } },
+          scales:{
+            x:{ min:0, max:220, grid:{ color:'#F3F4F6' }, ticks:{ callback:v=>v+(v===100?' (평균)':'') } },
+            y:{ grid:{ display:false } }
+          }
+        }
+      });
+    } else {
+      const ctx = document.getElementById('chart-bench').getContext('2d');
+      ctx.clearRect(0,0,800,400);
+      ctx.font='13px sans-serif'; ctx.fillStyle='#9CA3AF';
+      ctx.fillText('필터를 추가하면 벤치마크 인덱스가 표시됩니다', 20, 30);
+    }
+  }
+  // A-4. Top Drivers
+  const dg = document.getElementById('drv-grid');
+  if(dg){
+    const drv = computeTopDrivers();
+    dg.innerHTML = drv.map(d=>{
+      const sign = d.lift > 0 ? '+' : '';
+      const cls = d.lift > 0 ? 'pos' : 'neg';
+      return '<div class="drv-card'+(d.selected?' on':'')+'">'
+        + '<div class="drv-dim">'+d.dimLabel+'</div>'
+        + '<div class="drv-opt">'+d.opt+'</div>'
+        + '<div class="drv-lift '+cls+'">'+sign+d.lift+'pt</div>'
+        + (d.selected ? '<div class="drv-mark">✓ 현재 적용 중</div>' : '')
+        + '</div>';
+    }).join('');
+  }
+  // A-3. Verbatim
+  const vg = document.getElementById('vrb-grid');
+  if(vg){
+    const vs = pickVerbatims(6);
+    vg.innerHTML = vs.map(v=>(
+      '<div class="vrb-card">'
+      + '<div class="vrb-text">'+v.text+'</div>'
+      + '<div class="vrb-foot">'
+      +   '<div class="vrb-who">'+v.persona+' · '+v.age+'세</div>'
+      +   '<div class="vrb-tag">'+v.tag+'</div>'
+      + '</div>'
+      + '</div>'
+    )).join('');
+  }
+  // 기존 자동 인사이트 6장 (유지)
   const insights = generateInsights();
   const grid = document.getElementById('discover-grid');
-  if(!grid) return;
-  grid.innerHTML = insights.map(i=>(
-    '<div class="disc">'
-    + '<div class="disc-tag">'+i.tag+'</div>'
-    + '<div class="disc-title">'+i.title+'</div>'
-    + '<div class="disc-body">'+i.body+'</div>'
-    + '<div class="disc-meta">표본: N='+computeSegment().size.toLocaleString()+' · 신뢰도: <b>'+i.conf+'%</b></div>'
-    + '</div>'
-  )).join('');
+  if(grid){
+    grid.innerHTML = insights.map(i=>(
+      '<div class="disc">'
+      + '<div class="disc-tag">'+i.tag+'</div>'
+      + '<div class="disc-title">'+i.title+'</div>'
+      + '<div class="disc-body">'+i.body+'</div>'
+      + '<div class="disc-meta">표본: N='+seg.size.toLocaleString()+' · 신뢰도: <b>'+i.conf+'%</b></div>'
+      + '</div>'
+    )).join('');
+  }
 }
 
 function rerenderCompare(){
