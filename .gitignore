@@ -8,3 +8,8 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+
+# Backend
+backend/node_modules/
+backend/package-lock.json
+
