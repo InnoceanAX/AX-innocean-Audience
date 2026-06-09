@@ -739,6 +739,82 @@ a{color:inherit;text-decoration:none}
 .cmp-na{color:#9CA3AF}
 .cmp-foot{margin-top:14px;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--tm)}
 .cmp-foot-src{font-size:11px}
+
+/* ============ AI Panel Ultra CSS ============ */
+.ai-panel-h-r{display:flex;gap:6px;align-items:center}
+.ai-panel-mini{background:none;border:none;cursor:pointer;color:#9CA3AF;padding:4px;display:flex;align-items:center}
+.ai-panel-mini svg{width:15px;height:15px}
+.ai-panel-mini:hover{color:#111}
+.ai-panel-sub kbd{padding:1px 5px;background:#F3F4F6;border:1px solid var(--bdr);border-radius:3px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#374151}
+
+/* Quick chips (자동 갱신) */
+.ai-quick{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-height:140px;overflow-y:auto}
+.ai-quick-btn{display:flex;align-items:center;gap:8px;padding:8px 11px;background:#F9FAFB;border:1px solid var(--bdr);border-radius:6px;font-size:11.5px;color:#374151;cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;line-height:1.3}
+.ai-quick-btn:hover{background:#EEF2FF;border-color:var(--ind);color:var(--ind)}
+.ai-quick-btn svg{width:12px;height:12px;color:var(--ind);flex-shrink:0}
+
+/* Messages */
+.ai-log{flex:1;overflow-y:auto;padding:8px 0;display:flex;flex-direction:column;gap:12px}
+.ai-msg{display:flex;gap:8px;animation:aimsg-in .2s ease-out}
+@keyframes aimsg-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.ai-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-msg.user .ai-avatar{background:#111}
+.ai-msg-r{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.ai-msg.user .ai-msg-r{align-items:flex-end}
+.ai-bubble{padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.55;max-width:100%;word-break:break-word;background:#F3F4F6;color:#111}
+.ai-msg.user .ai-bubble{background:var(--ind);color:#fff}
+.ai-msg.bot.loading .ai-bubble{background:#F9FAFB;color:var(--tm)}
+.ai-bubble b{font-weight:700;color:#111}
+.ai-msg.user .ai-bubble b{color:#fff}
+.ai-bubble i{color:var(--tm);font-size:11.5px}
+.ai-time{font-size:9.5px;color:#9CA3AF;letter-spacing:.2px}
+
+/* Loading dots */
+.ai-dots{display:inline-flex;gap:3px;padding:2px 0}
+.ai-dots span{width:5px;height:5px;background:var(--ind);border-radius:50%;animation:dotpulse 1.2s infinite}
+.ai-dots span:nth-child(2){animation-delay:.15s}
+.ai-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dotpulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+
+/* Action pill + Undo */
+.ai-pill-row{display:flex;align-items:center;gap:8px;margin-left:32px;padding:2px 0}
+.ai-act-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0;border-radius:11px;font-size:10.5px;font-weight:600}
+.ai-act-pill svg{color:#065F46}
+.ai-pill-row.undone .ai-act-pill{background:#F3F4F6;color:#9CA3AF;border-color:#E5E7EB;text-decoration:line-through}
+.ai-undo-btn{padding:3px 9px;background:#fff;border:1px solid #D1D5DB;color:#6B7280;font-size:10.5px;border-radius:11px;cursor:pointer;font-family:inherit;font-weight:600}
+.ai-undo-btn:hover:not(:disabled){background:var(--ind);color:#fff;border-color:var(--ind)}
+.ai-undo-btn:disabled{cursor:default;color:#D1D5DB}
+
+/* Auto action button (e.g., 미국으로 이동) */
+.ai-msg-action{align-self:flex-start;margin-left:32px;padding:6px 12px;background:#fff;border:1px solid var(--ind);color:var(--ind);border-radius:6px;font-size:11.5px;cursor:pointer;font-weight:600;font-family:inherit;display:inline-flex;align-items:center}
+.ai-msg-action:hover{background:var(--ind);color:#fff}
+
+
+/* Data Source Modal */
+.src-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.src-modal.hide{display:none}
+.src-modal-box{background:#fff;border-radius:12px;width:100%;max-width:520px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.src-modal-h{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--bdr)}
+.src-modal-t{font-size:16px;font-weight:700;color:#111}
+.src-modal-x{background:none;border:none;cursor:pointer;color:#9CA3AF;padding:4px}
+.src-modal-x svg{width:18px;height:18px}
+.src-modal-x:hover{color:#111}
+.src-modal-body{padding:18px 22px;overflow-y:auto;font-size:13px;line-height:1.65;color:#374151}
+.src-modal-body .src-block{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #F3F4F6}
+.src-modal-body .src-block:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.src-modal-body .src-block-l{font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.src-modal-body .src-block-t{font-weight:600;color:#111;margin-bottom:4px}
+.src-modal-body .src-block-d{color:#6B7280;font-size:12px}
+.src-modal-body .src-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12px;margin-top:8px}
+.src-modal-body .src-meta dt{color:#9CA3AF;font-weight:500}
+.src-modal-body .src-meta dd{color:#111;margin:0}
+
+/* Audience source badge clickable */
+.aud-src-clickable{background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:inherit;font:inherit}
+.aud-src-clickable:hover .aud-src-txt{color:var(--ind);text-decoration:underline}
+.aud-src-info{color:#9CA3AF;margin-left:2px}
+.aud-src-clickable:hover .aud-src-info{color:var(--ind)}
+/* ============ End AI Panel Ultra CSS ============ */
 </style>
 </head>
 <body>
@@ -1152,6 +1228,19 @@ a{color:inherit;text-decoration:none}
     </div>
   </main>
 
+  <!-- ============ DATA SOURCE MODAL ============ -->
+  <div id="src-modal" class="src-modal hide" onclick="if(event.target.id==='src-modal')closeSourceModal()">
+    <div class="src-modal-box">
+      <div class="src-modal-h">
+        <div class="src-modal-t" id="src-modal-t">데이터 출처</div>
+        <button class="src-modal-x" onclick="closeSourceModal()" title="닫기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="src-modal-body" id="src-modal-body"></div>
+    </div>
+  </div>
+
   <!-- ============ AI ASSISTANT SIDE PANEL ============ -->
   <aside id="ai-panel" class="ai-panel collapsed">
     <button class="ai-toggle" onclick="toggleAIPanel()" title="AI 비서">
@@ -1164,32 +1253,20 @@ a{color:inherit;text-decoration:none}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.91 5.84L19.5 11l-5.59 2.16L12 19l-1.91-5.84L4.5 11l5.59-2.16L12 3z"/></svg>
           <span>AI 비서</span>
         </div>
-        <button class="ai-panel-close" onclick="toggleAIPanel()" title="닫기">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+        <div class="ai-panel-h-r">
+          <button class="ai-panel-mini" onclick="aiClearLog()" title="대화 지우기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+          <button class="ai-panel-close" onclick="toggleAIPanel()" title="닫기 (Esc)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="ai-panel-sub" id="ai-panel-sub">타겟 설정하고 조회하면 해석·추가 분석을 제공합니다.</div>
-      <div class="ai-quick" id="ai-quick">
-        <button class="ai-quick-btn" onclick="aiQuick('summary')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          현재 화면 요약
-        </button>
-        <button class="ai-quick-btn" onclick="aiQuick('persona')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
-          페르소나 만들기
-        </button>
-        <button class="ai-quick-btn" onclick="aiQuick('compare')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
-          비슷한 국가 찾기
-        </button>
-        <button class="ai-quick-btn" onclick="aiQuick('message')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-          광고 메시지 추천
-        </button>
-      </div>
+      <div class="ai-panel-sub" id="ai-panel-sub">자연어로 화면을 조작하고 데이터를 분석합니다. 단축키: <kbd>Cmd/Ctrl+K</kbd></div>
+      <div class="ai-quick" id="ai-quick"></div>
       <div class="ai-log" id="ai-log"></div>
       <div class="ai-input-wrap">
-        <textarea class="ai-input" id="ai-input" rows="1" placeholder="이 데이터에 대해 물어보세요…" oninput="aiResize(this)" onkeydown="aiKey(event)"></textarea>
+        <textarea class="ai-input" id="ai-input" rows="1" placeholder="명령 입력 (예: 미국으로 이동, 라이프스타일 탭, PNG 저장)" oninput="aiResize(this)" onkeydown="aiKey(event)"></textarea>
         <button class="ai-send" id="ai-send" onclick="aiSend()" title="전송">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
         </button>
@@ -1549,6 +1626,8 @@ function switchTab(tab, opts){
     history.pushState({ tab, country: state.currentCountry, view: 'tab' }, '', url.toString());
   }
   updateBreadcrumb();
+  // AI 비서 chips 자동 갱신
+  if(typeof aiRenderChips === 'function') aiRenderChips();
 }
 
 // 브라우저 뒤로가기 처리
@@ -1904,91 +1983,642 @@ function cmpDrillDown(code){
   updateCountryPillLabel();
 }
 
-// ============ AI SIDE PANEL ============
+// ============ AI SIDE PANEL (Ultra) ============
+// Report 검증된 패턴 + Audience 도메인 룰 + 되돌리기 + PNG/CSV + 영속화
 let aiPanelOpen = false;
+const AI_UNDO_STACK = [];
+const AI_STORAGE_KEY = 'innocean-audience-ai-log';
+const AUDIENCE_COUNTRIES = ['KR','US','JP','CN','GB','DE','FR','IT','ES','CA','AU','IN','BR','MX','RU','TR','SA','ZA','NL','SE','PL','ID','TH','VN','MY','PH','SG','AR'];
+
+// 탭별 컨텍스트 칩 (자동 갱신)
+const AI_CHIPS_BY_TAB = {
+  overview: ['현재 국가 핵심 지표 요약', '비슷한 국가 3곳 추천', '이 데이터를 PNG로 저장'],
+  who: ['연령 분포 비교 가능한 국가', '도시화율 높은 Top 5', '이 데이터 표를 CSV로'],
+  life: ['디지털 시간 가장 긴 국가', '인터넷 침투율 비슷한 국가', '소셜미디어 사용 패턴 비교'],
+  mind: ['신뢰도 높은 국가 정렬', '개인주의 vs 집단주의 분포', '혁신 수용도 Top 5'],
+  love: ['K-Pop 인기 국가', '비슷한 관심사 가진 국가 찾기', '피트니스 트렌드 강한 시장'],
+  buy: ['이커머스 강국 Top 5', '가격 민감 시장', '브랜드 충성도 높은 국가'],
+  media: ['광고비 큰 시장 정렬', '디지털 매체 점유율', '채널별 도달률 비교'],
+  compare: ['신뢰도 기준 정렬', '인구구조 비슷한 국가 묶기', '5차원 종합 점수 매겨줘'],
+  interview: ['이 페르소나 광고 카피 추천', '하루 미디어 여정 보여줘', '메시지 A/B 테스트 시작'],
+};
+
+const AI_COUNTRY_KO = {
+  '한국':'KR','미국':'US','일본':'JP','중국':'CN','영국':'GB','독일':'DE','프랑스':'FR',
+  '이탈리아':'IT','스페인':'ES','캐나다':'CA','호주':'AU','인도':'IN','브라질':'BR',
+  '멕시코':'MX','러시아':'RU','터키':'TR','사우디':'SA','남아공':'ZA','네덜란드':'NL',
+  '스웨덴':'SE','폴란드':'PL','인도네시아':'ID','태국':'TH','베트남':'VN','말레이시아':'MY',
+  '필리핀':'PH','UAE':'AE','아랍에미리트':'AE','아르헨티나':'AR',
+};
+const AI_TAB_KO = {
+  '개요':'overview','요약':'overview','overview':'overview',
+  '인물상':'who','인구':'who','데모':'who','who':'who',
+  '라이프스타일':'life','라이프':'life','life':'life','일상':'life','생활':'life',
+  '가치관':'mind','마인드':'mind','mind':'mind','신뢰':'mind','문화':'mind',
+  '관심사':'love','관심':'love','love':'love','취향':'love',
+  '구매':'buy','쇼핑':'buy','buy':'buy','이커머스':'buy',
+  '미디어':'media','media':'media','매체':'media',
+  '비교':'compare','글로벌':'compare','compare':'compare','매트릭스':'compare',
+  '페르소나':'interview','interview':'interview','인터뷰':'interview',
+};
+
+function aiAsstGreet(){
+  aiAddMsg('bot', '안녕하세요. 자연어로 화면을 조작해드릴게요.<br><br>예시:<br>· "미국으로 이동"<br>· "라이프스타일 탭 보여줘"<br>· "이 데이터 PNG로 저장"<br>· "도움말" 입력 시 전체 명령어 안내', true);
+}
+
 function toggleAIPanel(){
   const p = document.getElementById('ai-panel');
   aiPanelOpen = !aiPanelOpen;
   p.classList.toggle('collapsed', !aiPanelOpen);
-  if(aiPanelOpen && document.getElementById('ai-log').children.length === 0){
-    aiAddMsg('bot', '안녕하세요! 타겟 데이터에 대해 뭐든 물어보세요. 아래 빠른 액션을 쓰거나 직접 입력해도 됩니다.');
+  if(aiPanelOpen){
+    aiRenderChips();
+    if(document.getElementById('ai-log').children.length === 0){
+      aiRestoreOrGreet();
+    }
   }
 }
+
+function aiRestoreOrGreet(){
+  try {
+    const saved = localStorage.getItem(AI_STORAGE_KEY);
+    if(saved){
+      const msgs = JSON.parse(saved);
+      if(Array.isArray(msgs) && msgs.length > 0){
+        msgs.slice(-20).forEach(m => aiAddMsg(m.role, m.html, true, m.time));
+        return;
+      }
+    }
+  } catch(e) {}
+  aiAsstGreet();
+}
+
+function aiSaveLog(){
+  try {
+    const log = document.getElementById('ai-log');
+    const msgs = [...log.querySelectorAll('.ai-msg')].map(el => ({
+      role: el.classList.contains('user') ? 'user' : 'bot',
+      html: el.querySelector('.ai-bubble') ? el.querySelector('.ai-bubble').innerHTML : '',
+      time: el.querySelector('.ai-time') ? el.querySelector('.ai-time').textContent : '',
+    }));
+    localStorage.setItem(AI_STORAGE_KEY, JSON.stringify(msgs.slice(-30)));
+  } catch(e) {}
+}
+
+function aiClearLog(){
+  document.getElementById('ai-log').innerHTML = '';
+  try { localStorage.removeItem(AI_STORAGE_KEY); } catch(e){}
+  AI_UNDO_STACK.length = 0;
+  aiAsstGreet();
+}
+
 function aiResize(t){ t.style.height='auto'; t.style.height = Math.min(120, t.scrollHeight)+'px'; }
 function aiKey(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); aiSend(); } }
-function aiAddMsg(type, text){
-  const log = document.getElementById('ai-log');
-  const div = document.createElement('div');
-  div.className = 'ai-msg ' + type;
-  div.textContent = text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-  return div;
+
+function aiNowStr(){
+  const d = new Date();
+  return d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
 }
+
+function aiAddMsg(role, html, isHtml, presetTime){
+  const log = document.getElementById('ai-log');
+  const wrap = document.createElement('div');
+  wrap.className = 'ai-msg ' + role;
+  const av = role === 'user' ? '나' : 'AI';
+  const time = presetTime || aiNowStr();
+  let bodyHtml;
+  if(isHtml){
+    bodyHtml = html;
+  } else {
+    bodyHtml = String(html).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+  wrap.innerHTML = '<div class="ai-avatar">' + av + '</div><div class="ai-msg-r"><div class="ai-bubble">' + bodyHtml + '</div><div class="ai-time">' + time + '</div></div>';
+  log.appendChild(wrap);
+  log.scrollTop = log.scrollHeight;
+  aiSaveLog();
+  return wrap;
+}
+
+function aiAddLoading(){
+  return aiAddMsg('bot loading', '<span class="ai-dots"><span></span><span></span><span></span></span>', true);
+}
+
+function aiAddActionPill(label, undoFn){
+  const log = document.getElementById('ai-log');
+  const row = document.createElement('div');
+  row.className = 'ai-pill-row';
+  row.innerHTML = '<span class="ai-act-pill"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' + label + '</span>';
+  if(undoFn){
+    const btn = document.createElement('button');
+    btn.className = 'ai-undo-btn';
+    btn.textContent = '되돌리기';
+    btn.onclick = function(){
+      try { undoFn(); } catch(e){ console.error('undo', e); }
+      row.classList.add('undone');
+      btn.disabled = true;
+      btn.textContent = '되돌림';
+    };
+    row.appendChild(btn);
+    AI_UNDO_STACK.push({ fn: undoFn, label: label });
+  }
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+
+function aiRenderChips(){
+  const box = document.getElementById('ai-quick');
+  if(!box) return;
+  const tab = state.currentTab || 'overview';
+  const chips = AI_CHIPS_BY_TAB[tab] || AI_CHIPS_BY_TAB.overview;
+  box.innerHTML = chips.map(function(q){
+    const esc = q.replace(/'/g, "\\'");
+    return '<button class="ai-quick-btn" onclick="aiQuickChip(\'' + esc + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' + q + '</button>';
+  }).join('');
+}
+
+function aiQuickChip(q){
+  document.getElementById('ai-input').value = q;
+  aiSend();
+}
+
+// ----- 자연어 명령 파서 -----
+function aiParse(q){
+  const text = q.toLowerCase().trim();
+
+  if(/도움말|명령어|^help|뭐 할 수|뭘 할 수|기능 목록/.test(text)){
+    return { kind: 'help' };
+  }
+
+  // 국가 이동 (한글)
+  for(const ko in AI_COUNTRY_KO){
+    const code = AI_COUNTRY_KO[ko];
+    const re = new RegExp(ko + '(으로|로)?\\s*(이동|가|보여|선택|변경|set|switch)', 'i');
+    if(re.test(q)){ return { kind: 'change-country', country: code, label: ko }; }
+  }
+  // 영문 코드
+  const codeMatch = q.match(/\b([A-Z]{2})\b/);
+  if(codeMatch && AUDIENCE_COUNTRIES.indexOf(codeMatch[1]) >= 0 && /(이동|로|선택|보여|switch|to)/i.test(q)){
+    return { kind: 'change-country', country: codeMatch[1], label: codeMatch[1] };
+  }
+
+  // 탭 이동
+  for(const ko in AI_TAB_KO){
+    const tab = AI_TAB_KO[ko];
+    if(text.indexOf(ko) >= 0 && /(보여|탭|이동|열어|show|view|넘어가|가)/i.test(text)){
+      return { kind: 'change-tab', tab: tab, label: ko };
+    }
+  }
+
+  if(/(png|이미지|캡처|화면\s*저장|export.*image|스크린샷)/i.test(text)){
+    return { kind: 'export-png' };
+  }
+  if(/(csv|엑셀|excel|표.*다운|표.*저장|데이터.*다운)/i.test(text)){
+    return { kind: 'export-csv' };
+  }
+
+  // 정렬
+  const sortKeywords = ['신뢰', '도시화', '인구', '연령', '인터넷', '소셜', '이커머스', '가격', '관심사', '광고비'];
+  for(const kw of sortKeywords){
+    if(text.indexOf(kw) >= 0 && /(높은|낮은|많은|적은|기준|정렬|순)/.test(text)){
+      return { kind: 'sort-compare', metric: kw, direction: /높|많/.test(text) ? 'desc' : 'asc' };
+    }
+  }
+
+  const topMatch = text.match(/top\s*(\d+)|상위\s*(\d+)/i);
+  if(topMatch){
+    return { kind: 'top-n', n: parseInt(topMatch[1] || topMatch[2]) };
+  }
+
+  if(/페르소나|persona|만들|create|생성/i.test(text) && !/메시지|광고/.test(text)){
+    return { kind: 'create-persona' };
+  }
+  if(/광고\s*(메시지|카피|문구)|copy|message/i.test(text)){
+    return { kind: 'ad-message' };
+  }
+  if(/비슷한|유사한|similar|닮은|가까운/i.test(text)){
+    return { kind: 'similar-countries' };
+  }
+  if(/요약|핵심|summary|정리/i.test(text)){
+    return { kind: 'summary' };
+  }
+  if(/해석|설명|분석|이해|interpret/i.test(text)){
+    return { kind: 'interpret' };
+  }
+  if(/지우|초기화|클리어|clear|reset/i.test(text)){
+    return { kind: 'clear' };
+  }
+
+  return { kind: 'general', query: q };
+}
+
 async function aiSend(){
   const inp = document.getElementById('ai-input');
   const text = inp.value.trim();
   if(!text) return;
   aiAddMsg('user', text);
   inp.value=''; aiResize(inp);
-  const loading = aiAddMsg('bot loading', '생각 중…');
-  try {
-    const ctx = aiBuildContext();
-    const ctxText = ctx.tab ? `현재 탭: ${ctx.tab}, 국가: ${ctx.country}` : '';
-    const res = await fetch(`${API}/ask`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ question: text + (ctxText ? ` (컨텍스트: ${ctxText})` : ''), country: state.currentCountry }),
+  const parsed = aiParse(text);
+  await aiExecute(parsed, text);
+}
+
+async function aiExecute(parsed, originalText){
+  switch(parsed.kind){
+    case 'help': return aiShowHelp();
+    case 'change-country': return aiChangeCountry(parsed.country, parsed.label);
+    case 'change-tab': return aiChangeTab(parsed.tab, parsed.label);
+    case 'export-png': return aiExportPNG();
+    case 'export-csv': return aiExportCSV();
+    case 'sort-compare': return aiSortCompare(parsed);
+    case 'top-n': return aiTopN(parsed.n);
+    case 'create-persona': return aiCreatePersona();
+    case 'ad-message': return aiAdMessage();
+    case 'similar-countries': return aiSimilarCountries();
+    case 'summary': return aiSummary();
+    case 'interpret': return aiInterpret();
+    case 'clear': return aiClearLog();
+    default: return aiGeneralQuery(originalText);
+  }
+}
+
+function aiShowHelp(){
+  const html = '<b>사용 가능한 명령</b><br><br>' +
+    '<b>국가 이동</b><br>"미국으로 이동", "JP 국가로 변경", "한국 보여줘"<br><br>' +
+    '<b>탭 이동</b><br>"라이프스타일 탭", "가치관 탭 열어", "글로벌 비교 보여줘"<br><br>' +
+    '<b>데이터 액션</b><br>"이 데이터 PNG로", "표를 CSV로 다운로드", "신뢰도 높은 순 정렬"<br><br>' +
+    '<b>분석</b><br>"비슷한 국가 찾아줘", "페르소나 만들기", "광고 메시지 추천", "이 화면 요약", "데이터 해석해줘"<br><br>' +
+    '<b>기타</b><br>"초기화"로 대화 리셋. 그 외 자유 질문은 AI가 답변합니다.';
+  aiAddMsg('bot', html, true);
+}
+
+async function aiChangeCountry(code, label){
+  if(AUDIENCE_COUNTRIES.indexOf(code) < 0){
+    aiAddMsg('bot', label + ' 국가는 현재 미지원입니다. (지원 28개국)', false);
+    return;
+  }
+  const prev = state.currentCountry;
+  state.currentCountry = code;
+  if(typeof updateCountryPillLabel === 'function') updateCountryPillLabel();
+  if(['who','life','mind','love','buy'].indexOf(state.currentTab) >= 0){
+    const body = document.getElementById(state.currentTab + '-body');
+    if(body) body.dataset.country = '';
+    refreshAudienceTab(state.currentTab);
+  } else if(state.currentTab === 'overview' && typeof refreshSegment === 'function'){
+    refreshSegment();
+  } else if(state.currentTab === 'media' && typeof refreshMediaTab === 'function'){
+    refreshMediaTab();
+  }
+  aiAddMsg('bot', label + '(' + code + ')로 이동했습니다.', false);
+  aiAddActionPill('국가 ' + prev + ' → ' + code, function(){
+    state.currentCountry = prev;
+    if(typeof updateCountryPillLabel === 'function') updateCountryPillLabel();
+    if(['who','life','mind','love','buy'].indexOf(state.currentTab) >= 0){
+      const body = document.getElementById(state.currentTab + '-body');
+      if(body) body.dataset.country = '';
+      refreshAudienceTab(state.currentTab);
+    }
+  });
+}
+
+function aiChangeTab(tab, label){
+  const validTabs = ['overview','who','life','mind','love','buy','media','compare','interview'];
+  if(validTabs.indexOf(tab) < 0){
+    aiAddMsg('bot', '알 수 없는 탭: ' + label, false);
+    return;
+  }
+  const prev = state.currentTab;
+  switchTab(tab);
+  aiAddMsg('bot', label + ' 탭으로 이동했습니다.', false);
+  aiAddActionPill('탭 ' + prev + ' → ' + tab, function(){ switchTab(prev); });
+  setTimeout(aiRenderChips, 100);
+}
+
+function aiExportPNG(){
+  const tab = state.currentTab || 'overview';
+  const target = document.getElementById('tab-' + tab);
+  if(!target){ aiAddMsg('bot', '내보낼 화면을 찾을 수 없습니다.', false); return; }
+  const canvas = target.querySelector('canvas');
+  if(canvas){
+    try {
+      const link = document.createElement('a');
+      link.download = 'innocean-audience-' + tab + '-' + (state.currentCountry||'all') + '-' + Date.now() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      aiAddMsg('bot', '차트를 PNG로 저장했습니다.', false);
+      aiAddActionPill('차트 PNG 저장');
+    } catch(e){
+      aiAddMsg('bot', 'PNG 저장 실패: ' + e.message, false);
+    }
+    return;
+  }
+  aiAddMsg('bot', '이 탭은 직접 다운로드 가능한 차트가 없습니다. 브라우저 스크린샷(Win: Win+Shift+S, Mac: Cmd+Shift+4)을 사용하세요.', false);
+}
+
+function aiExportCSV(){
+  if(state.currentTab === 'compare' && typeof compareData !== 'undefined' && compareData){
+    const dim = currentCompareDim || 'who';
+    const rows = compareData[dim] || [];
+    if(rows.length === 0){ aiAddMsg('bot', '내보낼 데이터가 없습니다.', false); return; }
+    const keys = Object.keys(rows[0]);
+    const lines = [keys.join(',')];
+    rows.forEach(function(r){
+      lines.push(keys.map(function(k){
+        const v = r[k];
+        if(v == null) return '';
+        if(Array.isArray(v)) return '"' + v.join('|') + '"';
+        if(typeof v === 'string' && v.indexOf(',') >= 0) return '"' + v + '"';
+        return v;
+      }).join(','));
     });
-    const data = await res.json();
-    loading.remove();
-    // ask는 parsed 구조 리턴 — 사람이 읽기 좋게 조합
-    if(data.ok && data.parsed){
-      const p = data.parsed;
-      let answer = '';
-      if(p.intent) answer += `의도: ${p.intent}\n`;
-      if(p.country) answer += `국가: ${p.country}\n`;
-      if(p.filters && Object.keys(p.filters).length){
-        answer += `필터:\n`;
-        for(const [k,v] of Object.entries(p.filters)){
-          answer += `  • ${k}: ${Array.isArray(v)?v.join(', '):v}\n`;
-        }
+    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'innocean-compare-' + dim + '-' + Date.now() + '.csv';
+    a.click(); URL.revokeObjectURL(url);
+    aiAddMsg('bot', dim + ' 차원 비교 데이터를 CSV로 저장했습니다 (' + rows.length + '개국).', false);
+    aiAddActionPill('CSV 저장');
+    return;
+  }
+  aiAddMsg('bot', 'CSV 내보내기는 글로벌 비교 탭에서 가능합니다. "글로벌 비교 탭"이라고 입력해보세요.', false);
+}
+
+async function aiSortCompare(parsed){
+  if(state.currentTab !== 'compare'){
+    aiAddMsg('bot', '먼저 글로벌 비교 탭으로 이동해주세요.', false);
+    aiAddActionPill('힌트: 글로벌 비교 탭 명령 추천');
+    return;
+  }
+  const data = await loadCompareData();
+  if(!data){ aiAddMsg('bot', '비교 데이터 로딩 실패', false); return; }
+  const dim = currentCompareDim || 'who';
+  const metrics = CMP_METRICS[dim] || [];
+  // 메트릭 매칭 (한글 라벨 기반)
+  const candidate = metrics.find(function(m){
+    return m.label.indexOf(parsed.metric) >= 0 || parsed.metric.indexOf(m.label.toLowerCase()) >= 0;
+  });
+  if(!candidate){
+    aiAddMsg('bot', '"' + parsed.metric + '"에 해당하는 메트릭을 못 찾았습니다. 현재 차원: ' + dim + ', 가능 메트릭: ' + metrics.map(function(m){return m.label;}).join(', '), false);
+    return;
+  }
+  const sortSel = document.getElementById('cmp-sort');
+  sortSel.value = candidate.key;
+  await renderCompareMatrix();
+  aiAddMsg('bot', candidate.label + ' 기준으로 정렬 완료.', false);
+  aiAddActionPill('정렬: ' + candidate.label, function(){
+    sortSel.value = '';
+    renderCompareMatrix();
+  });
+}
+
+async function aiTopN(n){
+  if(state.currentTab !== 'compare'){
+    aiAddMsg('bot', 'Top ' + n + ' 분석은 글로벌 비교 탭에서 정렬 후 확인하세요.', false);
+    return;
+  }
+  const data = await loadCompareData();
+  if(!data) return;
+  const dim = currentCompareDim || 'who';
+  const rows = data[dim] || [];
+  // 첫 번째 numeric 메트릭 기준
+  const metric = (CMP_METRICS[dim] || []).find(function(m){ return rows[0] && typeof rows[0][m.key] === 'number'; });
+  if(!metric){ aiAddMsg('bot', '정렬 가능한 메트릭이 없습니다.', false); return; }
+  const sorted = [...rows].sort(function(a,b){ return (b[metric.key]||0) - (a[metric.key]||0); }).slice(0, n);
+  const list = sorted.map(function(r, i){ return (i+1) + '. ' + r.name + ' (' + r.code + '): ' + metric.fmt(r[metric.key]) + (metric.unit || '');
+  });
+  aiAddMsg('bot', '<b>' + metric.label + ' Top ' + n + '</b><br>' + list.join('<br>'), true);
+  aiAddActionPill('Top ' + n + ' 분석 완료');
+}
+
+function aiCreatePersona(){
+  switchTab('interview');
+  aiAddMsg('bot', '페르소나 생성 화면(인터뷰 탭)으로 이동했습니다. 우측 \'페르소나 생성\' 버튼을 누르세요.', false);
+  aiAddActionPill('인터뷰 탭 이동');
+}
+
+function aiAdMessage(){
+  switchTab('interview');
+  aiAddMsg('bot', '광고 메시지 A/B/C 테스트는 페르소나 인터뷰 탭에서 가능합니다.', false);
+  aiAddActionPill('인터뷰 탭 이동');
+}
+
+async function aiSimilarCountries(){
+  const code = state.currentCountry || 'KR';
+  const loading = aiAddLoading();
+  const data = await loadCompareData();
+  loading.remove();
+  if(!data){ aiAddMsg('bot', '비교 데이터 로딩 실패', false); return; }
+  // 단순 유사도 — life 차원 기준 (internet penetration + social + avgInternetHours)
+  const target = (data.life || []).find(function(r){ return r.code === code; });
+  if(!target){ aiAddMsg('bot', code + ' 데이터가 없습니다.', false); return; }
+  const distances = (data.life || []).filter(function(r){ return r.code !== code; }).map(function(r){
+    let d = 0;
+    ['internetPenetration','socialMediaUsers','avgInternetHours','mobileShare'].forEach(function(k){
+      if(typeof target[k] === 'number' && typeof r[k] === 'number'){
+        d += Math.pow(target[k] - r[k], 2);
       }
-      if(p.summary || p.message) answer += `\n${p.summary || p.message}`;
-      if(!answer) answer = JSON.stringify(p, null, 2);
-      aiAddMsg('bot', answer);
-      // 필터 자동 적용 제안
-      if(p.country && p.country !== state.currentCountry){
-        const apply = document.createElement('button');
-        apply.className = 'ai-msg-action';
-        apply.textContent = `→ ${p.country}로 이동`;
-        apply.onclick = () => { state.currentCountry = p.country; goWorkspace(state.currentTab || 'overview'); };
-        const log = document.getElementById('ai-log');
-        log.appendChild(apply);
-      }
-    } else if(data.ok && data.answer){
-      aiAddMsg('bot', data.answer);
+    });
+    return { code: r.code, name: r.name, dist: Math.sqrt(d) };
+  }).sort(function(a,b){ return a.dist - b.dist; });
+  const top3 = distances.slice(0, 3);
+  const html = '<b>' + code + '와 디지털 환경이 비슷한 국가 Top 3</b><br>' +
+    top3.map(function(r, i){ return (i+1) + '. ' + r.name + ' (' + r.code + ')'; }).join('<br>') +
+    '<br><br><i>기준: 인터넷 침투율, 소셜미디어 사용, 일일 인터넷 시간, 모바일 비중</i>';
+  aiAddMsg('bot', html, true);
+  aiAddActionPill('유사 국가 분석');
+}
+
+async function aiSummary(){
+  const code = state.currentCountry || 'KR';
+  const tab = state.currentTab || 'overview';
+  const loading = aiAddLoading();
+  try {
+    if(['who','life','mind','love','buy'].indexOf(tab) >= 0){
+      const res = await fetch(API + '/audience/' + tab + '?country=' + code);
+      const data = await res.json();
+      loading.remove();
+      if(!data.ok || !data.data){ aiAddMsg('bot', '데이터 없음', false); return; }
+      const summary = summarizeDimData(tab, code, data.data);
+      aiAddMsg('bot', summary, true);
+      aiAddActionPill('요약 생성');
     } else {
-      aiAddMsg('bot', '조회에 실패했습니다. ' + (data.error||''));
+      loading.remove();
+      aiAddMsg('bot', '현재 탭 (' + tab + ')의 핵심 수치를 요약합니다. 5차원 탭 (인물상/라이프/가치관/관심사/구매) 중 하나로 이동 후 시도하세요.', false);
     }
   } catch(e){
     loading.remove();
-    aiAddMsg('bot', '오류: ' + e.message);
+    aiAddMsg('bot', '요약 실패: ' + e.message, false);
   }
 }
-function aiBuildContext(){
-  return { tab: state.currentTab, country: state.currentCountry, currentView: location.pathname };
+
+function summarizeDimData(tab, code, d){
+  if(tab === 'who'){
+    return '<b>' + code + ' 인물상 핵심</b><br>중위연령 ' + d.medianAge + '세, 도시화 ' + d.urbanRate + '%, 부양비 ' + d.dependencyRatio + '%<br>60+ 인구 ' + (d.ageDistribution && d.ageDistribution['60+']) + '%, 15-29 ' + (d.ageDistribution && d.ageDistribution['15-29']) + '%';
+  }
+  if(tab === 'life'){
+    return '<b>' + code + ' 라이프스타일 핵심</b><br>인터넷 침투율 ' + (d.digital && d.digital.internetPenetration) + '%, 소셜 ' + (d.digital && d.digital.socialMediaUsers) + '%<br>일일 인터넷 ' + (d.digital && d.digital.avgInternetHours) + '시간, 모바일 ' + (d.digital && d.digital.mobileShare) + '%';
+  }
+  if(tab === 'mind'){
+    const t = d.trust || {}, c = d.culture || {};
+    return '<b>' + code + ' 가치관 핵심</b><br>기업 신뢰 ' + t.business + ', 미디어 ' + t.media + ', 정부 ' + t.government + '<br>개인주의 ' + c.individualism + ', 장기지향 ' + c.longTermOrientation;
+  }
+  if(tab === 'love'){
+    const entries = Object.entries(d).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
+    return '<b>' + code + ' 관심사 Top 5</b><br>' + entries.map(function(e, i){ return (i+1) + '. ' + e[0] + ' (' + e[1] + ')'; }).join('<br>');
+  }
+  if(tab === 'buy'){
+    const ec = d.ecommerce || {};
+    return '<b>' + code + ' 구매행동 핵심</b><br>이커머스 ' + ec.shareOfRetail + '%, 모바일 ' + ec.mobileShare + '%<br>월평균 지출 $' + ec.avgMonthlySpendUSD;
+  }
+  return JSON.stringify(d).slice(0, 200);
 }
-function aiQuick(type){
-  const country = state.currentCountry || 'KR';
+
+async function aiInterpret(){
+  const code = state.currentCountry || 'KR';
   const tab = state.currentTab || 'overview';
-  const map = {
-    summary: `현재 ${country} ${tab} 화면의 핵심 수치를 요약해주세요.`,
-    persona: `${country} 국가의 타겟 페르소나를 만들어 주세요.`,
-    compare: `${country}와 비슷한 소비행태/디지털 환경을 가진 국가 3개를 제안해주세요.`,
-    message: `${country} 타겟에 어울리는 광고 메시지 콘셉트 3개를 제안해주세요.`,
-  };
-  document.getElementById('ai-input').value = map[type];
-  aiSend();
+  const loading = aiAddLoading();
+  try {
+    const res = await fetch(API + '/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: code + '의 ' + tab + ' 데이터를 마케터 관점에서 해석해주세요. 인사이트와 광고 전략 시사점을 알려주세요.', country: code }),
+    });
+    const data = await res.json();
+    loading.remove();
+    if(data.ok && data.parsed){
+      const p = data.parsed;
+      const txt = (p.summary || p.message || p.intent || JSON.stringify(p)).slice(0, 500);
+      aiAddMsg('bot', txt, false);
+    } else {
+      aiAddMsg('bot', '해석을 받지 못했습니다.', false);
+    }
+  } catch(e){
+    loading.remove();
+    aiAddMsg('bot', '오류: ' + e.message, false);
+  }
+}
+
+async function aiGeneralQuery(text){
+  const loading = aiAddLoading();
+  try {
+    const ctx = { tab: state.currentTab, country: state.currentCountry };
+    const ctxText = ctx.tab ? '(컨텍스트: 현재 탭=' + ctx.tab + ', 국가=' + ctx.country + ')' : '';
+    const res = await fetch(API + '/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: text + ' ' + ctxText, country: state.currentCountry }),
+    });
+    const data = await res.json();
+    loading.remove();
+    if(data.ok && data.parsed){
+      const p = data.parsed;
+      let answer = '';
+      if(p.summary || p.message){ answer = p.summary || p.message; }
+      else if(p.intent){
+        answer = '<b>분석 결과</b><br>';
+        if(p.intent) answer += '의도: ' + p.intent + '<br>';
+        if(p.country) answer += '국가: ' + p.country + '<br>';
+        if(p.filters && Object.keys(p.filters).length){
+          answer += '필터:<br>';
+          for(const k in p.filters){
+            const v = p.filters[k];
+            answer += '· ' + k + ': ' + (Array.isArray(v) ? v.join(', ') : v) + '<br>';
+          }
+        }
+      } else {
+        answer = '결과를 받았지만 표시할 내용이 부족합니다.';
+      }
+      aiAddMsg('bot', answer, true);
+      // 자동 액션 제안
+      if(p.country && p.country !== state.currentCountry && AUDIENCE_COUNTRIES.indexOf(p.country) >= 0){
+        const log = document.getElementById('ai-log');
+        const apply = document.createElement('button');
+        apply.className = 'ai-msg-action';
+        apply.textContent = '→ ' + p.country + '로 이동';
+        apply.onclick = function(){ aiChangeCountry(p.country, p.country); };
+        log.appendChild(apply);
+        log.scrollTop = log.scrollHeight;
+      }
+    } else if(data.ok && data.answer){
+      aiAddMsg('bot', data.answer, false);
+    } else {
+      aiAddMsg('bot', '죄송합니다. 답변을 생성하지 못했습니다.', false);
+    }
+  } catch(e){
+    loading.remove();
+    aiAddMsg('bot', '네트워크 오류: ' + e.message, false);
+  }
+}
+
+// 단축키 — Cmd+K / Ctrl+K
+document.addEventListener('keydown', function(e){
+  if((e.metaKey || e.ctrlKey) && e.key === 'k'){
+    e.preventDefault();
+    if(!aiPanelOpen) toggleAIPanel();
+    setTimeout(function(){ const inp = document.getElementById('ai-input'); if(inp) inp.focus(); }, 200);
+  }
+  // Esc로 패널 닫기
+  if(e.key === 'Escape' && aiPanelOpen){
+    toggleAIPanel();
+  }
+});
+
+// ============ DATA SOURCE TRANSPARENCY ============
+const DATA_SOURCES = {
+  who: {
+    title: '인물상 (Who) — 인구통계',
+    blocks: [
+      { l: 'PRIMARY SOURCE', t: 'UN Population Division 2024', d: '유엔 경제사회국 인구부 공식 연간 추정. 중위연령, 부양비, 도시화율, 5단계 연령 분포.' },
+      { l: 'METHODOLOGY', t: '연도별 추정 + 인구센서스 조정', d: '국가별 센서스 데이터를 기반으로 UN이 표준화한 추정치. 5년 주기 갱신.' },
+      { l: 'COVERAGE', t: '200+ 국가', d: '현 솔루션에서는 28개 우선 지원국 데이터를 정리 후 표시. 그 외 국가는 GDP 기반 추정.' },
+      { l: 'LIMITATIONS', t: '연령 분포는 5세 단위 추정', d: '단일 연령(예: 32세) 단위 데이터는 제공하지 않으며, 추정 오차 ±1-2%p.' },
+    ],
+  },
+  life: {
+    title: '라이프스타일 (Life) — 디지털·일상',
+    blocks: [
+      { l: 'PRIMARY SOURCE', t: 'DataReportal Global Digital Reports 2024', d: 'Kepios + Meltwater + We Are Social 협업. 인터넷/소셜미디어 침투율 및 일일 사용 시간.' },
+      { l: 'SECONDARY', t: '디지털 활동 7종 패널 조사', d: '소셜네트워킹·영상스트리밍·게임·쇼핑·뱅킹·뉴스·피트니스 비율은 GWI/We Are Social 조사 기반.' },
+      { l: 'COVERAGE', t: '47개국 라이브 + 자체 정리 28국', d: '여행 성향과 외식 빈도는 ITB/Booking.com 보고서 기반 보완.' },
+      { l: 'LIMITATIONS', t: '연간 1회 갱신', d: '월별 변동을 반영하지 않으며, 코로나 이후 회복 추세 반영은 2024 보고서 시점 기준.' },
+    ],
+  },
+  mind: {
+    title: '가치관 (Mind) — 신뢰·문화',
+    blocks: [
+      { l: 'PRIMARY SOURCE', t: 'World Values Survey Wave 7 (2017-2022)', d: '환경·평등·전통·혁신·물질·쾌락·야망 등 7대 가치관 점수.' },
+      { l: 'SECONDARY', t: 'Edelman Trust Barometer 2024', d: '기업·미디어·정부·NGO 4대 기관 신뢰도. 매년 1월 발표.' },
+      { l: 'CULTURAL', t: 'Hofstede Insights', d: '개인주의·위험회피·장기지향 등 3대 문화 스코어. 1980년대 이후 누적 갱신.' },
+      { l: 'LIMITATIONS', t: '국가 수준 평균값', d: '세대·소득 등 하위 세그먼트별 차이는 별도 분석 필요.' },
+    ],
+  },
+  love: {
+    title: '관심사 (Love) — 흥미·열정',
+    blocks: [
+      { l: 'PRIMARY SOURCE', t: 'Google Trends 12-month aggregates', d: '국가별 검색 빈도 기반 18가지 관심사 카테고리 점수 (0-100 정규화).' },
+      { l: 'SECONDARY', t: 'DataReportal 2024 관심사 패널', d: '실 사용자 자기 보고 기반 관심사 분포.' },
+      { l: 'COUNTRY-SPECIFIC', t: 'K-Pop / 볼리우드 / 애니메 / 와인 등', d: '국가별 특화 관심사는 별도 키워드로 추가 측정.' },
+      { l: 'LIMITATIONS', t: '검색 행동 기반', d: '실제 소비/지출과 직접 매핑되지 않음. 인기도 신호로 활용.' },
+    ],
+  },
+  buy: {
+    title: '구매 (Buy) — 이커머스·결정',
+    blocks: [
+      { l: 'PRIMARY SOURCE', t: 'DataReportal Global Digital Shopping 2024', d: '이커머스 비중·모바일 비중·월평균 지출 추정.' },
+      { l: 'SECONDARY', t: 'eMarketer Public Reports + Statista Free Insights', d: '카테고리별 점유율·결제 수단 분포.' },
+      { l: 'DECISION FACTORS', t: '6가지 의사결정 요인', d: '가격·리뷰·브랜드·품질·배송·추천을 100점 만점 점수화.' },
+      { l: 'LIMITATIONS', t: '온라인 위주', d: '오프라인-온라인 통합 행태는 별도 모델링 필요. 카테고리별 세부 SKU 수준 데이터는 미포함.' },
+    ],
+  },
+};
+
+function openSourceModal(dim){
+  const data = DATA_SOURCES[dim];
+  if(!data) return;
+  document.getElementById('src-modal-t').textContent = data.title;
+  const body = document.getElementById('src-modal-body');
+  body.innerHTML = data.blocks.map(function(b){
+    return '<div class="src-block"><div class="src-block-l">' + b.l + '</div><div class="src-block-t">' + b.t + '</div><div class="src-block-d">' + b.d + '</div></div>';
+  }).join('');
+  document.getElementById('src-modal').classList.remove('hide');
+}
+function closeSourceModal(){
+  document.getElementById('src-modal').classList.add('hide');
 }
 
 // ============ AUDIENCE TABS (Who/Life/Mind/Love/Buy) ============
@@ -2007,7 +2637,7 @@ async function refreshAudienceTab(dim){
       src.textContent = '데이터 없음';
       return;
     }
-    src.innerHTML = `<span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> ${data.source.primary}`;
+    src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기"><span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> <span class="aud-src-txt">${data.source.primary}</span> <svg class="aud-src-info" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>`;
     body.dataset.country = code;
     body.innerHTML = renderAudienceDim(dim, data);
   } catch(e){

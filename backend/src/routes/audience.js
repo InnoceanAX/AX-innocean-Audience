@@ -299,32 +299,33 @@ audienceRouter.get("/compare-all", async (req, res) => {
   // 데이터가 있는 국가만 (5차원 모두 또는 일부)
   const supported = rows.filter(r => r.who && r.life && r.mind && r.love && r.buy);
 
+  // 어댑터 raw 필드명을 그대로 사용
   const who = supported.map(r => ({
     code: r.code, name: r.name,
     medianAge: r.who.medianAge,
     urbanRate: r.who.urbanRate,
     dependencyRatio: r.who.dependencyRatio,
-    pop60: r.who.ageDistribution?.["60+"],
-    pop15_29: r.who.ageDistribution?.["15-29"],
+    pop60: r.who.ageBuckets?.["60+"],
+    pop15_29: r.who.ageBuckets?.["15-29"],
   }));
 
   const life = supported.map(r => ({
     code: r.code, name: r.name,
-    internetPenetration: r.life.digital?.internetPenetration,
-    socialMediaUsers: r.life.digital?.socialMediaUsers,
-    avgInternetHours: r.life.digital?.avgInternetHours,
-    mobileShare: r.life.digital?.mobileShare,
-    avgTVHours: r.life.digital?.avgTVHours,
+    internetPenetration: r.life.internetPenetration,
+    socialMediaUsers: r.life.socialMediaUsers,
+    avgInternetHours: r.life.avgInternetTime,
+    mobileShare: r.life.mobileInternetShare,
+    avgTVHours: r.life.avgTVTime,
   }));
 
   const mind = supported.map(r => ({
     code: r.code, name: r.name,
-    trustBusiness: r.mind.trust?.business,
-    trustMedia: r.mind.trust?.media,
-    trustGov: r.mind.trust?.government,
-    individualism: r.mind.culture?.individualism,
-    longTermOrient: r.mind.culture?.longTermOrientation,
-    innovation: r.mind.values?.innovation,
+    trustBusiness: r.mind.trustInBusiness,
+    trustMedia: r.mind.trustInMedia,
+    trustGov: r.mind.trustInGovernment,
+    individualism: r.mind.individualism,
+    longTermOrient: r.mind.longTermOrientation,
+    innovation: r.mind.innovationOpenness,
   }));
 
   // love는 ranked 형태 - top interest 추출
@@ -340,10 +341,10 @@ audienceRouter.get("/compare-all", async (req, res) => {
 
   const buy = supported.map(r => ({
     code: r.code, name: r.name,
-    ecommerceShare: r.buy.ecommerce?.shareOfRetail,
-    mobileShare: r.buy.ecommerce?.mobileShare,
-    avgMonthly: r.buy.ecommerce?.avgMonthlySpendUSD,
-    priceSensitivity: r.buy.psychology?.priceSensitivity,
+    ecommerceShare: r.buy.ecommerceShare,
+    mobileShare: r.buy.mobileCommerceShare,
+    avgMonthly: r.buy.avgMonthlySpend,
+    priceSensitivity: r.buy.pricesensitivity,
     reviewDep: r.buy.decisionFactors?.reviews,
   }));
 
