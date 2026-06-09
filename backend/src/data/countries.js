@@ -1,7 +1,7 @@
-// BigQuery Google Trends 지원 43개국 + INNOCEAN 거점인데 데이터 미지원인 국가
+// BigQuery Google Trends 지원 43국 + INNOCEAN 거점인데 Trends 미지원인 3국
 // 출처: bigquery-public-data.google_trends.international_top_terms (42국) + top_terms (US, DMA)
-// Tier 분리 없음 — 모든 국가 동일하게 Google Trends 기반 인사이트 제공
-// inactive: true → INNOCEAN 거점이지만 BigQuery Trends 미지원 (UI에서 회색 + 데이터 미수집 안내)
+// Tier 분리 없음 — 모든 국가 동일하게 인사이트 제공
+// trendsUnavailable: true → BigQuery Trends 미지원. 그러나 World Bank·Insights·Persona는 정상 제공 (부분 활성화)
 // World Bank·UN 매칭 ISO 3166-1 alpha-2
 
 export const COUNTRIES = [
@@ -49,7 +49,7 @@ export const COUNTRIES = [
   { code: "UA", name: "우크라이나", nameEn: "Ukraine",      region: "europe",       flag: "🇺🇦", currency: "UAH", language: "uk" },
 
   // === Middle East & Africa ===
-  { code: "AE", name: "UAE",         nameEn: "United Arab Emirates", region: "middle-east", flag: "🇦🇪", currency: "AED", language: "ar", inactive: true, inactiveReason: "BigQuery Google Trends 미지원 — 데이터 미수집 중" },
+  { code: "AE", name: "UAE",         nameEn: "United Arab Emirates", region: "middle-east", flag: "🇦🇪", currency: "AED", language: "ar", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 (Yandex/Talkwalker 어댑터 추가 예정)" },
   { code: "SA", name: "사우디아라비아", nameEn: "Saudi Arabia", region: "middle-east", flag: "🇸🇦", currency: "SAR", language: "ar" },
   { code: "IL", name: "이스라엘",   nameEn: "Israel",       region: "middle-east",  flag: "🇮🇱", currency: "ILS", language: "he" },
   { code: "TR", name: "튀르키예",   nameEn: "Turkey",       region: "middle-east",  flag: "🇹🇷", currency: "TRY", language: "tr" },
@@ -57,9 +57,9 @@ export const COUNTRIES = [
   { code: "NG", name: "나이지리아", nameEn: "Nigeria",      region: "africa",       flag: "🇳🇬", currency: "NGN", language: "en" },
   { code: "ZA", name: "남아공",     nameEn: "South Africa", region: "africa",       flag: "🇿🇦", currency: "ZAR", language: "en" },
 
-  // === INNOCEAN 거점이지만 BigQuery Trends 미지원 (회색 표시) ===
-  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", inactive: true, inactiveReason: "중국 본토는 Google 차단 — BigQuery Trends에 미수록" },
-  { code: "RU", name: "러시아",     nameEn: "Russia",       region: "europe",       flag: "🇷🇺", currency: "RUB", language: "ru", inactive: true, inactiveReason: "BigQuery Google Trends 미지원 — 데이터 미수집 중" },
+  // === INNOCEAN 거점. Trends 미지원 (부분 활성화: WB+Insights+Persona OK) ===
+  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", trendsUnavailable: true, trendsUnavailableReason: "Google 본토 차단 — Baidu Index 어댑터 추가 예정" },
+  { code: "RU", name: "러시아",     nameEn: "Russia",       region: "europe",       flag: "🇷🇺", currency: "RUB", language: "ru", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 — Yandex Wordstat 어댑터 추가 예정" },
 ];
 
 export const REGIONS = {

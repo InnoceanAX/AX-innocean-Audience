@@ -330,6 +330,8 @@ a{color:inherit;text-decoration:none}
 }
 .tb-target-cc.hide{display:none}
 .tb-target-cc > span:first-child{font-size:14px}
+.tb-target-cc.partial{background:#FEF3C7;color:#92400E}
+.tb-target-cc.partial::after{content:"· Trends 제외";font-size:10.5px;color:#D97706;font-weight:600;margin-left:2px}
 .cc-search-i{
   width:calc(100% - 16px);margin:0 8px 6px;padding:6px 10px;
   border:1px solid var(--bdr);border-radius:8px;font-size:12.5px;
@@ -344,9 +346,11 @@ a{color:inherit;text-decoration:none}
 .cc-c-item:hover{background:#F3F4F6}
 .cc-c-flag{font-size:16px}
 .cc-c-code{margin-left:auto;font-size:10px;color:var(--tm);font-family:'SF Mono',Menlo,Consolas,monospace;letter-spacing:.5px}
-.cc-c-item.inactive{opacity:.45;cursor:not-allowed;filter:grayscale(.8)}
-.cc-c-item.inactive:hover{background:#FAFAFA}
-.cc-c-item.inactive .cc-c-code::after{content:" · 데이터 미수집";color:#9CA3AF;font-family:Pretendard,system-ui;text-transform:none;letter-spacing:0;font-size:9.5px}
+.cc-c-item.partial{opacity:.78}
+.cc-c-item.partial:hover{background:#F3F4F6}
+.cc-c-item.partial .cc-c-code::after{content:" · Trends 제외";color:#D97706;font-family:Pretendard,system-ui;text-transform:none;letter-spacing:0;font-size:9.5px;font-weight:600}
+.partial-banner{background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.partial-banner-ico{width:16px;height:16px;flex-shrink:0;color:#D97706}
 
 /* Loading */
 .loader{
@@ -513,6 +517,7 @@ a{color:inherit;text-decoration:none}
         <!-- TAB: Overview -->
         <div id="tab-overview" class="ws-content">
           <div class="builder" id="builder"></div>
+          <div id="ov-banner"></div>
           <div class="ov-grid" id="ov-kpis"></div>
           <div class="ov-section">
             <div class="ov-section-t">자동 인사이트</div>
@@ -650,8 +655,9 @@ function renderCountryList(filter=''){
   for(const r of sorted){
     html += `<div class="cc-region-h">${regions[r]?.name || r}</div>`;
     for(const c of byRegion[r]){
-      const cls = c.inactive ? 'cc-c-item inactive' : 'cc-c-item';
-      const tip = c.inactive ? ` title="${c.inactiveReason||'데이터 미수집 중'}"` : '';
+      const cls = c.trendsUnavailable ? 'cc-c-item partial' : 'cc-c-item';
+      const tipText = c.trendsUnavailableReason || 'Trends 미지원 — World Bank·Insights·Persona는 정상';
+      const tip = c.trendsUnavailable ? ` title="${tipText}"` : '';
       html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
         <span class="cc-c-flag">${c.flag}</span>
         <span>${c.name}</span>
@@ -673,10 +679,8 @@ function toggleCountryList(){
 function selectCountry(code){
   const c = state.countries.find(x => x.code === code);
   if(!c) return;
-  if(c.inactive){
-    toast(`${c.name}은(는) ${c.inactiveReason || '데이터 미수집 중'}입니다. INNOCEAN 거점이나 현재 라이브 데이터는 제공되지 않습니다.`);
-    document.getElementById('cc-list').classList.add('hide');
-    return;
+  if(c.trendsUnavailable){
+    toast(`${c.name}: Trends 만 일시로 제외 — World Bank·인사이트·페르소나는 정상 제공됩니다.`);
   }
   state.currentCountry = code;
   // 입력 컨텍스트의 핀 (chat-pill)
@@ -762,11 +766,13 @@ async function goWorkspace(){
   document.getElementById('ws-tabs').classList.remove('hide');
   // topbar 타겟 국가 인디스쪀 노출 + 현재 국가로 업데이트
   const c = state.countries.find(x => x.code === state.currentCountry);
+  const tb = document.getElementById('tb-target-cc');
   if(c){
     document.getElementById('tb-cc-flag').textContent = c.flag;
     document.getElementById('tb-cc-name').textContent = c.name;
+    tb.classList.toggle('partial', !!c.trendsUnavailable);
   }
-  document.getElementById('tb-target-cc').classList.remove('hide');
+  tb.classList.remove('hide');
   renderBuilder();
   await refreshSegment();
 }
@@ -834,11 +840,26 @@ async function refreshSegment(){
     const data = await res.json();
     if(!data.ok) throw new Error('segment failed');
     state.segment = data;
+    renderPartialBanner();
     renderKpis(data);
     renderInsights(data);
     renderWB(data);
   } catch(e){
     toast('세그먼트 계산 실패: ' + e.message);
+  }
+}
+
+function renderPartialBanner(){
+  const wrap = document.getElementById('ov-banner');
+  if(!wrap) return;
+  const c = state.countries.find(x => x.code === state.currentCountry);
+  if(c?.trendsUnavailable){
+    wrap.innerHTML = `<div class="partial-banner">
+      <span class="partial-banner-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+      <span><strong>${c.name}는 부분 활성화 상태</strong> — ${c.trendsUnavailableReason}. World Bank 통계·세그먼트 인사이트·AI 페르소나는 정상 제공됩니다.</span>
+    </div>`;
+  } else {
+    wrap.innerHTML = '';
   }
 }
 
