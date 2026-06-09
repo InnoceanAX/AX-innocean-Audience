@@ -531,7 +531,8 @@ a{color:inherit;text-decoration:none}
 .mt-mr-c{font-size:11.5px;color:#7C2D12;margin-bottom:4px}
 .mt-mr-s{font-size:11.5px;color:#1E40AF}
 /* Entry 3-way */
-.entry-3way{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px;margin-bottom:8px}
+.entry-3way{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px;margin-bottom:32px}
+@media (max-width:900px){.entry-3way{grid-template-columns:1fr}}
 .entry-card{background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:22px 18px;cursor:pointer;text-align:left;transition:all .2s}
 .entry-card:hover{border-color:var(--ind);box-shadow:0 8px 24px rgba(79,70,229,.08);transform:translateY(-2px)}
 .entry-ico{width:38px;height:38px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:var(--ind)}
@@ -583,6 +584,20 @@ a{color:inherit;text-decoration:none}
 .aud-src-badge{padding:2px 8px;background:#D1FAE5;color:#065F46;border-radius:10px;font-weight:600;font-size:10px}
 .aud-loading{padding:40px;text-align:center;color:var(--tm);font-size:13px}
 .aud-missing{padding:24px;background:#FEF3C7;color:#92400E;border-radius:8px;font-size:12.5px;line-height:1.6}
+.aud-missing-full{max-width:640px;margin:30px auto;padding:36px 32px;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%);border:1px solid #FDE68A;border-radius:14px;text-align:center}
+.aud-missing-ico{width:48px;height:48px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#fff}
+.aud-missing-ico svg{width:24px;height:24px}
+.aud-missing-t{font-size:18px;font-weight:700;color:#78350F;margin-bottom:6px}
+.aud-missing-s{font-size:13px;color:#92400E;line-height:1.6;margin-bottom:20px}
+.aud-missing-actions{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+.aud-missing-btn{padding:10px 18px;background:#fff;border:1px solid #FDE68A;border-radius:8px;font-size:12.5px;font-weight:600;color:#78350F;cursor:pointer;font-family:inherit;transition:all .15s}
+.aud-missing-btn:hover{background:#FEF3C7;border-color:#F59E0B}
+.aud-missing-btn-p{background:#111;color:#fff;border-color:#111}
+.aud-missing-btn-p:hover{background:#374151}
+.aud-missing-list{padding-top:18px;border-top:1px solid #FDE68A;text-align:left}
+.aud-missing-list-l{font-size:10.5px;font-weight:700;color:#D97706;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.aud-missing-list-v{font-size:11.5px;color:#78350F;line-height:1.7}
+
 .aud-error{padding:16px;background:#FEE2E2;color:#991B1B;border-radius:6px;font-size:12px}
 .aud-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 .aud-kpi{background:#F9FAFB;border:1px solid var(--bdr);border-radius:8px;padding:14px}
@@ -728,6 +743,15 @@ a{color:inherit;text-decoration:none}
 .cmp-dim.active{background:#fff;color:var(--ind);box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .cmp-select{padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:12.5px;background:#fff;font-family:inherit;min-width:180px}
 .cmp-matrix-wrap{margin-top:8px}
+.cmp-h-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}
+.cmp-h-l{flex:1;min-width:0}
+.cmp-h-r{display:flex;gap:8px;flex-shrink:0}
+.cmp-help-btn,.cmp-csv-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:#fff;border:1px solid var(--bdr);border-radius:8px;font-size:12px;color:#374151;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+.cmp-help-btn:hover,.cmp-csv-btn:hover{border-color:var(--ind);color:var(--ind);background:#EEF2FF}
+.cmp-h-tips{display:flex;gap:18px;flex-wrap:wrap;padding:10px 14px;background:#F9FAFB;border-radius:8px;font-size:11.5px;color:#6B7280;margin-bottom:16px}
+.cmp-tip b{color:var(--ind);font-weight:700;margin-right:4px}
+@media (max-width:760px){.cmp-h-row{flex-direction:column;align-items:flex-start}.cmp-h-tips{flex-direction:column;gap:6px}}
+
 .cmp-table-wrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:8px}
 .cmp-matrix{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
 .cmp-matrix th{background:#F9FAFB;padding:11px 12px;text-align:left;font-weight:700;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:5}
@@ -790,6 +814,24 @@ a{color:inherit;text-decoration:none}
 .ai-msg-action:hover{background:var(--ind);color:#fff}
 
 
+
+.iv-mode-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:680px;margin:22px auto 0}
+.iv-mode-card{padding:22px 18px;background:#fff;border:2px solid var(--bdr);border-radius:12px;cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.iv-mode-card:hover{border-color:var(--ind);transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,70,229,.12)}
+.iv-mode-ico{width:36px;height:36px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ind)}
+.iv-mode-ico svg{width:20px;height:20px}
+.iv-mode-t{font-size:14.5px;font-weight:700;color:#111}
+.iv-mode-s{font-size:12px;color:#6B7280;line-height:1.5}
+.iv-hint{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:8px 14px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:20px;font-size:11.5px;color:#0369A1}
+.iv-hint svg{color:#0369A1;flex-shrink:0}
+@media (max-width:640px){.iv-mode-cards{grid-template-columns:1fr}}
+
+.kb-hint-bar{display:flex;align-items:center;gap:18px;padding:12px 18px;background:#F9FAFB;border:1px solid var(--bdr);border-radius:10px;margin-bottom:24px;flex-wrap:wrap}
+.kb-hint-l{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:.5px}
+.kb-hint-list{display:flex;gap:16px;flex-wrap:wrap}
+.kb-hint-list span{font-size:11.5px;color:#6B7280}
+.kb-hint-list kbd{padding:2px 6px;background:#fff;border:1px solid var(--bdr);border-radius:4px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#374151;margin:0 2px}
+@media (max-width:640px){.kb-hint-bar{flex-direction:column;align-items:flex-start}}
 /* Data Source Modal */
 .src-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
 .src-modal.hide{display:none}
@@ -983,9 +1025,22 @@ a{color:inherit;text-decoration:none}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
               </div>
               <div class="entry-mode-l">MODE 3 · 전역</div>
-              <div class="entry-t">글로벌 비교 매트릭스</div>
-              <div class="entry-s">28국가 × 5차원을 한 화면에 매트릭스로 펼쳐서 비교합니다. 어떤 시장에 진출할지 의사결정 모드.</div>
-              <div class="entry-cta">매트릭스 보기 →</div>
+              <div class="entry-t">글로벌 비교</div>
+              <div class="entry-s">28국가 × 5차원(인물상·라이프·가치관·관심사·구매)을 한 화면 매트릭스로 펼쳐 비교합니다. 정렬·드릴다운·CSV 내보내기 지원.</div>
+              <div class="entry-cta">매트릭스 열기 →</div>
+            </div>
+          </div>
+
+          <!-- Keyboard Shortcuts -->
+          <div class="kb-hint-bar">
+            <div class="kb-hint-l">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/></svg>
+              <span>단축키</span>
+            </div>
+            <div class="kb-hint-list">
+              <span><kbd>Cmd/Ctrl</kbd>+<kbd>K</kbd> AI 비서</span>
+              <span><kbd>Enter</kbd> 검색</span>
+              <span><kbd>Esc</kbd> 닫기</span>
             </div>
           </div>
 
@@ -1149,8 +1204,27 @@ a{color:inherit;text-decoration:none}
         <!-- TAB: Global Compare Matrix -->
         <div id="tab-compare" class="ws-content hide">
           <div class="cmp-h">
-            <div class="cmp-h-t">글로벌 비교 매트릭스</div>
-            <div class="cmp-h-s">28국가 × 5차원을 한눈에 비교. 열 클릭으로 정렬, 행 클릭으로 해당 국가 워크스페이스 이동.</div>
+            <div class="cmp-h-row">
+              <div class="cmp-h-l">
+                <div class="cmp-h-t">글로벌 비교 매트릭스</div>
+                <div class="cmp-h-s">28개국 × 5차원 데이터를 한 화면에 펼쳐 비교합니다.</div>
+              </div>
+              <div class="cmp-h-r">
+                <button class="cmp-help-btn" onclick="aiQuickChip('이 매트릭스 사용법 알려줘')" title="AI 비서에게 도움받기">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span>사용법</span>
+                </button>
+                <button class="cmp-csv-btn" onclick="aiExportCSV()" title="CSV 다운로드">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>CSV</span>
+                </button>
+              </div>
+            </div>
+            <div class="cmp-h-tips">
+              <span class="cmp-tip"><b>1.</b> 차원 선택 (인물상/라이프/가치관/관심사/구매)</span>
+              <span class="cmp-tip"><b>2.</b> 정렬 메트릭 선택 (높은순 자동 정렬)</span>
+              <span class="cmp-tip"><b>3.</b> 행 클릭 → 해당 국가 단일 분석</span>
+            </div>
           </div>
           <div class="cmp-controls">
             <div class="cmp-control-g">
@@ -1180,12 +1254,24 @@ a{color:inherit;text-decoration:none}
         <!-- TAB: Interview -->
         <div id="tab-interview" class="ws-content hide">
           <div id="iv-empty" class="ws-empty">
-            <div class="ws-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-            <div class="ws-empty-t">AI 페르소나 생성</div>
-            <div class="ws-empty-s">Builder에서 세그먼트 필터를 설정한 뒤 모드를 선택하세요.</div>
-            <div class="iv-gen-row">
-              <button class="iv-gen-btn" onclick="generatePersona()">단일 페르소나 + 대화</button>
-              <button class="iv-gen-btn iv-gen-panel" onclick="generatePanel(4)">다양성 패널 (4명)</button>
+            <div class="ws-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></div>
+            <div class="ws-empty-t">AI 페르소나 인터뷰</div>
+            <div class="ws-empty-s">실 데이터로 빌드한 세그먼트를 가상의 인물로 인격화하여 인터뷰합니다.<br>왼쪽 빌더에서 필터를 조정하거나 기본값으로 바로 생성할 수 있습니다.</div>
+            <div class="iv-mode-cards">
+              <button class="iv-mode-card" onclick="generatePersona()">
+                <div class="iv-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></div>
+                <div class="iv-mode-t">단일 페르소나</div>
+                <div class="iv-mode-s">1명의 가상 인물과 자유롭게 대화. 광고 메시지 A/B/C 테스트 가능.</div>
+              </button>
+              <button class="iv-mode-card" onclick="generatePanel(4)">
+                <div class="iv-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div class="iv-mode-t">다양성 패널 (4명)</div>
+                <div class="iv-mode-s">동일 세그먼트 내 다양한 성향의 4명을 동시 생성. 의견 차이 분석.</div>
+              </button>
+            </div>
+            <div class="iv-hint">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>페르소나는 빌더 설정 + 28개국 실데이터를 기반으로 Gemini AI가 생성합니다.</span>
             </div>
           </div>
           <div id="iv-body" class="hide">
@@ -1245,7 +1331,7 @@ a{color:inherit;text-decoration:none}
   <aside id="ai-panel" class="ai-panel collapsed">
     <button class="ai-toggle" onclick="toggleAIPanel()" title="AI 비서">
       <svg class="ai-toggle-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="ai-toggle-l"><span>A</span><span>I</span><span>비</span><span>서</span></span>
+      <span class="ai-toggle-l"><span>AI</span><span>비</span><span>서</span></span>
     </button>
     <div class="ai-panel-inner">
       <div class="ai-panel-h">
@@ -1843,19 +1929,24 @@ async function renderMediaTab(data){
 // ============ 3-WAY ENTRY MODES ============
 // MODE 1: 자연어 검색창 포커스
 function entryAI(){
+  // 워크스페이스 진입 상태 초기화 (이전 진입 잔존 방지)
+  state.entryMode = 'ai';
   document.getElementById('chat-input').focus();
   document.getElementById('chat-input').placeholder = '예) 미국 30대 마케터 여성, 디지털 친화적, 피트니스 관심도 높음';
   // 시각적 피드백
   const wrap = document.querySelector('.chat-input-wrap');
   if(wrap){ wrap.style.boxShadow='0 0 0 3px rgba(79,70,229,.2)'; setTimeout(()=>{wrap.style.boxShadow='';},1500); }
+  // 검색창으로 스크롤
+  const sg = document.querySelector('.chat-input-wrap');
+  if(sg) sg.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 // MODE 2: 빌더 모드 (정밀 필터)
 async function entryBuilder(){
   state.entryMode = 'builder';
   state.filters = {};
-  state.currentTab = 'overview';
   await goWorkspace();
+  switchTab('overview');  // BUGFIX: 명시적 탭 전환 (이전 compare 잔존 방지)
   // 빌더 패널 강조 (애니메이션)
   const b = document.getElementById('builder');
   if(b){
@@ -2633,7 +2724,20 @@ async function refreshAudienceTab(dim){
     const res = await fetch(`${API}/audience/${dim}?country=${code}`);
     const data = await res.json();
     if(!data.ok || !data.data){
-      body.innerHTML = `<div class="aud-missing"><svg style="width:14px;height:14px;vertical-align:-2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${code} 국가 데이터 미수록 (현재 28국가 우선 지원). 이 국가는 GDP 수치 기반 추정만 가능합니다.</div>`;
+      const cName = (state.countries.find(c => c.code === code) || {}).name || code;
+      body.innerHTML = `<div class="aud-missing-full">
+        <div class="aud-missing-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="aud-missing-t">${cName} 데이터 준비 중</div>
+        <div class="aud-missing-s">현재 5차원 정밀 데이터는 우선 지원 28개국만 제공됩니다. ${cName}는 추후 단계적으로 확장 예정입니다.</div>
+        <div class="aud-missing-actions">
+          <button class="aud-missing-btn" onclick="aiQuickChip('지원 국가 목록 보여줘')">지원 국가 보기</button>
+          <button class="aud-missing-btn aud-missing-btn-p" onclick="aiQuickChip('${cName}과 비슷한 지원 국가 추천')">비슷한 국가 추천</button>
+        </div>
+        <div class="aud-missing-list">
+          <div class="aud-missing-list-l">우선 지원 28개국</div>
+          <div class="aud-missing-list-v">한국·일본·중국·인도·인도네시아·베트남·태국·말레이시아·필리핀·호주·미국·캐나다·멕시코·브라질·아르헨티나·영국·독일·프랑스·이탈리아·스페인·네덜란드·스웨덴·폴란드·UAE·사우디·터키·남아공·러시아</div>
+        </div>
+      </div>`;
       src.textContent = '데이터 없음';
       return;
     }
