@@ -48,6 +48,20 @@ insightsRouter.post("/segment", async (req, res) => {
   // 3) 자동 인사이트 생성 (룰 기반 — 추후 LLM 교체)
   const insights = generateAutoInsights({ country: countryMeta, segmentSize, segmentPct, wbStats, filters });
 
+  // 4) 데이터 소스 메타 (어느 소스가 활성화/제외되었는지)
+  const dataSources = {
+    worldBank: { status: "active", description: "인구·GDP·인터넷·도시화 등 매크로 지표 (라이브)" },
+    googleTrends: countryMeta.trendsUnavailable
+      ? {
+          status: "excluded",
+          reason: countryMeta.trendsUnavailableReason || "BigQuery Trends 미지원",
+          fallbackAdapter: code === "CN" ? "baidu" : code === "RU" ? "yandex" : "talkwalker",
+        }
+      : { status: "active", description: "BigQuery 일일 상위 트렌드 25개" },
+    dimensions: { status: "active", description: "18개 산업 무관 디멘션 (렌이석각·단순 평균)" },
+    aiPersona: { status: "deferred", description: "LLM 키 연동 대기" },
+  };
+
   res.json({
     ok: true,
     country: countryMeta,
@@ -60,9 +74,14 @@ insightsRouter.post("/segment", async (req, res) => {
     },
     countryStats: wbStats?.indicators || {},
     insights,
+    dataSources,
     meta: {
       generatedAt: new Date().toISOString(),
       method: "world-bank + rule-based (LLM 교체 예정)",
+      partial: !!countryMeta.trendsUnavailable,
+      partialReason: countryMeta.trendsUnavailable
+        ? "Trends 데이터 제외·독립한 서브는 정상 제공"
+        : null,
     },
   });
 });
@@ -70,6 +89,16 @@ insightsRouter.post("/segment", async (req, res) => {
 function generateAutoInsights({ country, segmentSize, segmentPct, wbStats, filters }) {
   const out = [];
   const ind = wbStats?.indicators || {};
+
+  // 맨 앞에 표시 — 이 국가는 트렌드 데이터가 빠졌다는 안내
+  if (country.trendsUnavailable) {
+    out.push({
+      type: "partial-notice",
+      title: "이 국가는 트렌드 데이터가 일시로 제외되어 있습니다",
+      text: `${country.trendsUnavailableReason || "BigQuery Trends 미지원"}. World Bank 매크로 지표, 세그먼트 인사이트는 정상 제공되며, 이 자리는 추후 보조 어댑터로 채워질 예정입니다.`,
+      source: "INNOCEAN Audience meta",
+    });
+  }
 
   out.push({
     type: "size",

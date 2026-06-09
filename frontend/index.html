@@ -348,9 +348,35 @@ a{color:inherit;text-decoration:none}
 .cc-c-code{margin-left:auto;font-size:10px;color:var(--tm);font-family:'SF Mono',Menlo,Consolas,monospace;letter-spacing:.5px}
 .cc-c-item.partial{opacity:.78}
 .cc-c-item.partial:hover{background:#F3F4F6}
+.cc-c-item.primary{background:#EEF2FF}
+.cc-c-item.primary:hover{background:#E0E7FF}
+.cc-c-item.compare{background:#F0FDF4}
+.cc-c-item.compare:hover{background:#DCFCE7}
+.cc-help{font-size:10.5px;color:var(--tm);padding:4px 14px 8px;line-height:1.5;border-bottom:1px solid var(--bdr);margin-bottom:4px}
+.cc-help-cnt{display:inline-block;margin-left:6px;background:var(--ind);color:#fff;padding:1px 7px;border-radius:4px;font-weight:600;font-size:10px}
+.cc-c-check{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;border:1.5px solid var(--bdr2);border-radius:3px;flex-shrink:0;font-size:10px;font-weight:bold;color:#fff;background:#fff;transition:all .12s}
+.cc-c-check:hover{border-color:var(--ind)}
+.cc-c-check.on{background:#10B981;border-color:#10B981}
+.cc-c-mark{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;color:var(--ind);font-size:14px;flex-shrink:0}
+.cc-c-mark.primary{color:var(--ind);font-size:16px}
 .cc-c-item.partial .cc-c-code::after{content:" · Trends 제외";color:#D97706;font-family:Pretendard,system-ui;text-transform:none;letter-spacing:0;font-size:9.5px;font-weight:600}
 .partial-banner{background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .partial-banner-ico{width:16px;height:16px;flex-shrink:0;color:#D97706}
+/* 비교 모드 */
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.cmp-card{border:1px solid var(--bdr);border-radius:10px;padding:14px;background:#fff}
+.cmp-card.partial{background:#FEFCE8;border-color:#FCD34D}
+.cmp-card-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cmp-card-flag{font-size:18px}
+.cmp-card-name{font-weight:700;font-size:14px;flex:1}
+.cmp-partial-badge{font-size:9.5px;background:#D97706;color:#fff;padding:2px 6px;border-radius:4px;font-weight:600}
+.cmp-card-kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cmp-card-kpi > div{padding:6px 8px;background:var(--bg2);border-radius:6px}
+.cmp-k-lbl{font-size:10.5px;color:var(--tm);margin-bottom:2px}
+.cmp-k-v{font-size:14px;font-weight:700;color:#111}
+.cmp-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:8px}
+.cmp-chart{height:240px;background:#fff;padding:12px;border:1px solid var(--bdr);border-radius:8px}
+.ov-insight.notice{background:#FEF3C7;border-left:3px solid #D97706}
 
 /* Loading */
 .loader{
@@ -518,15 +544,20 @@ a{color:inherit;text-decoration:none}
         <div id="tab-overview" class="ws-content">
           <div class="builder" id="builder"></div>
           <div id="ov-banner"></div>
-          <div class="ov-grid" id="ov-kpis"></div>
-          <div class="ov-section">
-            <div class="ov-section-t">자동 인사이트</div>
-            <div id="ov-insights"></div>
+          <!-- 단일국 모드 화면 -->
+          <div id="ov-single">
+            <div class="ov-grid" id="ov-kpis"></div>
+            <div class="ov-section">
+              <div class="ov-section-t">자동 인사이트</div>
+              <div id="ov-insights"></div>
+            </div>
+            <div class="ov-section">
+              <div class="ov-section-t">국가 매크로 지표 (World Bank · 라이브)</div>
+              <div id="ov-wb"></div>
+            </div>
           </div>
-          <div class="ov-section">
-            <div class="ov-section-t">국가 매크로 지표 (World Bank · 라이브)</div>
-            <div id="ov-wb"></div>
-          </div>
+          <!-- 비교 모드 화면 -->
+          <div id="ov-compare" class="hide"></div>
         </div>
 
         <!-- TAB: Insights -->
@@ -582,6 +613,7 @@ const state = {
   dimensions: [],
   groups: {},
   currentCountry: 'KR',
+  compareCountries: [],  // 비교 모드 — 최대 4개국 (기준국 제외)
   currentTab: 'overview',
   filters: {},
   categories: [],
@@ -651,14 +683,25 @@ function renderCountryList(filter=''){
     (byRegion[c.region] = byRegion[c.region] || []).push(c);
   }
   const sorted = Object.keys(byRegion).sort((a,b)=>(regions[a]?.order||99)-(regions[b]?.order||99));
-  let html = `<input class="cc-search-i" placeholder="국가 검색..." oninput="renderCountryList(this.value)" id="cc-search-i">`;
+  const totalSelected = 1 + state.compareCountries.length;
+  let html = `<input class="cc-search-i" placeholder="국가 검색..." oninput="renderCountryList(this.value)" id="cc-search-i">
+    <div class="cc-help">☑ 체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경 <span class="cc-help-cnt">${totalSelected}개 선택됨</span></div>`;
   for(const r of sorted){
     html += `<div class="cc-region-h">${regions[r]?.name || r}</div>`;
     for(const c of byRegion[r]){
-      const cls = c.trendsUnavailable ? 'cc-c-item partial' : 'cc-c-item';
+      const isPrimary = c.code === state.currentCountry;
+      const isCompare = state.compareCountries.includes(c.code);
+      let cls = 'cc-c-item';
+      if(c.trendsUnavailable) cls += ' partial';
+      if(isPrimary) cls += ' primary';
+      if(isCompare) cls += ' compare';
       const tipText = c.trendsUnavailableReason || 'Trends 미지원 — World Bank·Insights·Persona는 정상';
       const tip = c.trendsUnavailable ? ` title="${tipText}"` : '';
+      const checkBox = isPrimary
+        ? `<span class="cc-c-mark primary" title="기준국">●</span>`
+        : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();toggleCompareCountry('${c.code}')">${isCompare?'✓':''}</span>`;
       html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
+        ${checkBox}
         <span class="cc-c-flag">${c.flag}</span>
         <span>${c.name}</span>
         <span class="cc-c-code">${c.code}</span>
@@ -666,6 +709,41 @@ function renderCountryList(filter=''){
     }
   }
   list.innerHTML = html;
+}
+
+function toggleCompareCountry(code){
+  if(code === state.currentCountry){
+    toast('기준국은 비교국으로 선택할 수 없습니다.');
+    return;
+  }
+  const idx = state.compareCountries.indexOf(code);
+  if(idx >= 0){
+    state.compareCountries.splice(idx, 1);
+  } else {
+    if(state.compareCountries.length >= 3){
+      toast('분석은 최대 4개국 (기준국 + 비교국 3개)까지 지원합니다.');
+      return;
+    }
+    state.compareCountries.push(code);
+  }
+  renderCountryList(document.getElementById('cc-search-i')?.value || '');
+  updateCountryPillLabel();
+  // 워크스페이스에 있는 경우 비교 모드 재계산
+  if(!document.getElementById('screen-workspace').classList.contains('hide')){
+    refreshSegment();
+  }
+}
+
+function updateCountryPillLabel(){
+  const c = state.countries.find(x => x.code === state.currentCountry);
+  if(!c) return;
+  const cnt = state.compareCountries.length;
+  document.getElementById('chat-cc-flag').textContent = c.flag;
+  document.getElementById('chat-cc-name').textContent = cnt > 0 ? `${c.name} +${cnt}국 비교` : c.name;
+  const tbf = document.getElementById('tb-cc-flag');
+  const tbn = document.getElementById('tb-cc-name');
+  if(tbf) tbf.textContent = c.flag;
+  if(tbn) tbn.textContent = cnt > 0 ? `${c.name} +${cnt}국` : c.name;
 }
 
 function toggleCountryList(){
@@ -683,14 +761,11 @@ function selectCountry(code){
     toast(`${c.name}: Trends 만 일시로 제외 — World Bank·인사이트·페르소나는 정상 제공됩니다.`);
   }
   state.currentCountry = code;
-  // 입력 컨텍스트의 핀 (chat-pill)
-  document.getElementById('chat-cc-flag').textContent = c.flag;
-  document.getElementById('chat-cc-name').textContent = c.name;
-  // 워크스페이스 topbar 타겟 인디스쪀
-  const tbf = document.getElementById('tb-cc-flag');
-  const tbn = document.getElementById('tb-cc-name');
-  if(tbf) tbf.textContent = c.flag;
-  if(tbn) tbn.textContent = c.name;
+  // 기준국이 비교국 목록에 있으면 제거 (중복 방지)
+  const dupIdx = state.compareCountries.indexOf(code);
+  if(dupIdx >= 0) state.compareCountries.splice(dupIdx, 1);
+  updateCountryPillLabel();
+  renderCountryList(document.getElementById('cc-search-i')?.value || '');
   document.getElementById('cc-list').classList.add('hide');
   // workspace 갱신
   if(!document.getElementById('screen-workspace').classList.contains('hide')){
@@ -833,20 +908,110 @@ function clearFilters(){
 // ============ SEGMENT REFRESH (live API) ============
 async function refreshSegment(){
   try{
-    const res = await fetch(`${API}/insights/segment`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ country: state.currentCountry, filters: state.filters }),
-    });
-    const data = await res.json();
-    if(!data.ok) throw new Error('segment failed');
-    state.segment = data;
-    renderPartialBanner();
-    renderKpis(data);
-    renderInsights(data);
-    renderWB(data);
+    if(state.compareCountries.length > 0){
+      // 비교 모드
+      const countries = [state.currentCountry, ...state.compareCountries];
+      const res = await fetch(`${API}/compare/segment`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ countries, filters: state.filters }),
+      });
+      const data = await res.json();
+      if(!data.ok) throw new Error(data.error || 'compare failed');
+      state.compareData = data;
+      renderCompareView(data);
+    } else {
+      // 단일국 모드
+      const res = await fetch(`${API}/insights/segment`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ country: state.currentCountry, filters: state.filters }),
+      });
+      const data = await res.json();
+      if(!data.ok) throw new Error('segment failed');
+      state.segment = data;
+      renderSingleView(data);
+    }
   } catch(e){
-    toast('세그먼트 계산 실패: ' + e.message);
+    toast('데이터 계산 실패: ' + e.message);
   }
+}
+
+function renderSingleView(data){
+  document.getElementById('ov-compare').classList.add('hide');
+  document.getElementById('ov-single').classList.remove('hide');
+  renderPartialBanner();
+  renderKpis(data);
+  renderInsights(data);
+  renderWB(data);
+}
+
+function renderCompareView(data){
+  document.getElementById('ov-single').classList.add('hide');
+  document.getElementById('ov-compare').classList.remove('hide');
+  const wrap = document.getElementById('ov-compare');
+
+  // 국가별 KPI 카드
+  const cards = data.countries.map(c => {
+    const partial = c.partial ? '<span class="cmp-partial-badge">Trends 제외</span>' : '';
+    return `<div class="cmp-card${c.partial?' partial':''}">
+      <div class="cmp-card-h">
+        <span class="cmp-card-flag">${c.country.flag}</span>
+        <span class="cmp-card-name">${c.country.name}</span>
+        ${partial}
+      </div>
+      <div class="cmp-card-kpi">
+        <div><div class="cmp-k-lbl">세그먼트</div><div class="cmp-k-v">${fmtNum(c.segment.size)}</div></div>
+        <div><div class="cmp-k-lbl">인구</div><div class="cmp-k-v">${fmtNum(c.indicators.population||0)}</div></div>
+        <div><div class="cmp-k-lbl">GDP/인</div><div class="cmp-k-v">$${fmtNum(Math.round(c.indicators.gdpPerCapita||0))}</div></div>
+        <div><div class="cmp-k-lbl">인터넷</div><div class="cmp-k-v">${(c.indicators.internetUsers||0).toFixed(0)}%</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 인사이트
+  const insightsHtml = data.insights.map(i => `
+    <div class="ov-insight${i.type==='partial-notice'?' notice':''}">
+      <div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div>
+      <div class="ov-insight-x">${i.text}</div>
+    </div>`).join('');
+
+  wrap.innerHTML = `
+    <div class="cmp-grid">${cards}</div>
+    <div class="ov-section">
+      <div class="ov-section-t">자동 비교 인사이트</div>
+      ${insightsHtml}
+    </div>
+    <div class="ov-section">
+      <div class="ov-section-t">지표별 비교 차트 (World Bank 라이브)</div>
+      <div class="cmp-charts">
+        <div class="cmp-chart"><canvas id="cmp-c-pop"></canvas></div>
+        <div class="cmp-chart"><canvas id="cmp-c-gdp"></canvas></div>
+        <div class="cmp-chart"><canvas id="cmp-c-net"></canvas></div>
+        <div class="cmp-chart"><canvas id="cmp-c-seg"></canvas></div>
+      </div>
+    </div>`;
+
+  // Chart.js 렌더링
+  const labels = data.chart.labels;
+  const COLORS = ['#4F46E5','#10B981','#F59E0B','#EF4444'];
+  function bar(id, series, suffix=''){
+    const ctx = document.getElementById(id)?.getContext('2d');
+    if(!ctx) return;
+    if(state._cmpCharts && state._cmpCharts[id]) state._cmpCharts[id].destroy();
+    state._cmpCharts = state._cmpCharts || {};
+    state._cmpCharts[id] = new Chart(ctx, {
+      type:'bar',
+      data:{labels, datasets:[{label: series.label, data: series.data, backgroundColor: labels.map((_,i)=>COLORS[i%4]), borderRadius:4}]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}, title:{display:true, text:series.label, font:{size:12, weight:'600'}}},
+        scales:{y:{ticks:{callback:v=>fmtNum(v)+suffix}}}
+      }
+    });
+  }
+  bar('cmp-c-pop', data.chart.series.population);
+  bar('cmp-c-gdp', data.chart.series.gdpPerCapita);
+  bar('cmp-c-net', data.chart.series.internetUsers, '%');
+  bar('cmp-c-seg', data.chart.series.segmentSize);
 }
 
 function renderPartialBanner(){
