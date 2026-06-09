@@ -79,6 +79,83 @@ ${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}
   }
 });
 
+// POST /api/interview/panel  — 동일 세그먼트 안 다양성 패널 (3-5명)
+interviewRouter.post("/panel", async (req, res) => {
+  const { country = "KR", filters = {}, count = 4 } = req.body || {};
+  const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());
+  if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
+  const n = Math.min(5, Math.max(2, Number(count) || 4));
+
+  if (!isGeminiAvailable()) {
+    return res.json({
+      ok: true,
+      country: meta,
+      panel: Array.from({ length: n }, () => fallbackPersona(meta, filters)),
+      meta: { method: "fallback" },
+    });
+  }
+
+  const wb = await getCountryStats(meta.code);
+  const ind = wb?.indicators || {};
+  const filterDesc = describeFilters(filters);
+
+  const system = `당신은 광고 리서치 전문가입니다. 동일 세그먼트 안의 다양성 패널을 생성합니다.
+각 패널은 같은 세그먼트에 속하지만, 가치관·라이프스타일·구매동기에서 서로 다른 관점을 제공해야 합니다.
+JSON 스키마에 정확히 따르세요.`;
+
+  const prompt = `[국가] ${meta.name} (${meta.nameEn})
+[세그먼트 필터]
+${filterDesc || "(필터 없음)"}
+
+위 세그먼트의 다양성을 보여주는 합성 패널 ${n}명을 생성하세요.
+각 패널은 서로 다른 아키타입(예: 얼리 어답터·실용주의·고소득·면천혈·회의주의·장기적)을 가져야 합니다.`;
+
+  const personaSchema = {
+    type: "object",
+    properties: {
+      name: { type: "string" },
+      age: { type: "number" },
+      gender: { type: "string" },
+      occupation: { type: "string" },
+      archetype: { type: "string", description: "이 패널의 아키타입 레이블 (예: 장기적 양육·실용주의)" },
+      lifestyle: { type: "string" },
+      values: { type: "array", items: { type: "string" } },
+      mediaHabits: { type: "array", items: { type: "string" } },
+      purchaseDrivers: { type: "array", items: { type: "string" } },
+      painPoints: { type: "array", items: { type: "string" } },
+      quote: { type: "string" },
+    },
+    required: ["name", "age", "archetype", "quote"],
+  };
+  const schema = {
+    type: "object",
+    properties: {
+      panel: { type: "array", items: personaSchema },
+      contrastInsight: { type: "string", description: "패널들 간 핵심 차이·공통점 요약 2-3문장" },
+    },
+    required: ["panel"],
+  };
+
+  try {
+    const result = await generateJSON({ prompt, system, schema, model: "gemini-2.5-flash", temperature: 0.9 });
+    if (!result.json?.panel) throw new Error("panel parse failed");
+    res.json({
+      ok: true,
+      country: meta,
+      panel: result.json.panel,
+      contrastInsight: result.json.contrastInsight || null,
+      meta: { method: "gemini-2.5-flash", count: result.json.panel.length },
+    });
+  } catch (e) {
+    res.json({
+      ok: true,
+      country: meta,
+      panel: Array.from({ length: n }, () => fallbackPersona(meta, filters)),
+      meta: { method: "fallback", error: e.message },
+    });
+  }
+});
+
 // POST /api/interview/chat  — 페르소나와 대화
 interviewRouter.post("/chat", async (req, res) => {
   const { persona, history = [], userMessage } = req.body || {};

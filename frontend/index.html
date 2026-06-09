@@ -415,6 +415,13 @@ a{color:inherit;text-decoration:none}
 .md-bar-fill{height:100%;background:linear-gradient(90deg,var(--ind),#7C3AED);border-radius:4px}
 .md-bar-v{font-size:11px;font-weight:600;color:var(--ts);font-variant-numeric:tabular-nums}
 .md-chart-wrap{height:300px;background:#fff;padding:12px;border:1px solid var(--bdr);border-radius:8px}
+.md-sources{background:#fff;border:1px solid var(--bdr);border-radius:8px;padding:10px 14px;margin-top:8px}
+.md-src-h{font-size:10.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.md-src-row{font-size:11px;line-height:1.7;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.md-src-l{color:var(--tm);font-weight:600;min-width:42px}
+.md-src{display:inline-block;padding:2px 8px;border-radius:4px;font-weight:600;font-size:10.5px}
+.md-src-on{background:#ECFDF5;color:#047857;border:1px solid #6EE7B7}
+.md-src-todo{background:#F3F4F6;color:var(--tm);border:1px solid var(--bdr)}
 /* Interview 탭 */
 .iv-gen-btn{margin-top:14px;padding:10px 20px;background:var(--ind);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s}
 .iv-gen-btn:hover{background:var(--ind2)}
@@ -451,6 +458,40 @@ a{color:inherit;text-decoration:none}
 .iv-actions{text-align:center;padding:8px}
 .iv-regen{padding:7px 14px;background:#fff;border:1px solid var(--bdr);color:var(--ts);border-radius:6px;font-size:12px;cursor:pointer}
 .iv-regen:hover{border-color:var(--ind);color:var(--ind)}
+/* AI Ask 결과 배너 */
+.ask-banner{background:linear-gradient(135deg,#EEF2FF 0%,#FAFAFF 100%);border:1px solid #C7D2FE;border-radius:10px;padding:14px 16px;margin-bottom:16px;animation:slideIn .25s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ab-hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ab-ai{font-size:9px;background:linear-gradient(135deg,var(--ind),#7C3AED);color:#fff;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:.5px}
+.ab-rule{font-size:9px;background:var(--bg2);color:var(--tm);padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:.5px}
+.ab-q{flex:1;font-size:13px;font-weight:600;color:#111;font-style:italic}
+.ab-close{background:none;border:none;font-size:18px;color:var(--tm);cursor:pointer;width:24px;height:24px;border-radius:4px;line-height:1}
+.ab-close:hover{background:#fff;color:#111}
+.ab-summary{font-size:12px;color:var(--ts);line-height:1.5;margin-bottom:8px}
+.ab-chips{display:flex;flex-wrap:wrap;gap:5px}
+.ab-chip{background:#fff;border:1px solid var(--ind);color:var(--ind);padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.ab-empty{font-size:11px;color:var(--tm);font-style:italic}
+.ab-rsn{margin-top:8px;font-size:11px;color:var(--tm)}
+.ab-rsn summary{cursor:pointer;font-weight:600;outline:none}
+.ab-rsn summary:hover{color:var(--ind)}
+.ab-rsn-x{margin-top:6px;padding:8px 10px;background:#fff;border-radius:6px;line-height:1.5;border:1px solid var(--bdr)}
+/* Interview 패널 모드 */
+.iv-gen-row{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.iv-gen-panel{background:#fff;color:var(--ind);border:1px solid var(--ind)}
+.iv-gen-panel:hover{background:#EEF2FF}
+.iv-contrast{background:linear-gradient(135deg,#EEF2FF 0%,#FAFAFF 100%);border:1px solid #C7D2FE;border-radius:10px;padding:12px 16px;margin-bottom:14px}
+.iv-contrast-h{font-size:11px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.iv-contrast-x{font-size:12.5px;color:#111;line-height:1.5}
+.iv-panel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.iv-panel-card{background:#fff;border:1px solid var(--bdr);border-radius:8px;padding:14px;display:flex;flex-direction:column}
+.iv-panel-card-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.iv-panel-meta{flex:1;min-width:0}
+.iv-archetype{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:2px 0}
+.iv-panel-mini{font-size:11px;color:var(--ts);line-height:1.5;margin-top:6px}
+.iv-panel-mini strong{display:inline-block;min-width:60px;color:var(--tm);font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-right:4px;vertical-align:baseline}
+.iv-panel-chat{margin-top:10px;padding:6px 10px;background:transparent;border:1px solid var(--bdr);color:var(--ind);border-radius:6px;font-size:11px;cursor:pointer;font-weight:600}
+.iv-panel-chat:hover{background:var(--ind);color:#fff;border-color:var(--ind)}
+.iv-panel-actions{display:flex;gap:8px;justify-content:center;margin-top:14px}
 
 /* Loading */
 .loader{
@@ -614,6 +655,9 @@ a{color:inherit;text-decoration:none}
       <!-- ============ WORKSPACE (Overview / Insights / Media / Interview) ============ -->
       <div id="screen-workspace" class="hide">
 
+        <!-- AI Ask 결과 배너 (전체 탭 공통) -->
+        <div id="ask-banner" class="ask-banner hide"></div>
+
         <!-- TAB: Overview -->
         <div id="tab-overview" class="ws-content">
           <div class="builder" id="builder"></div>
@@ -682,10 +726,22 @@ a{color:inherit;text-decoration:none}
           <div id="iv-empty" class="ws-empty">
             <div class="ws-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div class="ws-empty-t">AI 페르소나 생성</div>
-            <div class="ws-empty-s">Builder에서 세그먼트 필터를 설정한 뒤 아래 버튼을 눌러세요.</div>
-            <button class="iv-gen-btn" onclick="generatePersona()">페르소나 생성하기</button>
+            <div class="ws-empty-s">Builder에서 세그먼트 필터를 설정한 뒤 모드를 선택하세요.</div>
+            <div class="iv-gen-row">
+              <button class="iv-gen-btn" onclick="generatePersona()">단일 페르소나 + 대화</button>
+              <button class="iv-gen-btn iv-gen-panel" onclick="generatePanel(4)">다양성 패널 (4명)</button>
+            </div>
           </div>
           <div id="iv-body" class="hide">
+            <div id="iv-panel-wrap" class="hide">
+              <div id="iv-panel-contrast" class="iv-contrast"></div>
+              <div id="iv-panel-grid" class="iv-panel-grid"></div>
+              <div class="iv-panel-actions">
+                <button class="iv-regen" onclick="generatePanel(4)">다른 패널 생성</button>
+                <button class="iv-regen" onclick="backToPanelEmpty()">처음으로</button>
+              </div>
+            </div>
+            <div id="iv-single-wrap" class="hide">
             <div id="iv-card" class="iv-card"></div>
             <div class="iv-chat-section">
               <div class="iv-chat-h">인터뷰 대화</div>
@@ -697,7 +753,9 @@ a{color:inherit;text-decoration:none}
             </div>
             <div class="iv-actions">
               <button class="iv-regen" onclick="generatePersona()">다른 페르소나 생성</button>
+              <button class="iv-regen" onclick="backToPanelEmpty()">처음으로</button>
             </div>
+            </div><!-- /iv-single-wrap -->
           </div>
         </div>
 
@@ -926,6 +984,17 @@ function setChatAndSend(q){
   sendChat();
 }
 
+// intent→탭 자동 매핑
+const INTENT_TAB_MAP = {
+  'media-strategy': 'media',
+  'persona-deep-dive': 'interview',
+  'competitive-insights': 'overview',
+  'market-entry': 'overview',
+  'global-comparison': 'overview',
+  'target-definition': 'insights',
+  'general': 'overview',
+};
+
 async function sendChat(){
   const input = document.getElementById('chat-input');
   const q = input.value.trim();
@@ -941,8 +1010,14 @@ async function sendChat(){
     const data = await res.json();
     if(!data.ok) throw new Error('ask failed');
     state.filters = data.parsed.filters;
+    state.lastAsk = data;
     if(data.parsed.country) selectCountry(data.parsed.country);
     await goWorkspace();
+    // intent에 따른 탭 자동 이동
+    const targetTab = INTENT_TAB_MAP[data.parsed.intent] || 'overview';
+    if(targetTab !== 'overview') switchTab(targetTab);
+    // 설명 배너 표시
+    showAskBanner(data);
   } catch(e){
     toast('질문 처리 실패: ' + e.message);
     console.error(e);
@@ -950,6 +1025,28 @@ async function sendChat(){
     btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>';
     btn.disabled = false;
   }
+}
+
+function showAskBanner(data){
+  const p = data.parsed;
+  const country = state.countries.find(c => c.code === p.country);
+  const filterParts = Object.entries(p.filters || {}).map(([k,v]) => {
+    const dim = state.dimensions.find(d => d.id === k);
+    return `<span class="ab-chip">${dim?.label || k}: ${v.join(', ')}</span>`;
+  }).join('');
+  const summary = p.summary || `${country?.name || p.country} 세그먼트 분석`;
+  const methodBadge = data.meta?.method?.startsWith('gemini') ? '<span class="ab-ai">AI</span>' : '<span class="ab-rule">RULE</span>';
+  const banner = document.getElementById('ask-banner');
+  banner.innerHTML = `
+    <div class="ab-hd">
+      ${methodBadge}
+      <div class="ab-q">“${data.question}”</div>
+      <button class="ab-close" onclick="document.getElementById('ask-banner').classList.add('hide')">×</button>
+    </div>
+    <div class="ab-summary">${summary}</div>
+    ${filterParts ? `<div class="ab-chips">${filterParts}</div>` : '<div class="ab-empty">추출된 필터 없음 — 전체 세그먼트</div>'}
+    ${p.reasoning ? `<details class="ab-rsn"><summary>추론 근거</summary><div class="ab-rsn-x">${p.reasoning}</div></details>` : ''}`;
+  banner.classList.remove('hide');
 }
 
 // ============ NAVIGATION ============
@@ -1013,11 +1110,18 @@ async function refreshMediaTab(){
 
 function renderMediaTab(data){
   // 인사이트
-  document.getElementById('md-insights').innerHTML = data.insights.map(i => `
+  let insightHtml = data.insights.map(i => `
     <div class="ov-insight ${i.type==='blocked'?'notice':''}">
       <div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div>
       <div class="ov-insight-x">${i.text}</div>
     </div>`).join('');
+  // 데이터 소스 메타
+  if(data.sources){
+    const active = data.sources.active.map(s => `<span class="md-src md-src-on">${s.name} · 신뢰 ${s.confidence}</span>`).join('');
+    const planned = data.sources.planned.map(s => `<span class="md-src md-src-todo" title="${s.todo||''}">${s.name}</span>`).join('');
+    insightHtml += `<div class="md-sources"><div class="md-src-h">데이터 소스</div><div class="md-src-row"><span class="md-src-l">활성:</span>${active}</div><div class="md-src-row"><span class="md-src-l">예정:</span>${planned}</div></div>`;
+  }
+  document.getElementById('md-insights').innerHTML = insightHtml;
 
   // 표
   const tbl = document.getElementById('md-table');
@@ -1053,10 +1157,29 @@ function renderMediaTab(data){
 }
 
 // ============ INTERVIEW TAB ============
-async function generatePersona(){
+function backToPanelEmpty(){
+  document.getElementById('iv-body').classList.add('hide');
+  document.getElementById('iv-empty').classList.remove('hide');
+  document.getElementById('iv-panel-wrap').classList.add('hide');
+  document.getElementById('iv-single-wrap').classList.add('hide');
+  state.ivPersona = null;
+  state.ivHistory = [];
+}
+
+async function generatePersona(persona){
   try{
     document.getElementById('iv-empty').classList.add('hide');
     document.getElementById('iv-body').classList.remove('hide');
+    document.getElementById('iv-panel-wrap').classList.add('hide');
+    document.getElementById('iv-single-wrap').classList.remove('hide');
+    // 패널에서 넘어온 경우 persona 객체 제공
+    if(persona){
+      state.ivPersona = persona;
+      state.ivHistory = [];
+      renderPersonaCard(persona, { method: 'gemini-2.5-flash (panel)' });
+      document.getElementById('iv-msgs').innerHTML = '';
+      return;
+    }
     document.getElementById('iv-card').innerHTML = '<div class="iv-loading">페르소나 생성 중… (수 초 소요)</div>';
     document.getElementById('iv-msgs').innerHTML = '';
     state.ivHistory = [];
@@ -1072,6 +1195,55 @@ async function generatePersona(){
   } catch(e){
     toast('페르소나 생성 실패: ' + e.message);
   }
+}
+
+async function generatePanel(count = 4){
+  try{
+    document.getElementById('iv-empty').classList.add('hide');
+    document.getElementById('iv-body').classList.remove('hide');
+    document.getElementById('iv-single-wrap').classList.add('hide');
+    document.getElementById('iv-panel-wrap').classList.remove('hide');
+    document.getElementById('iv-panel-grid').innerHTML = '<div class="iv-loading">패널 생성 중… (수 초 소요)</div>';
+    document.getElementById('iv-panel-contrast').innerHTML = '';
+    const res = await fetch(`${API}/interview/panel`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ country: state.currentCountry, filters: state.filters, count }),
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error);
+    renderPanel(data);
+  } catch(e){
+    toast('패널 생성 실패: ' + e.message);
+  }
+}
+
+function renderPanel(data){
+  if(data.contrastInsight){
+    document.getElementById('iv-panel-contrast').innerHTML = `
+      <div class="iv-contrast-h">패널 대조 인사이트</div>
+      <div class="iv-contrast-x">${data.contrastInsight}</div>`;
+  }
+  const COLORS = ['#4F46E5', '#7C3AED', '#10B981', '#F59E0B', '#EF4444'];
+  const html = data.panel.map((p, i) => {
+    const color = COLORS[i % COLORS.length];
+    return `<div class="iv-panel-card" style="border-top:3px solid ${color}">
+      <div class="iv-panel-card-h">
+        <div class="iv-avatar" style="background:linear-gradient(135deg,${color},${color}cc)">${(p.name||'?').slice(0,1)}</div>
+        <div class="iv-panel-meta">
+          <div class="iv-name">${p.name}<span class="iv-age">${p.age}세${p.gender?' · '+p.gender:''}</span></div>
+          ${p.archetype ? `<div class="iv-archetype" style="color:${color}">${p.archetype}</div>` : ''}
+          <div class="iv-occ">${p.occupation||''}</div>
+        </div>
+      </div>
+      <div class="iv-quote" style="border-left-color:${color};color:${color};background:${color}11">"${p.quote}"</div>
+      ${p.lifestyle ? `<div class="iv-panel-mini"><strong>라이프스타일</strong> ${p.lifestyle}</div>` : ''}
+      ${(p.values||[]).length ? `<div class="iv-panel-mini"><strong>가치관</strong> ${p.values.join(', ')}</div>` : ''}
+      ${(p.mediaHabits||[]).length ? `<div class="iv-panel-mini"><strong>미디어</strong> ${p.mediaHabits.join(', ')}</div>` : ''}
+      ${(p.painPoints||[]).length ? `<div class="iv-panel-mini"><strong>페인</strong> ${p.painPoints.join(', ')}</div>` : ''}
+      <button class="iv-panel-chat" onclick='generatePersona(${JSON.stringify(p).replace(/'/g, "&apos;")})'>이 페르소나와 대화 →</button>
+    </div>`;
+  }).join('');
+  document.getElementById('iv-panel-grid').innerHTML = html;
 }
 
 function renderPersonaCard(p, meta){

@@ -6,6 +6,7 @@
 import { Router } from "express";
 import { COUNTRIES } from "../data/countries.js";
 import { getCountryStats } from "../adapters/worldbank.js";
+import { SOURCE_META, getDataSourceForMedia } from "../adapters/media-supplementary.js";
 
 export const mediaRouter = Router();
 
@@ -146,10 +147,24 @@ mediaRouter.get("/landscape", async (req, res) => {
       trust: items.map(i => i.trust),
       cpm: items.map(i => i.cpm),
     },
+    sources: {
+      active: [SOURCE_META.worldBank],
+      planned: [SOURCE_META.dataReportal, SOURCE_META.statista, SOURCE_META.innoceanInternal, SOURCE_META.talkwalker],
+    },
     meta: {
       method: "World Bank 지표 + 매체 베이스라인 모델 (실 패널 데이터 교체 예정)",
       generatedAt: new Date().toISOString(),
       partial: !!meta.trendsUnavailable,
     },
+  });
+});
+
+// GET /api/media/sources — 데이터 소스 상태 가시화
+mediaRouter.get("/sources", (req, res) => {
+  res.json({
+    ok: true,
+    sources: SOURCE_META,
+    activeCount: Object.values(SOURCE_META).filter(s => s.integrated !== false).length,
+    plannedCount: Object.values(SOURCE_META).filter(s => s.integrated === false).length,
   });
 });

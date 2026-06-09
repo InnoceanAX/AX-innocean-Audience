@@ -19,6 +19,34 @@ const BASELINE_DIST = {
   household: { "1인 가구": 30, "신혼·무자녀": 12, "유자녀 가구": 35, "한부모·확대가족": 8, "동거·기타": 15 },
 };
 
+// 디멘션 간 상관관계 (세그먼트 교차 강화를 위한 상관 매트릭스)
+// 양수: 공변(예: 30대→유자녀가구 강임) / 음수: 반비례
+const CORRELATIONS = {
+  // 연령 → 가구 구성
+  "age:30대|household:유자녀 가구": 1.6,
+  "age:30대|household:신혼·무자녀": 1.3,
+  "age:20대|household:1인 가구": 1.5,
+  "age:60대 이상|household:1인 가구": 1.4,
+  "age:60대 이상|household:유자녀 가구": 0.3,
+  // 연령 → 교육
+  "age:60대 이상|education:고졸 이하": 1.5,
+  "age:20대|education:대학 재학·졸업": 1.4,
+  // 연령 → 소득
+  "age:30대|income:60~80%": 1.2,
+  "age:40대|income:상위 20%": 1.4,
+  "age:60대 이상|income:하위 20%": 1.5,
+  "age:20대|income:하위 20%": 1.4,
+  // 교육 → 소득
+  "education:대학원 이상|income:상위 20%": 1.7,
+  "education:고졸 이하|income:하위 20%": 1.6,
+};
+
+function correlationFactor(dimA, optA, dimB, optB) {
+  const key1 = `${dimA}:${optA}|${dimB}:${optB}`;
+  const key2 = `${dimB}:${optB}|${dimA}:${optA}`;
+  return CORRELATIONS[key1] || CORRELATIONS[key2] || 1.0;
+}
+
 // 국가별 분포 조정 (World Bank 지표 기반 micro-tuning)
 function adjustDistByCountry(dimId, baseline, wbInd) {
   const adjusted = { ...baseline };
@@ -74,7 +102,24 @@ dimInsightsRouter.post("/distribution", async (req, res) => {
         Object.keys(dist).map(k => [k, filterValues.includes(k) ? Number(((dist[k] / totalSel) * 100).toFixed(1)) : 0])
       );
     } else {
-      segmentDist = dist;
+      // 필터되지 않은 디멘션—하지만 다른 디멘션 필터 영향 반영
+      // 예: age=30대 필터 있으면 household 분포가 유자녀로 쓏림
+      segmentDist = { ...dist };
+      for (const [filtDim, filtVals] of Object.entries(filters)) {
+        if (filtDim === dim.id) continue;
+        if (!Array.isArray(filtVals) || !filtVals.length) continue;
+        for (const opt of Object.keys(segmentDist)) {
+          let factor = 0;
+          for (const fv of filtVals) factor += correlationFactor(filtDim, fv, dim.id, opt);
+          factor = factor / filtVals.length;  // 평균
+          segmentDist[opt] *= factor;
+        }
+      }
+      // 재정규화
+      const sum = Object.values(segmentDist).reduce((a, b) => a + b, 0);
+      if (sum > 0) {
+        for (const k of Object.keys(segmentDist)) segmentDist[k] = Number((segmentDist[k] / sum * 100).toFixed(1));
+      }
     }
     return {
       dimensionId: dim.id,
