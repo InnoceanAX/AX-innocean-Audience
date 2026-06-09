@@ -5,11 +5,9 @@ export const countriesRouter = Router();
 
 // GET /api/countries — 전체 국가 + 권역
 countriesRouter.get("/", (req, res) => {
-  const { tier, region, innocean } = req.query;
+  const { region } = req.query;
   let list = COUNTRIES;
-  if (tier) list = list.filter(c => String(c.tier) === String(tier));
   if (region) list = list.filter(c => c.region === region);
-  if (innocean === "true") list = list.filter(c => c.innocean);
 
   res.json({
     ok: true,
