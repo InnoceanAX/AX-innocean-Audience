@@ -280,3 +280,83 @@ audienceRouter.get("/compare", async (req, res) => {
 
   res.json({ ok: true, countries: data, dimensions: ["who", "life", "mind", "love", "buy"] });
 });
+
+// ============================================================
+// GET /api/audience/compare-all
+// 전체 지원 국가 × 5차원 매트릭스 (글로벌 비교 매트릭스용)
+// ============================================================
+audienceRouter.get("/compare-all", async (req, res) => {
+  const rows = COUNTRIES.map(c => {
+    const code = c.code;
+    const who = getDemographics(code);
+    const life = getLifestyle(code);
+    const mind = getMindset(code);
+    const love = getInterests(code);
+    const buy = getPurchase(code);
+    return { code, name: c.name, who, life, mind, love, buy };
+  });
+
+  // 데이터가 있는 국가만 (5차원 모두 또는 일부)
+  const supported = rows.filter(r => r.who && r.life && r.mind && r.love && r.buy);
+
+  const who = supported.map(r => ({
+    code: r.code, name: r.name,
+    medianAge: r.who.medianAge,
+    urbanRate: r.who.urbanRate,
+    dependencyRatio: r.who.dependencyRatio,
+    pop60: r.who.ageDistribution?.["60+"],
+    pop15_29: r.who.ageDistribution?.["15-29"],
+  }));
+
+  const life = supported.map(r => ({
+    code: r.code, name: r.name,
+    internetPenetration: r.life.digital?.internetPenetration,
+    socialMediaUsers: r.life.digital?.socialMediaUsers,
+    avgInternetHours: r.life.digital?.avgInternetHours,
+    mobileShare: r.life.digital?.mobileShare,
+    avgTVHours: r.life.digital?.avgTVHours,
+  }));
+
+  const mind = supported.map(r => ({
+    code: r.code, name: r.name,
+    trustBusiness: r.mind.trust?.business,
+    trustMedia: r.mind.trust?.media,
+    trustGov: r.mind.trust?.government,
+    individualism: r.mind.culture?.individualism,
+    longTermOrient: r.mind.culture?.longTermOrientation,
+    innovation: r.mind.values?.innovation,
+  }));
+
+  // love는 ranked 형태 - top interest 추출
+  const love = supported.map(r => {
+    const entries = Object.entries(r.love || {}).sort((a, b) => b[1] - a[1]);
+    return {
+      code: r.code, name: r.name,
+      topInterest: entries[0]?.[0] || null,
+      topInterestScore: entries[0]?.[1] || null,
+      top3: entries.slice(0, 3).map(e => e[0]),
+    };
+  });
+
+  const buy = supported.map(r => ({
+    code: r.code, name: r.name,
+    ecommerceShare: r.buy.ecommerce?.shareOfRetail,
+    mobileShare: r.buy.ecommerce?.mobileShare,
+    avgMonthly: r.buy.ecommerce?.avgMonthlySpendUSD,
+    priceSensitivity: r.buy.psychology?.priceSensitivity,
+    reviewDep: r.buy.decisionFactors?.reviews,
+  }));
+
+  res.json({
+    ok: true,
+    coverage: supported.length,
+    who, life, mind, love, buy,
+    sources: {
+      who: "UN Population Division 2024",
+      life: "DataReportal Global Digital Reports 2024",
+      mind: "World Values Survey + Edelman Trust + Hofstede",
+      love: "Google Trends + DataReportal 2024",
+      buy: "DataReportal + eMarketer + Statista",
+    },
+  });
+});

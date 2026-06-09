@@ -541,10 +541,11 @@ a{color:inherit;text-decoration:none}
 /* AI Side Panel */
 .ai-panel{position:fixed;top:0;right:0;height:100vh;width:380px;background:#fff;border-left:1px solid var(--bdr);box-shadow:-8px 0 24px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;transform:translateX(0)}
 .ai-panel.collapsed{transform:translateX(380px)}
-.ai-toggle{position:absolute;top:50%;left:-44px;transform:translateY(-50%);width:44px;height:auto;padding:14px 0;background:var(--ind);color:#fff;border:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:-4px 0 12px rgba(79,70,229,.2)}
+.ai-toggle{position:absolute;top:50%;left:-46px;transform:translateY(-50%);width:46px;padding:12px 0;background:var(--ind);color:#fff;border:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:-4px 0 12px rgba(79,70,229,.25)}
 .ai-toggle:hover{background:var(--ind2)}
 .ai-toggle-ico{width:18px;height:18px}
-.ai-toggle-l{font-size:9.5px;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px}
+.ai-toggle-l{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;letter-spacing:.5px;line-height:1.1}
+.ai-toggle-l span{display:block}
 .ai-panel-inner{display:flex;flex-direction:column;height:100%;padding:18px;overflow:hidden}
 .ai-panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .ai-panel-t{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#111}
@@ -695,6 +696,49 @@ a{color:inherit;text-decoration:none}
 .ws-tab-ico svg{width:16px;height:16px}
 .home-spark svg{width:56px;height:56px}
 .ws-empty-ico svg{width:48px;height:48px}
+
+/* 3-way Entry Modes */
+.entry-mode-l{font-size:9.5px;font-weight:700;color:var(--ind);letter-spacing:1.2px;margin-bottom:8px;text-transform:uppercase}
+.entry-mode-ai .entry-mode-l{color:#4F46E5}
+.entry-mode-builder .entry-mode-l{color:#0891B2}
+.entry-mode-explore .entry-mode-l{color:#DB2777}
+.entry-cta{margin-top:14px;font-size:12px;color:var(--ind);font-weight:600;opacity:0;transition:opacity .2s}
+.entry-card:hover .entry-cta{opacity:1}
+.entry-card{position:relative;overflow:hidden}
+.entry-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:0;background:var(--ind);transition:height .25s}
+.entry-card:hover::before{height:100%}
+.entry-mode-builder .entry-ico{background:linear-gradient(135deg,#CFFAFE,#A5F3FC);color:#0891B2}
+.entry-mode-explore .entry-ico{background:linear-gradient(135deg,#FCE7F3,#FBCFE8);color:#DB2777}
+.entry-mode-builder::before{background:#0891B2}
+.entry-mode-explore::before{background:#DB2777}
+
+/* Builder pulse */
+@keyframes builderPulse{0%,100%{box-shadow:0 0 0 0 rgba(79,70,229,0)}50%{box-shadow:0 0 0 6px rgba(79,70,229,.18)}}
+.builder-pulse{animation:builderPulse 1.2s ease-in-out 2}
+
+/* Compare Matrix */
+.cmp-h{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bdr)}
+.cmp-h-t{font-size:18px;font-weight:700;color:#111;margin-bottom:4px}
+.cmp-h-s{font-size:12.5px;color:var(--tm);line-height:1.5}
+.cmp-controls{display:flex;align-items:flex-end;gap:24px;margin-bottom:14px;flex-wrap:wrap}
+.cmp-control-g{display:flex;flex-direction:column;gap:6px}
+.cmp-control-l{font-size:10.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px}
+.cmp-dim-tabs{display:flex;gap:4px;background:#F3F4F6;padding:3px;border-radius:7px}
+.cmp-dim{padding:6px 14px;border:none;background:transparent;font-size:12px;font-weight:600;color:#6B7280;cursor:pointer;border-radius:5px;font-family:inherit;transition:all .15s}
+.cmp-dim.active{background:#fff;color:var(--ind);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.cmp-select{padding:7px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:12.5px;background:#fff;font-family:inherit;min-width:180px}
+.cmp-matrix-wrap{margin-top:8px}
+.cmp-table-wrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:8px}
+.cmp-matrix{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+.cmp-matrix th{background:#F9FAFB;padding:11px 12px;text-align:left;font-weight:700;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:5}
+.cmp-matrix td{padding:10px 12px;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;color:#111;transition:background .15s}
+.cmp-matrix tr{cursor:pointer}
+.cmp-matrix tr:hover td{background:#EEF2FF !important}
+.cmp-th-country{min-width:160px;position:sticky;left:0;z-index:6}
+.cmp-country-cell{font-weight:600;color:#111;display:flex;align-items:center;gap:8px;position:sticky;left:0;background:#fff;z-index:4}
+.cmp-na{color:#9CA3AF}
+.cmp-foot{margin-top:14px;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--tm)}
+.cmp-foot-src{font-size:11px}
 </style>
 </head>
 <body>
@@ -788,6 +832,9 @@ a{color:inherit;text-decoration:none}
       <div class="ws-tab" data-tab="media" onclick="switchTab('media')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><path d="M8 14a4 4 0 0 1 0-4"/><path d="M16 14a4 4 0 0 0 0-4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span><span>미디어</span>
       </div>
+      <div class="ws-tab" data-tab="compare" onclick="switchTab('compare')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="18" cy="18" r="1.5" fill="currentColor"/></svg></span><span>글로벌 비교</span>
+      </div>
       <div class="ws-tab" data-tab="interview" onclick="switchTab('interview')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>페르소나</span>
       </div>
@@ -837,26 +884,32 @@ a{color:inherit;text-decoration:none}
 
           <!-- 3-way Entry -->
           <div class="entry-3way">
-            <div class="entry-card" onclick="document.getElementById('chat-input').focus()">
+            <div class="entry-card entry-mode-ai" onclick="entryAI()">
               <div class="entry-ico">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
-              <div class="entry-t">자연어로 질문</div>
-              <div class="entry-s">위 검색창에 직접 입력</div>
+              <div class="entry-mode-l">MODE 1 · 자연어</div>
+              <div class="entry-t">AI에게 질문</div>
+              <div class="entry-s">"30대 워킹맘, 디지털 소비행태?" 같은 자연어를 위 검색창에 입력하면 AI가 자동으로 타겟을 정의하고 인사이트를 보여줍니다.</div>
+              <div class="entry-cta">검색창에 입력하기 →</div>
             </div>
-            <div class="entry-card" onclick="goBuilder()">
+            <div class="entry-card entry-mode-builder" onclick="entryBuilder()">
               <div class="entry-ico">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
               </div>
-              <div class="entry-t">필터로 직접 설정</div>
-              <div class="entry-s">국가 · 연령 · 관심사 직접 선택</div>
+              <div class="entry-mode-l">MODE 2 · 정밀</div>
+              <div class="entry-t">세그먼트 빌더</div>
+              <div class="entry-s">국가 · 연령 · 성별 · 관심사 · 가치관을 슬라이더로 직접 조정하며 정확한 타겟을 빌드합니다. 마케터용 정밀 모드.</div>
+              <div class="entry-cta">빌더 열기 →</div>
             </div>
-            <div class="entry-card" onclick="quickStartCountry()">
+            <div class="entry-card entry-mode-explore" onclick="entryExplore()">
               <div class="entry-ico">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
               </div>
-              <div class="entry-t">국가 탐색 바로가기</div>
-              <div class="entry-s">선택한 국가의 5차원 인사이트 보기</div>
+              <div class="entry-mode-l">MODE 3 · 전역</div>
+              <div class="entry-t">글로벌 비교 매트릭스</div>
+              <div class="entry-s">28국가 × 5차원을 한 화면에 매트릭스로 펼쳐서 비교합니다. 어떤 시장에 진출할지 의사결정 모드.</div>
+              <div class="entry-cta">매트릭스 보기 →</div>
             </div>
           </div>
 
@@ -1017,6 +1070,37 @@ a{color:inherit;text-decoration:none}
           </div>
         </div>
 
+        <!-- TAB: Global Compare Matrix -->
+        <div id="tab-compare" class="ws-content hide">
+          <div class="cmp-h">
+            <div class="cmp-h-t">글로벌 비교 매트릭스</div>
+            <div class="cmp-h-s">28국가 × 5차원을 한눈에 비교. 열 클릭으로 정렬, 행 클릭으로 해당 국가 워크스페이스 이동.</div>
+          </div>
+          <div class="cmp-controls">
+            <div class="cmp-control-g">
+              <label class="cmp-control-l">차원 선택</label>
+              <div class="cmp-dim-tabs">
+                <button class="cmp-dim active" data-dim="who" onclick="setCompareDim('who')">인물상</button>
+                <button class="cmp-dim" data-dim="life" onclick="setCompareDim('life')">라이프</button>
+                <button class="cmp-dim" data-dim="mind" onclick="setCompareDim('mind')">가치관</button>
+                <button class="cmp-dim" data-dim="love" onclick="setCompareDim('love')">관심사</button>
+                <button class="cmp-dim" data-dim="buy" onclick="setCompareDim('buy')">구매</button>
+              </div>
+            </div>
+            <div class="cmp-control-g">
+              <label class="cmp-control-l">정렬</label>
+              <select id="cmp-sort" onchange="renderCompareMatrix()" class="cmp-select"></select>
+            </div>
+          </div>
+          <div id="cmp-matrix-wrap" class="cmp-matrix-wrap">
+            <div class="aud-loading">데이터 로딩 중…</div>
+          </div>
+          <div class="cmp-foot">
+            <span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span>
+            <span id="cmp-source" class="cmp-foot-src"></span>
+          </div>
+        </div>
+
         <!-- TAB: Interview -->
         <div id="tab-interview" class="ws-content hide">
           <div id="iv-empty" class="ws-empty">
@@ -1072,7 +1156,7 @@ a{color:inherit;text-decoration:none}
   <aside id="ai-panel" class="ai-panel collapsed">
     <button class="ai-toggle" onclick="toggleAIPanel()" title="AI 비서">
       <svg class="ai-toggle-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="ai-toggle-l">AI 비서</span>
+      <span class="ai-toggle-l"><span>A</span><span>I</span><span>비</span><span>서</span></span>
     </button>
     <div class="ai-panel-inner">
       <div class="ai-panel-h">
@@ -1419,7 +1503,7 @@ function goBuilder(){
   goWorkspace();
 }
 
-async function goWorkspace(){
+async function goWorkspace(opts){
   document.getElementById('screen-home').classList.add('hide');
   document.getElementById('screen-workspace').classList.remove('hide');
   document.getElementById('ws-tabs').classList.remove('hide');
@@ -1434,18 +1518,27 @@ async function goWorkspace(){
   tb.classList.remove('hide');
   renderBuilder();
   await refreshSegment();
+  // 워크스페이스 진입 history 기록 (뒤로가기 동작)
+  if(!(opts && opts.fromHistory)){
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'workspace');
+    if(state.currentTab) url.searchParams.set('tab', state.currentTab);
+    if(state.currentCountry) url.searchParams.set('country', state.currentCountry);
+    history.pushState({ view: 'workspace', tab: state.currentTab || 'overview', country: state.currentCountry }, '', url.toString());
+  }
 }
 
 function switchTab(tab, opts){
   const fromHistory = opts && opts.fromHistory;
   state.currentTab = tab;
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
-  ['overview','insights','who','life','mind','love','buy','media','interview'].forEach(t => {
+  ['overview','insights','who','life','mind','love','buy','media','compare','interview'].forEach(t => {
     const el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('hide', t !== tab);
   });
   if(tab === 'insights') refreshInsightsTab();
   if(tab === 'media') refreshMediaTab();
+  if(tab === 'compare') renderCompareMatrix();
   if(['who','life','mind','love','buy'].includes(tab)) refreshAudienceTab(tab);
   // interview는 사용자 액션(generatePersona)으로만 시작
   // history 적용
@@ -1465,7 +1558,8 @@ window.addEventListener('popstate', (e) => {
   const mt = document.getElementById('mt-modal');
   if(mt && !mt.classList.contains('hide') && s.view !== 'modal'){ mt.classList.add('hide'); return; }
   // home 복원
-  if(s.view === 'home' || (!s.tab && !new URL(window.location.href).searchParams.get('tab'))){
+  const urlView = new URL(window.location.href).searchParams.get('view');
+  if(s.view === 'home' || (!s.tab && !urlView && !new URL(window.location.href).searchParams.get('tab'))){
     goHome({ fromHistory: true });
     return;
   }
@@ -1484,7 +1578,7 @@ window.addEventListener('popstate', (e) => {
 function updateBreadcrumb(){
   const bc = document.getElementById('bread-crumb');
   if(!bc) return;
-  const tabLabel = { overview:'개요', insights:'인사이트', media:'미디어', interview:'페르소나' }[state.currentTab] || state.currentTab;
+  const tabLabel = { overview:'개요', insights:'인사이트', who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', compare:'글로벌 비교', interview:'페르소나' }[state.currentTab] || state.currentTab;
   const country = state.currentCountry || 'Global';
   bc.innerHTML = `<a href="#" onclick="event.preventDefault();goHome()">홈</a> <span class="bc-sep">›</span> <span>${country}</span> <span class="bc-sep">›</span> <span class="bc-cur">${tabLabel}</span>`;
 }
@@ -1667,11 +1761,147 @@ async function renderMediaTab(data){
   });
 }
 
-// Quick start — 선택된 국가로 바로 워크스페이스 진입
-function quickStartCountry(){
-  const code = state.currentCountry || 'KR';
+// ============ 3-WAY ENTRY MODES ============
+// MODE 1: 자연어 검색창 포커스
+function entryAI(){
+  document.getElementById('chat-input').focus();
+  document.getElementById('chat-input').placeholder = '예) 미국 30대 마케터 여성, 디지털 친화적, 피트니스 관심도 높음';
+  // 시각적 피드백
+  const wrap = document.querySelector('.chat-input-wrap');
+  if(wrap){ wrap.style.boxShadow='0 0 0 3px rgba(79,70,229,.2)'; setTimeout(()=>{wrap.style.boxShadow='';},1500); }
+}
+
+// MODE 2: 빌더 모드 (정밀 필터)
+async function entryBuilder(){
+  state.entryMode = 'builder';
+  state.filters = {};
+  state.currentTab = 'overview';
+  await goWorkspace();
+  // 빌더 패널 강조 (애니메이션)
+  const b = document.getElementById('builder');
+  if(b){
+    b.scrollIntoView({behavior:'smooth', block:'start'});
+    b.classList.add('builder-pulse');
+    setTimeout(()=>b.classList.remove('builder-pulse'), 2400);
+  }
+}
+
+// MODE 3: 글로벌 비교 매트릭스 (전역 탐색)
+async function entryExplore(){
+  state.entryMode = 'explore';
+  state.currentTab = 'compare';
+  await goWorkspace();
+  switchTab('compare');
+}
+
+// ============ GLOBAL COMPARE MATRIX ============
+let compareData = null;
+let currentCompareDim = 'who';
+
+async function loadCompareData(){
+  if(compareData) return compareData;
+  const wrap = document.getElementById('cmp-matrix-wrap');
+  wrap.innerHTML = '<div class="aud-loading">28개국 데이터 로딩 중…</div>';
+  try {
+    const res = await fetch(`${API}/audience/compare-all`);
+    const data = await res.json();
+    if(data.ok){ compareData = data; return data; }
+    wrap.innerHTML = '<div class="aud-error">데이터 로딩 실패</div>';
+  } catch(e){
+    wrap.innerHTML = `<div class="aud-error">오류: ${e.message}</div>`;
+  }
+  return null;
+}
+
+const CMP_METRICS = {
+  who: [
+    { key:'medianAge', label:'중위연령', unit:'세', fmt:v=>v.toFixed(1) },
+    { key:'urbanRate', label:'도시화율', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'dependencyRatio', label:'부양비', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'pop60', label:'60+ 비중', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'pop15_29', label:'15-29 비중', unit:'%', fmt:v=>v.toFixed(1) },
+  ],
+  life: [
+    { key:'internetPenetration', label:'인터넷 침투율', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'socialMediaUsers', label:'소셜미디어', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'avgInternetHours', label:'인터넷/일', unit:'h', fmt:v=>v.toFixed(1) },
+    { key:'mobileShare', label:'모바일 비중', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'avgTVHours', label:'TV/일', unit:'h', fmt:v=>v.toFixed(1) },
+  ],
+  mind: [
+    { key:'trustBusiness', label:'기업 신뢰', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'trustMedia', label:'미디어 신뢰', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'trustGov', label:'정부 신뢰', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'individualism', label:'개인주의', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'longTermOrient', label:'장기지향', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'innovation', label:'혁신 수용', unit:'', fmt:v=>v.toFixed(0) },
+  ],
+  love: [
+    { key:'topInterest', label:'1위 관심사', unit:'', fmt:v=>v },
+    { key:'topInterestScore', label:'1위 점수', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'top3', label:'Top 3', unit:'', fmt:v=>v },
+  ],
+  buy: [
+    { key:'ecommerceShare', label:'이커머스', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'mobileShare', label:'모바일 결제', unit:'%', fmt:v=>v.toFixed(1) },
+    { key:'avgMonthly', label:'월평균', unit:'$', fmt:v=>'$'+Math.round(v) },
+    { key:'priceSensitivity', label:'가격민감도', unit:'', fmt:v=>v.toFixed(0) },
+    { key:'reviewDep', label:'리뷰 의존', unit:'', fmt:v=>v.toFixed(0) },
+  ],
+};
+
+async function setCompareDim(dim){
+  currentCompareDim = dim;
+  document.querySelectorAll('.cmp-dim').forEach(x=>x.classList.toggle('active', x.dataset.dim===dim));
+  await renderCompareMatrix();
+}
+
+async function renderCompareMatrix(){
+  const data = await loadCompareData();
+  if(!data) return;
+  const dim = currentCompareDim;
+  const metrics = CMP_METRICS[dim];
+  const rows = data[dim] || [];
+
+  // 정렬 셀렉트 채우기
+  const sortSel = document.getElementById('cmp-sort');
+  const cur = sortSel.value;
+  sortSel.innerHTML = '<option value="">국가명 순</option>' +
+    metrics.filter(m=>typeof rows[0]?.[m.key] === 'number').map(m=>`<option value="${m.key}">${m.label} 높은순</option>`).join('');
+  if(cur && [...sortSel.options].some(o=>o.value===cur)) sortSel.value = cur;
+
+  let sorted = [...rows];
+  if(sortSel.value){
+    sorted.sort((a,b)=> (b[sortSel.value]||0) - (a[sortSel.value]||0));
+  } else {
+    sorted.sort((a,b)=> a.name.localeCompare(b.name, 'ko'));
+  }
+
+  const head = `<tr><th class="cmp-th-country">국가</th>${metrics.map(m=>`<th>${m.label}${m.unit?` (${m.unit})`:''}</th>`).join('')}</tr>`;
+  // 색상 강도 계산 (수치형만)
+  const maxByKey = {};
+  metrics.forEach(m=>{ if(typeof sorted[0]?.[m.key]==='number') maxByKey[m.key] = Math.max(...sorted.map(r=>r[m.key]||0)); });
+
+  const body = sorted.map(r => {
+    const cells = metrics.map(m => {
+      const v = r[m.key];
+      if(v === undefined || v === null) return '<td class="cmp-na">—</td>';
+      const intensity = (typeof v === 'number' && maxByKey[m.key]) ? (v / maxByKey[m.key]) : 0;
+      const bg = typeof v === 'number' ? `style="background:rgba(79,70,229,${(intensity*0.35).toFixed(2)})"` : '';
+      const display = typeof v === 'number' ? m.fmt(v) : (Array.isArray(v) ? v.slice(0,3).join(', ') : v);
+      return `<td ${bg}>${display}</td>`;
+    }).join('');
+    return `<tr onclick="cmpDrillDown('${r.code}')"><td class="cmp-country-cell"><span class="cc-c-flag">${r.code}</span>${r.name}</td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('cmp-matrix-wrap').innerHTML = `<div class="cmp-table-wrap"><table class="cmp-matrix">${head}${body}</table></div>`;
+  document.getElementById('cmp-source').textContent = data.sources[dim] || '';
+}
+
+function cmpDrillDown(code){
   state.currentCountry = code;
-  goWorkspace('overview');
+  switchTab('overview');
+  updateCountryPillLabel();
 }
 
 // ============ AI SIDE PANEL ============
