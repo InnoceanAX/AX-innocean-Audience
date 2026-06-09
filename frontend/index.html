@@ -336,6 +336,9 @@ a{color:inherit;text-decoration:none}
 .cc-c-item:hover{background:#F3F4F6}
 .cc-c-flag{font-size:16px}
 .cc-c-code{margin-left:auto;font-size:10px;color:var(--tm);font-family:'SF Mono',Menlo,Consolas,monospace;letter-spacing:.5px}
+.cc-c-item.inactive{opacity:.45;cursor:not-allowed;filter:grayscale(.8)}
+.cc-c-item.inactive:hover{background:#FAFAFA}
+.cc-c-item.inactive .cc-c-code::after{content:" · 데이터 미수집";color:#9CA3AF;font-family:Pretendard,system-ui;text-transform:none;letter-spacing:0;font-size:9.5px}
 
 /* Loading */
 .loader{
@@ -454,7 +457,7 @@ a{color:inherit;text-decoration:none}
             <span class="accent">불을 붙일 인사이트</span>를 얻으세요.
           </h1>
           <div class="home-sub">
-            34개국 시장 데이터 · 18개 산업 무관 디멘션 · World Bank 라이브 통계 기반<br>
+            43개국 라이브 트렌드 · 18개 산업 무관 디멘션 · BigQuery Google Trends + World Bank 기반<br>
             자연어로 묻거나 직접 빌더로 타겟을 만들 수 있습니다.
           </div>
 
@@ -639,7 +642,9 @@ function renderCountryList(filter=''){
   for(const r of sorted){
     html += `<div class="cc-region-h">${regions[r]?.name || r}</div>`;
     for(const c of byRegion[r]){
-      html += `<div class="cc-c-item" onclick="selectCountry('${c.code}')">
+      const cls = c.inactive ? 'cc-c-item inactive' : 'cc-c-item';
+      const tip = c.inactive ? ` title="${c.inactiveReason||'데이터 미수집 중'}"` : '';
+      html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
         <span class="cc-c-flag">${c.flag}</span>
         <span>${c.name}</span>
         <span class="cc-c-code">${c.code}</span>
@@ -660,6 +665,11 @@ function toggleCountryList(){
 function selectCountry(code){
   const c = state.countries.find(x => x.code === code);
   if(!c) return;
+  if(c.inactive){
+    toast(`${c.name}은(는) ${c.inactiveReason || '데이터 미수집 중'}입니다. INNOCEAN 거점이나 현재 라이브 데이터는 제공되지 않습니다.`);
+    document.getElementById('cc-list').classList.add('hide');
+    return;
+  }
   state.currentCountry = code;
   document.getElementById('cc-flag').textContent = c.flag;
   document.getElementById('cc-name').textContent = c.name;

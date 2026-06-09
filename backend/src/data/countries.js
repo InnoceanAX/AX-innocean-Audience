@@ -1,6 +1,7 @@
-// BigQuery Google Trends Public Dataset 지원 43개국
-// 출처: bigquery-public-data.google_trends.international_top_terms (42국) + top_terms (US, DMA 단위)
+// BigQuery Google Trends 지원 43개국 + INNOCEAN 거점인데 데이터 미지원인 국가
+// 출처: bigquery-public-data.google_trends.international_top_terms (42국) + top_terms (US, DMA)
 // Tier 분리 없음 — 모든 국가 동일하게 Google Trends 기반 인사이트 제공
+// inactive: true → INNOCEAN 거점이지만 BigQuery Trends 미지원 (UI에서 회색 + 데이터 미수집 안내)
 // World Bank·UN 매칭 ISO 3166-1 alpha-2
 
 export const COUNTRIES = [
@@ -48,12 +49,17 @@ export const COUNTRIES = [
   { code: "UA", name: "우크라이나", nameEn: "Ukraine",      region: "europe",       flag: "🇺🇦", currency: "UAH", language: "uk" },
 
   // === Middle East & Africa ===
+  { code: "AE", name: "UAE",         nameEn: "United Arab Emirates", region: "middle-east", flag: "🇦🇪", currency: "AED", language: "ar", inactive: true, inactiveReason: "BigQuery Google Trends 미지원 — 데이터 미수집 중" },
   { code: "SA", name: "사우디아라비아", nameEn: "Saudi Arabia", region: "middle-east", flag: "🇸🇦", currency: "SAR", language: "ar" },
   { code: "IL", name: "이스라엘",   nameEn: "Israel",       region: "middle-east",  flag: "🇮🇱", currency: "ILS", language: "he" },
   { code: "TR", name: "튀르키예",   nameEn: "Turkey",       region: "middle-east",  flag: "🇹🇷", currency: "TRY", language: "tr" },
   { code: "EG", name: "이집트",     nameEn: "Egypt",        region: "middle-east",  flag: "🇪🇬", currency: "EGP", language: "ar" },
   { code: "NG", name: "나이지리아", nameEn: "Nigeria",      region: "africa",       flag: "🇳🇬", currency: "NGN", language: "en" },
   { code: "ZA", name: "남아공",     nameEn: "South Africa", region: "africa",       flag: "🇿🇦", currency: "ZAR", language: "en" },
+
+  // === INNOCEAN 거점이지만 BigQuery Trends 미지원 (회색 표시) ===
+  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", inactive: true, inactiveReason: "중국 본토는 Google 차단 — BigQuery Trends에 미수록" },
+  { code: "RU", name: "러시아",     nameEn: "Russia",       region: "europe",       flag: "🇷🇺", currency: "RUB", language: "ru", inactive: true, inactiveReason: "BigQuery Google Trends 미지원 — 데이터 미수집 중" },
 ];
 
 export const REGIONS = {
