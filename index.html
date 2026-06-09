@@ -493,6 +493,103 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
   .hl-grid,.drv-grid{grid-template-columns:1fr}
 }
 
+
+/* === Phase B: Ask AI / Dashboard / Trends === */
+.ask-ai-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;margin-right:12px;flex-shrink:0;font-family:inherit}
+.ask-ai-btn:hover{background:linear-gradient(135deg,#4338CA,#6D28D9);transform:translateY(-1px)}
+.ask-ai-btn kbd{font-size:10px;padding:2px 6px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);font-family:inherit;font-weight:600}
+.ask-ai-btn .ico{width:14px;height:14px}
+@media (max-width:900px){.ask-ai-btn kbd{display:none}}
+@media (max-width:760px){.ask-ai-btn span{display:none}}
+
+.ask-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:flex-start;justify-content:center;padding-top:80px}
+.ask-modal.open{display:flex}
+.ask-box{background:#fff;width:680px;max-width:92vw;border:1px solid var(--bdr);display:flex;flex-direction:column;max-height:80vh;overflow:hidden}
+.ask-hd{padding:18px 22px 12px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px}
+.ask-hd-t{font-size:14px;font-weight:800;color:#000;flex:1}
+.ask-hd-c{cursor:pointer;color:var(--ts);background:none;border:none;font-size:22px;line-height:1;padding:0 6px}
+.ask-input{padding:14px 22px;border-bottom:1px solid var(--bdr)}
+.ask-input input{width:100%;padding:12px 14px;font-size:15px;border:1px solid var(--bdr);background:#fff;color:#000;outline:none;font-family:inherit}
+.ask-input input:focus{border-color:var(--ind)}
+.ask-examples{padding:8px 22px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--bdr)}
+.ask-ex{font-size:11.5px;padding:4px 10px;background:#F3F4F6;color:#374151;cursor:pointer;border:none;font-family:inherit}
+.ask-ex:hover{background:#E5E7EB}
+.ask-result{padding:18px 22px;overflow-y:auto;flex:1}
+.ask-msg{font-size:13.5px;color:#1F2937;line-height:1.6;padding:14px 16px;background:#F9FAFB;border-left:3px solid var(--ind);margin-bottom:12px}
+.ask-msg b{color:#000}
+.ask-msg-empty{font-size:12px;color:var(--tm);font-style:italic;text-align:center;padding:30px 0}
+.ask-action{margin-top:12px;display:flex;gap:8px}
+.ask-action button{padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bdr);background:#fff;color:#000;font-family:inherit}
+.ask-action button.pri{background:var(--ind);color:#fff;border-color:var(--ind)}
+.ask-action button.pri:hover{background:var(--ind2)}
+
+body.dark .ask-box{background:#1F2937;border-color:#374151}
+body.dark .ask-hd,body.dark .ask-input,body.dark .ask-examples{border-color:#374151}
+body.dark .ask-hd-t{color:#F9FAFB}
+body.dark .ask-input input{background:#111827;color:#F9FAFB;border-color:#374151}
+body.dark .ask-msg{background:#111827;color:#E5E7EB}
+body.dark .ask-msg b{color:#F9FAFB}
+body.dark .ask-ex{background:#374151;color:#D1D5DB}
+
+/* Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:18px}
+.dash-card{background:#fff;border:1px solid var(--bdr);padding:16px 18px}
+.dash-card-t{font-size:11px;color:var(--ts);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+.dash-card-v{font-size:28px;font-weight:900;color:#000;line-height:1.1;letter-spacing:-.5px}
+.dash-card-s{font-size:11.5px;color:var(--tm);margin-top:6px}
+.dash-c3{grid-column:span 3}
+.dash-c4{grid-column:span 4}
+.dash-c6{grid-column:span 6}
+.dash-c8{grid-column:span 8}
+.dash-c12{grid-column:span 12}
+.dash-card-flex{display:flex;flex-direction:column;justify-content:space-between;min-height:96px}
+.dash-chart{height:240px;position:relative}
+.dash-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.dash-bullets li{font-size:12.5px;color:#374151;padding:8px 12px;background:#F9FAFB;border-left:3px solid var(--ind)}
+.dash-persona{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--bdr)}
+.dash-persona:last-child{border-bottom:none}
+.dash-persona-av{width:44px;height:44px;background:#000;color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dash-persona-info{flex:1}
+.dash-persona-n{font-size:13px;font-weight:800;color:#000}
+.dash-persona-s{font-size:11.5px;color:var(--tm);margin-top:2px}
+.dash-persona-q{font-size:12px;color:#374151;font-style:italic;margin-top:4px;line-height:1.45}
+
+body.dark .dash-card{background:#1F2937;border-color:#374151}
+body.dark .dash-card-v,body.dark .dash-persona-n{color:#F9FAFB}
+body.dark .dash-bullets li,body.dark .dash-persona-q{background:#111827;color:#E5E7EB}
+
+@media (max-width:1100px){.dash-c3{grid-column:span 6}.dash-c4{grid-column:span 6}.dash-c6,.dash-c8{grid-column:span 12}}
+@media (max-width:760px){.dash-c3,.dash-c4{grid-column:span 12}}
+
+@media print{
+  body{background:#fff}
+  .header,#sidebar,.aud-pre-hd .aud-actions,.ask-ai-btn,.ask-modal{display:none !important}
+  .wrap{padding-left:24px !important;padding-top:24px !important;padding-right:24px !important;max-width:100% !important}
+  .dash-card{break-inside:avoid;border:1px solid #ccc !important}
+  .dash-grid{gap:10px;margin-bottom:14px}
+}
+
+/* Trends */
+.trd-hd{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.trd-stat{background:#fff;border:1px solid var(--bdr);padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.trd-stat-t{font-size:11px;color:var(--ts);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.trd-stat-row{display:flex;align-items:baseline;gap:10px}
+.trd-stat-v{font-size:30px;font-weight:900;color:#000;line-height:1;letter-spacing:-.5px}
+.trd-arrow{font-size:14px;font-weight:800;padding:3px 8px}
+.trd-arrow.up{color:#059669;background:#D1FAE5}
+.trd-arrow.dn{color:#DC2626;background:#FEE2E2}
+.trd-arrow.flat{color:#6B7280;background:#F3F4F6}
+.trd-momentum{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.trd-momentum.rising{color:#059669}
+.trd-momentum.declining{color:#DC2626}
+.trd-momentum.stable{color:#6B7280}
+.trd-stat-s{font-size:11.5px;color:var(--tm)}
+
+body.dark .trd-stat{background:#1F2937;border-color:#374151}
+body.dark .trd-stat-v{color:#F9FAFB}
+
+@media (max-width:1100px){.trd-hd{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body class="home-mode">
@@ -506,6 +603,11 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
         <span class="sub">AUDIENCE</span>
       </div>
       <div class="hdr-pagetitle" id="hdrPageTitle"></div>
+      <button class="ask-ai-btn" onclick="openAskAI()" title="자연어 질의 (Ctrl+K)">
+        <svg class="ico ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 5.6L19 10l-5.2 1.4L12 17l-1.8-5.6L5 10l5.2-1.4z"/></svg>
+        <span>Ask AI</span>
+        <kbd>⌘K</kbd>
+      </button>
       <div class="hdr-actions">
         <div class="hdr-project-badge" title="현재 프로젝트">
           <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M4 7h16v12H4z"/><path d="M9 7V4h6v3"/></svg>
@@ -534,6 +636,10 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
 
 <aside class="sidebar" id="sidebar" role="navigation" aria-label="페이지 메뉴">
   <div class="side-grp">
+    <div class="side-grp-t">종합</div>
+    <div class="side-it" data-page="dashboard" onclick="navTo('dashboard', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="5"/><rect x="13" y="10" width="8" height="11"/><rect x="3" y="13" width="8" height="8"/></svg><span>대시보드</span></div>
+  </div>
+  <div class="side-grp">
     <div class="side-grp-t">오디언스</div>
     <div class="side-it" data-page="builder" onclick="navTo('builder', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M3 12h18M3 19h12"/></svg><span>빌더</span></div>
     <div class="side-it" data-page="compare" onclick="navTo('compare', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h8M3 12h8M3 18h8M16 6h5M16 12h5M16 18h5"/></svg><span>모집단 비교</span></div>
@@ -542,6 +648,7 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
     <div class="side-grp-t">인사이트</div>
     <div class="side-it" data-page="insights" onclick="navTo('insights', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-7"/></svg><span>차트</span></div>
     <div class="side-it" data-page="xtab" onclick="navTo('xtab', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span>교차분석</span></div>
+    <div class="side-it" data-page="trends" onclick="navTo('trends', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span>트렌드</span></div>
     <div class="side-it" data-page="discover" onclick="navTo('discover', null)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg><span>디스커버</span></div>
   </div>
   <div class="side-grp">
@@ -569,6 +676,31 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
   </div>
 
   <!-- ============ HOME / Landing ============ -->
+  
+<!-- Phase B: Ask AI Modal -->
+<div class="ask-modal" id="ask-modal" role="dialog" aria-label="Ask AI">
+  <div class="ask-box">
+    <div class="ask-hd">
+      <svg class="ico ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 5.6L19 10l-5.2 1.4L12 17l-1.8-5.6L5 10l5.2-1.4z"/></svg>
+      <div class="ask-hd-t">Ask AI — 자연어 질의</div>
+      <button class="ask-hd-c" onclick="closeAskAI()" aria-label="닫기">&times;</button>
+    </div>
+    <div class="ask-input">
+      <input type="text" id="ask-q" placeholder="예: 30대 자녀있는 사람들 사이즈는?" onkeydown="if(event.key===&#39;Enter&#39;) askAI();" />
+    </div>
+    <div class="ask-examples">
+      <button class="ask-ex" onclick="askExample(&#39;30대 자녀있는 사람들 사이즈?&#39;)">30대 자녀있는 사람들 사이즈?</button>
+      <button class="ask-ex" onclick="askExample(&#39;1억↑ 가구의 구매 의향은?&#39;)">1억↑ 가구의 구매 의향은?</button>
+      <button class="ask-ex" onclick="askExample(&#39;테슬라 관심자에게 어떤 미디어?&#39;)">테슬라 관심자에게 어떤 미디어?</button>
+      <button class="ask-ex" onclick="askExample(&#39;안전 트리거 비중이 가장 높은 그룹?&#39;)">안전 트리거 비중?</button>
+      <button class="ask-ex" onclick="askExample(&#39;캠핑 라이프스타일 평균 의향?&#39;)">캠핑 라이프 평균 의향?</button>
+    </div>
+    <div class="ask-result" id="ask-result">
+      <div class="ask-msg-empty">필터·집계·페르소나 데이터를 자연어로 질의하세요. 룰베이스 파서가 즉답합니다.</div>
+    </div>
+  </div>
+</div>
+
   <div class="page active" id="page-home">
     <!-- Hero -->
     <section class="home-hero">
@@ -715,6 +847,64 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
       </div>
     </section>
 
+  </div>
+
+  
+  <!-- ============ Dashboard ============ -->
+  <div class="page" id="page-dashboard">
+    <div class="aud-pre-hd" style="background:#fff;border:2px solid var(--bdr);padding:18px 22px;margin-bottom:18px">
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">대시보드 — 한 화면 종합</div>
+        <div style="font-size:12px;color:var(--ts);margin-top:4px">핵심 KPI·시그널·차트·페르소나·인용을 한 화면에 정리합니다. 발표·인쇄용 레이아웃입니다.</div>
+      </div>
+      <div class="aud-actions">
+        <button class="hdr-btn" onclick="window.print()" title="인쇄/PDF"><svg class="ico ico-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6"/><path d="M6 18H4v-7h16v7h-2"/><path d="M6 14h12v7H6z"/></svg>인쇄</button>
+      </div>
+    </div>
+
+    <!-- 헤드라인 인덱스 (Phase A 카드 재사용) -->
+    <div class="dash-grid">
+      <div class="dash-card dash-c3 dash-card-flex" id="dash-hl-1"></div>
+      <div class="dash-card dash-c3 dash-card-flex" id="dash-hl-2"></div>
+      <div class="dash-card dash-c3 dash-card-flex" id="dash-hl-3"></div>
+      <div class="dash-card dash-c3 dash-card-flex" id="dash-hl-4"></div>
+    </div>
+
+    <!-- KPI 4개 -->
+    <div class="dash-grid">
+      <div class="dash-card dash-c3"><div class="dash-card-t">타겟 사이즈</div><div class="dash-card-v" id="dash-kpi-size">–</div><div class="dash-card-s" id="dash-kpi-size-s">–</div></div>
+      <div class="dash-card dash-c3"><div class="dash-card-t">평균 연령</div><div class="dash-card-v" id="dash-kpi-age">–</div><div class="dash-card-s">모집단 34.6세</div></div>
+      <div class="dash-card dash-c3"><div class="dash-card-t">평균 가구소득</div><div class="dash-card-v" id="dash-kpi-income">–</div><div class="dash-card-s" id="dash-kpi-income-s">모집단 6.3천만</div></div>
+      <div class="dash-card dash-c3"><div class="dash-card-t">구매 의향</div><div class="dash-card-v" id="dash-kpi-intent">–</div><div class="dash-card-s" id="dash-kpi-intent-s">모집단 68점</div></div>
+    </div>
+
+    <!-- 핵심 차트 2개 + 대표 페르소나 -->
+    <div class="dash-grid">
+      <div class="dash-card dash-c4">
+        <div class="dash-card-t">관심 트리거</div>
+        <div class="dash-chart"><canvas id="dash-ch-trigger"></canvas></div>
+      </div>
+      <div class="dash-card dash-c4">
+        <div class="dash-card-t">주요 미디어</div>
+        <div class="dash-chart"><canvas id="dash-ch-media"></canvas></div>
+      </div>
+      <div class="dash-card dash-c4">
+        <div class="dash-card-t">대표 페르소나</div>
+        <div id="dash-personas"></div>
+      </div>
+    </div>
+
+    <!-- 인용 6 + 시그널 -->
+    <div class="dash-grid">
+      <div class="dash-card dash-c8">
+        <div class="dash-card-t">이런 목소리들 (Verbatim)</div>
+        <ul class="dash-bullets" id="dash-verbatims"></ul>
+      </div>
+      <div class="dash-card dash-c4">
+        <div class="dash-card-t">Top Drivers — 구매 의향</div>
+        <ul class="dash-bullets" id="dash-drivers"></ul>
+      </div>
+    </div>
   </div>
 
   <!-- ============ Audience Builder ============ -->
@@ -1039,6 +1229,34 @@ body.dark .vrb-card .vrb-tag{color:#A5B4FC;background:#312E81}
   </div>
 
   <!-- ============ Discover ============ -->
+  
+  <!-- ============ Trends ============ -->
+  <div class="page" id="page-trends">
+    <div class="aud-pre-hd" style="background:#fff;border:2px solid var(--bdr);padding:18px 22px;margin-bottom:18px">
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">트렌드 — 시계열 시그널</div>
+        <div style="font-size:12px;color:var(--ts);margin-top:4px">최근 6개월 EV 의향·매체·트리거 변화 추이. 모멘텀 자동 라벨링 (상승/안정/하락).</div>
+      </div>
+    </div>
+
+    <!-- 상단 요약 3종 -->
+    <div class="trd-hd">
+      <div class="trd-stat"><div class="trd-stat-t">EV 구매 의향 추이</div><div class="trd-stat-row"><div class="trd-stat-v" id="trd-intent-v">–</div><div class="trd-arrow up" id="trd-intent-arr">▲ +0%</div></div><div class="trd-momentum rising" id="trd-intent-mom">RISING</div><div class="trd-stat-s">최근 6개월 평균 의향</div></div>
+      <div class="trd-stat"><div class="trd-stat-t">관심자 풀 크기</div><div class="trd-stat-row"><div class="trd-stat-v" id="trd-size-v">–</div><div class="trd-arrow up" id="trd-size-arr">▲ +0%</div></div><div class="trd-momentum rising" id="trd-size-mom">RISING</div><div class="trd-stat-s">EV 의향 ≥60점 모집단</div></div>
+      <div class="trd-stat"><div class="trd-stat-t">충전인프라 만족도</div><div class="trd-stat-row"><div class="trd-stat-v" id="trd-infra-v">–</div><div class="trd-arrow flat" id="trd-infra-arr">▶ +0%</div></div><div class="trd-momentum stable" id="trd-infra-mom">STABLE</div><div class="trd-stat-s">"충전 인프라 만족" 응답 비율</div></div>
+    </div>
+
+    <!-- 라인 차트 3개 -->
+    <div class="sec-hd"><div class="sec-t">월별 EV 구매 의향 추이</div><div class="sec-s">2025년 12월 ~ 2026년 5월 (합성 데이터)</div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:280px"><canvas id="trd-ch-intent"></canvas></div></div>
+
+    <div class="sec-hd"><div class="sec-t">트리거 비중 변화</div><div class="sec-s">상위 4개 구매 트리거의 6개월 추이</div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:280px"><canvas id="trd-ch-trigger"></canvas></div></div>
+
+    <div class="sec-hd"><div class="sec-t">미디어 채널 모멘텀</div><div class="sec-s">상위 4개 매체의 도달률 추이</div></div>
+    <div class="chart-card"><div class="chart-wrap" style="height:280px"><canvas id="trd-ch-media"></canvas></div></div>
+  </div>
+
   <div class="page" id="page-discover">
     <div class="aud-pre-hd" style="background:#fff;border:2px solid var(--bdr);padding:18px 22px;margin-bottom:18px;align-items:center">
       <div>
@@ -1733,7 +1951,7 @@ function updateProjectBadge(){
 
 
 // ============ Navigation + Browser History ============
-const PAGES = ['home','builder','insights','xtab','compare','discover','interview'];
+const PAGES = ['home','dashboard','builder','insights','xtab','trends','compare','discover','interview'];
 function renderPage(id){
   if(!PAGES.includes(id)) id='home';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1749,11 +1967,15 @@ function renderPage(id){
     s.classList.toggle('on', s.dataset.page===id);
   });
   // 헤더 페이지 타이틀
-  const titles = {home:'',builder:'오디언스 빌더',insights:'차트 & 인사이트',xtab:'교차 분석',compare:'오디언스 비교',discover:'디스커버',interview:'페르소나 인터뷰'};
+  const titles = {home:'',dashboard:'대시보드',builder:'오디언스 빌더',insights:'차트 & 인사이트',xtab:'교차 분석',trends:'트렌드',compare:'오디언스 비교',discover:'디스커버',interview:'페르소나 인터뷰'};
   const hpt = document.getElementById('hdrPageTitle');
   if(hpt) hpt.textContent = titles[id] || '';
   window.scrollTo(0,0);
-  setTimeout(renderCharts, 50);
+  setTimeout(()=>{
+    renderCharts();
+    if(id==='dashboard' && typeof rerenderDashboard==='function') rerenderDashboard();
+    if(id==='trends' && typeof rerenderTrends==='function') rerenderTrends();
+  }, 50);
 }
 function navTo(id, btn){
   // pushState — 브라우저 뒤로가기/앞으로가기 동작
@@ -2314,6 +2536,302 @@ window.addEventListener('DOMContentLoaded', ()=>{
   updateProjectBadge();
   renderCharts();
 });
+
+// ===========================================================
+// Phase B: Ask AI / Dashboard / Trends
+// ===========================================================
+
+// --- B-6. Ask AI 룰베이스 파서 ---
+function openAskAI(){
+  const m = document.getElementById('ask-modal');
+  if(!m) return;
+  m.classList.add('open');
+  setTimeout(()=>{ const q=document.getElementById('ask-q'); if(q) q.focus(); }, 50);
+}
+function closeAskAI(){
+  const m = document.getElementById('ask-modal');
+  if(m) m.classList.remove('open');
+}
+function askExample(txt){
+  const inp = document.getElementById('ask-q');
+  if(inp){ inp.value = txt; askAI(); }
+}
+
+const ASK_OPT_MAP = {
+  '30대초':['age','30-32'],'30대중':['age','33-35'],'30대후':['age','36-38'],'30대':['age','30-32','33-35','36-38'],
+  '여성':['gender','여성'],'여자':['gender','여성'],'남성':['gender','남성'],'남자':['gender','남성'],
+  '수도권':['region','수도권'],'광역시':['region','광역시'],'지방':['region','지방'],
+  '1억':['income','1억↑'],'1억↑':['income','1억↑'],'1억이상':['income','1억↑'],'고소득':['income','7천만-1억','1억↑'],
+  '7천만':['income','7천만-1억'],'5천만':['income','5-7천만'],'3천만':['income','3-5천만'],
+  '미혼':['marriage','미혼'],'신혼':['marriage','신혼'],'자녀':['marriage','자녀있음'],'자녀있':['marriage','자녀있음'],'워킹맘':['marriage','자녀있음'],
+  '전문직':['job','전문직'],'사무직':['job','사무직'],'자영업':['job','자영업'],'주부':['job','주부'],
+  '세단':['carNow','세단'],'SUV':['carNow','SUV'],'EV':['carWant','EV'],'전기차':['carWant','EV'],'하이브리드':['carWant','하이브리드'],'내연기관':['carWant','내연기관'],
+  '테슬라':['brand','테슬라'],'현대':['brand','현대'],'기아':['brand','기아'],'BMW':['brand','BMW'],'벤츠':['brand','벤츠'],'폭스바겐':['brand','폭스바겐'],
+  '친환경':['trigger','친환경'],'경제성':['trigger','경제성'],'성능':['trigger','성능'],'디자인':['trigger','디자인'],'안전':['trigger','안전'],'보조금':['trigger','보조금'],
+  '유튜브':['media','YouTube'],'YouTube':['media','YouTube'],'인스타':['media','Instagram'],'Instagram':['media','Instagram'],'네이버':['media','네이버'],'카카오':['media','카카오'],'TV':['media','TV'],
+  '캠핑':['lifestyle','캠핑'],'육아':['lifestyle','육아'],'피트니스':['lifestyle','피트니스'],'맛집':['lifestyle','맛집'],'반려동물':['lifestyle','반려동물'],'얼리어답터':['lifestyle','테크얼리어답터'],'테크':['lifestyle','테크얼리어답터'],
+};
+
+function parseQuestion(q){
+  const filters = {};
+  Object.keys(ASK_OPT_MAP).forEach(key=>{
+    if(q.indexOf(key) === -1) return;
+    const arr = ASK_OPT_MAP[key];
+    const dim = arr[0];
+    const opts = arr.slice(1);
+    filters[dim] = filters[dim] || [];
+    opts.forEach(o=>{ if(!filters[dim].includes(o)) filters[dim].push(o); });
+  });
+  let intent = 'summary';
+  // 우선순위: 비중/사이즈 > 의향 > 소득 > 연령 > 미디어 > 트리거
+  if(/비중|비율|점유|%|퍼센트/.test(q)) intent = 'share';
+  else if(/사이즈|규모|얼마(나)?\s*(되|있|많|크|돼)|몇\s*명|크기/.test(q)) intent = 'size';
+  else if(/의향|구매\s*점수|점수/.test(q)) intent = 'intent';
+  else if(/소득|수입|벌(어|이)/.test(q)) intent = 'income';
+  else if(/연령|나이|몇\s*살/.test(q)) intent = 'age';
+  else if(/미디어|매체|채널|어디서\s*(봐|보)/.test(q)) intent = 'media';
+  else if(/트리거|요인|동기|왜/.test(q)) intent = 'trigger';
+  return { filters, intent };
+}
+
+function askAI(){
+  const inp = document.getElementById('ask-q');
+  if(!inp) return;
+  const q = (inp.value || '').trim();
+  if(!q) return;
+  const r = document.getElementById('ask-result');
+  const parsed = parseQuestion(q);
+  const fk = Object.keys(parsed.filters);
+
+  if(fk.length === 0){
+    r.innerHTML = '<div class="ask-msg">필터 키워드를 인식하지 못했어요. <b>30대, 자녀, 안전, 인스타, 캠핑, 1억</b> 같은 단어를 포함해보세요.</div>';
+    return;
+  }
+
+  const seg = computeSegment(parsed.filters);
+  const baseSeg = computeSegment({});
+  const filterDesc = fk.map(d=>{
+    const lab = (typeof AUD_DIMS !== 'undefined' && AUD_DIMS[d]) ? AUD_DIMS[d].label : d;
+    return lab + ' · ' + parsed.filters[d].join(', ');
+  }).join(' / ');
+
+  let answer = '';
+  switch(parsed.intent){
+    case 'size':
+      answer = '<b>'+seg.size.toLocaleString()+'</b>명 (모집단 '+baseSeg.size.toLocaleString()+' 중 <b>'+(seg.size/baseSeg.size*100).toFixed(1)+'%</b>)';
+      break;
+    case 'intent':
+      const liftI = seg.avgIntent - baseSeg.avgIntent;
+      answer = '평균 구매 의향 <b>'+seg.avgIntent+'점</b> / 100. 모집단 평균 '+baseSeg.avgIntent+'점 대비 <b>'+(liftI>=0?'+':'')+liftI+'점</b>.';
+      break;
+    case 'income':
+      answer = '평균 가구소득 <b>'+seg.avgIncome+'천만원</b>. 모집단 평균 '+baseSeg.avgIncome+'천만원.';
+      break;
+    case 'age':
+      answer = '평균 연령 <b>'+seg.avgAge+'세</b>. 모집단 평균 '+baseSeg.avgAge+'세.';
+      break;
+    case 'media':
+      const md = seg.distFor('media').slice().sort((a,b)=>b.p-a.p).slice(0,3);
+      answer = '주요 매체 TOP 3: ' + md.map(d=>'<b>'+d.k+'</b> '+(d.p*100).toFixed(0)+'%').join(' · ');
+      break;
+    case 'trigger':
+      const tr = seg.distFor('trigger').slice().sort((a,b)=>b.p-a.p).slice(0,3);
+      answer = '핵심 트리거 TOP 3: ' + tr.map(d=>'<b>'+d.k+'</b> '+(d.p*100).toFixed(0)+'%').join(' · ');
+      break;
+    case 'share':
+      answer = '이 세그먼트는 모집단의 <b>'+(seg.size/baseSeg.size*100).toFixed(1)+'%</b> (사이즈 '+seg.size.toLocaleString()+').';
+      break;
+    default:
+      answer = '<b>'+seg.size.toLocaleString()+'</b>명 / 평균 의향 <b>'+seg.avgIntent+'점</b> / 평균 소득 <b>'+seg.avgIncome+'천만</b> / 평균 연령 <b>'+seg.avgAge+'세</b>';
+  }
+
+  let html = '<div class="ask-msg"><div style="font-size:11px;color:#9CA3AF;margin-bottom:6px;font-weight:700;text-transform:uppercase">필터 인식 → '+filterDesc+'</div>'+answer+'</div>';
+  html += '<div class="ask-action"><button class="pri" onclick=\'applyAskFilters('+JSON.stringify(JSON.stringify(parsed.filters))+')\'>이 필터로 빌더 열기</button><button onclick="document.getElementById(\'ask-q\').value=\'\';document.getElementById(\'ask-q\').focus()">다시 묻기</button></div>';
+  r.innerHTML = html;
+}
+
+function applyAskFilters(filtersJson){
+  const f = JSON.parse(filtersJson);
+  AUD_STATE.filters = f;
+  if(typeof applyFiltersToUI === 'function') applyFiltersToUI();
+  if(typeof rerenderAll === 'function') rerenderAll();
+  closeAskAI();
+  navTo('builder', null);
+  if(typeof showToast === 'function') showToast('필터가 빌더에 적용되었습니다','ok');
+}
+
+// 단축키 Cmd+K / Ctrl+K
+window.addEventListener('keydown', function(e){
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
+    e.preventDefault();
+    openAskAI();
+  }
+  if(e.key === 'Escape'){
+    closeAskAI();
+  }
+});
+
+// --- B-5. Dashboard rerender ---
+let _dashCharts = {};
+function rerenderDashboard(){
+  const seg = computeSegment();
+  const baseSeg = computeSegment({});
+
+  const hls = computeHeadlines();
+  for(let i=1;i<=4;i++){
+    const el = document.getElementById('dash-hl-'+i);
+    if(!el) continue;
+    const h = hls[i-1];
+    if(!h){ el.innerHTML = '<div class="dash-card-t">시그널 #'+i+'</div><div class="dash-card-s" style="font-style:italic">필터를 추가하면 더 많은 시그널이 표시됩니다</div>'; continue; }
+    el.innerHTML = '<div><div class="dash-card-t">'+h.dimLabel+'</div><div class="dash-card-v" style="font-size:22px">'+(h.k||h.idx)+'</div></div><div class="dash-card-s">'+h.msg+'</div>';
+  }
+
+  const set = (id, val) => { const e=document.getElementById(id); if(e) e.textContent = val; };
+  set('dash-kpi-size', seg.size.toLocaleString());
+  set('dash-kpi-size-s', '모집단 '+baseSeg.size.toLocaleString()+'의 '+(seg.size/baseSeg.size*100).toFixed(1)+'%');
+  set('dash-kpi-age', seg.avgAge+'세');
+  set('dash-kpi-income', seg.avgIncome+'천만');
+  set('dash-kpi-intent', seg.avgIntent+'점');
+  const lift = seg.avgIntent - baseSeg.avgIntent;
+  set('dash-kpi-intent-s', '모집단 '+baseSeg.avgIntent+'점 대비 '+(lift>=0?'+':'')+lift+'점');
+
+  if(window.Chart){
+    if(document.getElementById('dash-ch-trigger')){
+      const tr = seg.distFor('trigger').slice().sort((a,b)=>b.p-a.p);
+      if(_dashCharts.trigger) _dashCharts.trigger.destroy();
+      _dashCharts.trigger = new Chart(document.getElementById('dash-ch-trigger'),{
+        type:'doughnut',
+        data:{labels:tr.map(d=>d.k),datasets:[{data:tr.map(d=>+(d.p*100).toFixed(1)),backgroundColor:['#000','#374151','#6B7280','#9CA3AF','#4338CA','#4F46E5']}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:10,padding:6,font:{size:11}}}}}
+      });
+    }
+    if(document.getElementById('dash-ch-media')){
+      const md = seg.distFor('media').slice().sort((a,b)=>b.p-a.p);
+      if(_dashCharts.media) _dashCharts.media.destroy();
+      _dashCharts.media = new Chart(document.getElementById('dash-ch-media'),{
+        type:'bar',
+        data:{labels:md.map(d=>d.k),datasets:[{data:md.map(d=>+(d.p*100).toFixed(1)),backgroundColor:'#4F46E5',borderWidth:0}]},
+        options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>v+'%'}}}}
+      });
+    }
+  }
+
+  const personaEl = document.getElementById('dash-personas');
+  if(personaEl){
+    const vrb = pickVerbatims(3);
+    personaEl.innerHTML = vrb.map(v=>{
+      const initial = v.persona.charAt(0);
+      return '<div class="dash-persona">'
+        + '<div class="dash-persona-av">'+initial+'</div>'
+        + '<div class="dash-persona-info">'
+        +   '<div class="dash-persona-n">'+v.persona+' <span style="font-weight:500;color:var(--tm)">'+v.age+'세</span></div>'
+        +   '<div class="dash-persona-s">'+v.tag+'</div>'
+        +   '<div class="dash-persona-q">"'+v.text.slice(0,90)+(v.text.length>90?'...':'')+'"</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  const vrbEl = document.getElementById('dash-verbatims');
+  if(vrbEl){
+    const vrb = pickVerbatims(6);
+    vrbEl.innerHTML = vrb.map(v=>'<li><b>'+v.persona+' '+v.age+'세 ('+v.tag+'):</b> "'+v.text+'"</li>').join('');
+  }
+
+  const drvEl = document.getElementById('dash-drivers');
+  if(drvEl){
+    const drv = computeTopDrivers();
+    drvEl.innerHTML = drv.map(d=>{
+      const sign = d.lift>0?'+':'';
+      return '<li><b>'+d.dimLabel+' '+d.opt+':</b> 의향 '+sign+d.lift+'pt '+(d.selected?'<span style="color:#059669;font-weight:700">✓ 적용중</span>':'')+'</li>';
+    }).join('');
+  }
+}
+
+// --- B-7. Trends rerender ---
+let _trdCharts = {};
+function generateTrendsData(){
+  const seg = computeSegment();
+  const months = ['12월','1월','2월','3월','4월','5월'];
+  const base = seg.avgIntent;
+  const intentSeries = [Math.max(15,base-7), Math.max(15,base-5), Math.max(15,base-4), Math.max(15,base-2), Math.max(15,base-1), base];
+  const sizeBase = seg.size;
+  const sizeSeries = [Math.round(sizeBase*0.85), Math.round(sizeBase*0.88), Math.round(sizeBase*0.92), Math.round(sizeBase*0.95), Math.round(sizeBase*0.98), sizeBase];
+  const infraSeries = [42, 43, 42, 44, 44, 45];
+  const trgDist = seg.distFor('trigger').slice().sort((a,b)=>b.p-a.p).slice(0,4);
+  const triggers = trgDist.map((t,i)=>({
+    label: t.k,
+    data: months.map((_,mi)=>+((t.p*100) + (Math.sin(mi*0.6+i*0.5)*1.5)).toFixed(1))
+  }));
+  const mdDist = seg.distFor('media').slice().sort((a,b)=>b.p-a.p).slice(0,4);
+  const medias = mdDist.map((m,i)=>({
+    label: m.k,
+    data: months.map((_,mi)=>+((m.p*100) + (Math.cos(mi*0.7+i*0.5)*1.2)).toFixed(1))
+  }));
+  return { months, intentSeries, sizeSeries, infraSeries, triggers, medias };
+}
+
+function rerenderTrends(){
+  const d = generateTrendsData();
+  const last = (arr) => arr[arr.length-1];
+  const first = (arr) => arr[0];
+  const pctChange = (arr) => +(((last(arr)-first(arr))/first(arr))*100).toFixed(1);
+
+  function setSummary(pid, mid, series, suffix){
+    const pct = pctChange(series);
+    const arr = document.getElementById(pid);
+    const mom = document.getElementById(mid);
+    if(arr){
+      arr.className = 'trd-arrow ' + (pct>3?'up':(pct<-3?'dn':'flat'));
+      arr.textContent = (pct>3?'▲ +':(pct<-3?'▼ ':'▶ ')) + pct + '%';
+    }
+    if(mom){
+      mom.className = 'trd-momentum ' + (pct>3?'rising':(pct<-3?'declining':'stable'));
+      mom.textContent = pct>3?'RISING':(pct<-3?'DECLINING':'STABLE');
+    }
+  }
+
+  const set = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent = v; };
+  set('trd-intent-v', last(d.intentSeries)+'점');
+  setSummary('trd-intent-arr', 'trd-intent-mom', d.intentSeries);
+  set('trd-size-v', last(d.sizeSeries).toLocaleString());
+  setSummary('trd-size-arr', 'trd-size-mom', d.sizeSeries);
+  set('trd-infra-v', last(d.infraSeries)+'%');
+  setSummary('trd-infra-arr', 'trd-infra-mom', d.infraSeries);
+
+  if(!window.Chart) return;
+
+  if(document.getElementById('trd-ch-intent')){
+    if(_trdCharts.intent) _trdCharts.intent.destroy();
+    _trdCharts.intent = new Chart(document.getElementById('trd-ch-intent'),{
+      type:'line',
+      data:{labels:d.months, datasets:[{label:'평균 의향', data:d.intentSeries, borderColor:'#4F46E5', backgroundColor:'rgba(79,70,229,.12)', fill:true, tension:0.3, borderWidth:2.5, pointRadius:4}]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false, ticks:{callback:v=>v+'점'}}}}
+    });
+  }
+
+  if(document.getElementById('trd-ch-trigger')){
+    const colors = ['#000','#4F46E5','#7C3AED','#9CA3AF'];
+    if(_trdCharts.trigger) _trdCharts.trigger.destroy();
+    _trdCharts.trigger = new Chart(document.getElementById('trd-ch-trigger'),{
+      type:'line',
+      data:{labels:d.months, datasets:d.triggers.map((t,i)=>({label:t.label, data:t.data, borderColor:colors[i], fill:false, tension:0.3, borderWidth:2, pointRadius:3}))},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:false, ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+
+  if(document.getElementById('trd-ch-media')){
+    const colors = ['#000','#4F46E5','#7C3AED','#9CA3AF'];
+    if(_trdCharts.media) _trdCharts.media.destroy();
+    _trdCharts.media = new Chart(document.getElementById('trd-ch-media'),{
+      type:'line',
+      data:{labels:d.months, datasets:d.medias.map((m,i)=>({label:m.label, data:m.data, borderColor:colors[i], fill:false, tension:0.3, borderWidth:2, pointRadius:3}))},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:false, ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+}
+
+
 </script>
 </body>
 </html>
