@@ -471,6 +471,54 @@ a{color:inherit;text-decoration:none}
 .md-spend-val{text-align:right;font-variant-numeric:tabular-nums;color:#111;font-weight:700;font-size:12.5px}
 .md-spend-share{display:block;font-size:10px;color:var(--tm);font-weight:500;margin-top:1px}
 /* 인플루언서 매칭 */
+/* 일일 미디어 여정 */
+.iv-journey-card{background:linear-gradient(135deg,#EFF6FF 0%,#F5F3FF 100%);border:1px solid #C7D2FE;border-radius:10px;padding:16px 18px;margin-top:14px}
+.iv-journey-loading{padding:18px;text-align:center;color:var(--tm);font-size:12.5px}
+.iv-journey-h{font-size:11.5px;font-weight:700;color:#3730A3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.iv-journey-summary{font-size:12.5px;color:#1E1B4B;line-height:1.6;margin-bottom:14px;font-style:italic}
+.iv-jt-wrap{display:flex;flex-direction:column;gap:0;margin-bottom:14px}
+.iv-jt-row{display:grid;grid-template-columns:55px 24px 1fr;gap:10px;align-items:flex-start;min-height:60px}
+.iv-jt-time{font-size:11px;font-weight:700;color:#3730A3;padding-top:2px;text-align:right}
+.iv-jt-line{position:relative;display:flex;flex-direction:column;align-items:center;height:100%}
+.iv-jt-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:2px solid #fff;box-shadow:0 0 0 1px #C7D2FE;z-index:1}
+.iv-jt-bar{width:2px;flex:1;background:#C7D2FE;margin-top:-2px}
+.iv-jt-content{padding-bottom:14px}
+.iv-jt-ctx{font-size:12.5px;font-weight:600;color:#111;margin-bottom:3px}
+.iv-jt-media{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.iv-jt-mtag{display:inline-block;padding:1px 8px;background:#fff;border:1px solid #C7D2FE;border-radius:10px;font-size:10.5px;color:#4338CA;font-weight:600}
+.iv-jt-beh{font-size:11.5px;color:var(--tm);line-height:1.5}
+.iv-jt-peak{font-size:12px;color:#065F46;background:#D1FAE5;padding:8px 12px;border-radius:6px;margin-top:8px;line-height:1.5}
+.iv-jt-avoid{font-size:12px;color:#991B1B;background:#FEE2E2;padding:8px 12px;border-radius:6px;margin-top:6px;line-height:1.5}
+.iv-jt-actions{display:flex;gap:8px;margin-top:12px}
+.iv-jt-btn{padding:8px 14px;background:#4338CA;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s}
+.iv-jt-btn:hover{background:#3730A3}
+/* 메시지 테스터 모달 */
+.mt-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center}
+.mt-modal.hide{display:none}
+.mt-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);cursor:pointer}
+.mt-dialog{position:relative;background:#fff;border-radius:12px;padding:24px;max-width:600px;width:90%;max-height:85vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.mt-h{font-size:16px;font-weight:700;color:#111;margin-bottom:6px}
+.mt-sub{font-size:12px;color:var(--tm);margin-bottom:16px}
+.mt-ta{width:100%;min-height:60px;padding:10px;border:1px solid var(--bdr);border-radius:6px;font-size:13px;font-family:inherit;margin-bottom:8px;resize:vertical}
+.mt-ta:focus{outline:none;border-color:var(--ind)}
+.mt-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.mt-cancel{padding:8px 16px;background:#fff;border:1px solid var(--bdr);border-radius:6px;font-size:13px;cursor:pointer}
+.mt-go{padding:8px 16px;background:var(--ind);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+.mt-go:hover{background:var(--ind2)}
+.mt-result{margin-top:16px;padding-top:16px;border-top:1px solid var(--bdr)}
+.mt-result.hide{display:none}
+.mt-loading{padding:20px;text-align:center;color:var(--tm)}
+.mt-err{padding:12px;background:#FEE2E2;color:#991B1B;border-radius:6px;font-size:12.5px}
+.mt-winner{padding:12px 14px;background:#FEF3C7;border-radius:6px;font-size:13px;color:#92400E;margin-bottom:10px;line-height:1.5}
+.mt-insight{padding:10px 12px;background:#F3F4F6;border-radius:6px;font-size:12px;color:#4B5563;margin-bottom:14px;line-height:1.6}
+.mt-pname{font-size:13px;font-weight:700;color:#111;margin-bottom:8px}
+.mt-mr{background:#F9FAFB;border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:8px}
+.mt-mr-h{font-size:12px;font-weight:700;color:var(--ind);margin-bottom:6px}
+.mt-mr-emotion{font-size:13px;color:#111;font-style:italic;margin-bottom:8px;line-height:1.5}
+.mt-mr-scores{display:flex;gap:14px;font-size:11.5px;color:var(--tm);margin-bottom:6px}
+.mt-mr-scores b{color:var(--ts);font-weight:600;margin-right:4px}
+.mt-mr-c{font-size:11.5px;color:#7C2D12;margin-bottom:4px}
+.mt-mr-s{font-size:11.5px;color:#1E40AF}
 .iv-match-card{background:linear-gradient(135deg,#FCE7F3 0%,#FAF5FF 100%);border:1px solid #F9A8D4;border-radius:10px;padding:14px 16px;margin-top:14px}
 .iv-match-h{font-size:11px;font-weight:700;color:#9D174D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .iv-match-x{font-size:12.5px;color:#111;line-height:1.6;margin-bottom:10px}
@@ -1370,6 +1418,128 @@ function renderInfluencerMatch(data){
   else card.insertAdjacentHTML('beforeend', html);
 }
 
+async function fetchPersonaJourney(persona){
+  try {
+    const wrap = document.getElementById('iv-card');
+    // 로딩 표시
+    if(!wrap.querySelector('.iv-journey-card')){
+      wrap.insertAdjacentHTML('beforeend', '<div class="iv-journey-card iv-journey-loading">⏳ 하루의 미디어 여정 생성 중…</div>');
+    }
+    const res = await fetch(`${API}/interview/journey`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ persona, country: state.currentCountry }),
+    });
+    const data = await res.json();
+    if(!data.ok) return;
+    renderPersonaJourney(data);
+  } catch(e){ /* silent */ }
+}
+
+function renderPersonaJourney(data){
+  const j = data.journey;
+  if(!j || !j.timeline) return;
+  const card = document.getElementById('iv-card');
+  const existing = card.querySelector('.iv-journey-card');
+  const recColor = { 'high':'#10B981', '높음':'#10B981', 'medium':'#F59E0B', '중간':'#F59E0B', 'low':'#9CA3AF', '낮음':'#9CA3AF' };
+  const timelineHTML = j.timeline.map((step, i) => {
+    const recv = recColor[step.adReceptivity?.toLowerCase()] || '#9CA3AF';
+    return `<div class="iv-jt-row">
+      <div class="iv-jt-time">${step.time}</div>
+      <div class="iv-jt-line"><div class="iv-jt-dot" style="background:${recv}"></div>${i < j.timeline.length-1 ? '<div class="iv-jt-bar"></div>' : ''}</div>
+      <div class="iv-jt-content">
+        <div class="iv-jt-ctx">${step.context}</div>
+        <div class="iv-jt-media">${(step.mediaTouchpoints||[]).map(m=>`<span class="iv-jt-mtag">${m}</span>`).join('')}</div>
+        <div class="iv-jt-beh">${step.behavior||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const html = `<div class="iv-journey-card">
+    <div class="iv-journey-h">일일 미디어 여정</div>
+    <div class="iv-journey-summary">${j.summary || ''}</div>
+    <div class="iv-jt-wrap">${timelineHTML}</div>
+    ${j.peakAdMoment ? `<div class="iv-jt-peak"><b>✨ 최적 광고 시간대:</b> ${j.peakAdMoment}</div>` : ''}
+    ${j.avoidMoment ? `<div class="iv-jt-avoid"><b>⚠ 피해야 할 시간대:</b> ${j.avoidMoment}</div>` : ''}
+    <div class="iv-jt-actions">
+      <button class="iv-jt-btn" onclick="openMessageTester()">💬 광고 메시지 A/B 테스트</button>
+    </div>
+  </div>`;
+  if(existing) existing.outerHTML = html;
+  else card.insertAdjacentHTML('beforeend', html);
+}
+
+// 메시지 테스터 모달
+function openMessageTester(){
+  let modal = document.getElementById('mt-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'mt-modal';
+    modal.className = 'mt-modal';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `<div class="mt-overlay" onclick="closeMessageTester()"></div>
+    <div class="mt-dialog">
+      <div class="mt-h">💬 광고 메시지 A/B/C 테스트</div>
+      <div class="mt-sub">${state.ivPersona?.name || '페르소나'}이 각 메시지에 어떻게 반응하는지 시뮬레이션합니다.</div>
+      <textarea id="mt-msg-a" class="mt-ta" placeholder="🅰️ 메시지 A (예: 이제 더 스마트하게 쓰세요)"></textarea>
+      <textarea id="mt-msg-b" class="mt-ta" placeholder="🅱️ 메시지 B (선택)"></textarea>
+      <textarea id="mt-msg-c" class="mt-ta" placeholder="🅲️ 메시지 C (선택)"></textarea>
+      <div class="mt-actions">
+        <button class="mt-cancel" onclick="closeMessageTester()">취소</button>
+        <button class="mt-go" onclick="runMessageTest()">테스트 실행</button>
+      </div>
+      <div id="mt-result" class="mt-result hide"></div>
+    </div>`;
+  modal.classList.remove('hide');
+}
+function closeMessageTester(){ document.getElementById('mt-modal')?.classList.add('hide'); }
+
+async function runMessageTest(){
+  const a = document.getElementById('mt-msg-a').value.trim();
+  const b = document.getElementById('mt-msg-b').value.trim();
+  const c = document.getElementById('mt-msg-c').value.trim();
+  const messages = [a, b, c].filter(Boolean);
+  if(!messages.length){ alert('최소 1개 메시지를 입력하세요'); return; }
+  const persona = state.ivPersona;
+  if(!persona){ alert('페르소나가 없습니다'); return; }
+  const result = document.getElementById('mt-result');
+  result.classList.remove('hide');
+  result.innerHTML = '<div class="mt-loading">⏳ 페르소나 반응 시뮬레이션 중… (10-15초)</div>';
+  try {
+    const res = await fetch(`${API}/interview/test-message`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ personas: [persona], messages, country: state.currentCountry }),
+    });
+    const data = await res.json();
+    if(!data.ok){ result.innerHTML = `<div class="mt-err">오류: ${data.error||'알 수 없는 오류'}</div>`; return; }
+    renderMessageTestResult(data);
+  } catch(e){
+    result.innerHTML = `<div class="mt-err">요청 실패: ${e.message}</div>`;
+  }
+}
+
+function renderMessageTestResult(data){
+  const result = document.getElementById('mt-result');
+  const r0 = data.results?.[0];
+  if(!r0){ result.innerHTML = '<div class="mt-err">결과 없음</div>'; return; }
+  let html = `<div class="mt-winner">🏆 <b>우승 메시지:</b> ${data.winnerMessage}</div>`;
+  if(data.overallInsight) html += `<div class="mt-insight">${data.overallInsight}</div>`;
+  html += `<div class="mt-pname">${r0.personaName}의 반응</div>`;
+  for(const mr of r0.messageResponses){
+    html += `<div class="mt-mr">
+      <div class="mt-mr-h">메시지 ${mr.messageLabel}</div>
+      <div class="mt-mr-emotion">“${mr.emotionalReaction}”</div>
+      <div class="mt-mr-scores">
+        <span><b>이해도</b> ${mr.comprehensionScore}</span>
+        <span><b>관련성</b> ${mr.relevanceScore}</span>
+        <span><b>구매의도</b> ${mr.purchaseIntentScore}</span>
+      </div>
+      ${mr.concerns?.length ? `<div class="mt-mr-c"><b>우려:</b> ${mr.concerns.join(', ')}</div>` : ''}
+      ${mr.suggestion ? `<div class="mt-mr-s"><b>제안:</b> ${mr.suggestion}</div>` : ''}
+    </div>`;
+  }
+  result.innerHTML = html;
+}
+
 function backToPanelEmpty(){
   document.getElementById('iv-body').classList.add('hide');
   document.getElementById('iv-empty').classList.remove('hide');
@@ -1407,6 +1577,7 @@ async function generatePersona(persona){
     renderPersonaCard(data.persona, data.meta);
     // 인플루언서 자동 매칭
     fetchInfluencerMatch(data.persona);
+    fetchPersonaJourney(data.persona);  // 하루의 미디어 여정 자동 호출
   } catch(e){
     toast('페르소나 생성 실패: ' + e.message);
   }
