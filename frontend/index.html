@@ -353,7 +353,14 @@ a{color:inherit;text-decoration:none}
 .cc-c-item.compare{background:#F0FDF4}
 .cc-c-item.compare:hover{background:#DCFCE7}
 .cc-help{font-size:10.5px;color:var(--tm);padding:4px 14px 8px;line-height:1.5;border-bottom:1px solid var(--bdr);margin-bottom:4px}
-.cc-help-cnt{display:inline-block;margin-left:6px;background:var(--ind);color:#fff;padding:1px 7px;border-radius:4px;font-weight:600;font-size:10px}
+.cc-help-cnt{display:inline-block;margin-left:auto;background:var(--ind);color:#fff;padding:1px 7px;border-radius:4px;font-weight:600;font-size:10px}
+.cc-toolbar{display:flex;align-items:center;gap:8px;padding:4px 14px 6px}
+.cc-tg{display:flex;align-items:center;gap:6px;border:1px solid var(--bdr);background:#fff;padding:4px 10px;border-radius:6px;font-size:11px;color:var(--ts);cursor:pointer;transition:all .12s}
+.cc-tg:hover{border-color:var(--ind)}
+.cc-tg.on{background:var(--ind);border-color:var(--ind);color:#fff}
+.cc-tg-dot{width:6px;height:6px;border-radius:50%;background:#9CA3AF}
+.cc-tg.on .cc-tg-dot{background:#fff}
+.cc-c-office{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;background:var(--ind);color:#fff;border-radius:3px;font-size:9px;font-weight:800;flex-shrink:0}
 .cc-c-check{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;border:1.5px solid var(--bdr2);border-radius:3px;flex-shrink:0;font-size:10px;font-weight:bold;color:#fff;background:#fff;transition:all .12s}
 .cc-c-check:hover{border-color:var(--ind)}
 .cc-c-check.on{background:#10B981;border-color:#10B981}
@@ -377,6 +384,25 @@ a{color:inherit;text-decoration:none}
 .cmp-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:8px}
 .cmp-chart{height:240px;background:#fff;padding:12px;border:1px solid var(--bdr);border-radius:8px}
 .ov-insight.notice{background:#FEF3C7;border-left:3px solid #D97706}
+.ov-insight.highlight{background:#EEF2FF;border-left:3px solid var(--ind)}
+/* Insights 탭 */
+.in-group{margin-bottom:18px}
+.in-group-h{font-size:13px;font-weight:700;color:var(--ts);margin-bottom:8px;padding-left:2px;text-transform:uppercase;letter-spacing:.5px}
+.in-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.in-chart-card{background:#fff;border:1px solid var(--bdr);border-radius:8px;padding:10px}
+.in-chart-card.filtered{border-color:var(--ind);background:#FAFAFF}
+.in-chart-t{font-size:12px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.in-filter-badge{font-size:9px;background:var(--ind);color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;letter-spacing:.3px}
+.in-chart-wrap{height:180px}
+.in-cross-hint{font-size:11px;color:var(--tm);font-weight:400;margin-left:8px}
+.in-cross-ctrl{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.in-cross-sel{padding:6px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:12px;background:#fff;cursor:pointer;min-width:140px}
+.in-cross-warn{padding:20px;text-align:center;color:var(--tm);font-size:13px;background:var(--bg2);border-radius:8px}
+.in-cross-top{font-size:12px;color:var(--ts);margin-bottom:8px}
+.in-cross-top strong{color:var(--ind);font-weight:700}
+.in-heat{border-collapse:collapse;width:100%;font-size:11px}
+.in-heat th{padding:6px 8px;background:var(--bg2);color:var(--ts);font-weight:600;border:1px solid var(--bdr);text-align:center}
+.in-heat td{padding:6px 8px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600;border:1px solid var(--bdr)}
 
 /* Loading */
 .loader{
@@ -562,10 +588,24 @@ a{color:inherit;text-decoration:none}
 
         <!-- TAB: Insights -->
         <div id="tab-insights" class="ws-content hide">
-          <div class="ws-empty">
-            <div class="ws-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-            <div class="ws-empty-t">디멘션별 차트 (다음 단계)</div>
-            <div class="ws-empty-s">필터를 적용하면 디멘션별 분포·교차분석·트렌드가 표시됩니다.</div>
+          <div id="in-loading" class="ws-empty">
+            <div class="ws-empty-s">디멘션 분포 로딩 중…</div>
+          </div>
+          <div id="in-body" class="hide">
+            <div id="in-insights" class="ov-section"></div>
+            <div class="ov-section">
+              <div class="ov-section-t">디멘션별 분포 (18개 그룹으로 정렬)</div>
+              <div id="in-grid" class="in-grid"></div>
+            </div>
+            <div class="ov-section">
+              <div class="ov-section-t">교차 분석 <span class="in-cross-hint">두 디멘션을 선택하면 히트맵이 그려집니다</span></div>
+              <div class="in-cross-ctrl">
+                <select id="in-cross-x" class="in-cross-sel" onchange="refreshCross()"></select>
+                <span style="color:var(--tm)">×</span>
+                <select id="in-cross-y" class="in-cross-sel" onchange="refreshCross()"></select>
+              </div>
+              <div id="in-cross" class="in-cross"></div>
+            </div>
           </div>
         </div>
 
@@ -614,6 +654,7 @@ const state = {
   groups: {},
   currentCountry: 'KR',
   compareCountries: [],  // 비교 모드 — 최대 4개국 (기준국 제외)
+  officesOnly: false,    // INNOCEAN 거점만 필터
   currentTab: 'overview',
   filters: {},
   categories: [],
@@ -679,13 +720,21 @@ function renderCountryList(filter=''){
   const regions = state.catalog.regions;
   const byRegion = {};
   for(const c of state.countries){
+    if(state.officesOnly && !c.innoceanOffice) continue;
     if(filter && !c.name.includes(filter) && !c.nameEn.toLowerCase().includes(filter.toLowerCase())) continue;
     (byRegion[c.region] = byRegion[c.region] || []).push(c);
   }
   const sorted = Object.keys(byRegion).sort((a,b)=>(regions[a]?.order||99)-(regions[b]?.order||99));
   const totalSelected = 1 + state.compareCountries.length;
+  const officeCount = state.countries.filter(c => c.innoceanOffice).length;
   let html = `<input class="cc-search-i" placeholder="국가 검색..." oninput="renderCountryList(this.value)" id="cc-search-i">
-    <div class="cc-help">☑ 체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경 <span class="cc-help-cnt">${totalSelected}개 선택됨</span></div>`;
+    <div class="cc-toolbar">
+      <button class="cc-tg ${state.officesOnly?'on':''}" onclick="toggleOfficesOnly()">
+        <span class="cc-tg-dot"></span>INNOCEAN 거점만 (${officeCount})
+      </button>
+      <span class="cc-help-cnt">${totalSelected}개 선택됨</span>
+    </div>
+    <div class="cc-help">☑ 체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경</div>`;
   for(const r of sorted){
     html += `<div class="cc-region-h">${regions[r]?.name || r}</div>`;
     for(const c of byRegion[r]){
@@ -695,20 +744,29 @@ function renderCountryList(filter=''){
       if(c.trendsUnavailable) cls += ' partial';
       if(isPrimary) cls += ' primary';
       if(isCompare) cls += ' compare';
-      const tipText = c.trendsUnavailableReason || 'Trends 미지원 — World Bank·Insights·Persona는 정상';
-      const tip = c.trendsUnavailable ? ` title="${tipText}"` : '';
+      const tipParts = [];
+      if(c.trendsUnavailable) tipParts.push(c.trendsUnavailableReason || 'Trends 미지원');
+      if(c.innoceanOffice) tipParts.push(c.innoceanOfficeName || 'INNOCEAN 거점');
+      const tip = tipParts.length ? ` title="${tipParts.join(' · ')}"` : '';
       const checkBox = isPrimary
         ? `<span class="cc-c-mark primary" title="기준국">●</span>`
         : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();toggleCompareCountry('${c.code}')">${isCompare?'✓':''}</span>`;
+      const officeMark = c.innoceanOffice ? '<span class="cc-c-office" title="INNOCEAN 거점">I</span>' : '';
       html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
         ${checkBox}
         <span class="cc-c-flag">${c.flag}</span>
         <span>${c.name}</span>
+        ${officeMark}
         <span class="cc-c-code">${c.code}</span>
       </div>`;
     }
   }
   list.innerHTML = html;
+}
+
+function toggleOfficesOnly(){
+  state.officesOnly = !state.officesOnly;
+  renderCountryList(document.getElementById('cc-search-i')?.value || '');
 }
 
 function toggleCompareCountry(code){
@@ -858,6 +916,151 @@ function switchTab(tab){
   ['overview','insights','media','interview'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('hide', t !== tab);
   });
+  if(tab === 'insights') refreshInsightsTab();
+}
+
+// ============ INSIGHTS TAB ============
+async function refreshInsightsTab(){
+  try{
+    document.getElementById('in-loading').classList.remove('hide');
+    document.getElementById('in-body').classList.add('hide');
+    const res = await fetch(`${API}/dimension-insights/distribution`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ country: state.currentCountry, filters: state.filters }),
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'distribution failed');
+    state.dimInsights = data;
+    renderDimInsights(data);
+    setupCrossSelectors(data);
+    refreshCross();
+    document.getElementById('in-loading').classList.add('hide');
+    document.getElementById('in-body').classList.remove('hide');
+  } catch(e){
+    toast('인사이트 로드 실패: ' + e.message);
+  }
+}
+
+function renderDimInsights(data){
+  // 자동 인사이트 (맨 위)
+  const insBox = document.getElementById('in-insights');
+  insBox.innerHTML = data.insights.map(i => `
+    <div class="ov-insight ${i.type==='filtered'?'highlight':''}">
+      <div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div>
+      <div class="ov-insight-x">${i.text}</div>
+    </div>`).join('');
+
+  // 그룹별 그리드
+  const grid = document.getElementById('in-grid');
+  const grouped = {};
+  for(const d of data.distributions){
+    (grouped[d.group] = grouped[d.group] || []).push(d);
+  }
+  const groupNames = {
+    demographics: '인구통계',
+    lifestyle: '라이프스타일',
+    behavior: '행동',
+    media: '미디어',
+    psychographic: '심리',
+  };
+  let html = '';
+  for(const [g, dims] of Object.entries(grouped)){
+    html += `<div class="in-group">
+      <div class="in-group-h">${groupNames[g] || g}</div>
+      <div class="in-charts">`;
+    for(const d of dims){
+      html += `<div class="in-chart-card${d.filtered?' filtered':''}">
+        <div class="in-chart-t">${d.label}${d.filtered?'<span class="in-filter-badge">필터됨</span>':''}</div>
+        <div class="in-chart-wrap"><canvas id="in-c-${d.dimensionId}"></canvas></div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  grid.innerHTML = html;
+
+  // Chart.js 렌더링
+  const COLORS = ['#4F46E5','#7C3AED','#10B981','#F59E0B','#EF4444','#06B6D4','#EC4899','#84CC16'];
+  state._inCharts = state._inCharts || {};
+  for(const d of data.distributions){
+    const ctx = document.getElementById(`in-c-${d.dimensionId}`)?.getContext('2d');
+    if(!ctx) continue;
+    if(state._inCharts[d.dimensionId]) state._inCharts[d.dimensionId].destroy();
+    const labels = d.options;
+    const segData = labels.map(l => d.segment[l] || 0);
+    const baseData = labels.map(l => d.baseline[l] || 0);
+    state._inCharts[d.dimensionId] = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels,
+        datasets: d.filtered ? [
+          { label:'세그먼트', data: segData, backgroundColor: labels.map((_,i)=>COLORS[i%8]), borderRadius:4 },
+          { label:'국가 평균', data: baseData, backgroundColor:'#E5E7EB', borderRadius:4 },
+        ] : [
+          { label:'분포', data: segData, backgroundColor: labels.map((_,i)=>COLORS[i%8]), borderRadius:4 },
+        ],
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:d.filtered, position:'top', labels:{font:{size:10}}}, tooltip:{callbacks:{label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%`}}},
+        scales:{y:{ticks:{callback:v=>v+'%'}, max: d.filtered ? 100 : undefined}}
+      }
+    });
+  }
+}
+
+function setupCrossSelectors(data){
+  const xSel = document.getElementById('in-cross-x');
+  const ySel = document.getElementById('in-cross-y');
+  const opts = data.distributions.map(d => `<option value="${d.dimensionId}">${d.label}</option>`).join('');
+  if(!xSel.innerHTML){
+    xSel.innerHTML = opts;
+    ySel.innerHTML = opts;
+    xSel.value = 'age';
+    ySel.value = 'gender';
+  }
+}
+
+async function refreshCross(){
+  const dimX = document.getElementById('in-cross-x').value;
+  const dimY = document.getElementById('in-cross-y').value;
+  if(dimX === dimY){
+    document.getElementById('in-cross').innerHTML = '<div class="in-cross-warn">서로 다른 디멘션을 선택하세요.</div>';
+    return;
+  }
+  try{
+    const res = await fetch(`${API}/dimension-insights/cross`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ country: state.currentCountry, dimX, dimY, filters: state.filters }),
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error);
+    renderCrossHeatmap(data);
+  } catch(e){
+    toast('교차 분석 실패: ' + e.message);
+  }
+}
+
+function renderCrossHeatmap(data){
+  // 히트맵 테이블 생성
+  let max = 0;
+  for(const row of data.matrix) for(const v of row) if(v > max) max = v;
+  let html = `<div class="in-cross-top">상위 교차: <strong>${data.top.x} × ${data.top.y}</strong> = ${data.top.v.toFixed(2)}%</div>`;
+  html += `<table class="in-heat"><thead><tr><th></th>`;
+  for(const y of data.dimY.options) html += `<th>${y}</th>`;
+  html += `</tr></thead><tbody>`;
+  for(let i=0; i<data.dimX.options.length; i++){
+    html += `<tr><th>${data.dimX.options[i]}</th>`;
+    for(let j=0; j<data.dimY.options.length; j++){
+      const v = data.matrix[i][j];
+      const intensity = max > 0 ? v / max : 0;
+      const bg = `rgba(79, 70, 229, ${intensity.toFixed(2)})`;
+      const color = intensity > 0.5 ? '#fff' : '#111';
+      html += `<td style="background:${bg};color:${color}">${v.toFixed(2)}%</td>`;
+    }
+    html += `</tr>`;
+  }
+  html += `</tbody></table>`;
+  document.getElementById('in-cross').innerHTML = html;
 }
 
 // ============ BUILDER ============

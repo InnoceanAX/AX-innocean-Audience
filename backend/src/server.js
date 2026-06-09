@@ -9,6 +9,7 @@ import { dimensionsRouter } from "./routes/dimensions.js";
 import { insightsRouter } from "./routes/insights.js";
 import { trendsRouter } from "./routes/trends.js";
 import { compareRouter } from "./routes/compare.js";
+import { dimInsightsRouter } from "./routes/dimension-insights.js";
 import { stratRouter } from "./routes/stratify.js";
 import { askRouter } from "./routes/ask.js";
 import { libraryRouter } from "./routes/library.js";
@@ -44,6 +45,7 @@ app.use("/api/insights", insightsRouter);
 // 트렌드 (Google Trends 등 외부 API)
 app.use("/api/trends", trendsRouter);
 app.use("/api/compare", compareRouter);
+app.use("/api/dimension-insights", dimInsightsRouter);
 
 // 분포 통계 (World Bank · KOSIS 등 공공 데이터)
 app.use("/api/stratify", stratRouter);

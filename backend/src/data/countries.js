@@ -1,4 +1,5 @@
 // BigQuery Google Trends 지원 43국 + INNOCEAN 거점인데 Trends 미지원인 3국
+// innoceanOffice: true → INNOCEAN Worldwide 법인 보유국 (UI에 거점 배지)
 // 출처: bigquery-public-data.google_trends.international_top_terms (42국) + top_terms (US, DMA)
 // Tier 분리 없음 — 모든 국가 동일하게 인사이트 제공
 // trendsUnavailable: true → BigQuery Trends 미지원. 그러나 World Bank·Insights·Persona는 정상 제공 (부분 활성화)
@@ -6,33 +7,33 @@
 
 export const COUNTRIES = [
   // === Asia Pacific ===
-  { code: "KR", name: "한국",       nameEn: "South Korea",  region: "asia-pacific", flag: "🇰🇷", currency: "KRW", language: "ko" },
-  { code: "JP", name: "일본",       nameEn: "Japan",        region: "asia-pacific", flag: "🇯🇵", currency: "JPY", language: "ja" },
+  { code: "KR", name: "한국",       nameEn: "South Korea",  region: "asia-pacific", flag: "🇰🇷", currency: "KRW", language: "ko", innoceanOffice: true, innoceanOfficeName: "본사 (서울)" },
+  { code: "JP", name: "일본",       nameEn: "Japan",        region: "asia-pacific", flag: "🇯🇵", currency: "JPY", language: "ja", innoceanOffice: true, innoceanOfficeName: "Innocean Japan" },
   { code: "TW", name: "대만",       nameEn: "Taiwan",       region: "asia-pacific", flag: "🇹🇼", currency: "TWD", language: "zh" },
-  { code: "IN", name: "인도",       nameEn: "India",        region: "asia-pacific", flag: "🇮🇳", currency: "INR", language: "en" },
+  { code: "IN", name: "인도",       nameEn: "India",        region: "asia-pacific", flag: "🇮🇳", currency: "INR", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean India" },
   { code: "ID", name: "인도네시아", nameEn: "Indonesia",    region: "asia-pacific", flag: "🇮🇩", currency: "IDR", language: "id" },
   { code: "VN", name: "베트남",     nameEn: "Vietnam",      region: "asia-pacific", flag: "🇻🇳", currency: "VND", language: "vi" },
   { code: "TH", name: "태국",       nameEn: "Thailand",     region: "asia-pacific", flag: "🇹🇭", currency: "THB", language: "th" },
   { code: "MY", name: "말레이시아", nameEn: "Malaysia",     region: "asia-pacific", flag: "🇲🇾", currency: "MYR", language: "ms" },
   { code: "PH", name: "필리핀",     nameEn: "Philippines",  region: "asia-pacific", flag: "🇵🇭", currency: "PHP", language: "en" },
-  { code: "AU", name: "호주",       nameEn: "Australia",    region: "asia-pacific", flag: "🇦🇺", currency: "AUD", language: "en" },
+  { code: "AU", name: "호주",       nameEn: "Australia",    region: "asia-pacific", flag: "🇦🇺", currency: "AUD", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean Australia" },
   { code: "NZ", name: "뉴질랜드",   nameEn: "New Zealand",  region: "asia-pacific", flag: "🇳🇿", currency: "NZD", language: "en" },
 
   // === Americas ===
-  { code: "US", name: "미국",       nameEn: "United States",region: "americas",     flag: "🇺🇸", currency: "USD", language: "en" },
-  { code: "CA", name: "캐나다",     nameEn: "Canada",       region: "americas",     flag: "🇨🇦", currency: "CAD", language: "en" },
-  { code: "MX", name: "멕시코",     nameEn: "Mexico",       region: "americas",     flag: "🇲🇽", currency: "MXN", language: "es" },
-  { code: "BR", name: "브라질",     nameEn: "Brazil",       region: "americas",     flag: "🇧🇷", currency: "BRL", language: "pt" },
+  { code: "US", name: "미국",       nameEn: "United States",region: "americas",     flag: "🇺🇸", currency: "USD", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide Americas (Huntington Beach)" },
+  { code: "CA", name: "캐나다",     nameEn: "Canada",       region: "americas",     flag: "🇨🇦", currency: "CAD", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean Canada" },
+  { code: "MX", name: "멕시코",     nameEn: "Mexico",       region: "americas",     flag: "🇲🇽", currency: "MXN", language: "es", innoceanOffice: true, innoceanOfficeName: "Innocean Mexico" },
+  { code: "BR", name: "브라질",     nameEn: "Brazil",       region: "americas",     flag: "🇧🇷", currency: "BRL", language: "pt", innoceanOffice: true, innoceanOfficeName: "Innocean Brazil" },
   { code: "AR", name: "아르헨티나", nameEn: "Argentina",    region: "americas",     flag: "🇦🇷", currency: "ARS", language: "es" },
   { code: "CL", name: "칠레",       nameEn: "Chile",        region: "americas",     flag: "🇨🇱", currency: "CLP", language: "es" },
   { code: "CO", name: "콜롬비아",   nameEn: "Colombia",     region: "americas",     flag: "🇨🇴", currency: "COP", language: "es" },
 
   // === Europe ===
-  { code: "GB", name: "영국",       nameEn: "United Kingdom",region: "europe",      flag: "🇬🇧", currency: "GBP", language: "en" },
-  { code: "DE", name: "독일",       nameEn: "Germany",      region: "europe",       flag: "🇩🇪", currency: "EUR", language: "de" },
-  { code: "FR", name: "프랑스",     nameEn: "France",       region: "europe",       flag: "🇫🇷", currency: "EUR", language: "fr" },
-  { code: "IT", name: "이탈리아",   nameEn: "Italy",        region: "europe",       flag: "🇮🇹", currency: "EUR", language: "it" },
-  { code: "ES", name: "스페인",     nameEn: "Spain",        region: "europe",       flag: "🇪🇸", currency: "EUR", language: "es" },
+  { code: "GB", name: "영국",       nameEn: "United Kingdom",region: "europe",      flag: "🇬🇧", currency: "GBP", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide UK" },
+  { code: "DE", name: "독일",       nameEn: "Germany",      region: "europe",       flag: "🇩🇪", currency: "EUR", language: "de", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide Europe (Frankfurt)" },
+  { code: "FR", name: "프랑스",     nameEn: "France",       region: "europe",       flag: "🇫🇷", currency: "EUR", language: "fr", innoceanOffice: true, innoceanOfficeName: "Innocean France" },
+  { code: "IT", name: "이탈리아",   nameEn: "Italy",        region: "europe",       flag: "🇮🇹", currency: "EUR", language: "it", innoceanOffice: true, innoceanOfficeName: "Innocean Italy" },
+  { code: "ES", name: "스페인",     nameEn: "Spain",        region: "europe",       flag: "🇪🇸", currency: "EUR", language: "es", innoceanOffice: true, innoceanOfficeName: "Innocean Spain" },
   { code: "NL", name: "네덜란드",   nameEn: "Netherlands",  region: "europe",       flag: "🇳🇱", currency: "EUR", language: "nl" },
   { code: "BE", name: "벨기에",     nameEn: "Belgium",      region: "europe",       flag: "🇧🇪", currency: "EUR", language: "nl" },
   { code: "CH", name: "스위스",     nameEn: "Switzerland",  region: "europe",       flag: "🇨🇭", currency: "CHF", language: "de" },
@@ -42,24 +43,24 @@ export const COUNTRIES = [
   { code: "DK", name: "덴마크",     nameEn: "Denmark",      region: "europe",       flag: "🇩🇰", currency: "DKK", language: "da" },
   { code: "FI", name: "핀란드",     nameEn: "Finland",      region: "europe",       flag: "🇫🇮", currency: "EUR", language: "fi" },
   { code: "PT", name: "포르투갈",   nameEn: "Portugal",     region: "europe",       flag: "🇵🇹", currency: "EUR", language: "pt" },
-  { code: "PL", name: "폴란드",     nameEn: "Poland",       region: "europe",       flag: "🇵🇱", currency: "PLN", language: "pl" },
+  { code: "PL", name: "폴란드",     nameEn: "Poland",       region: "europe",       flag: "🇵🇱", currency: "PLN", language: "pl", innoceanOffice: true, innoceanOfficeName: "Innocean Poland" },
   { code: "CZ", name: "체코",       nameEn: "Czechia",      region: "europe",       flag: "🇨🇿", currency: "CZK", language: "cs" },
   { code: "HU", name: "헝가리",     nameEn: "Hungary",      region: "europe",       flag: "🇭🇺", currency: "HUF", language: "hu" },
   { code: "RO", name: "루마니아",   nameEn: "Romania",      region: "europe",       flag: "🇷🇴", currency: "RON", language: "ro" },
   { code: "UA", name: "우크라이나", nameEn: "Ukraine",      region: "europe",       flag: "🇺🇦", currency: "UAH", language: "uk" },
 
   // === Middle East & Africa ===
-  { code: "AE", name: "UAE",         nameEn: "United Arab Emirates", region: "middle-east", flag: "🇦🇪", currency: "AED", language: "ar", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 (Yandex/Talkwalker 어댑터 추가 예정)" },
-  { code: "SA", name: "사우디아라비아", nameEn: "Saudi Arabia", region: "middle-east", flag: "🇸🇦", currency: "SAR", language: "ar" },
+  { code: "AE", name: "UAE",         nameEn: "United Arab Emirates", region: "middle-east", flag: "🇦🇪", currency: "AED", language: "ar", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 (Yandex/Talkwalker 어댑터 추가 예정)", innoceanOffice: true, innoceanOfficeName: "Innocean MEA (Dubai)" },
+  { code: "SA", name: "사우디아라비아", nameEn: "Saudi Arabia", region: "middle-east", flag: "🇸🇦", currency: "SAR", language: "ar", innoceanOffice: true, innoceanOfficeName: "Innocean Saudi Arabia" },
   { code: "IL", name: "이스라엘",   nameEn: "Israel",       region: "middle-east",  flag: "🇮🇱", currency: "ILS", language: "he" },
-  { code: "TR", name: "튀르키예",   nameEn: "Turkey",       region: "middle-east",  flag: "🇹🇷", currency: "TRY", language: "tr" },
+  { code: "TR", name: "튀르키예",   nameEn: "Turkey",       region: "middle-east",  flag: "🇹🇷", currency: "TRY", language: "tr", innoceanOffice: true, innoceanOfficeName: "Innocean Turkey" },
   { code: "EG", name: "이집트",     nameEn: "Egypt",        region: "middle-east",  flag: "🇪🇬", currency: "EGP", language: "ar" },
   { code: "NG", name: "나이지리아", nameEn: "Nigeria",      region: "africa",       flag: "🇳🇬", currency: "NGN", language: "en" },
-  { code: "ZA", name: "남아공",     nameEn: "South Africa", region: "africa",       flag: "🇿🇦", currency: "ZAR", language: "en" },
+  { code: "ZA", name: "남아공",     nameEn: "South Africa", region: "africa",       flag: "🇿🇦", currency: "ZAR", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean Africa" },
 
   // === INNOCEAN 거점. Trends 미지원 (부분 활성화: WB+Insights+Persona OK) ===
-  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", trendsUnavailable: true, trendsUnavailableReason: "Google 본토 차단 — Baidu Index 어댑터 추가 예정" },
-  { code: "RU", name: "러시아",     nameEn: "Russia",       region: "europe",       flag: "🇷🇺", currency: "RUB", language: "ru", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 — Yandex Wordstat 어댑터 추가 예정" },
+  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", trendsUnavailable: true, trendsUnavailableReason: "Google 본토 차단 — Baidu Index 어댑터 추가 예정", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide China (Shanghai/Beijing)" },
+  { code: "RU", name: "러시아",     nameEn: "Russia",       region: "europe",       flag: "🇷🇺", currency: "RUB", language: "ru", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 — Yandex Wordstat 어댑터 추가 예정", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide Russia" },
 ];
 
 export const REGIONS = {
