@@ -355,7 +355,7 @@ a{color:inherit;text-decoration:none}
   padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;
 }
 .cc-c-item:hover{background:#F3F4F6}
-.cc-c-flag{font-size:16px}
+.cc-c-flag{display:inline-flex;align-items:center;justify-content:center;width:28px;height:18px;background:#F3F4F6;color:#374151;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.3px}
 .cc-c-code{margin-left:auto;font-size:10px;color:var(--tm);font-family:'SF Mono',Menlo,Consolas,monospace;letter-spacing:.5px}
 .cc-c-item.partial{opacity:.78}
 .cc-c-item.partial:hover{background:#F3F4F6}
@@ -385,7 +385,7 @@ a{color:inherit;text-decoration:none}
 .cmp-card{border:1px solid var(--bdr);border-radius:10px;padding:14px;background:#fff}
 .cmp-card.partial{background:#FEFCE8;border-color:#FCD34D}
 .cmp-card-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.cmp-card-flag{font-size:18px}
+.cmp-card-flag{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;background:#F3F4F6;color:#374151;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.3px}
 .cmp-card-name{font-weight:700;font-size:14px;flex:1}
 .cmp-partial-badge{font-size:9.5px;background:#D97706;color:#fff;padding:2px 6px;border-radius:4px;font-weight:600}
 .cmp-card-kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -530,6 +530,49 @@ a{color:inherit;text-decoration:none}
 .mt-mr-scores b{color:var(--ts);font-weight:600;margin-right:4px}
 .mt-mr-c{font-size:11.5px;color:#7C2D12;margin-bottom:4px}
 .mt-mr-s{font-size:11.5px;color:#1E40AF}
+/* Entry 3-way */
+.entry-3way{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px;margin-bottom:8px}
+.entry-card{background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:22px 18px;cursor:pointer;text-align:left;transition:all .2s}
+.entry-card:hover{border-color:var(--ind);box-shadow:0 8px 24px rgba(79,70,229,.08);transform:translateY(-2px)}
+.entry-ico{width:38px;height:38px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:var(--ind)}
+.entry-ico svg{width:20px;height:20px}
+.entry-t{font-size:14px;font-weight:700;color:#111;margin-bottom:4px}
+.entry-s{font-size:11.5px;color:var(--tm);line-height:1.5}
+/* AI Side Panel */
+.ai-panel{position:fixed;top:0;right:0;height:100vh;width:380px;background:#fff;border-left:1px solid var(--bdr);box-shadow:-8px 0 24px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;transform:translateX(0)}
+.ai-panel.collapsed{transform:translateX(380px)}
+.ai-toggle{position:absolute;top:50%;left:-44px;transform:translateY(-50%);width:44px;height:auto;padding:14px 0;background:var(--ind);color:#fff;border:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:-4px 0 12px rgba(79,70,229,.2)}
+.ai-toggle:hover{background:var(--ind2)}
+.ai-toggle-ico{width:18px;height:18px}
+.ai-toggle-l{font-size:9.5px;font-weight:600;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px}
+.ai-panel-inner{display:flex;flex-direction:column;height:100%;padding:18px;overflow:hidden}
+.ai-panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ai-panel-t{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#111}
+.ai-panel-t svg{width:16px;height:16px;color:var(--ind)}
+.ai-panel-close{background:none;border:none;cursor:pointer;color:#9CA3AF;padding:4px}
+.ai-panel-close svg{width:18px;height:18px}
+.ai-panel-close:hover{color:#111}
+.ai-panel-sub{font-size:11.5px;color:var(--tm);line-height:1.5;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bdr)}
+.ai-quick{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.ai-quick-btn{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#F9FAFB;border:1px solid var(--bdr);border-radius:6px;font-size:12px;color:#374151;cursor:pointer;text-align:left;font-family:inherit;transition:all .15s}
+.ai-quick-btn:hover{background:#F3F4F6;border-color:#D1D5DB}
+.ai-quick-btn svg{width:14px;height:14px;color:var(--ind);flex-shrink:0}
+.ai-log{flex:1;overflow-y:auto;padding:6px 0;display:flex;flex-direction:column;gap:10px}
+.ai-msg{padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.55}
+.ai-msg.user{background:var(--ind);color:#fff;align-self:flex-end;max-width:85%}
+.ai-msg.bot{background:#F3F4F6;color:#111;align-self:flex-start;max-width:90%}
+.ai-msg.bot.loading{font-style:italic;color:var(--tm)}
+.ai-input-wrap{display:flex;align-items:flex-end;gap:6px;padding-top:10px;border-top:1px solid var(--bdr)}
+.ai-input{flex:1;min-height:40px;max-height:120px;padding:10px;border:1px solid var(--bdr);border-radius:6px;font-size:12.5px;font-family:inherit;resize:none;outline:none}
+.ai-input:focus{border-color:var(--ind)}
+.ai-send{width:40px;height:40px;background:var(--ind);color:#fff;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ai-send:hover{background:var(--ind2)}
+.ai-send svg{width:16px;height:16px}
+.ai-msg-action{align-self:flex-start;padding:6px 12px;background:#fff;border:1px solid var(--ind);color:var(--ind);border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
+.ai-msg-action:hover{background:var(--ind);color:#fff}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.cc-flag-ico{display:inline-flex;align-items:center;width:14px;height:14px;color:var(--ind);vertical-align:-2px;margin-right:4px}
+.cc-flag-ico svg{width:14px;height:14px}
 /* Audience tabs */
 .aud-tab{padding:8px 0}
 .aud-tab-h{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bdr);position:relative}
@@ -709,7 +752,7 @@ a{color:inherit;text-decoration:none}
       <div class="tb-spacer"></div>
       <!-- 워크스페이스 진입 시에만 노출되는 타겟 국가 표시 (수정 불가, 워크스페이스 컨텍스트) -->
       <div class="tb-target-cc hide" id="tb-target-cc" title="현재 타겟 국가">
-        <span id="tb-cc-flag">🇰🇷</span>
+        <span id="tb-cc-flag" class="cc-flag-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
         <span id="tb-cc-name">한국</span>
       </div>
       <button class="tb-btn-ghost" onclick="exportTarget()">내보내기</button>
@@ -780,7 +823,7 @@ a{color:inherit;text-decoration:none}
               <button class="chat-pill" onclick="goBuilder()">＋ 빌더로 직접 만들기</button>
               <div class="country-combo" id="country-combo">
                 <button class="chat-pill chat-pill-strong" onclick="toggleCountryList()" id="chat-country-pill">
-                  <span id="chat-cc-flag">🇰🇷</span><span id="chat-cc-name">한국</span> ▾
+                  <span id="chat-cc-flag" class="cc-flag-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span id="chat-cc-name">한국</span> ▾
                 </button>
                 <div class="cc-list hide" id="cc-list"></div>
               </div>
@@ -790,6 +833,31 @@ a{color:inherit;text-decoration:none}
               </button>
             </div>
             <div class="chat-disclaim">AI는 실수할 수 있어요. 중요 결정은 한 번 더 확인하세요.</div>
+          </div>
+
+          <!-- 3-way Entry -->
+          <div class="entry-3way">
+            <div class="entry-card" onclick="document.getElementById('chat-input').focus()">
+              <div class="entry-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="entry-t">자연어로 질문</div>
+              <div class="entry-s">위 검색창에 직접 입력</div>
+            </div>
+            <div class="entry-card" onclick="goBuilder()">
+              <div class="entry-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </div>
+              <div class="entry-t">필터로 직접 설정</div>
+              <div class="entry-s">국가 · 연령 · 관심사 직접 선택</div>
+            </div>
+            <div class="entry-card" onclick="quickStartCountry()">
+              <div class="entry-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
+              <div class="entry-t">국가 탐색 바로가기</div>
+              <div class="entry-s">선택한 국가의 5차원 인사이트 보기</div>
+            </div>
           </div>
 
           <!-- Suggested prompts -->
@@ -999,6 +1067,51 @@ a{color:inherit;text-decoration:none}
       <span>© 2026 INNOCEAN AX · v0.1.0-shell</span>
     </div>
   </main>
+
+  <!-- ============ AI ASSISTANT SIDE PANEL ============ -->
+  <aside id="ai-panel" class="ai-panel collapsed">
+    <button class="ai-toggle" onclick="toggleAIPanel()" title="AI 비서">
+      <svg class="ai-toggle-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="ai-toggle-l">AI 비서</span>
+    </button>
+    <div class="ai-panel-inner">
+      <div class="ai-panel-h">
+        <div class="ai-panel-t">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.91 5.84L19.5 11l-5.59 2.16L12 19l-1.91-5.84L4.5 11l5.59-2.16L12 3z"/></svg>
+          <span>AI 비서</span>
+        </div>
+        <button class="ai-panel-close" onclick="toggleAIPanel()" title="닫기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ai-panel-sub" id="ai-panel-sub">타겟 설정하고 조회하면 해석·추가 분석을 제공합니다.</div>
+      <div class="ai-quick" id="ai-quick">
+        <button class="ai-quick-btn" onclick="aiQuick('summary')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          현재 화면 요약
+        </button>
+        <button class="ai-quick-btn" onclick="aiQuick('persona')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+          페르소나 만들기
+        </button>
+        <button class="ai-quick-btn" onclick="aiQuick('compare')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
+          비슷한 국가 찾기
+        </button>
+        <button class="ai-quick-btn" onclick="aiQuick('message')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          광고 메시지 추천
+        </button>
+      </div>
+      <div class="ai-log" id="ai-log"></div>
+      <div class="ai-input-wrap">
+        <textarea class="ai-input" id="ai-input" rows="1" placeholder="이 데이터에 대해 물어보세요…" oninput="aiResize(this)" onkeydown="aiKey(event)"></textarea>
+        <button class="ai-send" id="ai-send" onclick="aiSend()" title="전송">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
 </div>
 
 <script>
@@ -1105,7 +1218,7 @@ function renderCountryList(filter=''){
       </button>
       <span class="cc-help-cnt">${totalSelected}개 선택됨</span>
     </div>
-    <div class="cc-help">☑ 체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경</div>`;
+    <div class="cc-help"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:3px"><polyline points="20 6 9 17 4 12"/></svg>체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경</div>`;
   for(const r of sorted){
     html += `<div class="cc-region-h">${regions[r]?.name || r}</div>`;
     for(const c of byRegion[r]){
@@ -1121,11 +1234,11 @@ function renderCountryList(filter=''){
       const tip = tipParts.length ? ` title="${tipParts.join(' · ')}"` : '';
       const checkBox = isPrimary
         ? `<span class="cc-c-mark primary" title="기준국">●</span>`
-        : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();toggleCompareCountry('${c.code}')">${isCompare?'✓':''}</span>`;
+        : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();toggleCompareCountry('${c.code}')">${isCompare?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</span>`;
       const officeMark = c.innoceanOffice ? '<span class="cc-c-office" title="INNOCEAN 거점">I</span>' : '';
       html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
         ${checkBox}
-        <span class="cc-c-flag">${c.flag}</span>
+        <span class="cc-c-flag">${c.code}</span>
         <span>${c.name}</span>
         ${officeMark}
         <span class="cc-c-code">${c.code}</span>
@@ -1167,11 +1280,8 @@ function updateCountryPillLabel(){
   const c = state.countries.find(x => x.code === state.currentCountry);
   if(!c) return;
   const cnt = state.compareCountries.length;
-  document.getElementById('chat-cc-flag').textContent = c.flag;
   document.getElementById('chat-cc-name').textContent = cnt > 0 ? `${c.name} +${cnt}국 비교` : c.name;
-  const tbf = document.getElementById('tb-cc-flag');
   const tbn = document.getElementById('tb-cc-name');
-  if(tbf) tbf.textContent = c.flag;
   if(tbn) tbn.textContent = cnt > 0 ? `${c.name} +${cnt}국` : c.name;
 }
 
@@ -1318,7 +1428,6 @@ async function goWorkspace(){
   const c = state.countries.find(x => x.code === state.currentCountry);
   const tb = document.getElementById('tb-target-cc');
   if(c){
-    document.getElementById('tb-cc-flag').textContent = c.flag;
     document.getElementById('tb-cc-name').textContent = c.name;
     tb.classList.toggle('partial', !!c.trendsUnavailable);
   }
@@ -1558,6 +1667,100 @@ async function renderMediaTab(data){
   });
 }
 
+// Quick start — 선택된 국가로 바로 워크스페이스 진입
+function quickStartCountry(){
+  const code = state.currentCountry || 'KR';
+  state.currentCountry = code;
+  goWorkspace('overview');
+}
+
+// ============ AI SIDE PANEL ============
+let aiPanelOpen = false;
+function toggleAIPanel(){
+  const p = document.getElementById('ai-panel');
+  aiPanelOpen = !aiPanelOpen;
+  p.classList.toggle('collapsed', !aiPanelOpen);
+  if(aiPanelOpen && document.getElementById('ai-log').children.length === 0){
+    aiAddMsg('bot', '안녕하세요! 타겟 데이터에 대해 뭐든 물어보세요. 아래 빠른 액션을 쓰거나 직접 입력해도 됩니다.');
+  }
+}
+function aiResize(t){ t.style.height='auto'; t.style.height = Math.min(120, t.scrollHeight)+'px'; }
+function aiKey(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); aiSend(); } }
+function aiAddMsg(type, text){
+  const log = document.getElementById('ai-log');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + type;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+async function aiSend(){
+  const inp = document.getElementById('ai-input');
+  const text = inp.value.trim();
+  if(!text) return;
+  aiAddMsg('user', text);
+  inp.value=''; aiResize(inp);
+  const loading = aiAddMsg('bot loading', '생각 중…');
+  try {
+    const ctx = aiBuildContext();
+    const ctxText = ctx.tab ? `현재 탭: ${ctx.tab}, 국가: ${ctx.country}` : '';
+    const res = await fetch(`${API}/ask`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ question: text + (ctxText ? ` (컨텍스트: ${ctxText})` : ''), country: state.currentCountry }),
+    });
+    const data = await res.json();
+    loading.remove();
+    // ask는 parsed 구조 리턴 — 사람이 읽기 좋게 조합
+    if(data.ok && data.parsed){
+      const p = data.parsed;
+      let answer = '';
+      if(p.intent) answer += `의도: ${p.intent}\n`;
+      if(p.country) answer += `국가: ${p.country}\n`;
+      if(p.filters && Object.keys(p.filters).length){
+        answer += `필터:\n`;
+        for(const [k,v] of Object.entries(p.filters)){
+          answer += `  • ${k}: ${Array.isArray(v)?v.join(', '):v}\n`;
+        }
+      }
+      if(p.summary || p.message) answer += `\n${p.summary || p.message}`;
+      if(!answer) answer = JSON.stringify(p, null, 2);
+      aiAddMsg('bot', answer);
+      // 필터 자동 적용 제안
+      if(p.country && p.country !== state.currentCountry){
+        const apply = document.createElement('button');
+        apply.className = 'ai-msg-action';
+        apply.textContent = `→ ${p.country}로 이동`;
+        apply.onclick = () => { state.currentCountry = p.country; goWorkspace(state.currentTab || 'overview'); };
+        const log = document.getElementById('ai-log');
+        log.appendChild(apply);
+      }
+    } else if(data.ok && data.answer){
+      aiAddMsg('bot', data.answer);
+    } else {
+      aiAddMsg('bot', '조회에 실패했습니다. ' + (data.error||''));
+    }
+  } catch(e){
+    loading.remove();
+    aiAddMsg('bot', '오류: ' + e.message);
+  }
+}
+function aiBuildContext(){
+  return { tab: state.currentTab, country: state.currentCountry, currentView: location.pathname };
+}
+function aiQuick(type){
+  const country = state.currentCountry || 'KR';
+  const tab = state.currentTab || 'overview';
+  const map = {
+    summary: `현재 ${country} ${tab} 화면의 핵심 수치를 요약해주세요.`,
+    persona: `${country} 국가의 타겟 페르소나를 만들어 주세요.`,
+    compare: `${country}와 비슷한 소비행태/디지털 환경을 가진 국가 3개를 제안해주세요.`,
+    message: `${country} 타겟에 어울리는 광고 메시지 콘셉트 3개를 제안해주세요.`,
+  };
+  document.getElementById('ai-input').value = map[type];
+  aiSend();
+}
+
 // ============ AUDIENCE TABS (Who/Life/Mind/Love/Buy) ============
 async function refreshAudienceTab(dim){
   const code = state.currentCountry;
@@ -1565,16 +1768,16 @@ async function refreshAudienceTab(dim){
   const body = document.getElementById(`${dim}-body`);
   const src = document.getElementById(`${dim}-src`);
   if(body.dataset.country === code) return; // 캐시
-  body.innerHTML = '<div class="aud-loading">⏳ 공개 데이터 로딩 중…</div>';
+  body.innerHTML = '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>공개 데이터 로딩 중…</div>';
   try {
     const res = await fetch(`${API}/audience/${dim}?country=${code}`);
     const data = await res.json();
     if(!data.ok || !data.data){
-      body.innerHTML = `<div class="aud-missing">⚠ ${code} 국가 데이터 미수록 (현재 28국가 우선 지원). 이 국가는 GDP 수치 기반 추정만 가능합니다.</div>`;
+      body.innerHTML = `<div class="aud-missing"><svg style="width:14px;height:14px;vertical-align:-2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${code} 국가 데이터 미수록 (현재 28국가 우선 지원). 이 국가는 GDP 수치 기반 추정만 가능합니다.</div>`;
       src.textContent = '데이터 없음';
       return;
     }
-    src.innerHTML = `<span class="aud-src-badge">📊 실데이터</span> ${data.source.primary}`;
+    src.innerHTML = `<span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> ${data.source.primary}`;
     body.dataset.country = code;
     body.innerHTML = renderAudienceDim(dim, data);
   } catch(e){
@@ -1725,7 +1928,7 @@ async function fetchPersonaJourney(persona){
     const wrap = document.getElementById('iv-card');
     // 로딩 표시
     if(!wrap.querySelector('.iv-journey-card')){
-      wrap.insertAdjacentHTML('beforeend', '<div class="iv-journey-card iv-journey-loading">⏳ 하루의 미디어 여정 생성 중…</div>');
+      wrap.insertAdjacentHTML('beforeend', '<div class="iv-journey-card iv-journey-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>하루의 미디어 여정 생성 중…</div>');
     }
     const res = await fetch(`${API}/interview/journey`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1759,10 +1962,10 @@ function renderPersonaJourney(data){
     <div class="iv-journey-h">일일 미디어 여정</div>
     <div class="iv-journey-summary">${j.summary || ''}</div>
     <div class="iv-jt-wrap">${timelineHTML}</div>
-    ${j.peakAdMoment ? `<div class="iv-jt-peak"><b>✨ 최적 광고 시간대:</b> ${j.peakAdMoment}</div>` : ''}
-    ${j.avoidMoment ? `<div class="iv-jt-avoid"><b>⚠ 피해야 할 시간대:</b> ${j.avoidMoment}</div>` : ''}
+    ${j.peakAdMoment ? `<div class="iv-jt-peak"><b><svg style="width:13px;height:13px;vertical-align:-2px;margin-right:3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.91 5.84L19.5 11l-5.59 2.16L12 19l-1.91-5.84L4.5 11l5.59-2.16L12 3z"/></svg>최적 광고 시간대:</b> ${j.peakAdMoment}</div>` : ''}
+    ${j.avoidMoment ? `<div class="iv-jt-avoid"><b><svg style="width:14px;height:14px;vertical-align:-2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> 피해야 할 시간대:</b> ${j.avoidMoment}</div>` : ''}
     <div class="iv-jt-actions">
-      <button class="iv-jt-btn" onclick="openMessageTester()">💬 광고 메시지 A/B 테스트</button>
+      <button class="iv-jt-btn" onclick="openMessageTester()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>광고 메시지 A/B 테스트</button>
     </div>
   </div>`;
   if(existing) existing.outerHTML = html;
@@ -1782,11 +1985,11 @@ function openMessageTester(){
   }
   modal.innerHTML = `<div class="mt-overlay" onclick="closeMessageTester()"></div>
     <div class="mt-dialog">
-      <div class="mt-h">💬 광고 메시지 A/B/C 테스트</div>
+      <div class="mt-h"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:5px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>광고 메시지 A/B/C 테스트</div>
       <div class="mt-sub">${state.ivPersona?.name || '페르소나'}이 각 메시지에 어떻게 반응하는지 시뮬레이션합니다.</div>
-      <textarea id="mt-msg-a" class="mt-ta" placeholder="🅰️ 메시지 A (예: 이제 더 스마트하게 쓰세요)"></textarea>
-      <textarea id="mt-msg-b" class="mt-ta" placeholder="🅱️ 메시지 B (선택)"></textarea>
-      <textarea id="mt-msg-c" class="mt-ta" placeholder="🅲️ 메시지 C (선택)"></textarea>
+      <textarea id="mt-msg-a" class="mt-ta" placeholder="메시지 A (예: 이제 더 스마트하게 쓰세요)"></textarea>
+      <textarea id="mt-msg-b" class="mt-ta" placeholder="메시지 B (선택)"></textarea>
+      <textarea id="mt-msg-c" class="mt-ta" placeholder="메시지 C (선택)"></textarea>
       <div class="mt-actions">
         <button class="mt-cancel" onclick="closeMessageTester()">취소</button>
         <button class="mt-go" onclick="runMessageTest()">테스트 실행</button>
@@ -1811,7 +2014,7 @@ async function runMessageTest(){
   if(!persona){ alert('페르소나가 없습니다'); return; }
   const result = document.getElementById('mt-result');
   result.classList.remove('hide');
-  result.innerHTML = '<div class="mt-loading">⏳ 페르소나 반응 시뮬레이션 중… (10-15초)</div>';
+  result.innerHTML = '<div class="mt-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>페르소나 반응 시뮬레이션 중… (10-15초)</div>';
   try {
     const res = await fetch(`${API}/interview/test-message`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1829,7 +2032,7 @@ function renderMessageTestResult(data){
   const result = document.getElementById('mt-result');
   const r0 = data.results?.[0];
   if(!r0){ result.innerHTML = '<div class="mt-err">결과 없음</div>'; return; }
-  let html = `<div class="mt-winner">🏆 <b>우승 메시지:</b> ${data.winnerMessage}</div>`;
+  let html = `<div class="mt-winner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><b>우승 메시지:</b> ${data.winnerMessage}</div>`;
   if(data.overallInsight) html += `<div class="mt-insight">${data.overallInsight}</div>`;
   html += `<div class="mt-pname">${r0.personaName}의 반응</div>`;
   for(const mr of r0.messageResponses){
@@ -2232,7 +2435,7 @@ function renderCompareView(data){
     const partial = c.partial ? '<span class="cmp-partial-badge">Trends 제외</span>' : '';
     return `<div class="cmp-card${c.partial?' partial':''}">
       <div class="cmp-card-h">
-        <span class="cmp-card-flag">${c.country.flag}</span>
+        <span class="cmp-card-flag">${c.country.code}</span>
         <span class="cmp-card-name">${c.country.name}</span>
         ${partial}
       </div>
