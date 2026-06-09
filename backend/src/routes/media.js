@@ -6,6 +6,11 @@ import { Router } from "express";
 import { COUNTRIES } from "../data/countries.js";
 import { getCountryStats } from "../adapters/worldbank.js";
 import { SOURCE_META } from "../adapters/media-supplementary.js";
+import {
+  getCountryAdSpend, getKoreaMediaAdSpend,
+  CHANNEL_SPEND_SHARE_2024, COUNTRY_ADSPEND_2024,
+  listAdspendSources,
+} from "../adapters/adspend-public.js";
 import { CHANNELS, COUNTRY_MEDIA_OVERRIDES, flattenMedia } from "../data/media-taxonomy.js";
 
 export const mediaRouter = Router();
