@@ -422,6 +422,36 @@ a{color:inherit;text-decoration:none}
 .md-src{display:inline-block;padding:2px 8px;border-radius:4px;font-weight:600;font-size:10.5px}
 .md-src-on{background:#ECFDF5;color:#047857;border:1px solid #6EE7B7}
 .md-src-todo{background:#F3F4F6;color:var(--tm);border:1px solid var(--bdr)}
+/* Media 뷰 탭 스위치 */
+.md-view-tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:8px;margin-bottom:14px;width:max-content}
+.md-vt{padding:6px 14px;background:transparent;border:none;border-radius:5px;font-size:12px;font-weight:600;color:var(--tm);cursor:pointer;transition:all .12s}
+.md-vt:hover{color:var(--ts)}
+.md-vt.active{background:#fff;color:var(--ind);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.md-tag-sub{background:#FEF3C7;color:#B45309;margin-left:0}
+/* Channel 트리 */
+.md-ch-card{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:12px}
+.md-ch-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.md-ch-label{font-size:15px;font-weight:700;color:#111}
+.md-ch-meta{font-size:11.5px;color:var(--tm);font-weight:600;display:flex;gap:12px}
+.md-ch-reach{color:var(--ind);font-weight:700}
+.md-ch-bar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-bottom:12px}
+.md-ch-bar-fill{height:100%;transition:width .3s ease}
+.md-sub-list{display:flex;flex-direction:column;gap:6px}
+.md-sub{background:var(--bg2);border-radius:6px;padding:8px 12px}
+.md-sub[open]{padding-bottom:8px}
+.md-sub-h{cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none;font-size:12.5px;font-weight:600;color:var(--ts);outline:none;padding:2px 0}
+.md-sub-h::-webkit-details-marker{display:none}
+.md-sub-h::before{content:'▶';font-size:9px;margin-right:6px;color:var(--tm);transition:transform .2s;display:inline-block}
+.md-sub[open] .md-sub-h::before{transform:rotate(90deg)}
+.md-sub-meta{font-size:10.5px;color:var(--tm);font-weight:500}
+.md-media-list{display:flex;flex-direction:column;gap:5px;margin-top:8px;padding-left:4px}
+.md-media-row{display:grid;grid-template-columns:1fr 120px auto;gap:10px;align-items:center;padding:6px 8px;background:#fff;border-radius:5px;font-size:11.5px}
+.md-media-row.md-media-blocked{opacity:.45}
+.md-media-name{font-weight:600;color:#111}
+.md-media-bar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.md-media-bar-fill{height:100%}
+.md-media-vals{font-size:10.5px;color:var(--tm);font-variant-numeric:tabular-nums;white-space:nowrap}
+.md-media-vals b{color:var(--ts);font-weight:700}
 /* Interview 탭 */
 .iv-gen-btn{margin-top:14px;padding:10px 20px;background:var(--ind);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s}
 .iv-gen-btn:hover{background:var(--ind2)}
@@ -706,17 +736,29 @@ a{color:inherit;text-decoration:none}
           <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중…</div></div>
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
-            <div class="ov-section">
-              <div class="ov-section-t">매체별 도달률·신뢰도·효율</div>
+            <div class="md-view-tabs">
+              <button class="md-vt active" data-view="tree" onclick="switchMediaView('tree')">채널 트리 (3단)</button>
+              <button class="md-vt" data-view="flat" onclick="switchMediaView('flat')">전체 매체 표</button>
+              <button class="md-vt" data-view="chart" onclick="switchMediaView('chart')">차트</button>
+            </div>
+            <!-- View 1: 채널 트리 -->
+            <div id="md-view-tree" class="md-view">
+              <div id="md-tree"></div>
+            </div>
+            <!-- View 2: 전체 매체 표 -->
+            <div id="md-view-flat" class="md-view hide">
               <div class="md-table-wrap"><table id="md-table" class="md-table"></table></div>
             </div>
-            <div class="ov-section">
-              <div class="ov-section-t">도달률 차트</div>
-              <div class="md-chart-wrap"><canvas id="md-reach-chart"></canvas></div>
-            </div>
-            <div class="ov-section">
-              <div class="ov-section-t">도달률 × 신뢰도 매트릭스</div>
-              <div class="md-chart-wrap"><canvas id="md-matrix-chart"></canvas></div>
+            <!-- View 3: 차트 -->
+            <div id="md-view-chart" class="md-view hide">
+              <div class="ov-section">
+                <div class="ov-section-t">도달률 차트 (상위 15)</div>
+                <div class="md-chart-wrap"><canvas id="md-reach-chart"></canvas></div>
+              </div>
+              <div class="ov-section">
+                <div class="ov-section-t">도달률 × 신뢰도 매트릭스</div>
+                <div class="md-chart-wrap"><canvas id="md-matrix-chart"></canvas></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1097,10 +1139,15 @@ async function refreshMediaTab(){
   try{
     document.getElementById('md-loading').classList.remove('hide');
     document.getElementById('md-body').classList.add('hide');
-    const res = await fetch(`${API}/media/landscape?country=${state.currentCountry}`);
-    const data = await res.json();
-    if(!data.ok) throw new Error(data.error || 'media failed');
-    renderMediaTab(data);
+    const [flat, tree] = await Promise.all([
+      fetch(`${API}/media/landscape?country=${state.currentCountry}`).then(r=>r.json()),
+      fetch(`${API}/media/taxonomy?country=${state.currentCountry}`).then(r=>r.json()),
+    ]);
+    if(!flat.ok || !tree.ok) throw new Error('media failed');
+    state.mediaData = flat;
+    state.mediaTree = tree;
+    renderMediaTab(flat);
+    renderMediaTree(tree);
     document.getElementById('md-loading').classList.add('hide');
     document.getElementById('md-body').classList.remove('hide');
   } catch(e){
@@ -1108,7 +1155,56 @@ async function refreshMediaTab(){
   }
 }
 
-function renderMediaTab(data){
+function switchMediaView(view){
+  document.querySelectorAll('.md-vt').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  ['tree','flat','chart'].forEach(v => {
+    document.getElementById(`md-view-${v}`).classList.toggle('hide', v !== view);
+  });
+}
+
+function renderMediaTree(data){
+  const wrap = document.getElementById('md-tree');
+  let html = '';
+  for(const ch of data.tree){
+    const chColor = chColors[ch.id] || '#4F46E5';
+    html += `<div class="md-ch-card" style="border-top:3px solid ${chColor}">
+      <div class="md-ch-h">
+        <div class="md-ch-label">${ch.label}</div>
+        <div class="md-ch-meta">
+          <span class="md-ch-reach">최대 도달 ${ch.reach.toFixed(0)}%</span>
+          <span class="md-ch-count">${ch.mediaCount}개 매체</span>
+        </div>
+      </div>
+      <div class="md-ch-bar"><div class="md-ch-bar-fill" style="width:${ch.reach}%;background:${chColor}"></div></div>
+      <div class="md-sub-list">`;
+    for(const sub of ch.subchannels){
+      html += `<details class="md-sub" open>
+        <summary class="md-sub-h">
+          <span class="md-sub-label">${sub.label}</span>
+          <span class="md-sub-meta">도달 ${sub.reach.toFixed(0)}% · 신뢰 ${sub.avgTrust} · CPM $${sub.avgCpm}</span>
+        </summary>
+        <div class="md-media-list">`;
+      for(const m of sub.media){
+        const blocked = m.reach === 0;
+        html += `<div class="md-media-row${blocked?' md-media-blocked':''}">
+          <span class="md-media-name">${m.label}</span>
+          <div class="md-media-bar"><div class="md-media-bar-fill" style="width:${m.reach}%;background:${chColor}"></div></div>
+          <span class="md-media-vals">도달 <b>${m.reach}%</b> · 신뢰 <b>${m.trust}</b> · CPM <b>$${m.cpm}</b> · 효율 <b>${m.effIndex}</b></span>
+        </div>`;
+      }
+      html += `</div></details>`;
+    }
+    html += `</div></div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+const chColors = {
+  tv: '#4F46E5', audio: '#10B981', print: '#F59E0B',
+  ooh: '#EF4444', dooh: '#EC4899', digital: '#7C3AED',
+};
+
+async function renderMediaTab(data){
   // 인사이트
   let insightHtml = data.insights.map(i => `
     <div class="ov-insight ${i.type==='blocked'?'notice':''}">
@@ -1125,10 +1221,10 @@ function renderMediaTab(data){
 
   // 표
   const tbl = document.getElementById('md-table');
-  let html = `<thead><tr><th>매체</th><th>구분</th><th>도달률</th><th>신뢰도</th><th>CPM (USD)</th><th>효율 인덱스</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>매체</th><th>Channel</th><th>Subchannel</th><th>도달률</th><th>신뢰도</th><th>CPM (USD)</th><th>효율</th></tr></thead><tbody>`;
   for(const it of data.items){
     const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${it.reach}%"></div></div>`;
-    html += `<tr${it.reach===0?' class="md-blocked"':''}><td><strong>${it.label}</strong></td><td><span class="md-tag">${it.group}</span></td><td>${reachBar}<span class="md-bar-v">${it.reach}%</span></td><td>${it.trust}</td><td>$${it.cpm}</td><td><strong>${it.effIndex}</strong></td></tr>`;
+    html += `<tr${it.reach===0?' class="md-blocked"':''}><td><strong>${it.label}</strong></td><td><span class="md-tag">${it.channel}</span></td><td><span class="md-tag md-tag-sub">${it.subchannel}</span></td><td>${reachBar}<span class="md-bar-v">${it.reach}%</span></td><td>${it.trust}</td><td>$${it.cpm}</td><td><strong>${it.effIndex}</strong></td></tr>`;
   }
   tbl.innerHTML = html + `</tbody>`;
 
