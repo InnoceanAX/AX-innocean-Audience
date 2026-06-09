@@ -531,7 +531,16 @@ a{color:inherit;text-decoration:none}
 .mt-mr-c{font-size:11.5px;color:#7C2D12;margin-bottom:4px}
 .mt-mr-s{font-size:11.5px;color:#1E40AF}
 /* Entry 3-way */
-.entry-3way{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px;margin-bottom:32px}
+
+.reco-flow{display:flex;align-items:center;gap:16px;padding:14px 18px;background:#FAFBFF;border:1px solid #E0E7FF;border-radius:10px;margin-top:28px;flex-wrap:wrap}
+.reco-flow-l{font-size:11px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.reco-flow-steps{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1}
+.reco-step{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#374151}
+.reco-step b{color:#111;font-weight:600}
+.reco-num{width:18px;height:18px;background:var(--ind);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.reco-arrow{color:#9CA3AF;font-weight:700}
+@media (max-width:880px){.reco-flow{flex-direction:column;align-items:flex-start}.reco-arrow{display:none}.reco-flow-steps{flex-direction:column;align-items:flex-start;gap:6px}}
+.entry-3way{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;margin-bottom:32px}
 @media (max-width:900px){.entry-3way{grid-template-columns:1fr}}
 .entry-card{background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:22px 18px;cursor:pointer;text-align:left;transition:all .2s}
 .entry-card:hover{border-color:var(--ind);box-shadow:0 8px 24px rgba(79,70,229,.08);transform:translateY(-2px)}
@@ -832,6 +841,53 @@ a{color:inherit;text-decoration:none}
 .kb-hint-list span{font-size:11.5px;color:#6B7280}
 .kb-hint-list kbd{padding:2px 6px;background:#fff;border:1px solid var(--bdr);border-radius:4px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#374151;margin:0 2px}
 @media (max-width:640px){.kb-hint-bar{flex-direction:column;align-items:flex-start}}
+
+.ws-tabs{display:flex;align-items:center;gap:0}
+.ws-tab-spacer{flex:1}
+.ws-tool-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;background:#111;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;margin-right:8px}
+.ws-tool-btn:hover{background:#374151;transform:translateY(-1px)}
+.ws-tool-btn svg{width:14px;height:14px;color:#fff}
+.ws-tool-btn.active{background:var(--ind)}
+
+@keyframes aiPulse{0%,100%{transform:translateY(-50%) scale(1);box-shadow:-4px 0 12px rgba(79,70,229,.25)}50%{transform:translateY(-50%) scale(1.12);box-shadow:-4px 0 28px rgba(79,70,229,.55)}}
+.ai-toggle-pulse{animation:aiPulse 1.4s ease-in-out infinite}
+.ai-toggle-tip{position:absolute;top:50%;left:-220px;transform:translateY(-50%);padding:12px 16px;background:#111;color:#fff;border-radius:10px;font-size:12.5px;font-weight:600;white-space:nowrap;box-shadow:0 10px 25px rgba(0,0,0,.25);animation:tipIn .3s ease-out;z-index:100}
+.ai-toggle-tip::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-left-color:#111}
+.ai-toggle-tip small{display:block;font-weight:400;color:#9CA3AF;font-size:10.5px;margin-top:3px}
+.ai-toggle-tip.fade-out{opacity:0;transition:opacity .4s}
+@keyframes tipIn{from{opacity:0;transform:translateY(-50%) translateX(10px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
+
+.aud-src-more{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:2px 8px;background:#EEF2FF;color:var(--ind);border-radius:11px;font-size:10.5px;font-weight:600}
+.aud-src-clickable:hover .aud-src-more{background:var(--ind);color:#fff}
+
+.bld-guide{padding:10px 12px;background:#FAFBFF;border:1px solid #E0E7FF;border-radius:8px;margin-bottom:14px}
+.bld-guide-l{font-size:9.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.bld-guide-steps{display:flex;flex-direction:column;gap:6px}
+.bld-step{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#6B7280}
+.bld-step.done{color:#065F46;font-weight:600}
+.bld-step-n{width:16px;height:16px;background:#E5E7EB;color:#6B7280;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0}
+.bld-step.done .bld-step-n{background:#10B981;color:#fff}
+.bld-step-v{margin-left:auto;font-size:10.5px;color:#9CA3AF;font-weight:500}
+.bld-step.done .bld-step-v{color:#065F46}
+.bld-presets{margin-bottom:14px}
+.bld-presets-l{font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.bld-presets-row{display:flex;flex-wrap:wrap;gap:5px}
+.bld-preset{padding:5px 10px;background:#fff;border:1px solid var(--bdr);border-radius:13px;font-size:10.5px;color:#374151;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+.bld-preset:hover{background:var(--ind);color:#fff;border-color:var(--ind)}
+
+.iv-q-chips{margin-bottom:10px}
+.iv-q-chips-l{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.iv-q-chips-row{display:flex;flex-wrap:wrap;gap:5px}
+.iv-q-chip{padding:5px 10px;background:#F3F4F6;border:1px solid var(--bdr);border-radius:13px;font-size:10.5px;color:#374151;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+.iv-q-chip:hover{background:var(--ind);color:#fff;border-color:var(--ind)}
+
+.aud-chart-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px}
+.aud-chart-grid-3{grid-template-columns:repeat(3,1fr)}
+.aud-chart-card{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:14px 16px}
+.aud-chart-t{font-size:12.5px;font-weight:700;color:#111;margin-bottom:10px}
+.aud-chart-canvas-wrap{position:relative;height:240px}
+.aud-chart-grid-3 .aud-chart-canvas-wrap{height:220px}
+@media (max-width:980px){.aud-chart-grid,.aud-chart-grid-3{grid-template-columns:1fr}}
 /* Data Source Modal */
 .src-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
 .src-modal.hide{display:none}
@@ -950,12 +1006,14 @@ a{color:inherit;text-decoration:none}
       <div class="ws-tab" data-tab="media" onclick="switchTab('media')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><path d="M8 14a4 4 0 0 1 0-4"/><path d="M16 14a4 4 0 0 0 0-4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span><span>미디어</span>
       </div>
-      <div class="ws-tab" data-tab="compare" onclick="switchTab('compare')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="18" cy="18" r="1.5" fill="currentColor"/></svg></span><span>글로벌 비교</span>
-      </div>
-      <div class="ws-tab" data-tab="interview" onclick="switchTab('interview')">
+            <div class="ws-tab" data-tab="interview" onclick="switchTab('interview')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>페르소나</span>
       </div>
+      <div class="ws-tab-spacer"></div>
+      <button class="ws-tool-btn" onclick="switchTab('compare')" title="글로벌 비교 매트릭스 (28국가 × 5차원)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>전체 비교</span>
+      </button>
     </div>
 
     <!-- CONTENT -->
@@ -998,6 +1056,18 @@ a{color:inherit;text-decoration:none}
               </button>
             </div>
             <div class="chat-disclaim">AI는 실수할 수 있어요. 중요 결정은 한 번 더 확인하세요.</div>
+          </div>
+
+          <!-- Recommended Flow -->
+          <div class="reco-flow">
+            <div class="reco-flow-l">추천 흐름</div>
+            <div class="reco-flow-steps">
+              <span class="reco-step"><span class="reco-num">1</span>처음이면 <b>MODE 1 자연어</b>로 시작</span>
+              <span class="reco-arrow">→</span>
+              <span class="reco-step"><span class="reco-num">2</span>익숙해지면 <b>MODE 2 빌더</b>로 정밀 조정</span>
+              <span class="reco-arrow">→</span>
+              <span class="reco-step"><span class="reco-num">3</span>국가 비교 필요할 때 <b>MODE 3 매트릭스</b></span>
+            </div>
           </div>
 
           <!-- 3-way Entry -->
@@ -1288,6 +1358,17 @@ a{color:inherit;text-decoration:none}
             <div class="iv-chat-section">
               <div class="iv-chat-h">인터뷰 대화</div>
               <div id="iv-msgs" class="iv-msgs"></div>
+              <div class="iv-q-chips" id="iv-q-chips">
+                <div class="iv-q-chips-l">추천 질문</div>
+                <div class="iv-q-chips-row">
+                  <button class="iv-q-chip" onclick="quickAskInterview('어떤 광고가 가장 와닿나요? 왜요?')">광고 효과</button>
+                  <button class="iv-q-chip" onclick="quickAskInterview('주말에는 보통 뭐 하면서 시간 보내세요?')">주말 일상</button>
+                  <button class="iv-q-chip" onclick="quickAskInterview('최근에 산 물건 중에 가장 만족스러운 건요?')">최근 구매</button>
+                  <button class="iv-q-chip" onclick="quickAskInterview('가격이 비싸도 사고 싶은 브랜드가 있나요?')">브랜드 충성도</button>
+                  <button class="iv-q-chip" onclick="quickAskInterview('하루에 SNS는 얼마나 보세요? 뭘 주로 보세요?')">미디어 소비</button>
+                  <button class="iv-q-chip" onclick="quickAskInterview('새로운 제품 정보는 주로 어디서 얻으세요?')">정보 소스</button>
+                </div>
+              </div>
               <div class="iv-input-row">
                 <input id="iv-input" class="iv-input" placeholder="이 제품에 대해 어떻게 생각하세요?" onkeydown="if(event.key==='Enter') sendInterview()">
                 <button class="iv-send" onclick="sendInterview()">전송</button>
@@ -1695,6 +1776,8 @@ function switchTab(tab, opts){
   const fromHistory = opts && opts.fromHistory;
   state.currentTab = tab;
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
+  const toolBtn = document.querySelector('.ws-tool-btn');
+  if(toolBtn) toolBtn.classList.toggle('active', tab === 'compare');
   ['overview','insights','who','life','mind','love','buy','media','compare','interview'].forEach(t => {
     const el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('hide', t !== tab);
@@ -1844,6 +1927,17 @@ async function renderMediaSpend(data){
     <div class="md-spend-total">연 추정 광고비 <b>$${s.totalEstimatedB}B</b></div>
     <div class="md-spend-method">${s.methodology}</div>
   </div>
+  <div class="aud-chart-grid">
+    <div class="aud-chart-card">
+      <div class="aud-chart-t">채널별 점유율 (도넛)</div>
+      <div class="aud-chart-canvas-wrap"><canvas id="chart-media-doughnut"></canvas></div>
+    </div>
+    <div class="aud-chart-card">
+      <div class="aud-chart-t">채널별 광고비 (막대)</div>
+      <div class="aud-chart-canvas-wrap"><canvas id="chart-media-bar"></canvas></div>
+    </div>
+  </div>
+  <div class="md-spend-h" style="margin-top:18px"><div class="md-spend-total">채널 상세</div></div>
   <div class="md-spend-table">`;
   for(const ch of sortedCh){
     const color = chColors[ch.channelId] || '#4F46E5';
@@ -1874,6 +1968,16 @@ async function renderMediaSpend(data){
   }
   html += `</div>`;
   document.getElementById('md-spend-summary').innerHTML = html;
+  // 차트 렌더링
+  setTimeout(() => {
+    const chLabels = sortedCh.map(c => c.label);
+    const chSpend = sortedCh.map(c => c.spend / 1_000_000_000); // B 단위
+    const chCols = sortedCh.map(c => chColors[c.channelId] || '#4F46E5');
+    if(typeof renderChartSafe === 'function'){
+      renderChartSafe('chart-media-doughnut', 'doughnut', chLabels, sortedCh.map(c => c.share), chCols, { suffix: '%' });
+      renderChartSafe('chart-media-bar', 'bar', chLabels, chSpend, chCols, { suffix: 'B' });
+    }
+  }, 50);
 }
 
 async function renderMediaTab(data){
@@ -2741,84 +2845,266 @@ async function refreshAudienceTab(dim){
       src.textContent = '데이터 없음';
       return;
     }
-    src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기"><span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> <span class="aud-src-txt">${data.source.primary}</span> <svg class="aud-src-info" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>`;
+    src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기"><span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
     body.dataset.country = code;
     body.innerHTML = renderAudienceDim(dim, data);
+    setTimeout(() => renderDimCharts(dim, data), 50);
   } catch(e){
     body.innerHTML = `<div class="aud-error">오류: ${e.message}</div>`;
   }
+}
+
+
+// ============ Chart.js 헬퍼 ============
+window._chartInstances = window._chartInstances || {};
+function renderChartSafe(canvasId, type, labels, data, color, opts){
+  try {
+    const canvas = document.getElementById(canvasId);
+    if(!canvas || typeof Chart === 'undefined') return;
+    // 이전 인스턴스 파괴
+    if(window._chartInstances[canvasId]){
+      try { window._chartInstances[canvasId].destroy(); } catch(e){}
+      delete window._chartInstances[canvasId];
+    }
+    const ctx = canvas.getContext('2d');
+    const isMulti = Array.isArray(color);
+    const colors = isMulti ? color : data.map(() => color);
+    const suffix = (opts && opts.suffix) || '';
+    let config;
+    if(type === 'doughnut' || type === 'pie'){
+      config = {
+        type: type,
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: isMulti ? color : [color, '#A5B4FC', '#C7D2FE', '#DDD6FE', '#FBCFE8', '#FECACA', '#FED7AA'],
+            borderColor: '#fff',
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { font: { size: 11, family: 'Pretendard' }, padding: 8, boxWidth: 12 } },
+            tooltip: { callbacks: { label: (ctx) => ctx.label + ': ' + ctx.parsed + suffix } },
+          },
+        },
+      };
+    } else if(type === 'radar'){
+      config = {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: color + '33',
+            borderColor: color,
+            borderWidth: 2,
+            pointBackgroundColor: color,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              beginAtZero: true,
+              suggestedMax: 100,
+              ticks: { font: { size: 9, family: 'Pretendard' }, color: '#9CA3AF', backdropColor: 'transparent' },
+              pointLabels: { font: { size: 10.5, family: 'Pretendard' }, color: '#374151' },
+              grid: { color: '#E5E7EB' },
+              angleLines: { color: '#E5E7EB' },
+            },
+          },
+        },
+      };
+    } else if(type === 'polarArea'){
+      config = {
+        type: 'polarArea',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: (isMulti ? color : [color]).map(c => c + 'B3'),
+            borderColor: '#fff',
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { font: { size: 11, family: 'Pretendard' }, padding: 8, boxWidth: 12 } } },
+          scales: { r: { beginAtZero: true, suggestedMax: 100, ticks: { backdropColor: 'transparent', font: { size: 9 } } } },
+        },
+      };
+    } else {
+      // bar (default horizontal)
+      config = {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (ctx) => ctx.parsed.x + suffix } },
+          },
+          scales: {
+            x: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { font: { size: 10, family: 'Pretendard' } } },
+            y: { grid: { display: false }, ticks: { font: { size: 10.5, family: 'Pretendard' } } },
+          },
+        },
+      };
+    }
+    window._chartInstances[canvasId] = new Chart(ctx, config);
+  } catch(e){
+    console.warn('chart render error', canvasId, e);
+  }
+}
+
+
+function renderDimCharts(dim, data){
+  const d = data.data || {};
+  try {
+    if(dim === 'who'){
+      const ages = d.ageDistribution || {};
+      const ageKeys = Object.keys(ages);
+      const ageVals = ageKeys.map(k => ages[k]);
+      renderChartSafe('chart-who-doughnut', 'doughnut', ageKeys.map(k => k + '세'), ageVals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981']);
+      renderChartSafe('chart-who-bar', 'bar', ageKeys.map(k => k + '세'), ageVals, '#6366F1', { suffix: '%' });
+    } else if(dim === 'life'){
+      const act = d.activities || {};
+      const t = d.travel || {};
+      const actKeys = Object.keys(act);
+      renderChartSafe('chart-life-radar', 'radar', actKeys.map(k => actLabel(k)), actKeys.map(k => act[k]), '#6366F1');
+      renderChartSafe('chart-life-travel', 'doughnut', ['국내여행', '해외여행'], [t.domestic||0, t.international||0], ['#06B6D4', '#0EA5E9']);
+    } else if(dim === 'mind'){
+      const trust = d.trust || {};
+      const vals = d.values || {};
+      const cul = d.culture || {};
+      renderChartSafe('chart-mind-trust', 'radar', Object.keys(trust).map(k => trustLabel(k)), Object.values(trust), '#10B981');
+      renderChartSafe('chart-mind-values', 'radar', Object.keys(vals).map(k => valLabel(k)), Object.values(vals), '#8B5CF6');
+      renderChartSafe('chart-mind-culture', 'polarArea', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
+    } else if(dim === 'love'){
+      const ranked = data.rankedInterests || [];
+      const top8 = ranked.slice(0, 8);
+      renderChartSafe('chart-love-radar', 'radar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
+      renderChartSafe('chart-love-bar', 'bar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
+    } else if(dim === 'buy'){
+      const tc = d.topCategories || {};
+      const df = d.decisionFactors || {};
+      const pm = d.paymentMethods || {};
+      const tcSorted = Object.entries(tc).sort((a,b)=>b[1]-a[1]);
+      const dfSorted = Object.entries(df).sort((a,b)=>b[1]-a[1]);
+      renderChartSafe('chart-buy-cat', 'doughnut', tcSorted.map(e => catLabel(e[0])), tcSorted.map(e => e[1]), ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
+      renderChartSafe('chart-buy-decision', 'radar', dfSorted.map(e => decLabel(e[0])), dfSorted.map(e => e[1]), '#0EA5E9');
+      renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(pm).map(k => payLabel(k)), Object.values(pm), ['#84CC16','#22C55E','#10B981','#06B6D4']);
+    }
+  } catch(e){ console.warn('renderDimCharts error', e); }
 }
 
 function renderAudienceDim(dim, data){
   const d = data.data;
   if(dim === 'who'){
     const ages = d.ageDistribution || {};
+    const ageKeys = Object.keys(ages);
+    const ageVals = ageKeys.map(k => ages[k]);
     return `<div class="aud-grid">
       <div class="aud-kpi"><div class="aud-kpi-l">중위 연령</div><div class="aud-kpi-v">${d.medianAge?.toFixed(1)}세</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">도시화율</div><div class="aud-kpi-v">${d.urbanRate?.toFixed(1)}%</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">부양비</div><div class="aud-kpi-v">${d.dependencyRatio?.toFixed(1)}%</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">인구</div><div class="aud-kpi-v">${d.population ? (d.population/1e6).toFixed(1)+'M' : '—'}</div></div>
     </div>
-    <div class="aud-section"><div class="aud-section-t">연령 분포</div>
-      <div class="aud-bars">
-        ${Object.entries(ages).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${k}세</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v*2}%"></div></div><div class="aud-bar-v">${v.toFixed(1)}%</div></div>`).join('')}
+    <div class="aud-chart-grid">
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">연령 분포 (도넛)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-doughnut"></canvas></div>
       </div>
-    </div>`;
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">연령별 비교 (막대)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-bar"></canvas></div>
+      </div>
+    </div>
+    `;
   }
   if(dim === 'life'){
     const dig = d.digital || {};
     const act = d.activities || {};
     const t = d.travel || {};
+    const actKeys = Object.keys(act);
     return `<div class="aud-grid">
       <div class="aud-kpi"><div class="aud-kpi-l">인터넷 침투</div><div class="aud-kpi-v">${dig.internetPenetration?.toFixed(1)}%</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">소셜 사용</div><div class="aud-kpi-v">${dig.socialMediaUsers?.toFixed(1)}%</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">인터넷 시간/일</div><div class="aud-kpi-v">${dig.avgInternetHours?.toFixed(1)}h</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">TV 시간/일</div><div class="aud-kpi-v">${dig.avgTVHours?.toFixed(1)}h</div></div>
     </div>
-    <div class="aud-section"><div class="aud-section-t">디지털 활동</div>
-      <div class="aud-bars">
-        ${Object.entries(act).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${actLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%"></div></div><div class="aud-bar-v">${v}%</div></div>`).join('')}
+    <div class="aud-chart-grid">
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">디지털 활동 프로파일 (레이더)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-radar"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">여행 성향 (도넛)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travel"></canvas></div>
       </div>
     </div>
-    <div class="aud-section"><div class="aud-section-t">여행 성향</div>
-      <div class="aud-bars">
-        <div class="aud-bar-row"><div class="aud-bar-l">국내여행</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${t.domestic}%"></div></div><div class="aud-bar-v">${t.domestic}%</div></div>
-        <div class="aud-bar-row"><div class="aud-bar-l">해외여행</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${t.international}%"></div></div><div class="aud-bar-v">${t.international}%</div></div>
-      </div>
-    </div>`;
+    `;
   }
   if(dim === 'mind'){
     const trust = d.trust || {};
     const vals = d.values || {};
     const cul = d.culture || {};
-    return `<div class="aud-section"><div class="aud-section-t">신뢰도 (Edelman Trust Barometer)</div>
-      <div class="aud-bars">
-        ${Object.entries(trust).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${trustLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#10B981"></div></div><div class="aud-bar-v">${v}</div></div>`).join('')}
+    return `<div class="aud-chart-grid aud-chart-grid-3">
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">기관 신뢰도 (Edelman)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-trust"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">가치관 (WVS)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-values"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">문화 (Hofstede)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-culture"></canvas></div>
       </div>
     </div>
-    <div class="aud-section"><div class="aud-section-t">가치관 설문 (World Values Survey)</div>
-      <div class="aud-bars">
-        ${Object.entries(vals).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${valLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#8B5CF6"></div></div><div class="aud-bar-v">${v}</div></div>`).join('')}
-      </div>
-    </div>
-    <div class="aud-section"><div class="aud-section-t">문화스코어 (Hofstede)</div>
-      <div class="aud-bars">
-        <div class="aud-bar-row"><div class="aud-bar-l">개인주의</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${cul.individualism}%;background:#F59E0B"></div></div><div class="aud-bar-v">${cul.individualism}</div></div>
-        <div class="aud-bar-row"><div class="aud-bar-l">위험회피</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${cul.riskAversion}%;background:#F59E0B"></div></div><div class="aud-bar-v">${cul.riskAversion}</div></div>
-        <div class="aud-bar-row"><div class="aud-bar-l">장기지향</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${cul.longTermOrientation}%;background:#F59E0B"></div></div><div class="aud-bar-v">${cul.longTermOrientation}</div></div>
-      </div>
-    </div>`;
+    `;
   }
   if(dim === 'love'){
     const ranked = data.rankedInterests || [];
-    return `<div class="aud-section"><div class="aud-section-t">Top 12 관심사 (Google Trends + DataReportal)</div>
+    const top8 = ranked.slice(0, 8);
+    return `<div class="aud-chart-grid">
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">Top 8 관심사 프로파일 (레이더)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">Top 8 관심사 점수 (막대)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-bar"></canvas></div>
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">전체 랭킹 (${ranked.length}개)</div>
       <div class="aud-bars">
         ${ranked.map((r, i) => `<div class="aud-bar-row"><div class="aud-bar-l">${i+1}. ${loveLabel(r.id)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${r.score}%;background:#EC4899"></div></div><div class="aud-bar-v">${r.score}</div></div>`).join('')}
       </div>
     </div>
     <div class="aud-section"><div class="aud-section-t">대표 관심사 Top 3</div>
       <div class="aud-chips">${(data.top3||[]).map(t => `<span class="aud-chip">${loveLabel(t)}</span>`).join('')}</div>
-    </div>`;
+    </div>
+    `;
   }
   if(dim === 'buy'){
     const ec = d.ecommerce || {};
@@ -2826,27 +3112,29 @@ function renderAudienceDim(dim, data){
     const tc = d.topCategories || {};
     const df = d.decisionFactors || {};
     const psy = d.psychology || {};
+    const tcSorted = Object.entries(tc).sort((a,b)=>b[1]-a[1]);
+    const dfSorted = Object.entries(df).sort((a,b)=>b[1]-a[1]);
     return `<div class="aud-grid">
       <div class="aud-kpi"><div class="aud-kpi-l">이커머스 비중</div><div class="aud-kpi-v">${ec.shareOfRetail}%</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">모바일 비중</div><div class="aud-kpi-v">${ec.mobileShare}%</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">월평균 지출</div><div class="aud-kpi-v">$${ec.avgMonthlySpendUSD}</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">가격민감도</div><div class="aud-kpi-v">${psy.priceSensitivity}</div></div>
     </div>
-    <div class="aud-section"><div class="aud-section-t">주요 구매 카테고리</div>
-      <div class="aud-bars">
-        ${Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${catLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#06B6D4"></div></div><div class="aud-bar-v">${v}%</div></div>`).join('')}
+    <div class="aud-chart-grid aud-chart-grid-3">
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">구매 카테고리 (도넛)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-cat"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">의사결정 요인 (레이더)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-decision"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">결제 수단 (도넛)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-pay"></canvas></div>
       </div>
     </div>
-    <div class="aud-section"><div class="aud-section-t">구매 의사결정 요인</div>
-      <div class="aud-bars">
-        ${Object.entries(df).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${decLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#0EA5E9"></div></div><div class="aud-bar-v">${v}</div></div>`).join('')}
-      </div>
-    </div>
-    <div class="aud-section"><div class="aud-section-t">결제 수단</div>
-      <div class="aud-bars">
-        ${Object.entries(pm).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${payLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#84CC16"></div></div><div class="aud-bar-v">${v}%</div></div>`).join('')}
-      </div>
-    </div>`;
+    `;
   }
   return '';
 }
@@ -3130,6 +3418,13 @@ function renderPersonaCard(p, meta){
   `;
 }
 
+
+function quickAskInterview(q){
+  const inp = document.getElementById('iv-input');
+  if(!inp) return;
+  inp.value = q;
+  if(typeof sendInterview === 'function') sendInterview();
+}
 async function sendInterview(){
   const input = document.getElementById('iv-input');
   const msg = input.value.trim();
@@ -3308,10 +3603,29 @@ function renderCrossHeatmap(data){
 // ============ BUILDER ============
 function renderBuilder(){
   const wrap = document.getElementById('builder');
+  const hasFilters = Object.keys(state.filters || {}).length > 0;
   let html = `<div class="bld-hd">
     <div class="bld-hd-t">타겟 빌더</div>
     <div class="bld-hd-spacer"></div>
     <button class="bld-hd-btn" onclick="clearFilters()">전체 해제</button>
+  </div>
+  <div class="bld-guide">
+    <div class="bld-guide-l">단계별 설정</div>
+    <div class="bld-guide-steps">
+      <span class="bld-step ${state.currentCountry ? 'done' : ''}"><span class="bld-step-n">1</span>국가 선택 <span class="bld-step-v">${state.currentCountry || '미선택'}</span></span>
+      <span class="bld-step ${hasFilters ? 'done' : ''}"><span class="bld-step-n">2</span>세그먼트 필터 <span class="bld-step-v">${hasFilters ? Object.keys(state.filters).length + '개 적용' : '선택사항'}</span></span>
+      <span class="bld-step"><span class="bld-step-n">3</span>9개 탭에서 결과 확인</span>
+    </div>
+  </div>
+  <div class="bld-presets">
+    <div class="bld-presets-l">프리셋</div>
+    <div class="bld-presets-row">
+      <button class="bld-preset" onclick="applyPreset('genZ')" title="18-24세 Gen Z, 디지털 네이티브">Gen Z 글로벌</button>
+      <button class="bld-preset" onclick="applyPreset('kpop')" title="K-Pop 열성 팬, 한류 관심층">K-Pop 팬</button>
+      <button class="bld-preset" onclick="applyPreset('premium')" title="고소득 프리미엄 쇼퍼">프리미엄 쇼퍼</button>
+      <button class="bld-preset" onclick="applyPreset('mom')" title="30-40대 워킹맘, 가족 중심">30대 워킹맘</button>
+      <button class="bld-preset" onclick="applyPreset('tech')" title="얼리어답터 테크 인플루언서">테크 얼리어답터</button>
+    </div>
   </div>`;
   const groupedDims = {};
   for(const d of state.dimensions){
@@ -3332,6 +3646,46 @@ function renderBuilder(){
     html += `</div>`;
   }
   wrap.innerHTML = html;
+}
+
+function applyPreset(key){
+  // 프리셋 매핑 — 빌더 차원과 매칭되도록 안전 설계
+  const presets = {
+    genZ: { age: ['18-24'], values: ['혁신', '쾌락'] },
+    kpop: { interests: ['K-Pop', '음악', '드라마'] },
+    premium: { income: ['상위 20%'], decision: ['브랜드', '품질'] },
+    mom: { age: ['30-39'], values: ['가족', '안전'], interests: ['육아', '쇼핑'] },
+    tech: { interests: ['테크', '게임'], adoption: ['얼리어답터'] },
+  };
+  const p = presets[key] || {};
+  // 기존 차원 중 매칭되는 키만 적용 (안전)
+  const dimKeys = state.dimensions.map(d => d.id);
+  state.filters = {};
+  for(const k in p){
+    if(dimKeys.includes(k) || dimKeys.includes(k.toLowerCase())){
+      state.filters[k] = p[k];
+    }
+  }
+  // 직접 매칭 안되면 일반화 — 그래도 사용자 피드백을 위해 알림
+  if(Object.keys(state.filters).length === 0){
+    // dimension 이름 부분 매칭 시도
+    for(const dim of state.dimensions){
+      for(const k in p){
+        if(dim.label.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(dim.id.toLowerCase())){
+          state.filters[dim.id] = p[k].filter(v => dim.options && dim.options.some(o => o.includes(v) || v.includes(o)));
+          break;
+        }
+      }
+    }
+  }
+  renderBuilder();
+  refreshSegment();
+  // 시각 피드백
+  const b = document.getElementById('builder');
+  if(b){
+    b.classList.add('builder-pulse');
+    setTimeout(() => b.classList.remove('builder-pulse'), 1200);
+  }
 }
 
 function toggleFilter(dimId, opt){
@@ -3592,6 +3946,31 @@ document.addEventListener('click', (e)=>{
 
 // ============ START ============
 boot();
+
+// AI 비서 첫 진입 펄스 (1회만)
+function showAiTogglePulse(){
+  const btn = document.querySelector('.ai-toggle');
+  if(!btn) return;
+  btn.classList.add('ai-toggle-pulse');
+  // 툴팁 표시
+  const tip = document.createElement('div');
+  tip.className = 'ai-toggle-tip';
+  tip.innerHTML = '새로워진 AI 비서<br><small>클릭하거나 Cmd/Ctrl+K</small>';
+  btn.parentElement.appendChild(tip);
+  setTimeout(() => {
+    btn.classList.remove('ai-toggle-pulse');
+    tip.classList.add('fade-out');
+    setTimeout(() => tip.remove(), 400);
+  }, 5000);
+}
+window.addEventListener('load', () => {
+  try {
+    if(!localStorage.getItem('aiToggleHinted')){
+      setTimeout(showAiTogglePulse, 2500);
+      localStorage.setItem('aiToggleHinted', '1');
+    }
+  } catch(e){}
+});
 </script>
 </body>
 </html>
