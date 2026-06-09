@@ -12,6 +12,7 @@ import { compareRouter } from "./routes/compare.js";
 import { dimInsightsRouter } from "./routes/dimension-insights.js";
 import { mediaRouter } from "./routes/media.js";
 import { interviewRouter } from "./routes/interview.js";
+import { audienceRouter } from "./routes/audience.js";
 import { stratRouter } from "./routes/stratify.js";
 import { askRouter } from "./routes/ask.js";
 import { libraryRouter } from "./routes/library.js";
@@ -47,6 +48,7 @@ app.use("/api/insights", insightsRouter);
 // 트렌드 (Google Trends 등 외부 API)
 app.use("/api/trends", trendsRouter);
 app.use("/api/compare", compareRouter);
+app.use("/api/audience", audienceRouter);
 app.use("/api/dimension-insights", dimInsightsRouter);
 app.use("/api/media", mediaRouter);
 app.use("/api/interview", interviewRouter);
