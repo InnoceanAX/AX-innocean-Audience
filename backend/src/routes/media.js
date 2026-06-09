@@ -52,27 +52,23 @@ function computeCPM(m, ind) {
 
 // 국가별 총 광고비 추정 (Statista AMO baseline + GDP 계수)
 // 2024 기준 글로벌 광고비 ~$1T, 채널별 합 점유율 대입
-const CHANNEL_SPEND_SHARE = {
-  tv_video:    0.21,  // TV · 이전 점유율 30%에서 하락 중
-  search:      0.20,  // Google·Naver·Baidu
-  social:      0.17,  // Meta·TikTok·X
-  banner:      0.13,  // Display·Programmatic
-  ooh:         0.07,  // OOH 전체 (DOOH 포함)
-  print:       0.05,  // 신문·잡지 계속 감소
-  audio:       0.04,  // 라디오 + 팟캐스트
-  classifieds: 0.07,  // Indeed·Zillow 등
-  influencer:  0.06,  // 2024 명시, 고성장 추세
-};
+// 채널별 광고비 점유율: GroupM TYNY 2024 + MAGNA Dec 2024 공식 수치
+const CHANNEL_SPEND_SHARE = Object.fromEntries(
+  Object.entries(CHANNEL_SPEND_SHARE_2024).map(([k, v]) => [k, v.share])
+);
 
-function estimateCountryAdSpend(ind) {
-  // 글로벌 광고비 = $1T, 각국 광고비 ≈ GDP × 0.8% (개발도상국 기준)
-  // GDP per capita가 높을수록 광고비/GDP 비율도 증가 (US≈1.3%, 신흥국≈0.5%)
+function estimateCountryAdSpend(ind, countryCode) {
+  // 1순위: 공식 보고서 (MAGNA/GroupM/Dentsu/KOBACO)
+  const official = getCountryAdSpend(countryCode);
+  if (official) {
+    return { total: official.totalUSD, source: official.source, method: "public-report" };
+  }
+  // 2순위: GDP 기반 추정 (공개 데이터 없는 국가)
   const gdpPerCap = ind.gdpPerCapita || 15000;
   const ratio = 0.005 + (gdpPerCap > 30000 ? 0.005 : (gdpPerCap > 15000 ? 0.003 : 0));
-  // 국가별 추정 GDP 총해 (괄호안에 실제 수치가 있으면 더 좋지만, 없으면 인구 × GDP 추정)
   const popB = (ind.population || 50_000_000);
   const gdpUSD = gdpPerCap * popB;
-  return gdpUSD * ratio;  // 달러
+  return { total: gdpUSD * ratio, source: "GDP 기반 추정 (공개 데이터 없음)", method: "gdp-estimate" };
 }
 
 function spendShareForMedia(m, allMediaInChannel) {
@@ -100,7 +96,8 @@ mediaRouter.get("/landscape", async (req, res) => {
 
   // 국가 총 광고비 추정 + Pop 보완
   const indFlatWithPop = { ...indFlat, population: ind.population?.value };
-  const totalAdSpend = estimateCountryAdSpend(indFlatWithPop);
+  const adSpendData = estimateCountryAdSpend(indFlatWithPop, code);
+  const totalAdSpend = adSpendData.total;
 
   const allMedia = flattenMedia();
   // 1차 계산: reach/trust/cpm
@@ -118,12 +115,23 @@ mediaRouter.get("/landscape", async (req, res) => {
   });
   // 2차: 채널별 광고비 분배 → 매체별 광고비
   for (const m of items) {
+    // KR: KOBACO/제일기획 실결과 우선
+    if (code === "KR") {
+      const krOfficial = getKoreaMediaAdSpend(m.id);
+      if (krOfficial) {
+        m.spend = krOfficial.usd * 1_000_000;
+        m.spendShare = Number((m.spend / totalAdSpend * 100).toFixed(2));
+        m.spendSource = krOfficial.source;
+        continue;
+      }
+    }
     const chShare = CHANNEL_SPEND_SHARE[m.channelId] || 0.02;
     const channelSpend = totalAdSpend * chShare;
     const sameChannel = items.filter(x => x.channelId === m.channelId);
     const myShare = spendShareForMedia(m, sameChannel);
     m.spend = Math.round(channelSpend * myShare);
-    m.spendShare = Number((chShare * myShare * 100).toFixed(2));  // 전체 광고비 대비 %
+    m.spendShare = Number((chShare * myShare * 100).toFixed(2));
+    m.spendSource = adSpendData.source;
   }
   items.sort((a, b) => b.reach - a.reach);
 
@@ -175,8 +183,13 @@ mediaRouter.get("/landscape", async (req, res) => {
       totalEstimated: Math.round(totalAdSpend),
       totalEstimatedB: Number((totalAdSpend / 1_000_000_000).toFixed(2)),
       currency: "USD",
+      year: 2024,
+      source: adSpendData.source,
+      method: adSpendData.method,
       channels: channelSpendSummary,
-      methodology: "GDP × 광고비 비율 (선진국 1.0%, 중진국 0.8%, 신흥국 0.5%) + Statista AMO 채널 점유율",
+      methodology: adSpendData.method === "public-report"
+        ? `공개 보고서 (${adSpendData.source}) + GroupM/MAGNA 채널 점유율${code === "KR" ? " + KOBACO/제일기획 매체별" : ""}`
+        : `GDP × 광고비 비율 추정 (공개 데이터 없음, 정밀도 ±15%)`,
     },
     chart: {
       labels: items.slice(0, 15).map(i => i.label),
