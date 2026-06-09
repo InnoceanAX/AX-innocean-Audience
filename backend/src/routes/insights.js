@@ -80,7 +80,7 @@ insightsRouter.post("/segment", async (req, res) => {
       method: "world-bank + rule-based (LLM 교체 예정)",
       partial: !!countryMeta.trendsUnavailable,
       partialReason: countryMeta.trendsUnavailable
-        ? "Trends 데이터 제외·독립한 서브는 정상 제공"
+        ? "Trends 데이터 제외 — World Bank 지표·세그먼트·페르소나는 정상 제공"
         : null,
     },
   });
