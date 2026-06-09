@@ -117,8 +117,8 @@ mediaRouter.get("/landscape", async (req, res) => {
       planned: [SOURCE_META.dataReportal, SOURCE_META.statista, SOURCE_META.innoceanInternal, SOURCE_META.talkwalker],
     },
     meta: {
-      method: "Channel/Subchannel/Media 3단 분류 + WB 지표 + 매체 베이스라인",
-      taxonomy: "Dentsu/WPP/Publicis/WARC 통합 표준",
+      method: "Statista AMO 9 세그먼트 + GWI 미디어 행동 매핑",
+      taxonomy: "Statista Advertising & Media Outlook (공식) + GWI 행동 카테고리",
       totalChannels: CHANNELS.length,
       totalMedia: allMedia.length,
       generatedAt: new Date().toISOString(),
@@ -145,7 +145,7 @@ mediaRouter.get("/taxonomy", async (req, res) => {
   // 채널별 트리 빌드 + 집계
   const tree = CHANNELS.map(ch => {
     let chReach = 0, chSpend = 0, chCount = 0;
-    const subchannels = ch.subchannels.map(sub => {
+    const subchannels = (ch.subchannels || []).map(sub => {
       let subReach = 0, subTrust = 0, subCpm = 0;
       const media = sub.media.map(m => {
         const flat = { ...m, channelId: ch.id, subchannelId: sub.id, channelLabel: ch.label, subchannelLabel: sub.label };
@@ -175,6 +175,8 @@ mediaRouter.get("/taxonomy", async (req, res) => {
       id: ch.id,
       label: ch.label,
       icon: ch.icon,
+      statista: ch.statista || null,
+      gwi: ch.gwi || [],
       reach: chReach,
       mediaCount: chCount,
       subchannels,
@@ -186,7 +188,9 @@ mediaRouter.get("/taxonomy", async (req, res) => {
     country: meta,
     tree,
     meta: {
-      taxonomy: "Channel → Subchannel → Media (3단)",
+      taxonomy: "Statista AMO 9개 공식 세그먼트 → Subchannel → Media",
+      source: "Statista Advertising & Media Outlook (cdn.statcdn.com)",
+      gwiMapping: "GWI 미디어 행동 카테고리 계층별 매핑",
       totalChannels: CHANNELS.length,
       totalMedia: flattenMedia().length,
       generatedAt: new Date().toISOString(),
