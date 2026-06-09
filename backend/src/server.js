@@ -10,6 +10,8 @@ import { insightsRouter } from "./routes/insights.js";
 import { trendsRouter } from "./routes/trends.js";
 import { compareRouter } from "./routes/compare.js";
 import { dimInsightsRouter } from "./routes/dimension-insights.js";
+import { mediaRouter } from "./routes/media.js";
+import { interviewRouter } from "./routes/interview.js";
 import { stratRouter } from "./routes/stratify.js";
 import { askRouter } from "./routes/ask.js";
 import { libraryRouter } from "./routes/library.js";
@@ -46,6 +48,8 @@ app.use("/api/insights", insightsRouter);
 app.use("/api/trends", trendsRouter);
 app.use("/api/compare", compareRouter);
 app.use("/api/dimension-insights", dimInsightsRouter);
+app.use("/api/media", mediaRouter);
+app.use("/api/interview", interviewRouter);
 
 // 분포 통계 (World Bank · KOSIS 등 공공 데이터)
 app.use("/api/stratify", stratRouter);
