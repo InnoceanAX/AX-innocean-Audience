@@ -206,13 +206,15 @@ export const COUNTRY_MEDIA_OVERRIDES = {
     dig_google_search: 0, dig_instagram: 0, dig_facebook: 0, dig_x: 0,
     dig_youtube: 0, tv_netflix: 0, tv_youtube_tv: 0, tv_disney_plus: 0,
     dig_whatsapp: 0,
+    // 외국 메신저·프렌드 거의 없음
+    dig_naver: 0, dig_kakao: 0, dig_line: 0,
     // Baidu·Tiktok 강세
     dig_baidu: 3.0, dig_tiktok: 1.4,
   },
-  RU: { dig_instagram: 0.3, dig_facebook: 0.3, dig_x: 0.4 },
+  RU: { dig_instagram: 0.3, dig_facebook: 0.3, dig_x: 0.4, dig_naver: 0, dig_kakao: 0, dig_line: 0, dig_baidu: 0 },
   KR: { dig_tiktok: 0.8, dig_x: 0.7, dig_facebook: 0.6, dig_instagram: 1.1, dig_youtube: 1.2, dig_kakao: 2.5, dig_naver: 2.0, dig_baidu: 0 },
   JP: { dig_x: 1.4, dig_tiktok: 1.1, dig_linkedin: 0.4, dig_line: 2.5, dig_naver: 0.3 },
-  IN: { dig_youtube: 1.3, dig_tiktok: 0.2, dig_facebook: 1.2 },
+  IN: { dig_youtube: 1.3, dig_tiktok: 0.2, dig_facebook: 1.2, dig_naver: 0, dig_kakao: 0, dig_baidu: 0, dig_line: 0 },
   US: { dig_facebook: 1.1, dig_tiktok: 1.0, dig_x: 1.1, dig_naver: 0, dig_baidu: 0, dig_kakao: 0, dig_line: 0 },
   AE: { dig_facebook: 1.2, dig_instagram: 1.4, dig_tiktok: 1.2, dig_naver: 0, dig_baidu: 0, dig_kakao: 0 },
 };
