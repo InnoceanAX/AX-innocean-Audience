@@ -459,7 +459,7 @@ body.home-mode .wrap.poffset{padding-top:calc(var(--hh) + var(--sh));padding-lef
         <button id="btn-projects" class="hdr-act-btn" onclick="toggleProjectsPanel()" title="내 프로젝트"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10H3z"/></svg><span>내 프로젝트</span></button>
         <button class="hdr-act-btn" onclick="audSave()" title="저장 (Cmd+S)"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v5h6V3"/><rect x="8" y="13" width="8" height="6"/></svg><span>저장</span></button>
         <button class="hdr-act-btn" onclick="audShareUrl()" title="공유 URL 복사"><svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.5 10.5l7-3M8.5 13.5l7 3"/></svg></button>
-        <button class="hdr-act-btn" onclick="audExport()" title="JSON으로 내보내기"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button>
+        <button class="hdr-act-btn" onclick="audExport()" title="리포트 다운로드 (HTML)"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></button>
         <button class="hdr-act-btn" onclick="toggleTheme()" title="라이트/다크 토글"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
         <button class="hdr-act-pri" onclick="headerNewProject()" title="새 프로젝트"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>새 프로젝트</button>
       </div>
@@ -626,7 +626,7 @@ body.home-mode .wrap.poffset{padding-top:calc(var(--hh) + var(--sh));padding-lef
           <div class="home-flow-step"><div class="n">STEP 01</div><div class="t">오디언스 정의</div><div class="d">필터로 타겟 세그먼트를 좁힙니다. 사이즈와 신뢰도가 실시간으로 표시됩니다.</div></div>
           <div class="home-flow-step"><div class="n">STEP 02</div><div class="t">자동 분석</div><div class="d">합성 페르소나 풀에서 통계적 지표·라이프스타일·구매 트리거를 추출합니다.</div></div>
           <div class="home-flow-step"><div class="n">STEP 03</div><div class="t">페르소나 인터뷰</div><div class="d">대표 페르소나와 직접 채팅. 광고 카피·컨셉·가격대 반응을 검증합니다.</div></div>
-          <div class="home-flow-step"><div class="n">STEP 04</div><div class="t">인사이트 리포트</div><div class="d">자동 추출된 시그널을 정리해 카피·미디어·세그먼테이션 전략으로 연결합니다.</div></div>
+          <div class="home-flow-step"><div class="n">STEP 04</div><div class="t">리포트 산출</div><div class="d">우측 상단 '내보내기'에서 솔루션이 모은 모든 데이터(필터·세그먼트·분포·페르소나)를 한 장의 리포트로 다운로드합니다.</div></div>
         </div>
       </div>
     </section>
@@ -1326,21 +1326,50 @@ function audShareUrl(){
 }
 function audExport(){
   const seg = computeSegment();
-  const data = {
-    name: nameFromFilters(),
-    exportedAt: new Date().toISOString(),
-    filters: AUD_STATE.filters,
-    summary: { size:seg.size, avgIntent:seg.avgIntent, avgIncome:seg.avgIncome+'천만원', avgAge:seg.avgAge+'세' },
-    distribution: { age:seg.distFor('age'), income:seg.distFor('income'), brand:seg.distFor('brand'), trigger:seg.distFor('trigger'), media:seg.distFor('media') },
-    insights: generateInsights()
-  };
-  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const audName = nameFromFilters();
+  const now = new Date();
+  const ts = now.toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  // 솔루션 내 모든 데이터 수집
+  const filters = AUD_STATE.filters || {};
+  const filterEntries = Object.keys(filters).filter(k=>filters[k]&&filters[k].length).map(k=>{
+    const dim = AUD_DIMS[k];
+    const label = dim ? dim.label : k;
+    return { dim:k, label, values:filters[k] };
+  });
+  const dims = ['age','income','brand','trigger','media','lifestyle','region','marriage','job','carNow','carWant','gender'];
+  const distributions = dims.map(d=>{
+    const list = seg.distFor ? seg.distFor(d) : [];
+    return { dim:d, label:(AUD_DIMS[d]?AUD_DIMS[d].label:d), rows:list };
+  }).filter(x=>x.rows && x.rows.length);
+  const personas = Object.keys(PERSONAS||{}).map(name=>{
+    const p = PERSONAS[name];
+    return { name, age:p.age, loc:p.loc, sub:p.sub };
+  });
+  // HTML 리포트 빌드
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const bar = (pct,color) => '<div style="display:inline-block;width:120px;height:10px;background:#F3F4F6;vertical-align:middle;margin-right:8px"><div style="width:'+Math.max(2,Math.round(pct))+'%;height:100%;background:'+(color||'#4F46E5')+'"></div></div>';
+  const filtersHtml = filterEntries.length ? filterEntries.map(f=>
+    '<tr><td style="padding:8px 12px;border-bottom:1px solid #F3F4F6;font-weight:700;color:#000;width:140px">'+esc(f.label)+'</td><td style="padding:8px 12px;border-bottom:1px solid #F3F4F6;color:#374151">'+f.values.map(v=>'<span style="display:inline-block;padding:3px 9px;margin:2px 3px 2px 0;background:#EEF2FF;color:#4338CA;font-size:12px;font-weight:600">'+esc(v)+'</span>').join('')+'</td></tr>'
+  ).join('') : '<tr><td colspan="2" style="padding:18px 12px;color:#9CA3AF;font-style:italic;text-align:center">필터가 적용되지 않았습니다 (전체 모집단 기준)</td></tr>';
+  const distHtml = distributions.map(d=>{
+    const rowsHtml = d.rows.slice(0,12).map(r=>
+      '<tr><td style="padding:6px 10px;border-bottom:1px solid #F3F4F6;font-size:12px;color:#374151">'+esc(r.label||r.k||r.key)+'</td><td style="padding:6px 10px;border-bottom:1px solid #F3F4F6;font-size:12px;text-align:right;color:#000;font-weight:600;width:200px">'+bar(r.pct||0)+(r.pct||0).toFixed(1)+'%</td></tr>'
+    ).join('');
+    return '<div style="margin-bottom:24px"><h4 style="font-size:13px;font-weight:800;color:#000;margin:0 0 8px;letter-spacing:-.2px">'+esc(d.label)+'</h4><table style="width:100%;border-collapse:collapse;border:1px solid #E5E7EB">'+rowsHtml+'</table></div>';
+  }).join('');
+  const personaHtml = personas.map(p=>
+    '<div style="padding:14px 16px;border:1px solid #E5E7EB;margin-bottom:8px"><div style="font-size:14px;font-weight:800;color:#000">'+esc(p.name)+' <span style="font-weight:500;color:#6B7280">('+p.age+'세)</span></div><div style="font-size:12px;color:#6B7280;margin-top:3px">'+esc(p.loc)+'</div><div style="font-size:12.5px;color:#374151;margin-top:6px">'+esc(p.sub)+'</div></div>'
+  ).join('');
+  const html = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>INNOCEAN Audience 리포트 — '+esc(audName)+'</title><style>body{font-family:-apple-system,"Apple SD Gothic Neo","Pretendard","맑은 고딕",sans-serif;margin:0;padding:40px;background:#FAFAFA;color:#111827;line-height:1.5}.report{max-width:900px;margin:0 auto;background:#fff;padding:48px;border:1px solid #E5E7EB}.cover{border-bottom:2px solid #000;padding-bottom:24px;margin-bottom:32px}.brand{font-size:13px;letter-spacing:3px;font-weight:800;color:#000}.title{font-size:28px;font-weight:900;color:#000;margin:8px 0 12px;letter-spacing:-.8px}.meta{font-size:12px;color:#6B7280}.section{margin:36px 0}.sec-t{font-size:16px;font-weight:800;color:#000;letter-spacing:-.4px;padding-bottom:8px;border-bottom:1px solid #E5E7EB;margin-bottom:16px}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.kpi{padding:14px;border:1px solid #E5E7EB;background:#F9FAFB}.kpi-t{font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px}.kpi-v{font-size:22px;font-weight:900;color:#000;margin-top:4px}table{border-collapse:collapse}@media print{body{padding:0;background:#fff}.report{border:none;padding:24px}}</style></head><body><div class="report"><div class="cover"><div class="brand">INNOCEAN · AUDIENCE</div><div class="title">'+esc(audName)+'</div><div class="meta">생성일 '+esc(ts)+' · 모집단 N=8,420 · 합성 페르소나 풀 기준 (통계청·KOSIS·자동차산업협회 캘리브레이션)</div></div><div class="section"><div class="sec-t">핵심 지표</div><div class="kpi-grid"><div class="kpi"><div class="kpi-t">타겟 사이즈</div><div class="kpi-v">'+seg.size.toLocaleString()+'</div></div><div class="kpi"><div class="kpi-t">평균 연령</div><div class="kpi-v">'+seg.avgAge+'세</div></div><div class="kpi"><div class="kpi-t">평균 가구소득</div><div class="kpi-v">'+seg.avgIncome+'천만</div></div><div class="kpi"><div class="kpi-t">구매 의향</div><div class="kpi-v">'+seg.avgIntent+'<span style="font-size:14px;color:#9CA3AF">/100</span></div></div></div></div><div class="section"><div class="sec-t">적용 필터</div><table style="width:100%;border-collapse:collapse;border:1px solid #E5E7EB">'+filtersHtml+'</table></div><div class="section"><div class="sec-t">디멘션별 분포</div>'+distHtml+'</div><div class="section"><div class="sec-t">대표 페르소나</div>'+personaHtml+'</div><div class="section" style="margin-top:48px;padding-top:24px;border-top:1px solid #E5E7EB;font-size:11px;color:#9CA3AF;text-align:center">© INNOCEAN AX Solution · 본 리포트는 합성 페르소나 풀 기반 의사결정 보조용입니다.</div></div></body></html>';
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = (nameFromFilters().replace(/\s/g,'_'))+'.json';
+  const safeName = audName.replace(/[\s\/]+/g,'_').replace(/[^\w가-힣_-]/g,'');
+  const stamp = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  a.href = url; a.download = 'INNOCEAN_Audience_'+safeName+'_'+stamp+'.html';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('오디언스 데이터가 JSON으로 내보내졌습니다','ok');
+  showToast('리포트가 다운로드되었습니다 · 브라우저에서 열어 PDF로 인쇄할 수 있습니다','ok');
 }
 
 function applyFiltersToUI(){
