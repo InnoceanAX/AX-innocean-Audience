@@ -115,6 +115,17 @@ a{color:inherit;text-decoration:none}
   font-size:13px;
 }
 
+/* ========== Breadcrumb ========== */
+.breadcrumb{display:flex;justify-content:space-between;align-items:center;padding:10px 24px;background:#FAFAFA;border-bottom:1px solid var(--bdr);flex-shrink:0;font-size:12px}
+.breadcrumb.hide{display:none}
+.bread{display:flex;align-items:center;gap:6px;color:var(--tm)}
+.bread a{color:var(--ind);text-decoration:none;font-weight:500}
+.bread a:hover{text-decoration:underline}
+.bc-sep{color:#D1D5DB}
+.bc-cur{color:#111;font-weight:600}
+.back-btn{padding:5px 12px;background:#fff;border:1px solid var(--bdr);border-radius:6px;font-size:11.5px;color:var(--ts);cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--ind);color:var(--ind)}
+
 /* ========== Workspace tabs ========== */
 .ws-tabs{
   display:flex;gap:0;padding:0 24px;border-bottom:1px solid var(--bdr);
@@ -684,6 +695,12 @@ a{color:inherit;text-decoration:none}
       <button class="tb-btn" onclick="saveTarget()">저장</button>
     </div>
 
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb hide" id="breadcrumb-wrap">
+      <div class="bread" id="bread-crumb"></div>
+      <button class="back-btn" onclick="history.back()" title="뒤로가기">← 뒤로</button>
+    </div>
+
     <!-- WORKSPACE TABS (visible only when target exists) -->
     <div class="ws-tabs hide" id="ws-tabs">
       <div class="ws-tab active" data-tab="overview" onclick="switchTab('overview')">
@@ -931,6 +948,17 @@ async function boot(){
     renderCategories();
     renderCountryList();
     refreshLibCount();
+    // 초기 history state 설정
+    history.replaceState({ view: 'home' }, '', window.location.href);
+    // URL에 ?tab=&country= 있으면 복원
+    const url = new URL(window.location.href);
+    const tab = url.searchParams.get('tab');
+    const country = url.searchParams.get('country');
+    if(tab && country){
+      state.currentCountry = country;
+      await goWorkspace();
+      switchTab(tab, { fromHistory: true });
+    }
   } catch(e){
     toast('백엔드 연결 실패: ' + e.message);
     console.error(e);
@@ -1172,13 +1200,19 @@ function showAskBanner(data){
 }
 
 // ============ NAVIGATION ============
-function goHome(){
+function goHome(opts){
   document.getElementById('screen-home').classList.remove('hide');
   document.getElementById('screen-workspace').classList.add('hide');
   document.getElementById('ws-tabs').classList.add('hide');
+  document.getElementById('breadcrumb-wrap').classList.add('hide');
   document.getElementById('tb-target-cc')?.classList.add('hide');
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.sb-item')[0].classList.add('active');
+  if(!(opts && opts.fromHistory)){
+    const url = new URL(window.location.href);
+    url.search = '';
+    history.pushState({ view: 'home' }, '', url.toString());
+  }
 }
 
 function goBuilder(){
@@ -1190,6 +1224,7 @@ async function goWorkspace(){
   document.getElementById('screen-home').classList.add('hide');
   document.getElementById('screen-workspace').classList.remove('hide');
   document.getElementById('ws-tabs').classList.remove('hide');
+  document.getElementById('breadcrumb-wrap').classList.remove('hide');
   // topbar 타겟 국가 인디스쪀 노출 + 현재 국가로 업데이트
   const c = state.countries.find(x => x.code === state.currentCountry);
   const tb = document.getElementById('tb-target-cc');
@@ -1203,7 +1238,8 @@ async function goWorkspace(){
   await refreshSegment();
 }
 
-function switchTab(tab){
+function switchTab(tab, opts){
+  const fromHistory = opts && opts.fromHistory;
   state.currentTab = tab;
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   ['overview','insights','media','interview'].forEach(t => {
@@ -1212,7 +1248,48 @@ function switchTab(tab){
   if(tab === 'insights') refreshInsightsTab();
   if(tab === 'media') refreshMediaTab();
   // interview는 사용자 액션(generatePersona)으로만 시작
+  // history 적용
+  if(!fromHistory){
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    if(state.currentCountry) url.searchParams.set('country', state.currentCountry);
+    history.pushState({ tab, country: state.currentCountry, view: 'tab' }, '', url.toString());
+  }
+  updateBreadcrumb();
 }
+
+// 브라우저 뒤로가기 처리
+window.addEventListener('popstate', (e) => {
+  const s = e.state || {};
+  // 모달 열려있으면 모달부터 닫기
+  const mt = document.getElementById('mt-modal');
+  if(mt && !mt.classList.contains('hide') && s.view !== 'modal'){ mt.classList.add('hide'); return; }
+  // home 복원
+  if(s.view === 'home' || (!s.tab && !new URL(window.location.href).searchParams.get('tab'))){
+    goHome({ fromHistory: true });
+    return;
+  }
+  // 인터뷰 단일 뷰면 패널로
+  const sw = document.getElementById('iv-single-wrap');
+  if(sw && !sw.classList.contains('hide')){ backToPanelEmpty(); return; }
+  // 탭 복원
+  if(s.tab){ switchTab(s.tab, { fromHistory: true }); return; }
+  // URL에서 다시
+  const tab = new URL(window.location.href).searchParams.get('tab') || 'overview';
+  const country = new URL(window.location.href).searchParams.get('country');
+  if(country) state.currentCountry = country;
+  switchTab(tab, { fromHistory: true });
+});
+
+function updateBreadcrumb(){
+  const bc = document.getElementById('bread-crumb');
+  if(!bc) return;
+  const tabLabel = { overview:'개요', insights:'인사이트', media:'미디어', interview:'페르소나' }[state.currentTab] || state.currentTab;
+  const country = state.currentCountry || 'Global';
+  bc.innerHTML = `<a href="#" onclick="event.preventDefault();goHome()">홈</a> <span class="bc-sep">›</span> <span>${country}</span> <span class="bc-sep">›</span> <span class="bc-cur">${tabLabel}</span>`;
+}
+
+
 
 // ============ MEDIA TAB ============
 async function refreshMediaTab(){
@@ -1469,6 +1546,8 @@ function renderPersonaJourney(data){
 
 // 메시지 테스터 모달
 function openMessageTester(){
+  // history에 연동 — 뒤로가기로 모달 닫기
+  history.pushState({ view: 'modal', modal: 'mt' }, '', window.location.href);
   let modal = document.getElementById('mt-modal');
   if(!modal){
     modal = document.createElement('div');
@@ -1491,7 +1570,11 @@ function openMessageTester(){
     </div>`;
   modal.classList.remove('hide');
 }
-function closeMessageTester(){ document.getElementById('mt-modal')?.classList.add('hide'); }
+function closeMessageTester(){ 
+  document.getElementById('mt-modal')?.classList.add('hide');
+  // history에 모달이 있으면 하나 복구
+  if(history.state && history.state.view === 'modal') history.back();
+}
 
 async function runMessageTest(){
   const a = document.getElementById('mt-msg-a').value.trim();
