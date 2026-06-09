@@ -266,6 +266,20 @@ mediaRouter.get("/taxonomy", async (req, res) => {
   });
 });
 
+// GET /api/media/adspend-sources — 광고비 데이터 출처 메타
+mediaRouter.get("/adspend-sources", (_req, res) => {
+  res.json({
+    ok: true,
+    sources: listAdspendSources(),
+    countriesWithOfficialData: Object.keys(COUNTRY_ADSPEND_2024),
+    channelsWithOfficialShare: Object.keys(CHANNEL_SPEND_SHARE_2024),
+    meta: {
+      generatedAt: new Date().toISOString(),
+      note: "우선순위: KOBACO·제일기획 (KR) > MAGNA·GroupM·Dentsu (국가별) > GDP 추정 (기타)",
+    },
+  });
+});
+
 // GET /api/media/sources
 mediaRouter.get("/sources", (req, res) => {
   res.json({

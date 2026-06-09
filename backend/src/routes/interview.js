@@ -7,6 +7,11 @@ import { COUNTRIES } from "../data/countries.js";
 import { DIMENSIONS } from "../data/dimensions.js";
 import { chat, generateJSON, isGeminiAvailable } from "../adapters/gemini.js";
 import { getCountryStats } from "../adapters/worldbank.js";
+import {
+  getCountryAdSpend, getKoreaMediaAdSpend,
+  CHANNEL_SPEND_SHARE_2024, COUNTRY_ADSPEND_2024,
+} from "../adapters/adspend-public.js";
+import { CHANNELS, flattenMedia } from "../data/media-taxonomy.js";
 
 export const interviewRouter = Router();
 
@@ -27,6 +32,34 @@ interviewRouter.post("/persona", async (req, res) => {
   const wb = await getCountryStats(meta.code);
   const ind = wb?.indicators || {};
 
+  // 광고비·매체 컨텍스트 주입
+  const adSpend = getCountryAdSpend(meta.code);
+  const adSpendCtx = adSpend
+    ? `- 연 광고비: $${adSpend.totalUSDB}B (공개 보고서: ${adSpend.source})`
+    : `- 연 광고비: 공개 데이터 없음 (GDP 추정)`;
+  // 상위 5 채널
+  const topChannels = Object.entries(CHANNEL_SPEND_SHARE_2024)
+    .sort((a, b) => b[1].share - a[1].share)
+    .slice(0, 5)
+    .map(([id, v]) => {
+      const ch = CHANNELS.find(c => c.id === id);
+      return `  • ${ch?.label || id}: ${(v.share * 100).toFixed(1)}% (추세: ${v.trend > 0 ? "↑" : "↓"} ${v.note})`;
+    }).join("\n");
+  // 국가별 매체 Top 5 (KR은 KOBACO 실결과, 다른 국가는 reach 기준)
+  let topMediaCtx = "";
+  if (meta.code === "KR") {
+    const krMedia = Object.entries({
+      "Naver 검색": getKoreaMediaAdSpend("search_naver"),
+      "Google 검색": getKoreaMediaAdSpend("search_google"),
+      "KakaoTalk": getKoreaMediaAdSpend("social_kakao"),
+      "지상파 TV": getKoreaMediaAdSpend("tvv_terrestrial"),
+      "YouTube": getKoreaMediaAdSpend("tvv_youtube"),
+      "Instagram": getKoreaMediaAdSpend("social_instagram"),
+      "Naver Blog": getKoreaMediaAdSpend("inf_naver_blog"),
+    }).filter(([_, v]) => v).map(([k, v]) => `  • ${k}: ${v.krw}억원 ($${v.usd}M) [${v.source}]`).join("\n");
+    topMediaCtx = `\n[한국 매체별 광고비 실결과 - KOBACO/제일기획]\n${krMedia}`;
+  }
+
   const filterDesc = describeFilters(filters);
   const system = `당신은 광고 리서치 전문가입니다. 주어진 국가와 세그먼트 정보를 바탕으로 합성 페르소나를 생성합니다.
 페르소나는 통계적으로 그럴듯한 가상의 인물이며, 실제 사람이 아닙니다.
@@ -38,10 +71,20 @@ JSON 스키마에 정확히 따르세요.`;
 - 1인당 GDP: $${Math.round(ind.gdpPerCapita?.value || 0).toLocaleString()}
 - 인터넷 침투율: ${ind.internetUsers?.value?.toFixed(1) || "?"}%
 
+[광고·미디어 시장 - 공개 보고서 기반]
+${adSpendCtx}
+[주요 채널 점유율 - GroupM TYNY/MAGNA 2024]
+${topChannels}${topMediaCtx}
+
 [세그먼트 필터]
 ${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}
 
-위 정보로 그럴듯한 합성 페르소나 1명을 생성하세요. ${meta.name} 문화·관습에 맞는 이름·직업·라이프스타일을 사용.`;
+위 정보로 그럴듯한 합성 페르소나 1명을 생성하세요.
+⚠️ 중요: 페르소나의 mediaHabits는 위 데이터의 실제 매체 점유율과 일치해야 합니다.
+- 한국이면 Naver/KakaoTalk을 최상위 언급, Bing·VK·Weibo 등 제외
+- 중국이면 Google·Instagram·YouTube 제외, WeChat·Weibo·Baidu 우선
+- ${meta.name} 문화·관습에 맞는 이름·직업·라이프스타일을 사용
+- 나이대별 대표 미디어 (Z세대=TikTok/인스타, M세대=YouTube/Naver, X세대=지상파/신문)`;
 
   const schema = {
     type: "object",
@@ -179,16 +222,26 @@ interviewRouter.post("/panel", async (req, res) => {
   const ind = wb?.indicators || {};
   const filterDesc = describeFilters(filters);
 
+  // 광고·미디어 컨텍스트
+  const adSpend = getCountryAdSpend(meta.code);
+  const adSpendCtx = adSpend ? `$${adSpend.totalUSDB}B/년 (${adSpend.source})` : "공개 데이터 없음";
+  const topChannels = Object.entries(CHANNEL_SPEND_SHARE_2024)
+    .sort((a, b) => b[1].share - a[1].share).slice(0, 5)
+    .map(([id, v]) => `${CHANNELS.find(c => c.id === id)?.label || id} ${(v.share*100).toFixed(0)}%`).join(", ");
+
   const system = `당신은 광고 리서치 전문가입니다. 동일 세그먼트 안의 다양성 패널을 생성합니다.
 각 패널은 같은 세그먼트에 속하지만, 가치관·라이프스타일·구매동기에서 서로 다른 관점을 제공해야 합니다.
 JSON 스키마에 정확히 따르세요.`;
 
   const prompt = `[국가] ${meta.name} (${meta.nameEn})
+[광고 시장] ${adSpendCtx}
+[주요 채널 점유율] ${topChannels}
 [세그먼트 필터]
 ${filterDesc || "(필터 없음)"}
 
 위 세그먼트의 다양성을 보여주는 합성 패널 ${n}명을 생성하세요.
-각 패널은 서로 다른 아키타입(예: 얼리 어답터·실용주의·고소득·면천혈·회의주의·장기적)을 가져야 합니다.`;
+각 패널은 서로 다른 아키타입(예: 얼리 어답터·실용주의·고소득·면천혈·회의주의·장기적)을 가져야 합니다.
+mediaHabits는 위 채널 점유율과 일치해야 하며, ${meta.name}에서 차단된 매체는 제외하세요.`;
 
   const personaSchema = {
     type: "object",
