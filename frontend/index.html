@@ -530,7 +530,28 @@ a{color:inherit;text-decoration:none}
 .mt-mr-scores b{color:var(--ts);font-weight:600;margin-right:4px}
 .mt-mr-c{font-size:11.5px;color:#7C2D12;margin-bottom:4px}
 .mt-mr-s{font-size:11.5px;color:#1E40AF}
-.iv-match-card{background:linear-gradient(135deg,#FCE7F3 0%,#FAF5FF 100%);border:1px solid #F9A8D4;border-radius:10px;padding:14px 16px;margin-top:14px}
+/* Audience tabs */
+.aud-tab{padding:8px 0}
+.aud-tab-h{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bdr);position:relative}
+.aud-tab-t{font-size:18px;font-weight:700;color:#111;margin-bottom:4px}
+.aud-tab-s{font-size:12.5px;color:var(--tm);line-height:1.5}
+.aud-src{position:absolute;top:0;right:0;font-size:10.5px;color:var(--tm);display:flex;align-items:center;gap:4px}
+.aud-src-badge{padding:2px 8px;background:#D1FAE5;color:#065F46;border-radius:10px;font-weight:600;font-size:10px}
+.aud-loading{padding:40px;text-align:center;color:var(--tm);font-size:13px}
+.aud-missing{padding:24px;background:#FEF3C7;color:#92400E;border-radius:8px;font-size:12.5px;line-height:1.6}
+.aud-error{padding:16px;background:#FEE2E2;color:#991B1B;border-radius:6px;font-size:12px}
+.aud-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.aud-kpi{background:#F9FAFB;border:1px solid var(--bdr);border-radius:8px;padding:14px}
+.aud-kpi-l{font-size:11px;color:var(--tm);margin-bottom:4px}
+.aud-kpi-v{font-size:20px;font-weight:700;color:#111}
+.aud-section{margin-top:18px}
+.aud-section-t{font-size:11.5px;font-weight:700;color:#3730A3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.aud-bars{display:flex;flex-direction:column;gap:6px}
+.aud-bar-row{display:grid;grid-template-columns:120px 1fr 50px;gap:10px;align-items:center;font-size:11.5px}
+.aud-bar-l{color:#374151;font-weight:500}
+.aud-bar-wrap{background:#F3F4F6;border-radius:3px;height:14px;overflow:hidden;position:relative}
+.aud-bar-fill{height:100%;background:linear-gradient(90deg,#6366F1,#8B5CF6);border-radius:3px;transition:width .4s}
+.aud-bar-v{font-weight:600;color:#111;text-align:right;font-variant-numeric:tabular-nums}
 .iv-match-h{font-size:11px;font-weight:700;color:#9D174D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .iv-match-x{font-size:12.5px;color:#111;line-height:1.6;margin-bottom:10px}
 .iv-match-list{display:flex;flex-wrap:wrap;gap:6px}
@@ -706,14 +727,26 @@ a{color:inherit;text-decoration:none}
       <div class="ws-tab active" data-tab="overview" onclick="switchTab('overview')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/><line x1="3" y1="20" x2="21" y2="20"/></svg></span><span>개요</span>
       </div>
-      <div class="ws-tab" data-tab="insights" onclick="switchTab('insights')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span>인사이트</span>
+      <div class="ws-tab" data-tab="who" onclick="switchTab('who')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></span><span>인물상</span>
+      </div>
+      <div class="ws-tab" data-tab="life" onclick="switchTab('life')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span>라이프스타일</span>
+      </div>
+      <div class="ws-tab" data-tab="mind" onclick="switchTab('mind')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg></span><span>가치관</span>
+      </div>
+      <div class="ws-tab" data-tab="love" onclick="switchTab('love')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span>관심사</span>
+      </div>
+      <div class="ws-tab" data-tab="buy" onclick="switchTab('buy')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span>구매</span>
       </div>
       <div class="ws-tab" data-tab="media" onclick="switchTab('media')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><path d="M8 14a4 4 0 0 1 0-4"/><path d="M16 14a4 4 0 0 0 0-4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span><span>미디어</span>
       </div>
       <div class="ws-tab" data-tab="interview" onclick="switchTab('interview')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>인터뷰</span>
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>페르소나</span>
       </div>
     </div>
 
@@ -820,6 +853,62 @@ a{color:inherit;text-decoration:none}
               </div>
               <div id="in-cross" class="in-cross"></div>
             </div>
+          </div>
+        </div>
+
+        <!-- TAB: Who (인물상) -->
+        <div id="tab-who" class="ws-content hide">
+          <div class="aud-tab">
+            <div class="aud-tab-h">
+              <div class="aud-tab-t">인물상 (Who)</div>
+              <div class="aud-tab-s">이 타겟은 누구인가 — 연령 / 성별 / 가족 / 소득 / 거주</div>
+              <span class="aud-src" id="who-src">데이터 로딩 중…</span>
+            </div>
+            <div id="who-body"></div>
+          </div>
+        </div>
+        <!-- TAB: Life (라이프스타일) -->
+        <div id="tab-life" class="ws-content hide">
+          <div class="aud-tab">
+            <div class="aud-tab-h">
+              <div class="aud-tab-t">라이프스타일 (Life)</div>
+              <div class="aud-tab-s">어떻게 삽는가 — 디지털 / 일과 / 여행 / 외식 / 활동</div>
+              <span class="aud-src" id="life-src">데이터 로딩 중…</span>
+            </div>
+            <div id="life-body"></div>
+          </div>
+        </div>
+        <!-- TAB: Mind (가치관) -->
+        <div id="tab-mind" class="ws-content hide">
+          <div class="aud-tab">
+            <div class="aud-tab-h">
+              <div class="aud-tab-t">가치관 (Mind)</div>
+              <div class="aud-tab-s">무엇을 믿는가 — 신뢰 / 세계관 / 파워 귬리 / 혁신·전통</div>
+              <span class="aud-src" id="mind-src">데이터 로딩 중…</span>
+            </div>
+            <div id="mind-body"></div>
+          </div>
+        </div>
+        <!-- TAB: Love (관심사) -->
+        <div id="tab-love" class="ws-content hide">
+          <div class="aud-tab">
+            <div class="aud-tab-h">
+              <div class="aud-tab-t">관심사 (Love)</div>
+              <div class="aud-tab-s">무엇에 열정적인가 — 음악 / 운동 / 취미 / 패션 / 테크</div>
+              <span class="aud-src" id="love-src">데이터 로딩 중…</span>
+            </div>
+            <div id="love-body"></div>
+          </div>
+        </div>
+        <!-- TAB: Buy (구매 행동) -->
+        <div id="tab-buy" class="ws-content hide">
+          <div class="aud-tab">
+            <div class="aud-tab-h">
+              <div class="aud-tab-t">구매 행동 (Buy)</div>
+              <div class="aud-tab-s">어떻게 구매하는가 — 이커머스 / 결제 / 주요 카테고리 / 의사결정 요인</div>
+              <span class="aud-src" id="buy-src">데이터 로딩 중…</span>
+            </div>
+            <div id="buy-body"></div>
           </div>
         </div>
 
@@ -1242,11 +1331,13 @@ function switchTab(tab, opts){
   const fromHistory = opts && opts.fromHistory;
   state.currentTab = tab;
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
-  ['overview','insights','media','interview'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('hide', t !== tab);
+  ['overview','insights','who','life','mind','love','buy','media','interview'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.classList.toggle('hide', t !== tab);
   });
   if(tab === 'insights') refreshInsightsTab();
   if(tab === 'media') refreshMediaTab();
+  if(['who','life','mind','love','buy'].includes(tab)) refreshAudienceTab(tab);
   // interview는 사용자 액션(generatePersona)으로만 시작
   // history 적용
   if(!fromHistory){
@@ -1466,6 +1557,140 @@ async function renderMediaTab(data){
     },
   });
 }
+
+// ============ AUDIENCE TABS (Who/Life/Mind/Love/Buy) ============
+async function refreshAudienceTab(dim){
+  const code = state.currentCountry;
+  if(!code) return;
+  const body = document.getElementById(`${dim}-body`);
+  const src = document.getElementById(`${dim}-src`);
+  if(body.dataset.country === code) return; // 캐시
+  body.innerHTML = '<div class="aud-loading">⏳ 공개 데이터 로딩 중…</div>';
+  try {
+    const res = await fetch(`${API}/audience/${dim}?country=${code}`);
+    const data = await res.json();
+    if(!data.ok || !data.data){
+      body.innerHTML = `<div class="aud-missing">⚠ ${code} 국가 데이터 미수록 (현재 28국가 우선 지원). 이 국가는 GDP 수치 기반 추정만 가능합니다.</div>`;
+      src.textContent = '데이터 없음';
+      return;
+    }
+    src.innerHTML = `<span class="aud-src-badge">📊 실데이터</span> ${data.source.primary}`;
+    body.dataset.country = code;
+    body.innerHTML = renderAudienceDim(dim, data);
+  } catch(e){
+    body.innerHTML = `<div class="aud-error">오류: ${e.message}</div>`;
+  }
+}
+
+function renderAudienceDim(dim, data){
+  const d = data.data;
+  if(dim === 'who'){
+    const ages = d.ageDistribution || {};
+    return `<div class="aud-grid">
+      <div class="aud-kpi"><div class="aud-kpi-l">중위 연령</div><div class="aud-kpi-v">${d.medianAge?.toFixed(1)}세</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">도시화율</div><div class="aud-kpi-v">${d.urbanRate?.toFixed(1)}%</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">부양비</div><div class="aud-kpi-v">${d.dependencyRatio?.toFixed(1)}%</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">인구</div><div class="aud-kpi-v">${d.population ? (d.population/1e6).toFixed(1)+'M' : '—'}</div></div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">연령 분포</div>
+      <div class="aud-bars">
+        ${Object.entries(ages).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${k}세</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v*2}%"></div></div><div class="aud-bar-v">${v.toFixed(1)}%</div></div>`).join('')}
+      </div>
+    </div>`;
+  }
+  if(dim === 'life'){
+    const dig = d.digital || {};
+    const act = d.activities || {};
+    const t = d.travel || {};
+    return `<div class="aud-grid">
+      <div class="aud-kpi"><div class="aud-kpi-l">인터넷 침투</div><div class="aud-kpi-v">${dig.internetPenetration?.toFixed(1)}%</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">소셜 사용</div><div class="aud-kpi-v">${dig.socialMediaUsers?.toFixed(1)}%</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">인터넷 시간/일</div><div class="aud-kpi-v">${dig.avgInternetHours?.toFixed(1)}h</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">TV 시간/일</div><div class="aud-kpi-v">${dig.avgTVHours?.toFixed(1)}h</div></div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">디지털 활동</div>
+      <div class="aud-bars">
+        ${Object.entries(act).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${actLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%"></div></div><div class="aud-bar-v">${v}%</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">여행 성향</div>
+      <div class="aud-bars">
+        <div class="aud-bar-row"><div class="aud-bar-l">국내여행</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${t.domestic}%"></div></div><div class="aud-bar-v">${t.domestic}%</div></div>
+        <div class="aud-bar-row"><div class="aud-bar-l">해외여행</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${t.international}%"></div></div><div class="aud-bar-v">${t.international}%</div></div>
+      </div>
+    </div>`;
+  }
+  if(dim === 'mind'){
+    const trust = d.trust || {};
+    const vals = d.values || {};
+    const cul = d.culture || {};
+    return `<div class="aud-section"><div class="aud-section-t">신뢰도 (Edelman Trust Barometer)</div>
+      <div class="aud-bars">
+        ${Object.entries(trust).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${trustLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#10B981"></div></div><div class="aud-bar-v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">가치관 설문 (World Values Survey)</div>
+      <div class="aud-bars">
+        ${Object.entries(vals).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${valLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#8B5CF6"></div></div><div class="aud-bar-v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">문화스코어 (Hofstede)</div>
+      <div class="aud-bars">
+        <div class="aud-bar-row"><div class="aud-bar-l">개인주의</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${cul.individualism}%;background:#F59E0B"></div></div><div class="aud-bar-v">${cul.individualism}</div></div>
+        <div class="aud-bar-row"><div class="aud-bar-l">위험회피</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${cul.riskAversion}%;background:#F59E0B"></div></div><div class="aud-bar-v">${cul.riskAversion}</div></div>
+        <div class="aud-bar-row"><div class="aud-bar-l">장기지향</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${cul.longTermOrientation}%;background:#F59E0B"></div></div><div class="aud-bar-v">${cul.longTermOrientation}</div></div>
+      </div>
+    </div>`;
+  }
+  if(dim === 'love'){
+    const ranked = data.rankedInterests || [];
+    return `<div class="aud-section"><div class="aud-section-t">Top 12 관심사 (Google Trends + DataReportal)</div>
+      <div class="aud-bars">
+        ${ranked.map((r, i) => `<div class="aud-bar-row"><div class="aud-bar-l">${i+1}. ${loveLabel(r.id)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${r.score}%;background:#EC4899"></div></div><div class="aud-bar-v">${r.score}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">대표 관심사 Top 3</div>
+      <div class="aud-chips">${(data.top3||[]).map(t => `<span class="aud-chip">${loveLabel(t)}</span>`).join('')}</div>
+    </div>`;
+  }
+  if(dim === 'buy'){
+    const ec = d.ecommerce || {};
+    const pm = d.paymentMethods || {};
+    const tc = d.topCategories || {};
+    const df = d.decisionFactors || {};
+    const psy = d.psychology || {};
+    return `<div class="aud-grid">
+      <div class="aud-kpi"><div class="aud-kpi-l">이커머스 비중</div><div class="aud-kpi-v">${ec.shareOfRetail}%</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">모바일 비중</div><div class="aud-kpi-v">${ec.mobileShare}%</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">월평균 지출</div><div class="aud-kpi-v">$${ec.avgMonthlySpendUSD}</div></div>
+      <div class="aud-kpi"><div class="aud-kpi-l">가격민감도</div><div class="aud-kpi-v">${psy.priceSensitivity}</div></div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">주요 구매 카테고리</div>
+      <div class="aud-bars">
+        ${Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${catLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#06B6D4"></div></div><div class="aud-bar-v">${v}%</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">구매 의사결정 요인</div>
+      <div class="aud-bars">
+        ${Object.entries(df).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${decLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#0EA5E9"></div></div><div class="aud-bar-v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="aud-section"><div class="aud-section-t">결제 수단</div>
+      <div class="aud-bars">
+        ${Object.entries(pm).map(([k,v]) => `<div class="aud-bar-row"><div class="aud-bar-l">${payLabel(k)}</div><div class="aud-bar-wrap"><div class="aud-bar-fill" style="width:${v}%;background:#84CC16"></div></div><div class="aud-bar-v">${v}%</div></div>`).join('')}
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+function actLabel(k){ return ({socialNetworking:'소셜 네트워킹',videoStreaming:'영상 스트리밍',gaming:'게임',shopping:'쇼핑',banking:'모바일 뱅킹',news:'뉴스',fitness:'피트니스'})[k]||k; }
+function trustLabel(k){ return ({business:'기업',media:'미디어',government:'정부',ngo:'NGO'})[k]||k; }
+function valLabel(k){ return ({environment:'환경 중요도',socialEquality:'사회 평등',tradition:'전통 존중',innovation:'혁신 수용',materialism:'물질주의',hedonism:'쿾락주의',ambition:'야망'})[k]||k; }
+function loveLabel(k){ return ({music:'음악',sports:'스포츠',gaming:'게임',beauty:'뷰티',fashion:'패션',fitness:'피트니스',cooking:'요리',travel:'여행',photography:'사진',technology:'테크',finance:'금융',parenting:'육아',automotive:'자동차',pets:'반려동물',sustainability:'지속가능성',kpop:'K-Pop',drama:'드라마',food:'음식',anime:'애니메',manga:'만화',livestream:'라이브스트림',ecommerce:'이커머스',football:'축구',wine:'와인',cricket:'크리켓',bollywood:'볼리우드',samba:'삼바',korean:'한류',basketball:'농구',halal:'할랄',outdoor:'아웃도어',hockey:'하키',luxury:'럭셔리',religion:'종교',rugby:'러그비',soccer:'축구',asado:'아사도',cycling:'자전거',autobahn:'아웃바른',sportsNFL:'NFL',hollywood:'할리우드',telenovela:'텔레노벨라',gaming:'게임'})[k]||k; }
+function catLabel(k){ return ({fashion:'패션',electronics:'전자',beauty:'뷰티',food:'식품',travel:'여행',home:'홈',entertainment:'엔터테인먼트'})[k]||k; }
+function decLabel(k){ return ({price:'가격',reviews:'리뷰',brand:'브랜드',quality:'품질',delivery:'배송',recommendation:'추천'})[k]||k; }
+function payLabel(k){ return ({card:'카드',mobilePay:'모바일 결제',transfer:'이체',cash:'현금'})[k]||k; }
 
 // ============ INTERVIEW TAB ============
 async function fetchInfluencerMatch(persona){
