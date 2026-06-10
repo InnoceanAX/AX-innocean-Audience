@@ -572,6 +572,27 @@ a{color:inherit;text-decoration:none}
 /* AI Side Panel */
 .ai-panel{position:fixed;top:0;right:0;height:100vh;width:380px;background:#fff;border-left:1px solid var(--bdr);box-shadow:-8px 0 24px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;transform:translateX(0)}
 .ai-panel.collapsed{transform:translateX(380px)}
+/* 요약 탭 */
+.sm-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sm-kpi{padding:18px 20px;background:#fff;border:1px solid var(--bdr);border-radius:10px}
+.sm-kpi-l{font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sm-kpi-v{font-size:24px;font-weight:800;color:#111;line-height:1.1;margin-bottom:3px}
+.sm-kpi-s{font-size:11px;color:var(--ts)}
+.sm-dim-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px}
+.sm-dim-card{padding:18px 20px;background:#fff;border:1px solid var(--bdr);border-radius:10px;display:flex;flex-direction:column;gap:10px}
+.sm-dim-hd{display:flex;align-items:center;gap:10px}
+.sm-dim-hd svg{width:18px;height:18px;color:var(--ind);flex-shrink:0}
+.sm-dim-t{font-size:13.5px;font-weight:700;color:#111;flex:1}
+.sm-dim-more{font-size:11.5px;color:var(--ind);background:none;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px;padding:4px 8px;border-radius:5px;transition:background .15s}
+.sm-dim-more:hover{background:#EEF2FF}
+.sm-dim-stat{font-size:13px;color:#374151;line-height:1.6}
+.sm-dim-stat b{color:#111;font-weight:700}
+.sm-empty{padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:12px;display:flex;flex-direction:column;align-items:center}
+.sm-empty-t{font-size:15px;font-weight:700;color:#111;margin-bottom:6px}
+.sm-empty-s{font-size:12.5px;color:var(--ts);line-height:1.5}
+.sm-cta-primary{padding:10px 18px;background:var(--ind);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.sm-cta-primary:hover{background:var(--ind2)}
+@media (max-width:980px){.sm-kpi-grid{grid-template-columns:repeat(2,1fr)}.sm-dim-grid{grid-template-columns:1fr}}
 /* AI 비서 토글 — 홈에서 숨김, 워크스페이스에서만 표시 */
 body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .ai-toggle{position:absolute;top:50%;left:-46px;transform:translateY(-50%);width:46px;padding:12px 0;background:var(--ind);color:#fff;border:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:-4px 0 12px rgba(79,70,229,.25)}
@@ -1008,7 +1029,10 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 
     <!-- WORKSPACE TABS (visible only when target exists) -->
     <div class="ws-tabs hide" id="ws-tabs">
-      <div class="ws-tab active" data-tab="overview" onclick="switchTab('overview')">
+      <div class="ws-tab active" data-tab="summary" onclick="switchTab('summary')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>요약</span>
+      </div>
+      <div class="ws-tab" data-tab="overview" onclick="switchTab('overview')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
       </div>
       <div class="ws-tab" data-tab="who" onclick="switchTab('who')">
@@ -1140,7 +1164,23 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <div id="ask-banner" class="ask-banner hide"></div>
 
         <!-- TAB: Overview -->
-        <div id="tab-overview" class="ws-content">
+        <!-- ============ 요약 탭 (AI 자동 분석 결과) ============ -->
+        <div id="tab-summary" class="ws-content">
+          <div id="sm-banner"></div>
+          <div id="sm-ai-nav"></div>
+          <div class="sm-kpi-grid" id="sm-kpis"></div>
+          <div class="sm-dim-grid" id="sm-dims"></div>
+          <div class="sm-empty" id="sm-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:14px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <div class="sm-empty-t">아직 분석된 타겟이 없습니다</div>
+            <div class="sm-empty-s">자연어로 "30대 워킹맘의 미디어 소비..." 같은 질문을 입력하거나, 빌더 탭에서 직접 만들어보세요.</div>
+            <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
+              <button class="sm-cta-primary" onclick="switchTab('overview')">빌더로 가기 →</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-overview" class="ws-content hide">
           <div class="builder" id="builder"></div>
           <div id="ov-banner"></div>
           <!-- 단일국 모드 화면 -->
@@ -1460,8 +1500,9 @@ const state = {
   currentCountry: 'KR',
   compareCountries: [],  // 비교 모드 — 최대 4개국 (기준국 제외)
   officesOnly: false,    // INNOCEAN 거점만 필터
-  currentTab: 'overview',
+  currentTab: 'summary',
   analysisRun: false,
+  autoRouteToSummary: false,
   analyzedCountry: null,
   analyzedFilters: null,
   audienceCache: {},
@@ -1700,19 +1741,15 @@ async function sendChat(){
     state.lastAsk = data;
     if(data.parsed.country) selectCountry(data.parsed.country);
     await goWorkspace();
-    // 자연어 입력 → 무조건 빌더 탭으로 진입 (intent 자동점프 제거)
+    // 자연어 입력 → 자동 분석 → 요약 탭으로 이동
+    // 1) 빌더 탭으로 이동 (필터 미리 채워서 사용자가 보이도록)
     switchTab('overview');
-    // 설명 배너 표시
-    showAskBanner(data);
-    // 빌더 재렌더 + 분석 버튼 펄스
     renderBuilder();
-    setTimeout(() => {
-      const btn = document.getElementById('bld-analyze-btn');
-      if(btn){
-        btn.classList.add('bld-analyze-pulse');
-        setTimeout(() => btn.classList.remove('bld-analyze-pulse'), 4500);
-      }
-    }, 200);
+    // 2) ask-banner 표시
+    showAskBanner(data);
+    // 3) 자동 분석 트리거 + 완료 후 요약으로 라우팅
+    state.autoRouteToSummary = true;
+    setTimeout(() => runAnalysis(), 400);
   } catch(e){
     toast('질문 처리 실패: ' + e.message);
     console.error(e);
@@ -1782,13 +1819,15 @@ async function goWorkspace(opts){
   tb.classList.remove('hide');
   renderBuilder();
   await refreshSegment();
+  // 기본 탭은 케이스별로 분기 (entry 함수가 추가 switchTab 호출함)
+
   // 워크스페이스 진입 history 기록 (뒤로가기 동작)
   if(!(opts && opts.fromHistory)){
     const url = new URL(window.location.href);
     url.searchParams.set('view', 'workspace');
     if(state.currentTab) url.searchParams.set('tab', state.currentTab);
     if(state.currentCountry) url.searchParams.set('country', state.currentCountry);
-    history.pushState({ view: 'workspace', tab: state.currentTab || 'overview', country: state.currentCountry }, '', url.toString());
+    history.pushState({ view: 'workspace', tab: state.currentTab || 'summary', country: state.currentCountry }, '', url.toString());
   }
 }
 
@@ -1798,10 +1837,11 @@ function switchTab(tab, opts){
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   const toolBtn = document.querySelector('.ws-tool-btn');
   if(toolBtn) toolBtn.classList.toggle('active', tab === 'compare');
-  ['overview','insights','who','life','mind','love','buy','media','compare','interview'].forEach(t => {
+  ['summary','overview','insights','who','life','mind','love','buy','media','compare','interview'].forEach(t => {
     const el = document.getElementById('tab-'+t);
     if(el) el.classList.toggle('hide', t !== tab);
   });
+  if(tab === 'summary') refreshSummaryTab();
   if(tab === 'insights') refreshInsightsTab();
   if(tab === 'media') refreshMediaTab();
   if(tab === 'compare') renderCompareMatrix();
@@ -1846,7 +1886,7 @@ window.addEventListener('popstate', (e) => {
 function updateBreadcrumb(){
   const bc = document.getElementById('bread-crumb');
   if(!bc) return;
-  const tabLabel = { overview:'빌더', insights:'인사이트', who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', compare:'글로벌 비교', interview:'페르소나' }[state.currentTab] || state.currentTab;
+  const tabLabel = { summary:'요약', overview:'빌더', insights:'인사이트', who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', compare:'글로벌 비교', interview:'페르소나' }[state.currentTab] || state.currentTab;
   const country = state.currentCountry || 'Global';
   bc.innerHTML = `<a href="#" onclick="event.preventDefault();goHome()">홈</a> <span class="bc-sep">›</span> <span>${country}</span> <span class="bc-sep">›</span> <span class="bc-cur">${tabLabel}</span>`;
 }
@@ -2234,7 +2274,7 @@ const AI_COUNTRY_KO = {
   '필리핀':'PH','UAE':'AE','아랍에미리트':'AE','아르헨티나':'AR',
 };
 const AI_TAB_KO = {
-  '개요':'overview','요약':'overview','overview':'overview','빌더':'overview','builder':'overview',
+  '개요':'summary','요약':'summary','summary':'summary','overview':'overview','빌더':'overview','builder':'overview',
   '인물상':'who','인구':'who','데모':'who','who':'who',
   '라이프스타일':'life','라이프':'life','life':'life','일상':'life','생활':'life',
   '가치관':'mind','마인드':'mind','mind':'mind','신뢰':'mind','문화':'mind',
@@ -2845,6 +2885,81 @@ function closeSourceModal(){
 }
 
 // ============ AUDIENCE TABS (Who/Life/Mind/Love/Buy) ============
+// ============ 요약 탭 렌더링 ============
+async function refreshSummaryTab(){
+  const banner = document.getElementById('sm-banner');
+  const navBox = document.getElementById('sm-ai-nav');
+  const kpis = document.getElementById('sm-kpis');
+  const dims = document.getElementById('sm-dims');
+  const empty = document.getElementById('sm-empty');
+  if(!state.analysisRun){
+    if(empty) empty.style.display = 'flex';
+    if(kpis) kpis.innerHTML = '';
+    if(dims) dims.innerHTML = '';
+    if(navBox) navBox.innerHTML = '';
+    if(banner) banner.innerHTML = '';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  // 1) ask-banner clone (없으면 간단 요약)
+  const askBanner = document.getElementById('ask-banner');
+  if(banner && askBanner && !askBanner.classList.contains('hide')){
+    banner.innerHTML = askBanner.outerHTML.replace('id="ask-banner"', 'id="ask-banner-clone"');
+  } else if(banner){
+    banner.innerHTML = '';
+  }
+  // 2) AI 네비게이터
+  if(navBox){
+    const intent = state.lastAsk?.parsed?.intent;
+    const TAB_RECO = {
+      'media-strategy':       [['media','미디어 전략 상세'],['who','타겟 인물상']],
+      'persona-deep-dive':    [['interview','페르소나 인터뷰'],['life','라이프스타일']],
+      'competitive-insights': [['compare','글로벌 비교'],['buy','구매 행동']],
+      'market-entry':         [['compare','글로벌 비교'],['who','시장 인물상']],
+      'global-comparison':    [['compare','글로벌 비교 매트릭스']],
+      'target-definition':    [['who','인물상'],['life','라이프스타일'],['mind','가치관']],
+      'general':              [['who','인물상'],['life','라이프스타일'],['media','미디어']],
+    };
+    const reco = TAB_RECO[intent] || TAB_RECO['general'];
+    const chips = reco.map(([t, l]) => `<button class="ai-nav-chip" onclick="switchTab('${t}')">${l}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>`).join('');
+    navBox.innerHTML = `<div class="ai-nav" style="margin-bottom:24px"><div class="ai-nav-l">AI 추천 — 다음 탭에서 더 자세히</div><div class="ai-nav-chips">${chips}</div></div>`;
+  }
+  // 3) KPI
+  const c = state.audienceCache || {};
+  const country = state.countries.find(x => x.code === state.currentCountry);
+  if(kpis){
+    const who = c.who?.data || {};
+    const life = c.life?.data || {};
+    const buy = c.buy?.data || {};
+    kpis.innerHTML = `
+      <div class="sm-kpi"><div class="sm-kpi-l">국가</div><div class="sm-kpi-v">${country?.name || state.currentCountry || '—'}</div><div class="sm-kpi-s">${country?.region || ''}</div></div>
+      <div class="sm-kpi"><div class="sm-kpi-l">중위 연령</div><div class="sm-kpi-v">${who.medianAge?.toFixed(1) || '—'}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">도시화 ${who.urbanRate?.toFixed(0) || '—'}%</div></div>
+      <div class="sm-kpi"><div class="sm-kpi-l">디지털 침투</div><div class="sm-kpi-v">${life.digital?.internetPenetration?.toFixed(0) || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">소셜 ${life.digital?.socialMediaUsers?.toFixed(0) || '—'}%</div></div>
+      <div class="sm-kpi"><div class="sm-kpi-l">이커머스 비중</div><div class="sm-kpi-v">${buy.ecommerce?.shareOfRetail || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">월평균 $${buy.ecommerce?.avgMonthlySpendUSD || '—'}</div></div>
+    `;
+  }
+  // 4) 5차원 한 줄 요약
+  if(dims){
+    const who = c.who?.data || {};
+    const life = c.life?.data || {};
+    const mind = c.mind?.data || {};
+    const loveData = c.love || {};
+    const buy = c.buy?.data || {};
+    const top3 = (loveData.top3 || []).map(t => typeof loveLabel === 'function' ? loveLabel(t) : t).join(' · ');
+    const trustAvg = mind.trust ? Math.round(Object.values(mind.trust).reduce((s,v)=>s+v,0)/Object.values(mind.trust).length) : null;
+    const topCat = buy.topCategories ? Object.entries(buy.topCategories).sort((a,b)=>b[1]-a[1])[0] : null;
+    const topMedia = c.who && c.life ? '' : '';
+    dims.innerHTML = `
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg><div class="sm-dim-t">가치관</div><button class="sm-dim-more" onclick="switchTab('mind')">자세히 →</button></div><div class="sm-dim-stat">신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">Top 3: <b>${top3 || '—'}</b></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}</div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg><div class="sm-dim-t">미디어</div><button class="sm-dim-more" onclick="switchTab('media')">자세히 →</button></div><div class="sm-dim-stat">${state.mediaCache?.spend ? `연 추정 광고비 <b>$${state.mediaCache.spend.totalEstimatedB}B</b> · 채널 ${state.mediaCache.spend.channels?.length || 0}개` : '미디어 데이터 분석 완료'}</div></div>
+    `;
+  }
+}
+
 async function refreshAudienceTab(dim){
   // 캐시가 있으면 우선 사용
   if(state.audienceCache && state.audienceCache[dim]){
@@ -3773,6 +3888,11 @@ async function runAnalysis(){
     renderAiNavigator();
     // 토스트
     if(typeof toast === 'function') toast('분석 완료 — 각 탭에서 결과를 확인하세요');
+    // 자연어 입력 경로(lastAsk)면 자동으로 요약 탭으로 이동
+    if(state.lastAsk && state.autoRouteToSummary){
+      state.autoRouteToSummary = false;
+      switchTab('summary');
+    }
   } catch(e){
     console.error('runAnalysis failed', e);
     if(status) status.innerHTML = '<div class="bld-analyze-ok" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B">분석 실패: ' + e.message + '</div>';
