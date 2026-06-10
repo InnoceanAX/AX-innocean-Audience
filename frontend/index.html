@@ -285,6 +285,25 @@ a{color:inherit;text-decoration:none}
 .ov-insight-x{font-size:13px;color:var(--ts);line-height:1.5}
 
 /* ========== Filter Builder (interactive) ========== */
+.bld-analyze-bar{margin-top:18px;padding:14px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;border-radius:10px;display:flex;align-items:center;gap:14px}
+.bld-analyze-l{flex:1}
+.bld-analyze-l-t{font-size:13px;font-weight:700;color:#111;margin-bottom:3px}
+.bld-analyze-l-s{font-size:11.5px;color:#4338CA}
+.bld-analyze-btn{padding:12px 22px;background:var(--ind);color:#fff;border:none;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;font-family:inherit}
+.bld-analyze-btn:hover{background:var(--ind2);transform:translateY(-1px);box-shadow:0 6px 14px rgba(79,70,229,.3)}
+.bld-analyze-btn:active{transform:translateY(0)}
+.bld-analyze-btn:disabled{background:#9CA3AF;cursor:not-allowed;transform:none;box-shadow:none}
+.bld-analyze-btn svg{width:16px;height:16px}
+.bld-analyze-pulse{animation:bldPulse 1.4s ease-in-out 3}
+@keyframes bldPulse{0%,100%{box-shadow:0 0 0 0 rgba(79,70,229,.6)}50%{box-shadow:0 0 0 12px rgba(79,70,229,0)}}
+.bld-analyze-ok{padding:8px 12px;background:#D1FAE5;border:1px solid #6EE7B7;border-radius:8px;font-size:12px;color:#065F46;margin-top:10px;display:flex;align-items:center;gap:8px}
+/* AI 네비게이터 */
+.ai-nav{margin-top:12px;padding:12px 14px;background:#FAFBFF;border:1px solid #E0E7FF;border-radius:10px}
+.ai-nav-l{font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.ai-nav-chips{display:flex;gap:8px;flex-wrap:wrap}
+.ai-nav-chip{padding:7px 12px;background:#fff;border:1px solid var(--bdr);border-radius:20px;font-size:12px;color:#374151;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit}
+.ai-nav-chip:hover{border-color:var(--ind);color:var(--ind2);background:#EEF2FF;transform:translateY(-1px)}
+.ai-nav-chip svg{width:11px;height:11px}
 .builder{
   border:1px solid var(--bdr);border-radius:14px;padding:18px 20px;background:#fff;margin-bottom:16px;
 }
@@ -932,7 +951,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
       </div>
     </div>
 
-    <button class="sb-new" onclick="goHome()">
+    <button class="sb-new" onclick="newTarget()">
       <span>＋</span><span>새 타겟 만들기</span>
     </button>
 
@@ -990,7 +1009,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <!-- WORKSPACE TABS (visible only when target exists) -->
     <div class="ws-tabs hide" id="ws-tabs">
       <div class="ws-tab active" data-tab="overview" onclick="switchTab('overview')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/><line x1="3" y1="20" x2="21" y2="20"/></svg></span><span>개요</span>
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
       </div>
       <div class="ws-tab" data-tab="who" onclick="switchTab('who')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></span><span>인물상</span>
@@ -1090,8 +1109,8 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
               </div>
               <div class="entry-mode-l">MODE 2 · 정밀</div>
-              <div class="entry-t">세그먼트 빌더</div>
-              <div class="entry-s">국가 · 연령 · 성별 · 관심사 · 가치관을 슬라이더로 직접 조정하며 정확한 타겟을 빌드합니다. 마케터용 정밀 모드.</div>
+              <div class="entry-t">빌더로 직접 만들기</div>
+              <div class="entry-s">국가·연령·성별·관심사·가치관을 직접 조정해 타겟을 만들고, <b>[분석 시작]</b>으로 모든 탭의 결과를 한번에 채웁니다. 마케터용 정밀 모드.</div>
               <div class="entry-cta">빌더 열기 →</div>
             </div>
             <div class="entry-card entry-mode-explore" onclick="entryExplore()">
@@ -1442,6 +1461,11 @@ const state = {
   compareCountries: [],  // 비교 모드 — 최대 4개국 (기준국 제외)
   officesOnly: false,    // INNOCEAN 거점만 필터
   currentTab: 'overview',
+  analysisRun: false,
+  analyzedCountry: null,
+  analyzedFilters: null,
+  audienceCache: {},
+  mediaCache: null,
   filters: {},
   categories: [],
   categoryIdx: 0,
@@ -1676,11 +1700,19 @@ async function sendChat(){
     state.lastAsk = data;
     if(data.parsed.country) selectCountry(data.parsed.country);
     await goWorkspace();
-    // intent에 따른 탭 자동 이동
-    const targetTab = INTENT_TAB_MAP[data.parsed.intent] || 'overview';
-    if(targetTab !== 'overview') switchTab(targetTab);
+    // 자연어 입력 → 무조건 빌더 탭으로 진입 (intent 자동점프 제거)
+    switchTab('overview');
     // 설명 배너 표시
     showAskBanner(data);
+    // 빌더 재렌더 + 분석 버튼 펄스
+    renderBuilder();
+    setTimeout(() => {
+      const btn = document.getElementById('bld-analyze-btn');
+      if(btn){
+        btn.classList.add('bld-analyze-pulse');
+        setTimeout(() => btn.classList.remove('bld-analyze-pulse'), 4500);
+      }
+    }, 200);
   } catch(e){
     toast('질문 처리 실패: ' + e.message);
     console.error(e);
@@ -1814,7 +1846,7 @@ window.addEventListener('popstate', (e) => {
 function updateBreadcrumb(){
   const bc = document.getElementById('bread-crumb');
   if(!bc) return;
-  const tabLabel = { overview:'개요', insights:'인사이트', who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', compare:'글로벌 비교', interview:'페르소나' }[state.currentTab] || state.currentTab;
+  const tabLabel = { overview:'빌더', insights:'인사이트', who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', compare:'글로벌 비교', interview:'페르소나' }[state.currentTab] || state.currentTab;
   const country = state.currentCountry || 'Global';
   bc.innerHTML = `<a href="#" onclick="event.preventDefault();goHome()">홈</a> <span class="bc-sep">›</span> <span>${country}</span> <span class="bc-sep">›</span> <span class="bc-cur">${tabLabel}</span>`;
 }
@@ -2046,6 +2078,14 @@ async function entryBuilder(){
     b.classList.add('builder-pulse');
     setTimeout(()=>b.classList.remove('builder-pulse'), 2400);
   }
+  // 분석 버튼 펄스
+  setTimeout(() => {
+    const btn = document.getElementById('bld-analyze-btn');
+    if(btn){
+      btn.classList.add('bld-analyze-pulse');
+      setTimeout(() => btn.classList.remove('bld-analyze-pulse'), 4500);
+    }
+  }, 800);
 }
 
 // MODE 3: 글로벌 비교 매트릭스 (전역 탐색)
@@ -2194,7 +2234,7 @@ const AI_COUNTRY_KO = {
   '필리핀':'PH','UAE':'AE','아랍에미리트':'AE','아르헨티나':'AR',
 };
 const AI_TAB_KO = {
-  '개요':'overview','요약':'overview','overview':'overview',
+  '개요':'overview','요약':'overview','overview':'overview','빌더':'overview','builder':'overview',
   '인물상':'who','인구':'who','데모':'who','who':'who',
   '라이프스타일':'life','라이프':'life','life':'life','일상':'life','생활':'life',
   '가치관':'mind','마인드':'mind','mind':'mind','신뢰':'mind','문화':'mind',
@@ -2806,6 +2846,29 @@ function closeSourceModal(){
 
 // ============ AUDIENCE TABS (Who/Life/Mind/Love/Buy) ============
 async function refreshAudienceTab(dim){
+  // 캐시가 있으면 우선 사용
+  if(state.audienceCache && state.audienceCache[dim]){
+    const data = state.audienceCache[dim];
+    const code = state.currentCountry;
+    try {
+      const body = document.getElementById(dim + '-body');
+      if(body){
+        body.dataset.country = code;
+        body.innerHTML = renderAudienceDim(dim, data);
+        setTimeout(() => renderDimCharts(dim, data), 50);
+      }
+      // 출처 배지도 갱신
+      const src = document.getElementById(dim + '-src');
+      if(src && data.source){
+        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기"><span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+      }
+      return;
+    } catch(e){ /* fall through to fetch */ }
+  }
+  return _refreshAudienceTabFetch(dim);
+}
+
+async function _refreshAudienceTabFetch(dim){
   const code = state.currentCountry;
   if(!code) return;
   const body = document.getElementById(`${dim}-body`);
@@ -3633,7 +3696,119 @@ function renderBuilder(){
     }
     html += `</div>`;
   }
+  // [분석 시작] 액션 바 + AI 네비게이터 placeholder
+  html += `<div class="bld-analyze-bar" id="bld-analyze-bar">
+    <div class="bld-analyze-l">
+      <div class="bld-analyze-l-t">필터 조정이 끝나면 분석을 시작하세요</div>
+      <div class="bld-analyze-l-s">선택한 국가와 세그먼트로 모든 탭(인물상~페르소나)의 데이터를 한번에 갱신합니다.</div>
+    </div>
+    <button class="bld-analyze-btn" id="bld-analyze-btn" onclick="runAnalysis()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      분석 시작
+    </button>
+  </div>
+  <div id="bld-analyze-status"></div>
+  <div id="bld-ai-nav"></div>`;
   wrap.innerHTML = html;
+}
+
+function newTarget(){
+  // 필터 + 상태 초기화 후 빌더 탭으로 진입
+  state.filters = {};
+  state.lastAsk = null;
+  state.analysisRun = false;
+  state.audienceCache = {};
+  state.mediaCache = null;
+  // 워크스페이스 → 빌더 탭
+  goWorkspace().then(() => {
+    switchTab('overview');
+    // 분석 버튼 펄스
+    setTimeout(() => {
+      const btn = document.getElementById('bld-analyze-btn');
+      if(btn){
+        btn.classList.add('bld-analyze-pulse');
+        setTimeout(() => btn.classList.remove('bld-analyze-pulse'), 4500);
+      }
+      // ask-banner 숨김
+      const ab = document.getElementById('ask-banner');
+      if(ab) ab.classList.add('hide');
+    }, 200);
+  });
+}
+
+// ============ 분석 실행 (빌더 → 모든 탭 데이터 로드) ============
+async function runAnalysis(){
+  const btn = document.getElementById('bld-analyze-btn');
+  const status = document.getElementById('bld-analyze-status');
+  const nav = document.getElementById('bld-ai-nav');
+  if(!state.currentCountry){
+    if(status) status.innerHTML = '<div class="bld-analyze-ok" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B">국가를 먼저 선택해주세요.</div>';
+    return;
+  }
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="loader"></span> 분석 중...'; }
+  state.analysisRun = true;
+  state.analyzedCountry = state.currentCountry;
+  state.analyzedFilters = JSON.parse(JSON.stringify(state.filters || {}));
+  // 5차원 + 미디어 캐시 무효화
+  state.audienceCache = {};
+  state.mediaCache = null;
+  try {
+    // 병렬 fetch — 핵심 차원 데이터 미리 로드
+    const code = state.currentCountry;
+    const dims = ['who','life','mind','love','buy'];
+    const tasks = dims.map(d => fetch(`${API}/audience/${d}?country=${code}`).then(r => r.json()).catch(e => ({ ok:false, error:e.message })));
+    tasks.push(fetch(`${API}/media?country=${code}`).then(r => r.json()).catch(e => ({ ok:false })));
+    const results = await Promise.all(tasks);
+    // 캐시 저장
+    dims.forEach((d, i) => { if(results[i]?.ok) state.audienceCache[d] = results[i]; });
+    if(results[results.length-1]?.ok) state.mediaCache = results[results.length-1];
+    // 분석 완료 메시지
+    if(status){
+      status.innerHTML = `<div class="bld-analyze-ok">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        분석 완료. 탭을 클릭해 결과를 확인하세요.
+      </div>`;
+    }
+    // AI 네비게이터: 추천 탭 칩 표시 (lastAsk가 있으면 intent 기반, 없으면 기본)
+    renderAiNavigator();
+    // 토스트
+    if(typeof toast === 'function') toast('분석 완료 — 각 탭에서 결과를 확인하세요');
+  } catch(e){
+    console.error('runAnalysis failed', e);
+    if(status) status.innerHTML = '<div class="bld-analyze-ok" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B">분석 실패: ' + e.message + '</div>';
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> 다시 분석';
+    }
+  }
+}
+
+function renderAiNavigator(){
+  const nav = document.getElementById('bld-ai-nav');
+  if(!nav) return;
+  const intent = state.lastAsk?.parsed?.intent;
+  // 기본 추천 (intent별)
+  const TAB_RECO = {
+    'media-strategy':       [['media','미디어 전략 상세'],['who','타겟 인물상']],
+    'persona-deep-dive':    [['interview','페르소나 인터뷰'],['life','라이프스타일']],
+    'competitive-insights': [['compare','글로벌 비교'],['buy','구매 행동']],
+    'market-entry':         [['compare','글로벌 비교'],['who','시장 인물상']],
+    'global-comparison':    [['compare','글로벌 비교 매트릭스']],
+    'target-definition':    [['who','인물상'],['life','라이프스타일'],['mind','가치관']],
+    'general':              [['who','인물상'],['life','라이프스타일'],['media','미디어']],
+  };
+  const reco = TAB_RECO[intent] || TAB_RECO['general'];
+  const chips = reco.map(([tab, label]) => {
+    return `<button class="ai-nav-chip" onclick="switchTab('${tab}')">
+      ${label}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>`;
+  }).join('');
+  nav.innerHTML = `<div class="ai-nav">
+    <div class="ai-nav-l">AI가 추천하는 다음 탭</div>
+    <div class="ai-nav-chips">${chips}</div>
+  </div>`;
 }
 
 function applyPreset(key){
