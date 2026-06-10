@@ -1411,7 +1411,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             <div class="cmp-h-row">
               <div class="cmp-h-l">
                 <div class="cmp-h-t">글로벌 비교 매트릭스</div>
-                <div class="cmp-h-s"><span id="cmp-coverage-label">데이터 로딩 중…</span> × 5차원 실데이터. <span style="color:var(--ind);font-weight:600;cursor:help" title="아이콘에 마우스를 올려 자세한 설명 확인">ⓘ</span></div>
+                <div class="cmp-h-s"><span id="cmp-coverage-label">데이터 로딩 중…</span> × 5차원 실데이터. <button id="cmp-coverage-info" type="button" onclick="showCoverageInfo()" style="color:var(--ind);font-weight:700;cursor:pointer;background:transparent;border:1px solid var(--ind);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;padding:0;line-height:1;vertical-align:middle;margin-left:4px">i</button></div>
               </div>
               <div class="cmp-h-r">
                 <button class="cmp-help-btn" onclick="showHelp('compare')" title="사용법">
@@ -1450,8 +1450,14 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <input id="cmp-search" type="text" placeholder="국가명/코드 검색 (예: 독일, KR)" oninput="renderCompareMatrix()" style="width:100%;padding:7px 11px;border:1px solid var(--bdr);border-radius:6px;font-size:12.5px;font-family:inherit;background:#fff">
             </div>
           </div>
-          <div id="cmp-pinned-info" style="display:none;padding:8px 12px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;font-size:11.5px;color:#78350F;margin-bottom:8px">
-            <b style="color:#451A03">핀 국가:</b> <span id="cmp-pinned-list"></span> <span style="color:#92400E">(매트릭스 상단에 고정)</span>
+          <div class="cmp-multi-select" style="padding:12px 14px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;font-size:12px;color:#312E81;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <b style="color:#1E1B4B;font-size:13px">핀/비교 국가 선택:</b>
+              <span id="cmp-selected-list" style="display:inline-flex;flex-wrap:wrap;gap:5px"></span>
+              <button onclick="openCmpAddModal()" type="button" style="padding:4px 10px;background:#fff;border:1px solid var(--ind);color:var(--ind);border-radius:4px;font-size:11.5px;cursor:pointer;font-weight:600">+ 추가</button>
+              <button onclick="clearCmpPins()" type="button" style="padding:4px 10px;background:transparent;border:1px solid #C7D2FE;color:#4338CA;border-radius:4px;font-size:11.5px;cursor:pointer">전체 초기화</button>
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:#4338CA">키워드/AI 질문으로 자동 선택된 국가 + 수동으로 추가한 국가는 항상 명시됩니다.</div>
           </div>
           <div id="cmp-matrix-wrap" class="cmp-matrix-wrap">
             <div class="aud-loading">데이터 로딩 중…</div>
@@ -1602,6 +1608,7 @@ const state = {
   groups: {},
   currentCountry: 'KR',
   compareCountries: [],  // 비교 모드 — 최대 4개국 (기준국 제외)
+  cmpManualPins: [],     // 글로벌 비교 탭에서 수동으로 명시적 추가한 핀 국가들
   officesOnly: false,    // INNOCEAN 거점만 필터
   currentTab: 'summary',
   analysisRun: false,
@@ -1905,7 +1912,22 @@ function goHome(opts){
   // tb-target-cc 제거됨
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.sb-item')[0].classList.add('active');
+  // 홈 복귀 시 히스토리/입력 초기화 (fromHistory=true 이면 유지)
   if(!(opts && opts.fromHistory)){
+    // 1. 홈 입력창 직전 질의 제거
+    const chatInput = document.getElementById('chat-input');
+    if(chatInput){ chatInput.value = ''; if(typeof autoResize==='function') autoResize(chatInput); if(typeof toggleSend==='function') toggleSend(); }
+    // 2. AI 사이드 패널 입력창도 제거
+    const aiInput = document.getElementById('ai-input');
+    if(aiInput){ aiInput.value = ''; if(typeof aiResize==='function') aiResize(aiInput); }
+    // 3. 직전 분석 상태 리셋 (핀/비교국 등)
+    state.lastAsk = null;
+    state.savedCurrent = false;
+    state.currentTargetId = null;
+    state.compareCountries = [];
+    state.cmpManualPins = [];
+    state.analysisRun = false;
+    // 4. compareData 컬시는 유지 (동일 세션 다음 보기에서 재사용 가능)
     const url = new URL(window.location.href);
     url.search = '';
     history.pushState({ view: 'home' }, '', url.toString());
@@ -2342,10 +2364,11 @@ async function setCompareDim(dim){
 }
 
 function getCmpPinnedCodes(){
-  // 기준국 + AI 추출 비교국 + 수동 compareCountries
+  // 기준국 + AI 추출 비교국 + 수동 compareCountries + 수동 탭 내 핀
   const set = new Set();
   if(state.currentCountry) set.add(state.currentCountry);
   (state.compareCountries||[]).forEach(c => set.add(c));
+  (state.cmpManualPins||[]).forEach(c => set.add(c));
   // 마지막 질문에서 추출된 국가들 — question 원문에서 국가명 매칭
   // (서버 응답: {ok, question, parsed, meta} — question은 top-level)
   const q = String(state.lastAsk?.question || state.lastAsk?.parsed?.summary || '');
@@ -2378,9 +2401,8 @@ async function renderCompareMatrix(){
   // 컬버리지 라벨 업데이트
   const covLabel = document.getElementById('cmp-coverage-label');
   if(covLabel){
-    const tip = '5차원(인물상/라이프/가치관/관심사/구매) 실데이터가 모두 확보된 국가만 표시됩니다. 나머지 국가는 인구 데이터만 확보되어 적용하면 빈 칸이 많아집니다. 단일 국가 보기(인물상 탭)에서는 77국 모두 동작합니다.';
     covLabel.innerHTML = '<b>' + rows.length + '개국</b> (전체 77국 중 5차원 완전 확보)';
-    covLabel.parentElement.title = tip;
+    window.__cmpCoverageCount = rows.length;
   }
 
   // 정렬 셀렉트 채우기
@@ -2401,20 +2423,23 @@ async function renderCompareMatrix(){
   }
 
   const pinnedCodes = getCmpPinnedCodes();
-  // 핀 국가 안내 레이블
-  const pinnedInfo = document.getElementById('cmp-pinned-info');
-  const pinnedList = document.getElementById('cmp-pinned-list');
-  const pinnedInRows = pinnedCodes.filter(c => rows.some(r => r.code === c));
-  if(pinnedInfo && pinnedList){
-    if(pinnedInRows.length > 0){
-      pinnedInfo.style.display = '';
-      pinnedList.innerHTML = pinnedInRows.map(c => {
-        const r = rows.find(x => x.code === c);
-        return '<span style="display:inline-block;padding:2px 8px;background:#fff;border:1px solid #FCD34D;border-radius:4px;margin:0 4px 0 0;font-weight:600">' + (r ? (r.name + ' (' + c + ')') : c) + '</span>';
-      }).join('');
-    } else {
-      pinnedInfo.style.display = 'none';
-    }
+  // 핀/비교 국가 선택 표시 (췩 수동 추가는 state.cmpManualPins)
+  const selectedList = document.getElementById('cmp-selected-list');
+  if(selectedList){
+    const inRows = pinnedCodes.filter(c => rows.some(r => r.code === c));
+    const notInRows = pinnedCodes.filter(c => !rows.some(r => r.code === c));
+    let html = inRows.map(c => {
+      const r = rows.find(x => x.code === c);
+      const label = r ? (r.name + ' (' + c + ')') : c;
+      const removable = (state.cmpManualPins||[]).includes(c) || (state.compareCountries||[]).includes(c);
+      const removeBtn = removable ? ('<span onclick="removeCmpPin(\'' + c + '\');event.stopPropagation()" style="margin-left:5px;cursor:pointer;color:#7C3AED;font-weight:700">×</span>') : '';
+      return '<span style="display:inline-flex;align-items:center;padding:3px 9px;background:#fff;border:1px solid #C7D2FE;border-radius:4px;font-weight:600;color:#1E1B4B">' + label + removeBtn + '</span>';
+    }).join('');
+    notInRows.forEach(c => {
+      html += '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#FEE2E2;border:1px solid #FECACA;border-radius:4px;font-weight:600;color:#991B1B" title="이 차원의 데이터 없음">' + c + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#991B1B" stroke-width="2.4"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span>';
+    });
+    if(!html) html = '<span style="color:#6B7280;font-style:italic">아직 없음 — [+ 추가]로 선택</span>';
+    selectedList.innerHTML = html;
   }
 
   // 정렬
@@ -2465,6 +2490,99 @@ function cmpDrillDown(code){
   state.currentCountry = code;
   switchTab('overview');
   updateCountryPillLabel();
+}
+
+// ===== 글로벌 비교 탭 - 수동 핀 관리 =====
+function openCmpAddModal(){
+  loadCompareData().then(data => {
+    if(!data) return;
+    const rows = data.who || [];
+    const already = new Set(getCmpPinnedCodes());
+    const sorted = rows.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    const opts = sorted.map(r => {
+      const sel = already.has(r.code);
+      return '<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #F3F4F6;cursor:pointer;font-size:12.5px' + (sel?';background:#EEF2FF':'') + '">\
+        <input type="checkbox" data-code="' + r.code + '" ' + (sel?'checked':'') + ' style="accent-color:var(--ind)">\
+        <span>' + r.name + ' (' + r.code + ')</span></label>';
+    }).join('');
+    const html = '\
+      <div class="md-mask" onclick="closeCmpAddModal(event)" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center">\
+        <div onclick="event.stopPropagation()" style="background:#fff;border-radius:10px;width:min(440px,92vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3)">\
+          <div style="padding:18px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between">\
+            <h3 style="margin:0;font-size:16px;font-weight:700">비교/핀 국가 선택</h3>\
+            <button onclick="closeCmpAddModal()" style="background:transparent;border:none;cursor:pointer;font-size:20px;color:#666;padding:0;line-height:1">×</button>\
+          </div>\
+          <div style="padding:8px 16px 4px;font-size:11.5px;color:#6B7280">5차원 실데이터 확보국 중 선택 (몇 개라도 가능)</div>\
+          <div id="cmp-add-list" style="flex:1;overflow:auto;padding:4px 16px 12px">' + opts + '</div>\
+          <div style="padding:14px 22px;border-top:1px solid var(--bdr);display:flex;justify-content:flex-end;gap:8px">\
+            <button onclick="closeCmpAddModal()" style="padding:8px 14px;background:transparent;border:1px solid var(--bdr);color:#374151;border-radius:6px;cursor:pointer">취소</button>\
+            <button onclick="applyCmpAddModal()" style="padding:8px 16px;background:var(--ind);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600">적용</button>\
+          </div>\
+        </div>\
+      </div>';
+    const wrap = document.createElement('div');
+    wrap.id = 'cmp-add-modal-wrap';
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+  });
+}
+function closeCmpAddModal(e){
+  if(e && e.target && !e.target.classList.contains('md-mask') && e.type==='click' && e.target.tagName !== 'BUTTON') return;
+  const w = document.getElementById('cmp-add-modal-wrap');
+  if(w) w.remove();
+}
+function applyCmpAddModal(){
+  const list = document.getElementById('cmp-add-list');
+  if(!list) return;
+  const chosen = Array.from(list.querySelectorAll('input[type="checkbox"]:checked')).map(i => i.dataset.code);
+  // 기준국 제외 (기준국은 단일 변경으로 다루었 관리)
+  state.cmpManualPins = chosen.filter(c => c !== state.currentCountry);
+  closeCmpAddModal();
+  renderCompareMatrix();
+}
+function removeCmpPin(code){
+  // 수동 핀 + compareCountries 모두서 제거
+  state.cmpManualPins = (state.cmpManualPins||[]).filter(c => c !== code);
+  state.compareCountries = (state.compareCountries||[]).filter(c => c !== code);
+  renderCompareMatrix();
+}
+function clearCmpPins(){
+  state.cmpManualPins = [];
+  state.compareCountries = [];
+  renderCompareMatrix();
+}
+
+// 컬버리지 상세 설명 팝업 (i 버튼 클릭)
+function showCoverageInfo(){
+  const cov = window.__cmpCoverageCount || 29;
+  const html = '\
+    <div class="md-mask" onclick="closeCoverageInfo(event)" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center">\
+      <div onclick="event.stopPropagation()" style="background:#fff;border-radius:10px;width:min(560px,92vw);max-height:80vh;overflow:auto;padding:24px 26px;box-shadow:0 20px 60px rgba(0,0,0,.3)">\
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">\
+          <h3 style="margin:0;font-size:17px;font-weight:700;color:#111">데이터 컬버리지 설명</h3>\
+          <button onclick="closeCoverageInfo()" style="background:transparent;border:none;cursor:pointer;font-size:20px;color:#666;padding:0;line-height:1">×</button>\
+        </div>\
+        <div style="font-size:13px;line-height:1.7;color:#374151">\
+          <p><b style="color:var(--ind)">' + cov + '개국</b>은 5차원(인물상·라이프·가치관·관심사·구매)이 <b>모두 실데이터로 확보</b>된 국가입니다.</p>\
+          <p style="margin-top:10px">전체 <b>77개 국가</b>가 시스템에 등록되어 있으나, 나머지 ' + (77 - cov) + '개 국가는 인구·지리 등 일부 데이터만 확보된 상태라 매트릭스에 넣으면 빈 칸이 많아집니다.</p>\
+          <div style="margin-top:14px;padding:12px 14px;background:#F3F4F6;border-radius:6px;font-size:12px">\
+            <b style="color:#111">・ 단일 국가 분석</b>는 77국 모두 지원합니다 (인물상 탭 등)<br>\
+            <b style="color:#111">・ 글로벌 비교 매트릭스</b>는 실데이터 완전 확보국 한정<br>\
+            <b style="color:#111">・ 추후 확장</b>: 더 많은 국가의 5차원 데이터를 단계적으로 수집해 매트릭스 컬버리지를 늘릴 예정입니다.\
+          </div>\
+          <p style="margin-top:14px;font-size:12px;color:#6B7280">특정 국가의 데이터 우선순위가 필요하시면 알려주세요.</p>\
+        </div>\
+      </div>\
+    </div>';
+  const wrap = document.createElement('div');
+  wrap.id = 'cmp-cov-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeCoverageInfo(e){
+  if(e && e.target && !e.target.classList.contains('md-mask') && e.type==='click' && e.target.tagName !== 'BUTTON') return;
+  const w = document.getElementById('cmp-cov-modal-wrap');
+  if(w) w.remove();
 }
 
 // ============ AI SIDE PANEL (Ultra) ============
