@@ -1951,7 +1951,7 @@ function goHome(opts){
     state.compareCountries = [];
     state.cmpManualPins = [];
     state.analysisRun = false;
-    state.currentCountry = 'KR';  // 기본 국가로 되돌림 — 이전 분석 국가 핀 잔존 방지
+    state.currentCountry = null;  // 국가 선택 재설정 — 이전 분석 국가 핀 잔존 방지
     state.userPickedCountry = false;  // 홈 복귀 시 사용자 선택 플래그 해제
     state.filters = {};
     state.audienceCache = {};
