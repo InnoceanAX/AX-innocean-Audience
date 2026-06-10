@@ -42,7 +42,7 @@ export async function generateJSON({ prompt, system, schema, model = "gemini-2.5
     model,
     generationConfig: {
       temperature,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 8192,
       responseMimeType: "application/json",
       responseSchema: schema,
     },
