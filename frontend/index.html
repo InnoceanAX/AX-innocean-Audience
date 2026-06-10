@@ -3479,7 +3479,8 @@ async function openProjectDetail(id){
   let targets = [];
   if((p.targetIds||[]).length){
     try{
-      const r = await fetch(API + '/library?owner=anon&saved=true'); const d = await r.json();
+      // 프로젝트 상세 — saved 여부 관계없이 targetIds 기준으로 조회
+      const r = await fetch(API + '/library?owner=anon'); const d = await r.json();
       const all = d.targets || [];
       targets = (p.targetIds||[]).map(tid => all.find(t=>t.id===tid)).filter(Boolean);
     }catch(e){}
@@ -4026,7 +4027,8 @@ async function __legacyOpenProjectDetail(id){
   let targets = [];
   if((p.targetIds||[]).length){
     try{
-      const r = await fetch(API + '/library?owner=anon&saved=true'); const d = await r.json();
+      // 프로젝트 상세 — saved 여부 관계없이 targetIds 기준으로 조회
+      const r = await fetch(API + '/library?owner=anon'); const d = await r.json();
       const all = d.targets || [];
       targets = (p.targetIds||[]).map(tid => all.find(t=>t.id===tid)).filter(Boolean);
     }catch(e){}
@@ -5467,7 +5469,8 @@ async function runAnalysis(){
     if(typeof toast === 'function') toast('분석 완료 — 각 탭에서 결과를 확인하세요');
     // 라이브러리 자동 등록 (recent) + 임시 보관함에 자동 attach
     try{
-      const autoTarget = await saveToLibrary({ recent: true });
+      // recent + saved 둘 다 true (임시 보관함은 saved=true 필터로 조회하므로)
+      const autoTarget = await saveToLibrary({ recent: true, saved: true });
       if(autoTarget && autoTarget.id && typeof attachTargetToProject === 'function'){
         // 이미 특정 프로젝트에 담아 둔 타겟이 아니면 임시 보관함에 attach
         const alreadyAttached = (state.projects||[]).some(p => (p.targetIds||[]).includes(autoTarget.id));
