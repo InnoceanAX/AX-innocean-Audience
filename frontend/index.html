@@ -1060,30 +1060,21 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <div class="sb-section">
-      <div class="sb-section-t">Library</div>
       <div class="sb-item" onclick="openLibrary('all')">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M5 7v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><path d="M9 11h6"/><path d="M9 15h6"/></svg></span><span>모든 타겟</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M5 7v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><path d="M9 11h6"/><path d="M9 15h6"/></svg></span><span>Library</span>
         <span class="sb-item-meta" id="lib-count">0</span>
       </div>
-      <div class="sb-item" onclick="openLibrary('favorites')">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>즐겨찾기</span>
+      <div class="sb-item" onclick="openMyPreset()">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>My Preset</span>
+        <span class="sb-item-meta" id="preset-count">0</span>
       </div>
-      <div class="sb-item" onclick="openLibrary('recent')">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span>최근</span>
-      </div>
-    </div>
-
-    <div class="sb-section">
-      <div class="sb-section-t">My Preset</div>
-      <div id="sb-user-presets"><div class="sb-item" style="color:var(--tm);font-size:12.5px;cursor:default"><span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>저장된 프리셋 없음</span></div></div>
-    </div>
-
-    <div class="sb-section">
-      <div class="sb-section-t">My Project</div>
-      <div class="sb-item" style="color:var(--tm);cursor:default">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span><span>프로젝트 없음</span>
+      <div class="sb-item" onclick="openMyProject()">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span><span>My Project</span>
+        <span class="sb-item-meta" id="project-count">0</span>
       </div>
     </div>
+    <!-- 숨김 슬롯 (호환성 유지) -->
+    <div id="sb-user-presets" style="display:none"></div>
 
     <div class="sb-foot">
       <span class="sb-foot-badge">BETA</span>
@@ -2158,6 +2149,25 @@ async function renderMediaSpend(data){
 }
 
 async function renderMediaTab(data){
+  // AI 합성 소비자 카드 (다른 탭과 동일)
+  try{
+    const synHtml = renderSynthSegment('media');
+    const wrap = document.getElementById('md-insights');
+    if(wrap && synHtml){
+      // wrap 앞에 삽입
+      const parent = wrap.parentNode;
+      let synSlot = document.getElementById('md-synth-slot');
+      if(!synSlot){
+        synSlot = document.createElement('div');
+        synSlot.id = 'md-synth-slot';
+        parent.insertBefore(synSlot, wrap);
+      }
+      synSlot.innerHTML = synHtml;
+    } else {
+      const existing = document.getElementById('md-synth-slot');
+      if(existing) existing.innerHTML = '';
+    }
+  }catch(e){ /* silent */ }
   // 광고비 리더링
   renderMediaSpend(data);
   // 인사이트
@@ -3072,6 +3082,51 @@ async function openLibrary(kind){
   setTimeout(()=>{ const b=document.getElementById('lib-body'); if(b) b.scrollTop=0; const x=document.querySelector('.lib-box'); if(x) x.scrollTop=0; }, 0);
 }
 function closeLibrary(){ const m = document.getElementById('lib-modal'); if(m) m.remove(); }
+
+// ===== My Preset / My Project 공통 팝업 (Library와 동일 패턴) =====
+function openMyPreset(){
+  closeLibrary();
+  let modal = document.getElementById('mp-modal'); if(modal) modal.remove();
+  modal = document.createElement('div'); modal.id='mp-modal'; modal.className='lib-modal';
+  const list = (state.userPresets || []);
+  const itemsHtml = list.length === 0
+    ? '<div class="lib-empty"><div class="lib-empty-t">저장된 프리셋이 없습니다</div><div class="lib-empty-s">빌더에서 [+ 현재 필터 저장]을 클릭해서 추가하세요.</div></div>'
+    : '<div class="lib-list">' + list.map(p => {
+        const dimCount = Object.keys(p.filters || {}).length;
+        return `<div class="lib-card" style="cursor:pointer" onclick="applyPreset('${p.id}'); closeMyPreset(); switchTab('overview');">
+          <div class="lib-card-t" style="display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="#F59E0B" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            ${p.name}
+          </div>
+          <div class="lib-card-meta">${dimCount}개 차원 · ${p.country || '국가 미지정'}</div>
+          <div class="lib-card-acts">
+            <button class="lib-act" onclick="event.stopPropagation();applyPreset('${p.id}'); closeMyPreset(); switchTab('overview');">적용</button>
+            <button class="lib-act lib-act-del" onclick="event.stopPropagation();if(confirm('이 프리셋을 삭제할까요?')){deleteUserPreset('${p.id}'); openMyPreset();}">삭제</button>
+          </div>
+        </div>`;
+      }).join('') + '</div>';
+  modal.innerHTML = '<div class="lib-box">'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>My Preset</div><button class="lib-close" onclick="closeMyPreset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="lib-body" id="mp-body">' + itemsHtml + '</div>'
+    + '</div>';
+  modal.onclick = function(e){ if(e.target===modal) closeMyPreset(); };
+  document.body.appendChild(modal);
+  setTimeout(()=>{ const b=document.getElementById('mp-body'); if(b) b.scrollTop=0; }, 0);
+}
+function closeMyPreset(){ const m = document.getElementById('mp-modal'); if(m) m.remove(); }
+
+function openMyProject(){
+  closeLibrary();
+  let modal = document.getElementById('mj-modal'); if(modal) modal.remove();
+  modal = document.createElement('div'); modal.id='mj-modal'; modal.className='lib-modal';
+  modal.innerHTML = '<div class="lib-box">'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>My Project</div><button class="lib-close" onclick="closeMyProject()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="lib-body" id="mj-body"><div class="lib-empty"><div class="lib-empty-t">프로젝트 기능은 준비 중입니다</div><div class="lib-empty-s">다수의 타겟을 넍어 프로젝트 단위로 관리하는 기능이 추가될 예정입니다.</div></div></div>'
+    + '</div>';
+  modal.onclick = function(e){ if(e.target===modal) closeMyProject(); };
+  document.body.appendChild(modal);
+}
+function closeMyProject(){ const m = document.getElementById('mj-modal'); if(m) m.remove(); }
 async function loadLibList(kind){
   document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.lkind===kind));
   const body = document.getElementById('lib-body'); if(!body) return;
@@ -3278,13 +3333,8 @@ async function refreshSummaryTab(){
     return;
   }
   if(empty) empty.style.display = 'none';
-  // 1) ask-banner clone (없으면 간단 요약)
-  const askBanner = document.getElementById('ask-banner');
-  if(banner && askBanner && !askBanner.classList.contains('hide')){
-    banner.innerHTML = askBanner.outerHTML.replace('id="ask-banner"', 'id="ask-banner-clone"');
-  } else if(banner){
-    banner.innerHTML = '';
-  }
+  // 1) ask-banner clone — 제거 (CEO: 상단 ask-banner 하나만 남김)
+  if(banner) banner.innerHTML = '';
   // 2) AI 네비게이터
   if(navBox){
     const intent = state.lastAsk?.parsed?.intent;
@@ -3408,6 +3458,21 @@ function renderSynthSegment(dim){
       <div style="margin-bottom:8px">결제 선호: <b>${seg.paymentPreference||'-'}</b></div>
       <div style="font-size:11px;color:var(--tm);font-weight:700;margin:4px 0">주요 지출 카테고리</div>
       <div>${cats || '-'}</div>
+    </div>`;
+  } else if(dim === 'media'){
+    const dmh = seg.dailyMediaHours || {};
+    const ar = seg.adReceptivity || {};
+    const ch = (seg.topChannels||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#DBEAFE;border:1px solid #93C5FD;border-radius:12px;font-size:11px;margin:2px;color:#1E40AF">${v}</span>`).join('');
+    const hourRows = Object.entries(dmh).map(([k,v]) => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0"><span>${k}</span><b>${(+v||0).toFixed(1)}h</b></div>`).join('');
+    const recRows = Object.entries(ar).map(([k,v]) => `<div style="font-size:11px;padding:2px 0"><span style="color:var(--tm)">${k}:</span> <b>${v}</b>/100 <div class="md-bar" style="display:inline-block;width:80px;margin-left:6px;vertical-align:middle"><div class="md-bar-fill" style="width:${v}%"></div></div></div>`).join('');
+    bodyHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">일평균 소비 시간 (시간)</div>${hourRows}</div>
+      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">광고 수용도</div>${recRows}</div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">주요 매체</div>
+      <div>${ch || '-'}</div>
+      <div style="font-size:11.5px;margin-top:6px">선호 광고 포맷: <b>${seg.preferredFormat || '-'}</b></div>
     </div>`;
   }
 
@@ -4663,9 +4728,12 @@ function deleteUserPreset(id){
   renderUserPresetsInSidebar();
 }
 function renderUserPresetsInSidebar(){
+  const list = state.userPresets || [];
+  // 새 사이드바: My Preset 카운트만 업데이트
+  const cntEl = document.getElementById('preset-count');
+  if(cntEl) cntEl.textContent = list.length;
   const box = document.getElementById('sb-user-presets');
   if(!box) return;
-  const list = state.userPresets || [];
   if(list.length === 0){
     box.innerHTML = '<div class="sb-item" style="color:var(--tm);font-size:12.5px;cursor:default"><span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>저장된 프리셋 없음</span></div>';
     return;

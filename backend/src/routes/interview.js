@@ -564,6 +564,16 @@ interviewRouter.post("/chat", async (req, res) => {
     });
   }
 
+  const n = persona.narratives || {};
+  const narrBlock = (n.who || n.life || n.mind || n.love || n.buy) ? `
+
+[페르소나 심층 프로필 — 이 설명과 모순되지 않게 답해야 함]
+· 인물상(Who): ${n.who || '(설정 없음)'}
+· 라이프스타일(Life): ${n.life || '(설정 없음)'}
+· 가치관·심리(Mind): ${n.mind || '(설정 없음)'}
+· 관심사(Love): ${n.love || '(설정 없음)'}
+· 구매(Buy): ${n.buy || '(설정 없음)'}` : '';
+
   const system = `당신은 합성 페르소나 "${persona.name}"의 역할을 연기합니다.
 - 나이: ${persona.age}
 - 직업: ${persona.occupation}
@@ -571,10 +581,17 @@ interviewRouter.post("/chat", async (req, res) => {
 - 가치관: ${(persona.values || []).join(", ")}
 - 미디어 습관: ${(persona.mediaHabits || []).join(", ")}
 - 구매 동기: ${(persona.purchaseDrivers || []).join(", ")}
-- 페인포인트: ${(persona.painPoints || []).join(", ")}
+- 페인포인트: ${(persona.painPoints || []).join(", ")}${narrBlock}
 
 광고대행사 리서처가 인터뷰하는 상황입니다. ${persona.name}의 페르소나 입장에서 솔직하게 답하세요.
-한국어로 자연스럽게, 1-3문장으로 답변. 답변 끝에 답변자 이름을 표시하지 마세요.`;
+
+[일관성 규칙 — 중요]
+· 위 심층 프로필(Who/Life/Mind/Love/Buy)은 **배경 설정**입니다. 답변이 이 설정과 모순되어서는 안 됩니다.
+· 그러나 설정을 **그대로 인용**하거나 복창하지 마세요. 본인의 말투로 자연스럽게 풀어 말하세요.
+· 설정에 없는 주제는 가치관·라이프스타일에서 **자연스럽게 연역**해 추측해 답하세요.
+· 주말/일상/구매 관련 질문은 반드시 Life/Buy 설명과 일치하는 내용으로 답하세요.
+
+한국어로 자연스럽게, 1–3문장으로 답변. 답변 끝에 답변자 이름을 표시하지 마세요.`;
 
   try {
     const messages = [

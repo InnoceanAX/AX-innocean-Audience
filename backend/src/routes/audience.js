@@ -463,6 +463,16 @@ audienceRouter.post("/synthesize", async (req, res) => {
               paymentPreference: { type: "string" },
             },
           },
+          media: {
+            type: "object",
+            properties: {
+              summary: { type: "string", description: "이 세그먼트의 미디어 소비 특징 요약 (1-2문장)" },
+              dailyMediaHours: { type: "object", properties: { "TV": {type:"number"}, "온라인 동영상": {type:"number"}, "SNS": {type:"number"}, "음악/스트리밍": {type:"number"}, "검색/뉴스": {type:"number"} } },
+              topChannels: { type: "array", items: { type: "string" }, description: "주요 매체 3-5개 (국가 맞춤)" },
+              adReceptivity: { type: "object", properties: { "디스플레이": {type:"number"}, "동영상": {type:"number"}, "검색": {type:"number"}, "SNS": {type:"number"}, "TV": {type:"number"} }, description: "광고 수용도 0-100" },
+              preferredFormat: { type: "string", description: "선호 광고 포맷 (예: 쇼츠 동영상, 인플루언서 콘텐츠)" },
+            },
+          },
         },
         required: ["who", "life", "mind", "love", "buy"],
       };
