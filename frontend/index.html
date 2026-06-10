@@ -1497,6 +1497,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <div id="iv-panel-grid" class="iv-panel-grid"></div>
               <div class="iv-panel-actions">
                 <button class="iv-regen" onclick="generatePanel(4)">다른 패널 생성</button>
+                <button class="iv-regen" onclick="switchToSinglePersona()" title="단일 페르소나 인터뷰로 전환"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>단일 페르소나로</button>
                 <button class="iv-regen" onclick="backToPanelEmpty()">처음으로</button>
               </div>
             </div>
@@ -1527,6 +1528,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             </div>
                 <div class="iv-actions">
                   <button class="iv-regen" onclick="generatePersona()">다른 페르소나 생성</button>
+                  <button class="iv-regen" onclick="switchToPanel(4)" title="다양성 패널(4명)로 전환"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>4명 패널로 보기</button>
                   <button class="iv-regen" onclick="backToPanelEmpty()">처음으로</button>
                 </div>
               </div>
@@ -4898,6 +4900,16 @@ function backToPanelEmpty(){
   state.ivHistory = [];
 }
 
+// 단일 페르소나 ↔ 패널(4명) 간 전환
+function switchToPanel(count){
+  if(typeof toast==='function') toast('다양성 패널 ' + (count||4) + '명을 생성합니다…');
+  generatePanel(count || 4);
+}
+function switchToSinglePersona(){
+  if(typeof toast==='function') toast('단일 페르소나를 생성합니다…');
+  generatePersona();
+}
+
 async function generatePersona(persona){
   try{
     document.getElementById('iv-empty').classList.add('hide');
@@ -5045,6 +5057,7 @@ async function sendInterview(){
         persona: state.ivPersona,
         history: state.ivHistory,
         userMessage: msg,
+        country: (state.countries||[]).find(c=>c.code===state.currentCountry)?.name || state.currentCountry || '',
       }),
     });
     const data = await res.json();

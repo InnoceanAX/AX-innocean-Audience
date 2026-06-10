@@ -566,9 +566,22 @@ interviewRouter.post("/media-deep", async (req, res) => {
   }
 });
 
+// 시의성 키워드 — 이 패턴이 포함되면 실시간 검색 grounding 수행
+const REALTIME_KEYWORDS = [
+  "최근", "요즘", "이즜", "오늘", "이번", "이번 주", "이번달", "이번 달",
+  "최신", "뉴스", "트렌드", "이슈", "화제", "논란", "바이럴",
+  "동향", "근황", "신제품", "신곡", "장상", "은퇴", "헤장", "수상",
+  "광고", "캐페인", "컴백",
+];
+function needsRealtimeContext(text) {
+  if (!text) return false;
+  const s = String(text);
+  return REALTIME_KEYWORDS.some(k => s.includes(k));
+}
+
 // POST /api/interview/chat  — 페르소나와 대화
 interviewRouter.post("/chat", async (req, res) => {
-  const { persona, history = [], userMessage } = req.body || {};
+  const { persona, history = [], userMessage, country = "" } = req.body || {};
   if (!persona || !userMessage) return res.status(400).json({ ok: false, error: "persona and userMessage required" });
 
   if (!isGeminiAvailable()) {
@@ -578,6 +591,23 @@ interviewRouter.post("/chat", async (req, res) => {
       meta: { method: "fallback" },
     });
   }
+
+  // 시의성 질문이면 실시간 검색으로 컬텍스트 보강 (최근 이슈 반영)
+  let realtimeBlock = "";
+  let groundingUsed = false;
+  try {
+    if (needsRealtimeContext(userMessage) && process.env.PERSONA_USE_GROUNDING !== "0") {
+      const today = new Date().toISOString().slice(0, 10);
+      const countryName = country ? `(${country})` : "";
+      const interestsHint = (persona.values || persona.purchaseDrivers || []).slice(0, 3).join(", ");
+      const q = `오늘 날짜: ${today}. ${countryName} ${persona.age || ""}세 ${persona.occupation || ""} 입장에서 관심있을 만한 "${userMessage}" 관련 최근(최근 1–3개월) 이슈/트렌드/인물/제품/행사를 4–6문장으로 요약해주세요. ${interestsHint ? `관심사 실마리: ${interestsHint}.` : ""} 설명은 한국어로.`;
+      const g = await searchAndSummarize({ query: q, maxTokens: 500 });
+      if (g.text && g.text.length > 20) {
+        realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 참고해 "요즘 … 따르면", "최근엔 … 으으" 같은 자연스러운 말투로 녹여서 이야기하세요. 출처·링크 말하지 말고 일상 표현으로.)`;
+        groundingUsed = true;
+      }
+    }
+  } catch (e) { /* grounding 실패 골고하게 진행 */ }
 
   const n = persona.narratives || {};
   const narrBlock = (n.who || n.life || n.mind || n.love || n.buy) ? `
@@ -606,7 +636,7 @@ interviewRouter.post("/chat", async (req, res) => {
 · 설정에 없는 주제는 가치관·라이프스타일에서 **자연스럽게 연역**해 추측해 답하세요.
 · 주말/일상/구매 관련 질문은 반드시 Life/Buy 설명과 일치하는 내용으로 답하세요.
 
-한국어로 자연스럽게, 1–3문장으로 답변. 답변 끝에 답변자 이름을 표시하지 마세요.`;
+한국어로 자연스럽게, 1–3문장으로 답변. 답변 끝에 답변자 이름을 표시하지 마세요.${realtimeBlock}`;
 
   try {
     const messages = [
@@ -617,7 +647,7 @@ interviewRouter.post("/chat", async (req, res) => {
     res.json({
       ok: true,
       reply: result.text,
-      meta: { method: result.model, ts: new Date().toISOString() },
+      meta: { method: result.model, grounding: groundingUsed, ts: new Date().toISOString() },
     });
   } catch (e) {
     res.json({
