@@ -68,11 +68,24 @@ ${dimDescriptors}
 - persona-deep-dive: 페르소나 심층 분석
 - general: 일반 질문
 
-규칙:
-- filters의 키는 디멘션 id만 (age, gender, income 등)
-- filters의 값은 해당 디멘션의 옵션 라벨과 정확히 일치
-- 모호하면 빈 배열·빈 객체 반환
-- 추론한 근거를 reasoning 필드에 1-2문장 한국어로 작성`;
+규칙 (중요):
+- filters의 키는 위 디멘션 id와 정확히 일치 (age, gender, musicGenre 등).
+- filters의 값은 위 대괄호 목록에서 고른 옵션 라벨과 문자열이 완전히 일치해야 함.
+- 원칙적으로 **추측해서 최대한 많이 채워도 됩니다** (사용자가 제거할 것이므로).
+- '20-30대', '3040대' 같은 범위는 각각 ['20대','30대'], ['30대','40대']으로 펼치세요.
+- '워킹맘' = gender:['여성'] + household:['유자녀 가구'] (+ 가능하면 maritalStatus:['기혼']).
+- '프리미엄 쇼퍼' = income:['상위 20%'] (+ purchaseDriver에 관련 값 있으면 추가).
+- '싱글/1인' = household:['1인 가구'].
+- '세대' 표현: Gen Z/젝지 = age:['20대'], 밀레니얼 = age:['30대'], X세대 = age:['40대'].
+- kpop/K-pop = musicGenre:['K-Pop'].
+- 적용할 수 있는 값을 찾으면 항상 filters에 넘으세요. 빈 객체는 마지막 수단.
+- 추론 근거는 reasoning에 1-2문장으로.
+
+예시:
+질의: "kpop을 좋아하는 3040대 일본 워킹맘"
+→ { country: "JP", filters: { age: ["30대","40대"], gender: ["여성"], household: ["유자녀 가구"], maritalStatus: ["기혼"], musicGenre: ["K-Pop"] }, intent: "target-definition" }
+질의: "소설을 좋아하는 50대 서울 프리미엄 쇼퍼"
+→ { country: "KR", filters: { age: ["50대"], income: ["상위 20%"], interests: ["일반·지식 콘텐츠"] }, intent: "target-definition" }`;
 
   const schema = {
     type: "object",
