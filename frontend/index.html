@@ -1678,12 +1678,10 @@ function renderCountryList(filter=''){
   }
   const sorted = Object.keys(byRegion).sort((a,b)=>(regions[a]?.order||99)-(regions[b]?.order||99));
   const totalSelected = 1 + state.compareCountries.length;
-  const officeCount = state.countries.filter(c => c.innoceanOffice).length;
+  const totalCount = state.countries.length;
   let html = `<input class="cc-search-i" placeholder="국가 검색..." oninput="renderCountryList(this.value)" id="cc-search-i">
     <div class="cc-toolbar">
-      <button class="cc-tg ${state.officesOnly?'on':''}" onclick="toggleOfficesOnly()">
-        <span class="cc-tg-dot"></span>INNOCEAN 거점만 (${officeCount})
-      </button>
+      <span class="cc-help-cnt" style="margin-right:auto">총 ${totalCount}개국</span>
       <span class="cc-help-cnt">${totalSelected}개 선택됨</span>
     </div>
     <div class="cc-help"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:3px"><polyline points="20 6 9 17 4 12"/></svg>체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경</div>`;
@@ -1698,17 +1696,14 @@ function renderCountryList(filter=''){
       if(isCompare) cls += ' compare';
       const tipParts = [];
       if(c.trendsUnavailable) tipParts.push(c.trendsUnavailableReason || 'Trends 미지원');
-      if(c.innoceanOffice) tipParts.push(c.innoceanOfficeName || 'INNOCEAN 거점');
       const tip = tipParts.length ? ` title="${tipParts.join(' · ')}"` : '';
       const checkBox = isPrimary
         ? `<span class="cc-c-mark primary" title="기준국">●</span>`
         : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();toggleCompareCountry('${c.code}')">${isCompare?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</span>`;
-      const officeMark = c.innoceanOffice ? '<span class="cc-c-office" title="INNOCEAN 거점">I</span>' : '';
       html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
         ${checkBox}
         <span class="cc-c-flag">${c.code}</span>
         <span>${c.name}</span>
-        ${officeMark}
         <span class="cc-c-code">${c.code}</span>
       </div>`;
     }
@@ -3143,11 +3138,9 @@ function renderWsCountryGrid(filter){
   grid.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">' +
     items.map(c => {
       const active = c.code === state.currentCountry;
-      const isOffice = c.innoceanOffice;
       return '<button onclick="selectCountry(\''+c.code+'\');closeWsCountrySelector();" style="padding:10px 12px;background:'+(active?'var(--ind)':'#fff')+';color:'+(active?'#fff':'#111')+';border:1px solid '+(active?'var(--ind)':'var(--bdr)')+';border-radius:8px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:'+(active?'700':'500')+';text-align:left;display:flex;align-items:center;gap:6px">' +
         '<span style="font-size:10px;background:'+(active?'rgba(255,255,255,.2)':'#F3F4F6')+';color:'+(active?'#fff':'var(--ts)')+';padding:1px 5px;border-radius:3px">'+c.code+'</span>' +
         '<span style="flex:1">'+c.name+'</span>' +
-        (isOffice?'<span title="INNOCEAN 거점" style="font-size:10px;color:'+(active?'#fff':'var(--ind)')+'">I</span>':'') +
       '</button>';
     }).join('') + '</div>';
 }
@@ -3176,7 +3169,7 @@ const HELP_CONTENT = {
       { h: '2. 정렬 메트릭', p: '정렬 메트릭을 바꾸면 해당 지표 기준 높은 순으로 28개국이 자동 재정렬됩니다.' },
       { h: '3. 행 클릭', p: '특정 국가 행을 클릭하면 그 국가를 기준으로 단일 분석 모드로 전환됩니다.' },
       { h: '4. CSV 다운로드', p: '우측 [CSV] 버튼으로 현재 표시된 데이터를 내려받을 수 있습니다.' },
-      { h: '5. INNOCEAN 거점 표시', p: '행 끝의 «I» 마커는 INNOCEAN 해외 거점이 있는 국가를 나타냅니다.' },
+      { h: '5. CSV 식이 아닌 세부 탐색', p: '행을 더블클릭하면 해당 국가로 단일 상세 분석 화면으로 이동합니다.' },
     ],
   },
   builder: {
