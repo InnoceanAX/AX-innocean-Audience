@@ -1093,10 +1093,6 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
       <div class="ws-tab ws-tool-tab" data-tab="overview" onclick="switchTab('overview')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
       </div>
-      <button class="ws-tool-new" onclick="openWsCountrySelector()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid var(--bdr);border-radius:8px;font-size:12px;color:#374151;cursor:pointer;font-family:inherit;font-weight:600;margin-left:8px" title="타겟 국가 변경">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span id="ws-country-label">국가 선택</span>
-      </button>
       <button class="ws-tool-new" onclick="newTarget()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         새 타겟
@@ -3131,9 +3127,10 @@ function renderWsCountryGrid(filter){
     }).join('') + '</div>';
 }
 function updateWsCountryLabel(){
-  const lbl = document.getElementById('ws-country-label'); if(!lbl) return;
   const c = (state.countries||[]).find(x => x.code === state.currentCountry);
-  lbl.textContent = c ? c.name : '국가 선택';
+  const text = c ? c.name : '국가 선택';
+  const lbl1 = document.getElementById('ws-country-label'); if(lbl1) lbl1.textContent = text;
+  const lbl2 = document.getElementById('bld-country-label'); if(lbl2) lbl2.textContent = text;
 }
 
 // ============ 사용법 팝업 (페이지별) ============
@@ -4173,6 +4170,19 @@ function renderBuilder(){
       <span class="bld-step ${state.currentCountry ? 'done' : ''}" onclick="openWsCountrySelector()" style="cursor:pointer" title="클릭해 국가 변경"><span class="bld-step-n">1</span>국가 선택 <span class="bld-step-v">${state.currentCountry || '미선택'}</span></span>
       <span class="bld-step ${hasFilters ? 'done' : ''}"><span class="bld-step-n">2</span>세그먼트 필터 <span class="bld-step-v">${hasFilters ? Object.keys(state.filters).length + '개 적용' : '선택사항'}</span></span>
       <span class="bld-step"><span class="bld-step-n">3</span>9개 탭에서 결과 확인</span>
+    </div>
+  </div>
+  <div class="bld-presets" style="margin-bottom:10px">
+    <div class="bld-presets-l" style="display:flex;justify-content:space-between;align-items:center">
+      <span>국가 선택</span>
+      <span style="font-size:10.5px;color:var(--tm);font-weight:500">클릭해 변경</span>
+    </div>
+    <div class="bld-presets-row">
+      <button class="bld-preset" id="bld-country-btn" onclick="openWsCountrySelector()" style="background:var(--ind);color:#fff;border-color:var(--ind);display:inline-flex;align-items:center;gap:6px;font-weight:600" title="타겟 국가 선택 / 변경">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span id="bld-country-label">${(state.countries.find(x=>x.code===state.currentCountry)||{}).name || '국가 선택'}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="10" height="10" style="opacity:.7"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
     </div>
   </div>
   <div class="bld-presets">
