@@ -1660,6 +1660,7 @@ async function boot(){
     const country = url.searchParams.get('country');
     if(tab && country){
       state.currentCountry = country;
+      state.userPickedCountry = true;  // URL로 명시 지정된 상태
       await goWorkspace();
       switchTab(tab, { fromHistory: true });
     }
@@ -1712,7 +1713,7 @@ function renderCountryList(filter=''){
     (byRegion[c.region] = byRegion[c.region] || []).push(c);
   }
   const sorted = Object.keys(byRegion).sort((a,b)=>(regions[a]?.order||99)-(regions[b]?.order||99));
-  const totalSelected = 1 + state.compareCountries.length;
+  const totalSelected = (state.currentCountry ? 1 : 0) + state.compareCountries.length;
   const totalCount = state.countries.length;
   let html = `<input class="cc-search-i" placeholder="국가 검색..." oninput="renderCountryList(this.value)" id="cc-search-i">
     <div class="cc-toolbar">
@@ -2053,7 +2054,7 @@ window.addEventListener('popstate', (e) => {
   // URL에서 다시
   const tab = new URL(window.location.href).searchParams.get('tab') || 'overview';
   const country = new URL(window.location.href).searchParams.get('country');
-  if(country) state.currentCountry = country;
+  if(country){ state.currentCountry = country; state.userPickedCountry = true; }
   switchTab(tab, { fromHistory: true });
 });
 
@@ -2551,6 +2552,7 @@ async function renderCompareMatrix(){
 
 function cmpDrillDown(code){
   state.currentCountry = code;
+  state.userPickedCountry = true;  // 명시적 행 클릭 = 사용자 선택
   switchTab('overview');
   updateCountryPillLabel();
 }
@@ -2921,6 +2923,7 @@ async function aiChangeCountry(code, label){
   }
   const prev = state.currentCountry;
   state.currentCountry = code;
+  state.userPickedCountry = true;  // AI 명령으로도 사용자 의도 표현
   if(typeof updateCountryPillLabel === 'function') updateCountryPillLabel();
   if(['who','life','mind','love','buy'].indexOf(state.currentTab) >= 0){
     const body = document.getElementById(state.currentTab + '-body');
