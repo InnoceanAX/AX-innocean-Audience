@@ -1962,6 +1962,7 @@ function goHome(opts){
     state.synthCache = null;
     state.ivPersona = null;
     state.ivHistory = [];
+    state.ivPanelCache = null;
     // 홈 화면의 국가 피 레이블도 기본값 재동기화
     try{
       const ccName = document.getElementById('chat-cc-name');
@@ -4900,10 +4901,21 @@ function backToPanelEmpty(){
   document.getElementById('iv-single-wrap').classList.add('hide');
   state.ivPersona = null;
   state.ivHistory = [];
+  state.ivPanelCache = null;  // 완전 초기화
 }
 
 // 단일 페르소나 ↔ 패널(4명) 간 전환
 function switchToPanel(count){
+  // 이전 패널 캐시 있으면 복원, 없으면 새로 생성
+  if(state.ivPanelCache && state.ivPanelCache.panel && state.ivPanelCache.panel.length){
+    document.getElementById('iv-empty').classList.add('hide');
+    document.getElementById('iv-body').classList.remove('hide');
+    document.getElementById('iv-single-wrap').classList.add('hide');
+    document.getElementById('iv-panel-wrap').classList.remove('hide');
+    renderPanel(state.ivPanelCache);
+    if(typeof toast==='function') toast('이전 4명 패널로 돌아갑니다');
+    return;
+  }
   if(typeof toast==='function') toast('다양성 패널 ' + (count||4) + '명을 생성합니다…');
   generatePanel(count || 4);
 }
@@ -5000,6 +5012,7 @@ async function generatePanel(count = 4){
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error);
+    state.ivPanelCache = data;  // 다음번 [패널로 돌아가기] 용도
     renderPanel(data);
   } catch(e){
     toast('패널 생성 실패: ' + e.message);
