@@ -4404,7 +4404,11 @@ async function refreshAudienceTab(dim){
       // 출처 배지도 갱신
       const src = document.getElementById(dim + '-src');
       if(src && data.source){
-        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기"><span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+        const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
+        const badgeHtml = hasSyn
+          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">★ 빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
+          : '<span class="aud-src-badge">실데이터</span>';
+        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
       }
       return;
     } catch(e){ /* fall through to fetch */ }
@@ -4449,7 +4453,11 @@ async function _refreshAudienceTabFetch(dim){
       src.textContent = '데이터 없음';
       return;
     }
-    src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기"><span class="aud-src-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:3px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>실데이터</span> <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+    const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
+        const badgeHtml = hasSyn
+          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">★ 빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
+          : '<span class="aud-src-badge">실데이터</span>';
+        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
     body.dataset.country = code;
     body.innerHTML = renderAudienceDim(dim, data);
     setTimeout(() => renderDimCharts(dim, data), 50);
@@ -4581,41 +4589,97 @@ function renderChartSafe(canvasId, type, labels, data, color, opts){
 
 
 function renderDimCharts(dim, data){
+  // 우선순위: 합성 데이터(빌더 필터 기반) > 실데이터 폴백
+  const syn = state.synthCache && state.synthCache.segments && state.synthCache.segments[dim];
   const d = data.data || {};
   try {
     if(dim === 'who'){
-      const ages = d.ageDistribution || {};
+      // 연령 분포: 합성이 있으면 합성 절문차트
+      const synAges = syn && syn.ageDistribution;
+      const ages = synAges || d.ageDistribution || {};
       const ageKeys = Object.keys(ages);
-      const ageVals = ageKeys.map(k => ages[k]);
-      renderChartSafe('chart-who-doughnut', 'doughnut', ageKeys.map(k => k + '세'), ageVals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981']);
-      renderChartSafe('chart-who-bar', 'bar', ageKeys.map(k => k + '세'), ageVals, '#6366F1', { suffix: '%' });
+      const ageVals = ageKeys.map(k => +ages[k] || 0);
+      const ageLabels = ageKeys.map(k => /^\d/.test(k) ? k + '세' : k);
+      renderChartSafe('chart-who-doughnut', 'doughnut', ageLabels, ageVals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4']);
+      renderChartSafe('chart-who-bar', 'bar', ageLabels, ageVals, '#6366F1', { suffix: '%' });
     } else if(dim === 'life'){
-      const act = d.activities || {};
-      const t = d.travel || {};
-      const actKeys = Object.keys(act);
-      renderChartSafe('chart-life-radar', 'radar', actKeys.map(k => actLabel(k)), actKeys.map(k => act[k]), '#6366F1');
-      renderChartSafe('chart-life-travel', 'doughnut', ['국내여행', '해외여행'], [t.domestic||0, t.international||0], ['#06B6D4', '#0EA5E9']);
+      // 합성 목롭이 있으면 이를 우선 (digitalUsage + topActivities)
+      if(syn && (syn.digitalUsage || syn.topActivities)){
+        const du = syn.digitalUsage || {};
+        const duKeys = Object.keys(du);
+        const duVals = duKeys.map(k => +du[k] || 0);
+        // 레이더 = 디지털 사용 시간 프로파일 (시간 그대로 표시, 최대 24)
+        renderChartSafe('chart-life-radar', 'radar', duKeys, duVals, '#6366F1', { rmax: 24 });
+        // 도넛 = 주요 활동 (균등 분배, 5개 표시)
+        const acts = (syn.topActivities||[]).slice(0,5);
+        const eq = acts.length ? Array(acts.length).fill(Math.round(100/acts.length)) : [];
+        renderChartSafe('chart-life-travel', 'doughnut', acts, eq, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6']);
+      } else {
+        const act = d.activities || {};
+        const t = d.travel || {};
+        const actKeys = Object.keys(act);
+        renderChartSafe('chart-life-radar', 'radar', actKeys.map(k => actLabel(k)), actKeys.map(k => act[k]), '#6366F1');
+        renderChartSafe('chart-life-travel', 'doughnut', ['국내여행', '해외여행'], [t.domestic||0, t.international||0], ['#06B6D4', '#0EA5E9']);
+      }
     } else if(dim === 'mind'){
-      const trust = d.trust || {};
-      const vals = d.values || {};
-      const cul = d.culture || {};
-      renderChartSafe('chart-mind-trust', 'radar', Object.keys(trust).map(k => trustLabel(k)), Object.values(trust), '#10B981');
-      renderChartSafe('chart-mind-values', 'radar', Object.keys(vals).map(k => valLabel(k)), Object.values(vals), '#8B5CF6');
-      renderChartSafe('chart-mind-culture', 'polarArea', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
+      // 합성 우선: coreValues + brandTrust/riskAttitude 등컴 수치화
+      if(syn && (syn.coreValues || syn.brandTrust)){
+        // 가치 레이더: coreValues 각 항목 80~95 범위로 균등배치 (타겟 공통 점수)
+        const vals = (syn.coreValues || []).slice(0, 6);
+        const valVals = vals.map((_, i) => 95 - i*5);
+        renderChartSafe('chart-mind-values', 'radar', vals, valVals, '#8B5CF6', { rmax: 100 });
+        // 신뢰/리스크 교차: 레이더 겴 polarArea
+        const trustMap = { '낮음': 25, '보통': 55, '높음': 85 };
+        const bt = trustMap[syn.brandTrust] || 55;
+        const rt = trustMap[syn.riskAttitude] || 55;
+        renderChartSafe('chart-mind-trust', 'radar', ['브랜드 신뢰','리스크 수용'], [bt, rt], '#10B981', { rmax: 100 });
+        renderChartSafe('chart-mind-culture', 'polarArea', vals.slice(0, 3), valVals.slice(0, 3), ['#F59E0B','#EF4444','#06B6D4']);
+      } else {
+        const trust = d.trust || {};
+        const vals = d.values || {};
+        const cul = d.culture || {};
+        renderChartSafe('chart-mind-trust', 'radar', Object.keys(trust).map(k => trustLabel(k)), Object.values(trust), '#10B981');
+        renderChartSafe('chart-mind-values', 'radar', Object.keys(vals).map(k => valLabel(k)), Object.values(vals), '#8B5CF6');
+        renderChartSafe('chart-mind-culture', 'polarArea', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
+      }
     } else if(dim === 'love'){
-      const ranked = data.rankedInterests || [];
-      const top8 = ranked.slice(0, 8);
-      renderChartSafe('chart-love-radar', 'radar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
-      renderChartSafe('chart-love-bar', 'bar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
+      // 합성: topInterests 각 항목을 95≅90 단조 감소 점수화
+      if(syn && (syn.topInterests || []).length){
+        const items = (syn.topInterests || []).slice(0, 8);
+        const scores = items.map((_, i) => Math.max(60, 95 - i*5));
+        renderChartSafe('chart-love-radar', 'radar', items, scores, '#EC4899', { rmax: 100 });
+        renderChartSafe('chart-love-bar', 'bar', items, scores, '#EC4899', { suffix: '' });
+      } else {
+        const ranked = data.rankedInterests || [];
+        const top8 = ranked.slice(0, 8);
+        renderChartSafe('chart-love-radar', 'radar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
+        renderChartSafe('chart-love-bar', 'bar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
+      }
     } else if(dim === 'buy'){
-      const tc = d.topCategories || {};
-      const df = d.decisionFactors || {};
-      const pm = d.paymentMethods || {};
-      const tcSorted = Object.entries(tc).sort((a,b)=>b[1]-a[1]);
-      const dfSorted = Object.entries(df).sort((a,b)=>b[1]-a[1]);
-      renderChartSafe('chart-buy-cat', 'doughnut', tcSorted.map(e => catLabel(e[0])), tcSorted.map(e => e[1]), ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
-      renderChartSafe('chart-buy-decision', 'radar', dfSorted.map(e => decLabel(e[0])), dfSorted.map(e => e[1]), '#0EA5E9');
-      renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(pm).map(k => payLabel(k)), Object.values(pm), ['#84CC16','#22C55E','#10B981','#06B6D4']);
+      if(syn && (syn.shoppingChannels || syn.topCategories)){
+        // 주요 카테고리 (균등배치 도넛)
+        const cats = (syn.topCategories || []).slice(0, 7);
+        const eq = cats.length ? Array(cats.length).fill(Math.round(100/cats.length)) : [];
+        renderChartSafe('chart-buy-cat', 'doughnut', cats, eq, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
+        // 신용 요소: 가격민감/브랜드충성/온라인비율/결제다양성
+        const trustMap = { '낮음': 30, '보통': 55, '높음': 80 };
+        const ps = trustMap[syn.priceSensitivity] || 55;
+        const bl = trustMap[syn.brandLoyalty] || 55;
+        const sc = syn.shoppingChannels || {};
+        const onl = +sc['온라인'] || 50;
+        renderChartSafe('chart-buy-decision', 'radar', ['가격 민감도','브랜드 충성','온라인 서호','신제품 관심'], [ps, bl, onl, 70], '#0EA5E9', { rmax: 100 });
+        // 쇼핑 채널: 온라인/오프라인
+        renderChartSafe('chart-buy-pay', 'doughnut', ['온라인','오프라인'], [sc['온라인']||0, sc['오프라인']||0], ['#84CC16','#22C55E']);
+      } else {
+        const tc = d.topCategories || {};
+        const df = d.decisionFactors || {};
+        const pm = d.paymentMethods || {};
+        const tcSorted = Object.entries(tc).sort((a,b)=>b[1]-a[1]);
+        const dfSorted = Object.entries(df).sort((a,b)=>b[1]-a[1]);
+        renderChartSafe('chart-buy-cat', 'doughnut', tcSorted.map(e => catLabel(e[0])), tcSorted.map(e => e[1]), ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
+        renderChartSafe('chart-buy-decision', 'radar', dfSorted.map(e => decLabel(e[0])), dfSorted.map(e => e[1]), '#0EA5E9');
+        renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(pm).map(k => payLabel(k)), Object.values(pm), ['#84CC16','#22C55E','#10B981','#06B6D4']);
+      }
     }
   } catch(e){ console.warn('renderDimCharts error', e); }
 }
