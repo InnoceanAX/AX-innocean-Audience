@@ -1050,7 +1050,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <button class="sb-new" onclick="newTarget()">
-      <span>＋</span><span>새 타겟 만들기</span>
+      <span>＋</span><span>새 분석 시작하기</span>
     </button>
 
     <div class="sb-section">
@@ -1104,7 +1104,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
       </div>
       <button class="ws-tool-new" onclick="newTarget()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        새 타겟
+        새 분석
       </button>
       <button class="ws-tool-new" onclick="showHelp()" style="margin-left:auto;background:#fff;color:var(--ind);border-color:var(--ind)" title="사용법">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -4686,7 +4686,7 @@ function newTarget(){
       const b = document.getElementById('builder');
       if(b){ b.scrollIntoView({behavior:'smooth', block:'start'}); b.classList.add('builder-pulse'); setTimeout(() => b.classList.remove('builder-pulse'), 2400); }
     }, 200);
-    if(typeof toast === 'function') toast('새 타겟 — 필터를 조정해주세요');
+    if(typeof toast === 'function') toast('새 분석 — 필터를 조정해주세요');
   });
 }
 
