@@ -319,6 +319,8 @@ a{color:inherit;text-decoration:none}
   font-size:12px;color:var(--ts);
 }
 .bld-chip.active{border-color:var(--ind);background:#EEF2FF;color:var(--ind2);font-weight:600}
+.bld-chip-all{font-weight:600;background:#FAFAFA}
+.bld-chip-all.active{background:#D1FAE5;border-color:#059669;color:#065F46}
 
 /* ========== Footer ========== */
 .footer{
@@ -1048,6 +1050,11 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <div class="sb-section">
+      <div class="sb-section-t">내 프리셋</div>
+      <div id="sb-user-presets"><div style="font-size:11px;color:var(--tm);padding:4px 10px">저장된 프리셋 없음</div></div>
+    </div>
+
+    <div class="sb-section">
       <div class="sb-section-t">프로젝트</div>
       <div class="sb-item">
         <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg></span><span style="color:var(--tm)">프로젝트 없음</span>
@@ -1567,6 +1574,7 @@ const state = {
   currentTargetId: null,
   savedCurrent: false,
   favCurrent: false,
+  userPresets: [],
   analyzedCountry: null,
   analyzedFilters: null,
   audienceCache: {},
@@ -1588,6 +1596,8 @@ async function boot(){
     state.dimensions = data.dimensions;
     state.groups = data.dimensionGroups;
     state.categories = data.categoryCarousel;
+    loadUserPresets();
+    renderUserPresetsInSidebar();
     renderSuggested(data.suggestedPrompts);
     renderCategories();
     renderCountryList();
@@ -4032,13 +4042,21 @@ function renderBuilder(){
     </div>
   </div>
   <div class="bld-presets">
-    <div class="bld-presets-l">프리셋</div>
+    <div class="bld-presets-l" style="display:flex;justify-content:space-between;align-items:center">
+      <span>프리셋</span>
+      <button class="bld-preset" style="background:var(--ind);color:#fff;border-color:var(--ind);font-size:10.5px" onclick="savePresetFromCurrent()" title="현재 필터 조합을 내 프리셋으로 저장">+ 현재 필터 저장</button>
+    </div>
     <div class="bld-presets-row">
-      <button class="bld-preset" onclick="applyPreset('genZ')" title="18-24세 Gen Z, 디지털 네이티브">Gen Z 글로벌</button>
-      <button class="bld-preset" onclick="applyPreset('kpop')" title="K-Pop 열성 팬, 한류 관심층">K-Pop 팬</button>
-      <button class="bld-preset" onclick="applyPreset('premium')" title="고소득 프리미엄 쇼퍼">프리미엄 쇼퍼</button>
-      <button class="bld-preset" onclick="applyPreset('mom')" title="30-40대 워킹맘, 가족 중심">30대 워킹맘</button>
-      <button class="bld-preset" onclick="applyPreset('tech')" title="얼리어답터 테크 인플루언서">테크 얼리어답터</button>
+      <button class="bld-preset" onclick="applyPreset('genZ')" title="10–20대, 혁신·개성">Gen Z 글로벌</button>
+      <button class="bld-preset" onclick="applyPreset('kpop')" title="K-Pop 팬덤, 음악·드라마">K-Pop 팬</button>
+      <button class="bld-preset" onclick="applyPreset('premium')" title="고소득, 프리미엄 추구">프리미엄 쇼퍼</button>
+      <button class="bld-preset" onclick="applyPreset('mom')" title="30–40대 여성, 육아기">30대 워킹맘</button>
+      <button class="bld-preset" onclick="applyPreset('tech')" title="얼리어답터, 게임·테크">테크 얼리어답터</button>
+      <button class="bld-preset" onclick="applyPreset('silver')" title="50대+, 건강·은퇴">액티브 실버</button>
+      <button class="bld-preset" onclick="applyPreset('single')" title="도시 1인가구">1인 가구</button>
+      <button class="bld-preset" onclick="applyPreset('petParent')" title="반려동물 양육">포맘 (반려인)</button>
+      ${(state.userPresets||[]).length > 0 ? '<span style="width:1px;background:var(--bdr);margin:0 4px"></span>' : ''}
+      ${(state.userPresets||[]).map(p => `<button class="bld-preset" style="background:#FEF3C7;border-color:#F59E0B;color:#92400E" onclick="applyPreset('${p.id}')" title="내 프리셋"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${p.name}</button>`).join('')}
     </div>
   </div>`;
   const groupedDims = {};
@@ -4051,9 +4069,12 @@ function renderBuilder(){
     for(const d of (groupedDims[g]||[])){
       const selected = state.filters[d.id] || [];
       html += `<div style="margin-bottom:8px"><div style="font-size:11.5px;color:var(--ts);margin-bottom:4px">${d.label}</div><div class="bld-chips">`;
+      const allSelected = selected.includes('전체');
       for(const opt of d.options){
-        const active = selected.includes(opt);
-        html += `<button class="bld-chip ${active?'active':''}" onclick="toggleFilter('${d.id}','${opt.replace(/'/g,"\\'")}')">${opt}</button>`;
+        const isAll = opt === '전체';
+        const active = isAll ? allSelected : (selected.includes(opt) || allSelected);
+        const cls = isAll ? 'bld-chip bld-chip-all' : 'bld-chip';
+        html += `<button class="${cls} ${active?'active':''}" onclick="toggleFilter('${d.id}','${opt.replace(/'/g,"\\'")}')">${opt}</button>`;
       }
       html += `</div></div>`;
     }
@@ -4185,34 +4206,112 @@ function renderAiNavigator(){
   </div>`;
 }
 
+// ============ 프리셋 시스템 (실제 옵션값에 정확히 매핑) ============
+const BUILTIN_PRESETS = {
+  genZ: {
+    name: 'Gen Z 글로벌',
+    filters: {
+      age: ['10대', '20대'],
+      values: ['자유·개성', '혁신·도전'],
+      techAdoption: ['얼리어답터'],
+      mediaUsage: ['TikTok', 'Instagram', 'YouTube'],
+      contentGenre: ['예능·코미디', 'Vlog·일상', '게임 스트리밍'],
+    },
+  },
+  kpop: {
+    name: 'K-Pop 팬',
+    filters: {
+      interests: ['엔터테인먼트', '예술·문화'],
+      contentGenre: ['K-Pop', '음악·공연', '드라마'],
+      musicGenre: ['K-Pop'],
+      fandomLevel: ['헤비 팬 (굿즈·콘서트)', '라이트 팬 (콘텐츠만)'],
+      celebrityFollow: ['K-Pop 아이돌'],
+    },
+  },
+  premium: {
+    name: '프리미엄 쇼퍼',
+    filters: {
+      income: ['상위 20%', '60~80%'],
+      purchaseDriver: ['품질·내구성', '브랜드·이미지'],
+      priceSensitivity: ['프리미엄 추구'],
+      brandLoyalty: ['1개 브랜드 고정'],
+      spendLevel: ['200~300만원', '300만원 이상'],
+    },
+  },
+  mom: {
+    name: '30대 워킹맘',
+    filters: {
+      age: ['30대', '40대'],
+      gender: ['여성'],
+      household: ['유자녀 가구'],
+      kidsAge: ['영유아 (0~5)', '초등 (6~12)'],
+      values: ['가족 중심', '건강·웰빙'],
+      interests: ['육아·교육', '음식·요리'],
+      spendCategory: ['식료품·생필품', '교육·자기계발'],
+    },
+  },
+  tech: {
+    name: '테크 얼리어답터',
+    filters: {
+      interests: ['테크·가젯'],
+      techAdoption: ['얼리어답터'],
+      gamingType: ['PC 온라인 게임', '콘쇔 (PS·Xbox·Switch)', 'e스포츠 시청'],
+      device: ['스마트폰', '데스크탑·노트북', 'VR·AR 헤드셋'],
+      ottSubscription: ['4~5개', '6개 이상'],
+    },
+  },
+  silver: {
+    name: '액티브 실버',
+    filters: {
+      age: ['50대', '60대 이상'],
+      lifeStage: ['은퇴 준비', '은퇴기'],
+      wellness: ['주 3회 이상 운동', '주 1~2회'],
+      travel: ['월 1~3회', '분기 1~2회'],
+      wellbeingFocus: ['신체 건강', '재정 안정'],
+    },
+  },
+  single: {
+    name: '1인 가구',
+    filters: {
+      household: ['1인 가구'],
+      maritalStatus: ['미혼'],
+      cityTier: ['대도시 (메가시티)'],
+      housing: ['전·월세', '쉰어하우스·룸메이트'],
+      spendCategory: ['외식·배달', '엔터테인먼트'],
+      subscriptionUse: ['3~5개', '6~10개'],
+    },
+  },
+  petParent: {
+    name: '포맘 (반려인)',
+    filters: {
+      petOwnership: ['강아지', '고양이'],
+      interests: ['반려동물'],
+      spendCategory: ['건강·의료'],
+      values: ['가족 중심', '건강·웰빙'],
+    },
+  },
+};
+
 function applyPreset(key){
-  // 프리셋 매핑 — 빌더 차원과 매칭되도록 안전 설계
-  const presets = {
-    genZ: { age: ['18-24'], values: ['혁신', '쾌락'] },
-    kpop: { interests: ['K-Pop', '음악', '드라마'] },
-    premium: { income: ['상위 20%'], decision: ['브랜드', '품질'] },
-    mom: { age: ['30-39'], values: ['가족', '안전'], interests: ['육아', '쇼핑'] },
-    tech: { interests: ['테크', '게임'], adoption: ['얼리어답터'] },
-  };
-  const p = presets[key] || {};
-  // 기존 차원 중 매칭되는 키만 적용 (안전)
-  const dimKeys = state.dimensions.map(d => d.id);
-  state.filters = {};
-  for(const k in p){
-    if(dimKeys.includes(k) || dimKeys.includes(k.toLowerCase())){
-      state.filters[k] = p[k];
-    }
+  // 1) 병합 프리셋: 사용자 저장된 것을 먼저 탐색
+  let preset = (state.userPresets || []).find(p => p.id === key);
+  if(!preset){ preset = BUILTIN_PRESETS[key]; }
+  if(!preset || !preset.filters){
+    if(typeof toast === 'function') toast('프리셋을 찾을 수 없습니다');
+    return;
   }
-  // 직접 매칭 안되면 일반화 — 그래도 사용자 피드백을 위해 알림
-  if(Object.keys(state.filters).length === 0){
-    // dimension 이름 부분 매칭 시도
-    for(const dim of state.dimensions){
-      for(const k in p){
-        if(dim.label.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(dim.id.toLowerCase())){
-          state.filters[dim.id] = p[k].filter(v => dim.options && dim.options.some(o => o.includes(v) || v.includes(o)));
-          break;
-        }
-      }
+  const dimMap = {};
+  state.dimensions.forEach(d => { dimMap[d.id] = d; });
+  state.filters = {};
+  let applied = 0;
+  for(const k in preset.filters){
+    const dim = dimMap[k];
+    if(!dim) continue;
+    // 실제 옵션과 일치하는 값만 필터링
+    const valid = preset.filters[k].filter(v => dim.options.includes(v));
+    if(valid.length > 0){
+      state.filters[k] = valid;
+      applied++;
     }
   }
   renderBuilder();
@@ -4223,10 +4322,80 @@ function applyPreset(key){
     b.classList.add('builder-pulse');
     setTimeout(() => b.classList.remove('builder-pulse'), 1200);
   }
+  if(typeof toast === 'function') toast(`«${preset.name || key}» 프리셋 적용 — ${applied}개 차원 활성`);
 }
 
+// ============ 사용자 프리셋 저장 ============
+function loadUserPresets(){
+  try{
+    const raw = localStorage.getItem('innocean.audience.userPresets');
+    state.userPresets = raw ? JSON.parse(raw) : [];
+  }catch(e){ state.userPresets = []; }
+}
+function saveUserPresets(){
+  try{ localStorage.setItem('innocean.audience.userPresets', JSON.stringify(state.userPresets || [])); }catch(e){}
+}
+function savePresetFromCurrent(){
+  const filterCount = Object.keys(state.filters || {}).length;
+  if(filterCount === 0){
+    if(typeof toast === 'function') toast('필터를 하나 이상 설정한 후 저장하세요');
+    return;
+  }
+  const name = prompt('프리셋 이름을 입력하세요:', `내 프리셋 ${(state.userPresets||[]).length + 1}`);
+  if(!name || !name.trim()) return;
+  const id = 'u_' + Date.now();
+  state.userPresets = state.userPresets || [];
+  state.userPresets.unshift({
+    id, name: name.trim(),
+    filters: JSON.parse(JSON.stringify(state.filters)),
+    createdAt: new Date().toISOString(),
+  });
+  saveUserPresets();
+  renderBuilder();
+  renderUserPresetsInSidebar();
+  if(typeof toast === 'function') toast(`«${name.trim()}» 프리셋 저장됨`);
+}
+function deleteUserPreset(id){
+  if(!confirm('이 프리셋을 삭제하시겠습니까?')) return;
+  state.userPresets = (state.userPresets || []).filter(p => p.id !== id);
+  saveUserPresets();
+  renderBuilder();
+  renderUserPresetsInSidebar();
+}
+function renderUserPresetsInSidebar(){
+  const box = document.getElementById('sb-user-presets');
+  if(!box) return;
+  const list = state.userPresets || [];
+  if(list.length === 0){
+    box.innerHTML = '<div style="font-size:11px;color:var(--tm);padding:4px 10px">저장된 프리셋 없음</div>';
+    return;
+  }
+  box.innerHTML = list.map(p => `<div class="sb-item" onclick="applyPreset('${p.id}')" style="padding-right:8px"><span style="flex:1">${p.name}</span><button onclick="event.stopPropagation();deleteUserPreset('${p.id}')" style="background:none;border:none;color:var(--tm);cursor:pointer;font-size:14px;padding:2px 6px" title="삭제">×</button></div>`).join('');
+}
+
+
 function toggleFilter(dimId, opt){
+  // "전체" 옵션 특수 처리
+  if(opt === '전체'){
+    const dim = state.dimensions.find(d => d.id === dimId);
+    if(!dim) return;
+    const arr = state.filters[dimId] || [];
+    const isAllActive = arr.includes('전체');
+    if(isAllActive){
+      // 해제
+      delete state.filters[dimId];
+    } else {
+      // 전체 선택 (단독 '전체'만 저장)
+      state.filters[dimId] = ['전체'];
+    }
+    renderBuilder();
+    refreshSegment();
+    return;
+  }
   const arr = state.filters[dimId] = state.filters[dimId] || [];
+  // 개별 옵션 선택 시 '전체' 마커 제거
+  const allIdx = arr.indexOf('전체');
+  if(allIdx >= 0) arr.splice(allIdx, 1);
   const i = arr.indexOf(opt);
   if(i >= 0) arr.splice(i,1);
   else arr.push(opt);
