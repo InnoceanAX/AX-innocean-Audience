@@ -12,10 +12,13 @@ function newId() {
 
 // GET /api/library — 전체 (Frontend는 owner=anon 또는 사용자 ID로 필터)
 libraryRouter.get("/", (req, res) => {
-  const { owner = "anon", favorited } = req.query;
+  const { owner = "anon", favorited, recent, saved, limit } = req.query;
   let items = [...store.values()].filter(t => t.owner === owner);
   if (favorited === "true") items = items.filter(t => t.favorited);
+  if (saved === "true") items = items.filter(t => t.saved);
+  if (recent === "true") items = items.filter(t => t.recent);
   items.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  if (limit) items = items.slice(0, parseInt(limit, 10) || 20);
   res.json({ ok: true, total: items.length, targets: items });
 });
 
@@ -31,6 +34,8 @@ libraryRouter.post("/", (req, res) => {
     filters: filters || {},
     owner, tags,
     favorited: false,
+    recent: req.body?.recent === true,
+    saved: req.body?.saved === true,
     createdAt: now, updatedAt: now,
   };
   store.set(id, target);
@@ -48,7 +53,7 @@ libraryRouter.get("/:id", (req, res) => {
 libraryRouter.patch("/:id", (req, res) => {
   const t = store.get(req.params.id);
   if (!t) return res.status(404).json({ ok: false, error: "not found" });
-  const allowed = ["name", "country", "filters", "tags", "favorited"];
+  const allowed = ["name", "country", "filters", "tags", "favorited", "recent", "saved"];
   for (const k of allowed) {
     if (k in req.body) t[k] = req.body[k];
   }
