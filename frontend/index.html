@@ -3775,20 +3775,7 @@ async function fetchInfluencerMatch(persona){
   } catch(e){ /* silent */ }
 }
 
-function renderInfluencerMatch(data){
-  const card = document.getElementById('iv-card');
-  if(!card) return;
-  const html = `<div class="iv-match-card">
-    <div class="iv-match-h">추천 인플루언서 매체</div>
-    <div class="iv-match-x">${data.summary}</div>
-    <div class="iv-match-list">${data.topMatches.map(m => `<span class="iv-match-chip">${m.label}<span class="iv-match-chip-fit">${m.fitScore}</span></span>`).join('')}</div>
-    <div class="iv-match-topics">${data.contentTopics.map(t => `<span class="iv-match-topic">${t}</span>`).join('')}</div>
-  </div>`;
-  // 이미 있으면 교체, 없으면 추가
-  const existing = card.querySelector('.iv-match-card');
-  if(existing) existing.outerHTML = html;
-  else card.insertAdjacentHTML('beforeend', html);
-}
+function renderInfluencerMatch(data){ /* CEO 요청으로 제거 — 인플루언서 추천 비활성 */ }
 
 async function fetchPersonaJourney(persona){
   try {
@@ -3953,8 +3940,7 @@ async function generatePersona(persona){
     if(!data.ok) throw new Error(data.error);
     state.ivPersona = data.persona;
     renderPersonaCard(data.persona, data.meta);
-    // 인플루언서 자동 매칭
-    fetchInfluencerMatch(data.persona);
+    // 인플루언서 자동 매칭 — CEO 요청으로 제거
     fetchPersonaJourney(data.persona);  // 하루의 미디어 여정 자동 호출
   } catch(e){
     toast('페르소나 생성 실패: ' + e.message);
