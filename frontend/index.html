@@ -720,6 +720,23 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .iv-gen-btn{margin-top:14px;padding:10px 20px;background:var(--ind);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s}
 .iv-gen-btn:hover{background:var(--ind2)}
 .iv-card{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:20px;margin-bottom:16px}
+.iv-split{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;align-items:start}
+.iv-split-left{display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 200px);overflow-y:auto;padding-right:4px}
+.iv-split-right{position:sticky;top:14px;display:flex;flex-direction:column;gap:10px}
+.iv-split-right .iv-chat-section{margin-bottom:0;height:calc(100vh - 220px);display:flex;flex-direction:column}
+.iv-split-right .iv-msgs{flex:1;max-height:none;min-height:200px}
+.iv-narr{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:16px 18px}
+.iv-narr-h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;color:var(--ind);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.iv-narr-h svg{width:13px;height:13px}
+.iv-narr-b{font-size:13.5px;line-height:1.7;color:#374151}
+.iv-narr-tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:5px}
+.iv-narr-tag{font-size:10.5px;padding:2px 8px;background:#F3F4F6;border:1px solid var(--bdr);border-radius:10px;color:#4B5563}
+@media (max-width:1100px){
+  .iv-split{grid-template-columns:1fr}
+  .iv-split-left{max-height:none;overflow-y:visible}
+  .iv-split-right{position:static}
+  .iv-split-right .iv-chat-section{height:auto}
+}
 .iv-loading{padding:30px;text-align:center;color:var(--tm)}
 .iv-card-h{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .iv-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--ind),#7C3AED);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0}
@@ -1479,8 +1496,12 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               </div>
             </div>
             <div id="iv-single-wrap" class="hide">
-            <div id="iv-card" class="iv-card"></div>
-            <div class="iv-chat-section">
+            <div class="iv-split">
+              <div class="iv-split-left">
+                <div id="iv-card" class="iv-card"></div>
+              </div>
+              <div class="iv-split-right">
+                <div class="iv-chat-section">
               <div class="iv-chat-h">인터뷰 대화</div>
               <div id="iv-msgs" class="iv-msgs"></div>
               <div class="iv-q-chips" id="iv-q-chips">
@@ -1499,9 +1520,11 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
                 <button class="iv-send" onclick="sendInterview()">전송</button>
               </div>
             </div>
-            <div class="iv-actions">
-              <button class="iv-regen" onclick="generatePersona()">다른 페르소나 생성</button>
-              <button class="iv-regen" onclick="backToPanelEmpty()">처음으로</button>
+                <div class="iv-actions">
+                  <button class="iv-regen" onclick="generatePersona()">다른 페르소나 생성</button>
+                  <button class="iv-regen" onclick="backToPanelEmpty()">처음으로</button>
+                </div>
+              </div>
             </div>
             </div><!-- /iv-single-wrap -->
           </div>
@@ -4000,10 +4023,27 @@ function renderPanel(data){
 }
 
 function renderPersonaCard(p, meta){
-  const valuesHtml = (p.values||[]).map(v => `<span class="iv-chip">${v}</span>`).join('');
-  const mediaHtml = (p.mediaHabits||[]).map(v => `<span class="iv-chip iv-chip-m">${v}</span>`).join('');
-  const driversHtml = (p.purchaseDrivers||[]).map(v => `<span class="iv-chip iv-chip-d">${v}</span>`).join('');
-  const painsHtml = (p.painPoints||[]).map(v => `<span class="iv-chip iv-chip-p">${v}</span>`).join('');
+  const n = p.narratives || {};
+  const tagBlock = (label, arr, color) => {
+    if(!arr || !arr.length) return '';
+    return `<div class="iv-narr-tags"><span style="font-size:10.5px;color:var(--tm);font-weight:700;margin-right:2px">${label}</span>${arr.map(v=>`<span class="iv-narr-tag" style="background:${color||'#F3F4F6'}">${v}</span>`).join('')}</div>`;
+  };
+  const narrCard = (key, title, ico, body, extraTags) => {
+    if(!body && !extraTags) return '';
+    return `<div class="iv-narr">
+      <div class="iv-narr-h">${ico}<span>${title}</span></div>
+      ${body ? `<div class="iv-narr-b">${body}</div>` : ''}
+      ${extraTags || ''}
+    </div>`;
+  };
+  const ICO = {
+    who:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>',
+    life: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    mind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    love: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21l8.84-8.61a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+    buy:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+  };
+
   document.getElementById('iv-card').innerHTML = `
     <div class="iv-card-h">
       <div class="iv-avatar">${(p.name||'?').slice(0,1)}</div>
@@ -4014,12 +4054,14 @@ function renderPersonaCard(p, meta){
       <div class="iv-model-badge">${meta?.method || 'AI'}</div>
     </div>
     <div class="iv-quote">"${p.quote}"</div>
-    <div class="iv-section"><div class="iv-sec-t">라이프스타일</div><div class="iv-sec-c">${p.lifestyle}</div></div>
-    ${valuesHtml ? `<div class="iv-section"><div class="iv-sec-t">가치관</div><div>${valuesHtml}</div></div>` : ''}
-    ${mediaHtml ? `<div class="iv-section"><div class="iv-sec-t">미디어 습관</div><div>${mediaHtml}</div></div>` : ''}
-    ${driversHtml ? `<div class="iv-section"><div class="iv-sec-t">구매 동기</div><div>${driversHtml}</div></div>` : ''}
-    ${painsHtml ? `<div class="iv-section"><div class="iv-sec-t">페인포인트</div><div>${painsHtml}</div></div>` : ''}
-  `;
+  ` +
+  narrCard('who',  '인물상 (Who)',       ICO.who,  n.who  || p.lifestyle || '') +
+  narrCard('life', '라이프스타일 (Life)', ICO.life, n.life || '') +
+  narrCard('mind', '가치관 (Mind)',       ICO.mind, n.mind || '', tagBlock('핵심 가치', p.values, '#FEF3C7')) +
+  narrCard('love', '관심사 (Love)',       ICO.love, n.love || '') +
+  narrCard('buy',  '구매 (Buy)',          ICO.buy,  n.buy  || '',
+    tagBlock('구매 동기', p.purchaseDrivers, '#D1FAE5') + tagBlock('페인포인트', p.painPoints, '#FEE2E2')) +
+  narrCard('media', '미디어 습관',         ICO.life, '', tagBlock('주요 채널', p.mediaHabits, '#DBEAFE'));
 }
 
 

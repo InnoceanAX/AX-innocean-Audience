@@ -97,7 +97,16 @@ ${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}
 - 한국이면 Naver/KakaoTalk을 최상위 언급, Bing·VK·Weibo 등 제외
 - 중국이면 Google·Instagram·YouTube 제외, WeChat·Weibo·Baidu 우선
 - ${meta.name} 문화·관습에 맞는 이름·직업·라이프스타일을 사용
-- 나이대별 대표 미디어 (Z세대=TikTok/인스타, M세대=YouTube/Naver, X세대=지상파/신문)`;
+- 나이대별 대표 미디어 (Z세대=TikTok/인스타, M세대=YouTube/Naver, X세대=지상파/신문)
+
+[narratives 작성 지침 - 핵심]
+values/mediaHabits/purchaseDrivers/painPoints는 짧은 키워드 나열이면 됩니다.
+narratives 객체의 다섯 필드(who/life/mind/love/buy)는 별도로 **자연스러운 단락형 서술**로 작성합니다.
+- 각 필드 3-4문장 이상
+- 마치 리서치 보고서의 페르소나 프로필 설명처럼 자연스러운 문장
+- 구체적 맥락, 숨겨진 동기, 일상의 장면 포함
+- "키워드, 키워드" 형식 금지. 완전한 문장 단락.
+- 예시(who): "30대 중반의 다나카씨는 도쿄 세타가야의 소규모 디자인 에이전시에서 일하며, 결혼 후 철원에서 세다가야로 이사하며 통근 시간이 대폭 늘어난 것이 최근 일상의 가장 큰 변화다. 연소득은 약 600만엔으로 일본 평균보다 높은 편이지만, 도쿄 도심의 높은 물가를 고려하면 여유로운 수준은 아니다."`;
 
   const schema = {
     type: "object",
@@ -112,8 +121,20 @@ ${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}
       purchaseDrivers: { type: "array", items: { type: "string" } },
       painPoints: { type: "array", items: { type: "string" } },
       quote: { type: "string", description: "이 페르소나가 말할 법한 짧은 인용구" },
+      narratives: {
+        type: "object",
+        description: "5차원 심층 서술 — 각각 3–4문장 이상, 이 페르소나의 구체적 행동/맥락/이야기로. 단순 키워드 나열이 아닌 항상 여러 문장의 단락형 서술.",
+        properties: {
+          who: { type: "string", description: "인물상 — 연령/성별/소득/가족/거주 맥락을 포함한 3–4문장의 자연스러운 서술" },
+          life: { type: "string", description: "라이프스타일 — 하루 패턴, 주말, 일터이먼트, 제품 사용 스타일 3–4문장" },
+          mind: { type: "string", description: "가치관/심리 — 이 사람이 마음속으로 로 중요하게 여기는 것, 세상을 보는 태도, 브랜드/매체를 받아들이는 테도 3–4문장" },
+          love: { type: "string", description: "관심사 — 좋아하는 은 콘텐츠·세럽·브랜드·취미, 수집하고 싶은 것, 따라하고 싶은 결합 패턴 3–4문장" },
+          buy: { type: "string", description: "구매 — 사는 이유, 채널(온/오프), 고민 시간, 가격 민감도, 특정 카테고리에서의 행동 3–4문장" },
+        },
+        required: ["who", "life", "mind", "love", "buy"],
+      },
     },
-    required: ["name", "age", "occupation", "lifestyle", "quote"],
+    required: ["name", "age", "occupation", "lifestyle", "quote", "narratives"],
   };
 
   try {
