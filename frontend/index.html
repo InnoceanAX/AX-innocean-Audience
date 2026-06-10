@@ -1186,7 +1186,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <button class="chat-pill" onclick="goBuilder()">＋ 빌더로 직접 만들기</button>
               <div class="country-combo" id="country-combo">
                 <button class="chat-pill chat-pill-strong" onclick="toggleCountryList()" id="chat-country-pill">
-                  <span id="chat-cc-flag" class="cc-flag-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span id="chat-cc-name">한국</span> ▾
+                  <span id="chat-cc-flag" class="cc-flag-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span id="chat-cc-name">국가 선택</span> ▾
                 </button>
                 <div class="cc-list hide" id="cc-list"></div>
               </div>
@@ -1606,7 +1606,7 @@ const state = {
   countries: [],
   dimensions: [],
   groups: {},
-  currentCountry: 'KR',
+  currentCountry: null,  // 기본 미설정 — 사용자가 명시적으로 선택해야 함 (CEO 지침)
   compareCountries: [],  // 비교 모드 — 최대 4개국 (기준국 제외)
   cmpManualPins: [],     // 글로벌 비교 탭에서 수동으로 명시적 추가한 핀 국가들
   officesOnly: false,    // INNOCEAN 거점만 필터
