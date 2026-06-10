@@ -1037,12 +1037,15 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </button>
 
     <div class="sb-section">
-      <div class="sb-section-t">Library</div>
-      <div class="sb-item active" onclick="goHome()">
+      <div class="sb-item active" onclick="goHome()" style="margin-bottom:6px">
         <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg></span><span>홈</span>
       </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-t">Library</div>
       <div class="sb-item" onclick="openLibrary('all')">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>모든 타겟</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M5 7v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><path d="M9 11h6"/><path d="M9 15h6"/></svg></span><span>모든 타겟</span>
         <span class="sb-item-meta" id="lib-count">0</span>
       </div>
       <div class="sb-item" onclick="openLibrary('favorites')">
@@ -1061,13 +1064,13 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <div class="sb-section">
       <div class="sb-section-t">My Project</div>
       <div class="sb-item" style="color:var(--tm);cursor:default">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><path d="M7 4V2"/><path d="M13 4V2"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="14" x2="13" y2="14"/><path d="M21 7v13a2 2 0 0 1-2 2H8"/></svg></span><span>프로젝트 없음</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span><span>프로젝트 없음</span>
       </div>
     </div>
 
     <div class="sb-foot">
-      <span class="sb-foot-badge">SHELL</span>
-      <div>v0.1.0 · 솔루션 미리보기<br>실데이터 연결: World Bank · Trends</div>
+      <span class="sb-foot-badge">BETA</span>
+      <div>v0.1 · INNOCEAN Audience<br>실데이터: World Bank · BigQuery Trends</div>
     </div>
   </aside>
 
@@ -1156,8 +1159,8 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             <span class="accent">타겟 인사이트를 확인하세요.</span>
           </h1>
           <div class="home-sub">
-            43개국 라이브 트렌드 · 18개 산업 무관 디멘션 · BigQuery Google Trends + World Bank 기반<br>
-            자연어로 묻거나 직접 빌더로 타겟을 만들 수 있습니다.
+            77개국 · 64개 디멘션 · AI 합성 소비자<br>
+            자연어로 묻거나 빌더로 타겟을 설계하세요.
           </div>
 
           <!-- Big chat input -->
@@ -1510,10 +1513,10 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 
     <!-- FOOTER -->
     <div class="footer">
-      <span class="footer-badge">SOLUTION SHELL</span>
-      <span>표시되는 인구·소득 등 매크로 지표는 World Bank 라이브 데이터. 세그먼트 비율은 베이스라인 추정값이며 BigQuery 연동 후 실데이터 적용 예정.</span>
+      <span class="footer-badge">BETA</span>
+      <span>인구·소득 등 매크로 지표는 World Bank 라이브 데이터, 세그먼트 통계는 GWI/Statista/DataReportal 트렌드 기반 AI 합성 추정입니다.</span>
       <span class="footer-spacer"></span>
-      <span>© 2026 INNOCEAN AX · v0.1.0-shell</span>
+      <span>© 2026 INNOCEAN AX · v0.1</span>
     </div>
   </main>
 
@@ -1930,6 +1933,12 @@ function switchTab(tab, opts){
     history.pushState({ tab, country: state.currentCountry, view: 'tab' }, '', url.toString());
   }
   updateBreadcrumb();
+  // 탭 전환 시 본문 스크롤 상단 복귀
+  setTimeout(()=>{
+    const ws=document.getElementById('screen-workspace'); if(ws) ws.scrollTop=0;
+    const body=document.getElementById('tab-'+tab); if(body) body.scrollTop=0;
+    window.scrollTo({ top:0, behavior:'instant' });
+  }, 0);
   // AI 비서 chips 자동 갱신
   if(typeof aiRenderChips === 'function') aiRenderChips();
 }
@@ -2964,6 +2973,8 @@ function openSourceModal(dim){
     return '<div class="src-block"><div class="src-block-l">' + b.l + '</div><div class="src-block-t">' + b.t + '</div><div class="src-block-d">' + b.d + '</div></div>';
   }).join('');
   document.getElementById('src-modal').classList.remove('hide');
+  // 재오픈 시 스크롤 상단 복귀
+  setTimeout(()=>{ const b=document.getElementById('src-modal-body'); if(b) b.scrollTop=0; }, 0);
 }
 function closeSourceModal(){
   document.getElementById('src-modal').classList.add('hide');
@@ -3113,7 +3124,7 @@ function openWsCountrySelector(){
   modal.onclick = function(e){ if(e.target===modal) closeWsCountrySelector(); };
   document.body.appendChild(modal);
   renderWsCountryGrid('');
-  setTimeout(()=>document.getElementById('ws-cc-search')?.focus(), 50);
+  setTimeout(()=>{ document.getElementById('ws-cc-search')?.focus(); const g=document.getElementById('ws-cc-grid'); if(g) g.scrollTop=0; }, 50);
 }
 function closeWsCountrySelector(){ const m = document.getElementById('ws-cc-modal'); if(m) m.remove(); }
 function renderWsCountryGrid(filter){
