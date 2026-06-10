@@ -63,7 +63,15 @@ interviewRouter.post("/persona", async (req, res) => {
   const filterDesc = describeFilters(filters);
   const system = `당신은 광고 리서치 전문가입니다. 주어진 국가와 세그먼트 정보를 바탕으로 합성 페르소나를 생성합니다.
 페르소나는 통계적으로 그럴듯한 가상의 인물이며, 실제 사람이 아닙니다.
-JSON 스키마에 정확히 따르세요.`;
+JSON 스키마에 정확히 따르세요.
+
+[언어 규칙 - 절대 준수]
+모든 텍스트 필드(name, gender, occupation, lifestyle, values, mediaHabits, purchaseDrivers, painPoints, quote)는 **반드시 한국어로 작성**합니다.
+- 국가가 일본·중국·미국·기타 어디이든 무관하게 한국어 서술.
+- 이름은 해당 나라의 이름을 **한글 표기**로 쓵니다. 예) 일본 페르소나 → "사토 아이(佐藤 あい)" 형식이 아닌 "사토 아이"만.
+- 구체 명사(브랜드/플랫폼/미디어명)는 원이름 영문 그대로 쓸 수 있으나 설명·서술은 한국어로만.
+- 일본어(ひらがな/カタカナ/漢字 단독)·중국어(간체자)·기타 현지어는 절대 사용 금지.
+- quote(인용구)도 한국어로 작성합니다 (현지인이 말하는 느낌을 한국어로).`;
 
   const prompt = `[국가] ${meta.name} (${meta.nameEn})
 [인구·지표]

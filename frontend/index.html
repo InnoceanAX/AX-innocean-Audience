@@ -3033,7 +3033,9 @@ async function openLibrary(kind){
   '</div>';
   modal.onclick = function(e){ if(e.target===modal) closeLibrary(); };
   document.body.appendChild(modal);
+  // 재오픈 시 항상 첫 탭 + 스크롤 상단
   loadLibList(kind||'all');
+  setTimeout(()=>{ const b=document.getElementById('lib-body'); if(b) b.scrollTop=0; const x=document.querySelector('.lib-box'); if(x) x.scrollTop=0; }, 0);
 }
 function closeLibrary(){ const m = document.getElementById('lib-modal'); if(m) m.remove(); }
 async function loadLibList(kind){
