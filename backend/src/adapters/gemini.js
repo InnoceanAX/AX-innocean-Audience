@@ -24,21 +24,46 @@ export function isGeminiAvailable() {
 // Vertex AI v2 SDK 스타일 (tools.googleSearch)
 export async function searchAndSummarize({ query, model = "gemini-2.5-flash", maxTokens = 1024 }) {
   if (!isGeminiAvailable()) return { text: "", grounded: false };
+  const client = getClient();
+  // Gemini 1.5: tools.googleSearchRetrieval, Gemini 2.0+: tools.googleSearch — 순차 폴백
+  const toolVariants = [
+    [{ googleSearch: {} }],            // Gemini 2.0/2.5
+    [{ google_search: {} }],           // snake_case 호환
+    [{ googleSearchRetrieval: {} }],   // 구버전 (Gemini 1.5)
+  ];
+  let lastErr = null;
+  for (const tools of toolVariants) {
+    try {
+      const m = client.getGenerativeModel({
+        model,
+        generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens },
+        tools,
+      });
+      const result = await m.generateContent({
+        contents: [{ role: "user", parts: [{ text: query }] }],
+      });
+      const txt = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const meta = result.response?.candidates?.[0]?.groundingMetadata || null;
+      if (txt) {
+        return { text: txt, grounded: !!meta, sources: meta?.webSearchQueries || [], model, toolUsed: Object.keys(tools[0])[0] };
+      }
+    } catch (e) {
+      lastErr = e.message;
+      continue;
+    }
+  }
+  // 전부 실패 시 일반 generateText로 fallback (최소한 지식 기반 답변이라도 확보)
   try {
-    const client = getClient();
     const m = client.getGenerativeModel({
       model,
-      generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens },
-      tools: [{ googleSearchRetrieval: {} }],
+      generationConfig: { temperature: 0.3, maxOutputTokens: maxTokens },
     });
     const result = await m.generateContent({
-      contents: [{ role: "user", parts: [{ text: query }] }],
+      contents: [{ role: "user", parts: [{ text: query + "\n\n(계속 검색 결과 없으면 일반 지식으로 답해주세요)" }] }],
     });
     const txt = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const meta = result.response?.candidates?.[0]?.groundingMetadata || null;
-    return { text: txt, grounded: !!meta, sources: meta?.webSearchQueries || [], model };
+    return { text: txt, grounded: false, fallbackText: true, error: lastErr, model };
   } catch (e) {
-    // grounding tool 미지원 또는 권한 없으면 fallback
     return { text: "", grounded: false, error: e.message };
   }
 }
