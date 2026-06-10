@@ -886,7 +886,22 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .kb-hint-list kbd{padding:2px 6px;background:#fff;border:1px solid var(--bdr);border-radius:4px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#374151;margin:0 2px}
 @media (max-width:640px){.kb-hint-bar{flex-direction:column;align-items:flex-start}}
 
-.ws-tabs{display:flex;align-items:center;gap:0}
+/* 1단: 도구 영역 */
+.ws-tools{display:flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(90deg,#FFFBEB 0%,#FEF3C7 100%);border-bottom:1px solid #FCD34D;border-top:1px solid #E5E7EB}
+.ws-tool-label{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.6px;padding-right:10px;border-right:1px solid #FCD34D;margin-right:6px}
+.ws-tool-label svg{width:13px;height:13px}
+.ws-tool-tab{background:#fff;border:1.5px solid #F59E0B !important;color:#92400E !important;border-radius:8px !important;padding:8px 14px !important;margin-right:6px !important;font-weight:700 !important;box-shadow:0 1px 2px rgba(245,158,11,.15)}
+.ws-tool-tab.active{background:#F59E0B !important;color:#fff !important;border-color:#F59E0B !important}
+.ws-tool-tab:hover{background:#FEF3C7;transform:translateY(-1px)}
+.ws-tool-tab.active:hover{background:#D97706}
+.ws-tool-tab svg{color:currentColor !important}
+.ws-tool-new{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;color:#92400E;border:1.5px dashed #F59E0B;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.ws-tool-new:hover{background:#FEF3C7;border-style:solid;transform:translateY(-1px)}
+.ws-tool-new svg{width:14px;height:14px}
+/* 2단: 결과 영역 라벨 */
+.ws-tabs-label{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.6px;padding-right:12px;border-right:1px solid #E0E7FF;margin-right:8px}
+.ws-tabs-label svg{width:13px;height:13px}
+.ws-tabs{display:flex;align-items:center;gap:0;padding-left:20px;padding-right:20px}
 .ws-tab-spacer{flex:1}
 .ws-tool-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;background:#111;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;margin-right:8px}
 .ws-tool-btn:hover{background:#374151;transform:translateY(-1px)}
@@ -1028,12 +1043,29 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <!-- WORKSPACE TABS (visible only when target exists) -->
+    <!-- 1단: 도구(빌더) — 입력 도구 영역 -->
+    <div class="ws-tools hide" id="ws-tools">
+      <div class="ws-tool-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg>
+        도구
+      </div>
+      <div class="ws-tab ws-tool-tab" data-tab="overview" onclick="switchTab('overview')">
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
+      </div>
+      <button class="ws-tool-new" onclick="newTarget()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        새 타겟
+      </button>
+    </div>
+
+    <!-- 2단: 결과(분석 탭) — 분석 결과 영역 -->
     <div class="ws-tabs hide" id="ws-tabs">
+      <div class="ws-tabs-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 5-5"/></svg>
+        결과
+      </div>
       <div class="ws-tab active" data-tab="summary" onclick="switchTab('summary')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>요약</span>
-      </div>
-      <div class="ws-tab" data-tab="overview" onclick="switchTab('overview')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
       </div>
       <div class="ws-tab" data-tab="who" onclick="switchTab('who')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></span><span>인물상</span>
