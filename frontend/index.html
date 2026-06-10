@@ -1776,9 +1776,13 @@ function toggleCompareCountry(code){
 
 function updateCountryPillLabel(){
   const c = state.countries.find(x => x.code === state.currentCountry);
-  if(!c) return;
-  const cnt = state.compareCountries.length;
-  document.getElementById('chat-cc-name').textContent = cnt > 0 ? `${c.name} +${cnt}국 비교` : c.name;
+  const lbl = document.getElementById('chat-cc-name');
+  if(!c){
+    if(lbl) lbl.textContent = '국가 선택';
+  } else {
+    const cnt = state.compareCountries.length;
+    if(lbl) lbl.textContent = cnt > 0 ? `${c.name} +${cnt}국 비교` : c.name;
+  }
   if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
 }
 
@@ -2311,9 +2315,9 @@ function entryAI(){
 async function entryBuilder(){
   state.entryMode = 'builder';
   state.filters = {};
-  // 홈에서 별도 다른 국가를 선택 안 했다면 기본 KR로 (이전 분석 국가 잔존 방지)
+  // 홈에서 별도 다른 국가를 선택 안 했다면 국가 선택 안 된 상태로 (이전 분석 국가 잔존 방지)
   if(!state.userPickedCountry){
-    state.currentCountry = 'KR';
+    state.currentCountry = null;
   }
   state.lastAsk = null;
   state.compareCountries = [];
@@ -2354,7 +2358,7 @@ async function entryExplore(){
   state.cmpManualPins = [];
   state.analysisRun = false;
   if(!state.userPickedCountry){
-    state.currentCountry = 'KR';
+    state.currentCountry = null;
   }
   await goWorkspace();
   switchTab('compare');
