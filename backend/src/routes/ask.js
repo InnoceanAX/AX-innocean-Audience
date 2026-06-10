@@ -79,7 +79,10 @@ ${dimDescriptors}
 - '세대' 표현: Gen Z/젝지 = age:['20대'], 밀레니얼 = age:['30대'], X세대 = age:['40대'].
 - kpop/K-pop = musicGenre:['K-Pop'].
 - 적용할 수 있는 값을 찾으면 항상 filters에 넘으세요. 빈 객체는 마지막 수단.
-- 추론 근거는 reasoning에 1-2문장으로.
+- 추론 근거(reasoning)는 의미 있는 정보가 있을 때만 1-2문장으로 채우세요.
+- '~는 타겟 정의에 해당합니다', '~ 요청입니다', '~ 해석했습니다' 같은 자명한 분류 문구는 넣지 마세요 (사용자에게 가치 없음).
+- 대신 '왜 이 국가/필터를 선택했는지' 같은 실제 해석 단서를 적으세요.
+- 질의가 최소한의 단서도 주지 않을 때에는 reasoning을 빈 문자열("")로 채우세요.
 
 예시:
 질의: "kpop을 좋아하는 3040대 일본 워킹맘"
@@ -230,6 +233,6 @@ function parseWithRules(q) {
   return {
     country, filters, intent,
     summary: `'${q}' 질의를 ${COUNTRIES.find(c => c.code === country)?.name} 기준으로 해석했습니다.`,
-    reasoning: "키워드 매칭 기반",
+    reasoning: "",
   };
 }

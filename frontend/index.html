@@ -1879,6 +1879,24 @@ async function sendChat(){
   }
 }
 
+// reasoning 의 의미 있는 정보 여부 판단
+// - filters 가 하나도 추출되지 않았고 (= LLM 이 특별한 세그먼트 추출 안 함)
+// - reasoning 이 '~에 해당합니다', '~입니다' 등 단순 분류 문구만 있으면 숨김
+// - 질문이 너무 짧으면(≤5자) 숨김 ('분석해줘' 같은 콘텍스 없는 질의)
+function isMeaningfulReasoning(reasoning, filters, question){
+  if(!reasoning || !String(reasoning).trim()) return false;
+  const r = String(reasoning).trim();
+  const q = String(question||'').trim();
+  if(q.length <= 5) return false;
+  const hasFilters = filters && Object.values(filters).some(v => Array.isArray(v) && v.length > 0);
+  // 필터가 하나도 없는데 reasoning 이 용어 분류만 하는 경우
+  if(!hasFilters){
+    if(/(타겟 정의|target-definition|global-comparison|persona-deep-dive|media-strategy|competitive-insights|market-entry|general)\b.{0,15}해당/i.test(r)) return false;
+    if(/요청.{0,3}해당합니다/.test(r)) return false;
+    if(r.length < 25) return false;
+  }
+  return true;
+}
 function showAskBanner(data){
   const p = data.parsed;
   const country = state.countries.find(c => c.code === p.country);
@@ -1897,7 +1915,7 @@ function showAskBanner(data){
     </div>
     <div class="ab-summary">${summary}</div>
     ${filterParts ? `<div class="ab-chips">${filterParts}</div>` : '<div class="ab-empty">추출된 필터 없음 — 전체 세그먼트</div>'}
-    ${p.reasoning ? `<details class="ab-rsn"><summary>추론 근거</summary><div class="ab-rsn-x">${p.reasoning}</div></details>` : ''}`;
+    ${isMeaningfulReasoning(p.reasoning, p.filters, data.question) ? `<details class="ab-rsn"><summary>추론 근거</summary><div class="ab-rsn-x">${p.reasoning}</div></details>` : ''}`;
   banner.classList.remove('hide');
 }
 
