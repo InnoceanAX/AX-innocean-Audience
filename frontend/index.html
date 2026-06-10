@@ -1098,9 +1098,17 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
       <div class="ws-tab ws-tool-tab" data-tab="overview" onclick="switchTab('overview')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
       </div>
+      <button class="ws-tool-new" onclick="openWsCountrySelector()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid var(--bdr);border-radius:8px;font-size:12px;color:#374151;cursor:pointer;font-family:inherit;font-weight:600;margin-left:8px" title="타겟 국가 변경">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span id="ws-country-label">국가 선택</span>
+      </button>
       <button class="ws-tool-new" onclick="newTarget()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         새 타겟
+      </button>
+      <button class="ws-tool-new" onclick="showHelp()" style="margin-left:auto;background:#fff;color:var(--ind);border-color:var(--ind)" title="사용법">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        사용법
       </button>
     </div>
 
@@ -1306,7 +1314,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">라이프스타일 (Life)</div>
-              <div class="aud-tab-s">어떻게 삽는가 — 디지털 / 일과 / 여행 / 외식 / 활동</div>
+              <div class="aud-tab-s">어떻게 살고 있는가 — 디지털 / 일과 / 여행 / 외식 / 활동</div>
               <span class="aud-src" id="life-src">데이터 로딩 중…</span>
             </div>
             <div id="life-body"></div>
@@ -1317,7 +1325,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">가치관 (Mind)</div>
-              <div class="aud-tab-s">무엇을 믿는가 — 신뢰 / 세계관 / 파워 귬리 / 혁신·전통</div>
+              <div class="aud-tab-s">무엇을 믿는가 — 신뢰 / 세계관 / 가치관 / 혁신·전통</div>
               <span class="aud-src" id="mind-src">데이터 로딩 중…</span>
             </div>
             <div id="mind-body"></div>
@@ -1348,6 +1356,13 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 
         <!-- TAB: Media -->
         <div id="tab-media" class="ws-content hide">
+          <div class="aud-tab">
+            <div class="aud-tab-h">
+              <div class="aud-tab-t">미디어 (Media)</div>
+              <div class="aud-tab-s">어떤 매체로 만나는가 — TV·OTT / SNS / 검색 / 광고비 / 채널별 도달률</div>
+              <span class="aud-src" id="media-src">데이터 로딩 중…</span>
+            </div>
+          </div>
           <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중…</div></div>
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
@@ -1392,7 +1407,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
                 <div class="cmp-h-s">28개국 × 5차원 데이터를 한 화면에 펼쳐 비교합니다.</div>
               </div>
               <div class="cmp-h-r">
-                <button class="cmp-help-btn" onclick="aiQuickChip('이 매트릭스 사용법 알려줘')" title="AI 비서에게 도움받기">
+                <button class="cmp-help-btn" onclick="showHelp('compare')" title="사용법">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                   <span>사용법</span>
                 </button>
@@ -1757,11 +1772,13 @@ function selectCountry(code){
   const dupIdx = state.compareCountries.indexOf(code);
   if(dupIdx >= 0) state.compareCountries.splice(dupIdx, 1);
   updateCountryPillLabel();
+  if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
   renderCountryList(document.getElementById('cc-search-i')?.value || '');
   document.getElementById('cc-list').classList.add('hide');
   // workspace 갱신
   if(!document.getElementById('screen-workspace').classList.contains('hide')){
     refreshSegment();
+    if(typeof renderBuilder === 'function' && state.currentTab === 'overview') renderBuilder();
   }
 }
 
@@ -1882,7 +1899,9 @@ async function goWorkspace(opts){
   document.getElementById('screen-home').classList.add('hide');
   document.getElementById('screen-workspace').classList.remove('hide');
   document.getElementById('ws-tabs').classList.remove('hide');
+  document.getElementById('ws-tools')?.classList.remove('hide');
   document.getElementById('breadcrumb-wrap').classList.remove('hide');
+  if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
   // topbar 타겟 국가 인디스쪀 노출 + 현재 국가로 업데이트
   const c = state.countries.find(x => x.code === state.currentCountry);
   const tb = document.getElementById('tb-target-cc');
@@ -3094,6 +3113,130 @@ async function reopenTarget(id){
   }catch(e){ console.error(e); }
 }
 
+// ============ 워크스페이스 국가 선택기 (타겟 하단) ============
+function openWsCountrySelector(){
+  let modal = document.getElementById('ws-cc-modal');
+  if(modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'ws-cc-modal';
+  modal.className = 'lib-modal';
+  const countries = state.countries || [];
+  modal.innerHTML = '<div class="lib-box" style="max-width:640px">' +
+    '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>타겟 국가 선택</div><button class="lib-close" onclick="closeWsCountrySelector()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
+    '<div style="padding:14px 22px;border-bottom:1px solid var(--bdr);background:#FAFBFF"><input id="ws-cc-search" oninput="renderWsCountryGrid(this.value)" placeholder="국가 검색 (이름/코드)..." style="width:100%;padding:9px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;font-family:inherit"></div>' +
+    '<div class="lib-body" id="ws-cc-grid"></div>' +
+  '</div>';
+  modal.onclick = function(e){ if(e.target===modal) closeWsCountrySelector(); };
+  document.body.appendChild(modal);
+  renderWsCountryGrid('');
+  setTimeout(()=>document.getElementById('ws-cc-search')?.focus(), 50);
+}
+function closeWsCountrySelector(){ const m = document.getElementById('ws-cc-modal'); if(m) m.remove(); }
+function renderWsCountryGrid(filter){
+  const grid = document.getElementById('ws-cc-grid'); if(!grid) return;
+  const q = (filter||'').trim().toLowerCase();
+  const items = (state.countries||[]).filter(c => !q || c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q));
+  if(items.length === 0){
+    grid.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">결과 없음</div></div>';
+    return;
+  }
+  grid.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">' +
+    items.map(c => {
+      const active = c.code === state.currentCountry;
+      const isOffice = c.innoceanOffice;
+      return '<button onclick="selectCountry(\''+c.code+'\');closeWsCountrySelector();" style="padding:10px 12px;background:'+(active?'var(--ind)':'#fff')+';color:'+(active?'#fff':'#111')+';border:1px solid '+(active?'var(--ind)':'var(--bdr)')+';border-radius:8px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:'+(active?'700':'500')+';text-align:left;display:flex;align-items:center;gap:6px">' +
+        '<span style="font-size:10px;background:'+(active?'rgba(255,255,255,.2)':'#F3F4F6')+';color:'+(active?'#fff':'var(--ts)')+';padding:1px 5px;border-radius:3px">'+c.code+'</span>' +
+        '<span style="flex:1">'+c.name+'</span>' +
+        (isOffice?'<span title="INNOCEAN 거점" style="font-size:10px;color:'+(active?'#fff':'var(--ind)')+'">I</span>':'') +
+      '</button>';
+    }).join('') + '</div>';
+}
+function updateWsCountryLabel(){
+  const lbl = document.getElementById('ws-country-label'); if(!lbl) return;
+  const c = (state.countries||[]).find(x => x.code === state.currentCountry);
+  lbl.textContent = c ? c.name : '국가 선택';
+}
+
+// ============ 사용법 팝업 (페이지별) ============
+const HELP_CONTENT = {
+  default: {
+    title: '사용법',
+    blocks: [
+      { h: '1. 타겟 먼저 선택', p: '하단 [국가 선택] 버튼으로 분석 대상 국가를 고르세요.' },
+      { h: '2. 빌더 탭에서 필터 설정', p: '원하는 세그먼트 조건을 고르거나 프리셋 버튼을 눌러 빠르게 설정하세요.' },
+      { h: '3. [▶ 분석 시작] 클릭', p: '분석이 끝나면 자동으로 요약 탭으로 이동하며 KPI/5차원/매크로가 채워집니다.' },
+      { h: '4. 결과 탐색', p: 'Who/Life/Mind/Love/Buy/Media/페르소나 탭을 돌며 세부 데이터를 확인하세요.' },
+      { h: '5. 저장 · 즐겨찾기', p: '요약 탭 상단의 [저장] / [즐겨찾기] 버튼으로 타겟을 라이브러리에 보관하세요.' },
+    ],
+  },
+  compare: {
+    title: '글로벌 비교 매트릭스 사용법',
+    blocks: [
+      { h: '1. 차원 선택', p: '상단 [인물상/라이프/가치관/관심사/구매/미디어] 중 하나 클릭해 비교할 주제를 정합니다.' },
+      { h: '2. 정렬 메트릭', p: '정렬 메트릭을 바꾸면 해당 지표 기준 높은 순으로 28개국이 자동 재정렬됩니다.' },
+      { h: '3. 행 클릭', p: '특정 국가 행을 클릭하면 그 국가를 기준으로 단일 분석 모드로 전환됩니다.' },
+      { h: '4. CSV 다운로드', p: '우측 [CSV] 버튼으로 현재 표시된 데이터를 내려받을 수 있습니다.' },
+      { h: '5. INNOCEAN 거점 표시', p: '행 끝의 «I» 마커는 INNOCEAN 해외 거점이 있는 국가를 나타냅니다.' },
+    ],
+  },
+  builder: {
+    title: '빌더 사용법',
+    blocks: [
+      { h: '« 전체 » 칩 의미', p: '차원 맨 앞의 «전체» 칩을 누르면 해당 차원은 필터링 없이 전체 모수를 포함합니다.' },
+      { h: '프리셋이란', p: 'Gen Z, K-Pop 팬 등 자주 쓰는 타겟 조합을 원클릭으로 적용하는 단축 버튼입니다. 직접 만든 조합은 [+ 현재 필터 저장]으로 보관할 수 있습니다.' },
+      { h: 'AI 빌더', p: '맨 위 입력창에 «30대 워킹맘 중 프리미엄 쇼퍼» 같이 자연어를 수입하면 자동으로 적합한 차원이 선택됩니다.' },
+      { h: '6개 그룹', p: 'Who(인구)·Life(라이프)·Mind(가치관)·Love(관심사)·Media(미디어)·Buy(구매)로 총 64개 차원입니다.' },
+    ],
+  },
+};
+function showHelp(key){
+  const data = HELP_CONTENT[key] || HELP_CONTENT.default;
+  let m = document.getElementById('help-modal'); if(m) m.remove();
+  m = document.createElement('div'); m.id='help-modal'; m.className='lib-modal';
+  const blocksHtml = (data.blocks||[]).map(b => '<div style="padding:14px 18px;border-bottom:1px solid #F3F4F6"><div style="font-size:13px;font-weight:700;color:#111;margin-bottom:4px;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ind)"><polyline points="20 6 9 17 4 12"/></svg>'+b.h+'</div><div style="font-size:12.5px;color:var(--ts);line-height:1.6;padding-left:20px">'+b.p+'</div></div>').join('');
+  m.innerHTML = '<div class="lib-box" style="max-width:560px">' +
+    '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+data.title+'</div><button class="lib-close" onclick="closeHelp()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
+    '<div class="lib-body" style="padding:0;background:#fff">'+blocksHtml+'</div>' +
+  '</div>';
+  m.onclick = function(e){ if(e.target===m) closeHelp(); };
+  document.body.appendChild(m);
+}
+function closeHelp(){ const m = document.getElementById('help-modal'); if(m) m.remove(); }
+
+// ============ AI 빌더 (자연어 → 필터 자동 선택) ============
+async function aiBuilderParse(){
+  const ta = document.getElementById('bld-ai-input');
+  if(!ta) return;
+  const text = (ta.value||'').trim();
+  if(!text){ if(typeof toast==='function') toast('설명을 입력해주세요'); return; }
+  const btn = document.getElementById('bld-ai-btn');
+  if(btn){ btn.disabled = true; btn.innerHTML = '분석 중…'; }
+  try{
+    const r = await fetch(API + '/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ q: text }) });
+    const d = await r.json();
+    if(d.ok && d.parsed){
+      if(d.parsed.country) selectCountry(d.parsed.country);
+      const filters = d.parsed.filters || {};
+      // 실제 옵션에 존재하는 값만 적용
+      const dimMap = {}; state.dimensions.forEach(dim => { dimMap[dim.id] = dim; });
+      state.filters = {};
+      let applied = 0;
+      for(const k in filters){
+        const dim = dimMap[k]; if(!dim) continue;
+        const valid = (Array.isArray(filters[k])?filters[k]:[filters[k]]).filter(v => dim.options.includes(v));
+        if(valid.length > 0){ state.filters[k] = valid; applied++; }
+      }
+      renderBuilder();
+      refreshSegment();
+      updateWsCountryLabel();
+      if(typeof toast==='function') toast('AI 적용 완료 — ' + applied + '개 차원 설정됨');
+    } else {
+      if(typeof toast==='function') toast('AI 파싱 실패 — 좀 더 구체적으로 입력해주세요');
+    }
+  }catch(e){ if(typeof toast==='function') toast('AI 호출 실패: ' + e.message); }
+  finally{ if(btn){ btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>AI 빌더 적용'; } }
+}
+
 // ============ 요약 탭 렌더링 ============
 async function refreshSummaryTab(){
   const banner = document.getElementById('sm-banner');
@@ -4031,12 +4174,18 @@ function renderBuilder(){
   let html = `<div class="bld-hd">
     <div class="bld-hd-t">타겟 빌더</div>
     <div class="bld-hd-spacer"></div>
+    <button class="bld-hd-btn" onclick="showHelp('builder')" style="margin-right:6px">사용법</button>
     <button class="bld-hd-btn" onclick="clearFilters()">전체 해제</button>
+  </div>
+  <div class="bld-ai-bar" style="display:flex;gap:8px;margin-bottom:14px;padding:10px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="color:var(--ind);flex-shrink:0;margin-top:6px"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/><path d="M18 14l.75 2.25L21 17l-2.25.75L18 20l-.75-2.25L15 17l2.25-.75L18 14z"/></svg>
+    <input id="bld-ai-input" placeholder="AI 빌더 — 예) 소설을 좋아하는 50대 서울 프리미엄 쇼퍼" style="flex:1;padding:8px 10px;border:1px solid var(--bdr);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fff" onkeydown="if(event.key==='Enter'){aiBuilderParse();}">
+    <button class="bld-hd-btn" id="bld-ai-btn" onclick="aiBuilderParse()" style="background:var(--ind);color:#fff;border-color:var(--ind);font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>AI 빌더 적용</button>
   </div>
   <div class="bld-guide">
     <div class="bld-guide-l">단계별 설정</div>
     <div class="bld-guide-steps">
-      <span class="bld-step ${state.currentCountry ? 'done' : ''}"><span class="bld-step-n">1</span>국가 선택 <span class="bld-step-v">${state.currentCountry || '미선택'}</span></span>
+      <span class="bld-step ${state.currentCountry ? 'done' : ''}" onclick="openWsCountrySelector()" style="cursor:pointer" title="클릭해 국가 변경"><span class="bld-step-n">1</span>국가 선택 <span class="bld-step-v">${state.currentCountry || '미선택'}</span></span>
       <span class="bld-step ${hasFilters ? 'done' : ''}"><span class="bld-step-n">2</span>세그먼트 필터 <span class="bld-step-v">${hasFilters ? Object.keys(state.filters).length + '개 적용' : '선택사항'}</span></span>
       <span class="bld-step"><span class="bld-step-n">3</span>9개 탭에서 결과 확인</span>
     </div>
