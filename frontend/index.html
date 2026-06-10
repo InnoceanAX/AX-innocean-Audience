@@ -598,7 +598,11 @@ a{color:inherit;text-decoration:none}
 .lib-empty-t{font-size:14px;font-weight:700;color:#111;margin-bottom:6px}
 .lib-empty-s{font-size:12.5px;line-height:1.5}
 .lib-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.lib-card{padding:14px 16px;background:#fff;border:1px solid var(--bdr);border-radius:10px;display:flex;flex-direction:column;gap:8px}
+.lib-card{padding:14px 16px;background:#fff;border:1px solid var(--bdr);border-radius:10px;display:flex;flex-direction:column;gap:8px;position:relative}
+.lib-card-fav-top{position:absolute;top:10px;right:10px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--bdr);border-radius:6px;cursor:pointer;padding:0;color:#9CA3AF}
+.lib-card-fav-top:hover{border-color:#F59E0B;color:#D97706;background:#FFFBEB}
+.lib-card-fav-top.active{background:#FEF3C7;border-color:#F59E0B;color:#D97706}
+.lib-card-t{padding-right:34px}
 .lib-card:hover{border-color:var(--ind);box-shadow:0 4px 12px rgba(79,70,229,.08)}
 .lib-card-t{font-size:13.5px;font-weight:700;color:#111;line-height:1.4}
 .lib-card-meta{display:flex;gap:10px;font-size:11px;color:var(--ts);flex-wrap:wrap}
@@ -3057,12 +3061,12 @@ function libCardHtml(t){
   const fc = Object.keys(t.filters||{}).length;
   const upd = new Date(t.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
   return '<div class="lib-card">' +
+    '<button class="lib-card-fav-top ' + (t.favorited?'active':'') + '" onclick="toggleCardFav(\''+t.id+'\', ' + (!t.favorited) + ')" title="' + (t.favorited?'즐겨찾기 해제':'즐겨찾기 추가') + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (t.favorited?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>' +
     '<div class="lib-card-t">' + t.name + '</div>' +
     '<div class="lib-card-meta"><span>' + (country?.name||t.country||'—') + '</span><span>' + fc + '개 필터</span><span>' + upd + '</span></div>' +
     '<div class="lib-card-actions">' +
       '<button class="lib-card-btn" onclick="reopenTarget(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>열기</button>' +
-      '<button class="lib-card-btn fav ' + (t.favorited?'active':'') + '" onclick="toggleCardFav(\''+t.id+'\', ' + (!t.favorited) + ')"><svg width="11" height="11" viewBox="0 0 24 24" fill="' + (t.favorited?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>' +
-      '<button class="lib-card-btn danger" onclick="deleteTarget(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>' +
+      '<button class="lib-card-btn danger" onclick="deleteTarget(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>' +
     '</div></div>';
 }
 async function toggleCardFav(id, fav){
