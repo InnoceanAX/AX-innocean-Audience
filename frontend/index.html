@@ -572,6 +572,10 @@ a{color:inherit;text-decoration:none}
 /* AI Side Panel */
 .ai-panel{position:fixed;top:0;right:0;height:100vh;width:380px;background:#fff;border-left:1px solid var(--bdr);box-shadow:-8px 0 24px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;transform:translateX(0)}
 .ai-panel.collapsed{transform:translateX(380px)}
+/* 분석 전 empty state */
+.aud-empty, .ov-empty{padding:50px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:10px;display:flex;flex-direction:column;align-items:center}
+.aud-empty-t, .ov-empty-t{font-size:14px;font-weight:700;color:#111;margin-bottom:6px}
+.aud-empty-s, .ov-empty-s{font-size:12px;color:var(--ts);line-height:1.5}
 /* 요약 탭 */
 .sm-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .sm-kpi{padding:18px 20px;background:#fff;border:1px solid var(--bdr);border-radius:10px}
@@ -1927,6 +1931,16 @@ function updateBreadcrumb(){
 
 // ============ MEDIA TAB ============
 async function refreshMediaTab(){
+  // 분석 게이트
+  if(!state.analysisRun){
+    const ins = document.getElementById('md-insights');
+    const tbl = document.getElementById('md-table');
+    const empty = `<div class="aud-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:12px"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg><div class="aud-empty-t">분석 결과 대기 중</div><div class="aud-empty-s">빌더 탭에서 <b>[▶ 분석 시작]</b>을 눌러주세요.</div><button class="sm-cta-primary" style="margin-top:14px" onclick="switchTab('overview')">빌더로 이동 →</button></div>`;
+    if(ins) ins.innerHTML = empty;
+    if(tbl) tbl.innerHTML = '';
+    return;
+  }
+
   try{
     document.getElementById('md-loading').classList.remove('hide');
     document.getElementById('md-body').classList.add('hide');
@@ -2993,6 +3007,7 @@ async function refreshSummaryTab(){
 }
 
 async function refreshAudienceTab(dim){
+  if(!state.analysisRun) return _refreshAudienceTabFetch(dim);
   // 캐시가 있으면 우선 사용
   if(state.audienceCache && state.audienceCache[dim]){
     const data = state.audienceCache[dim];
@@ -3016,6 +3031,15 @@ async function refreshAudienceTab(dim){
 }
 
 async function _refreshAudienceTabFetch(dim){
+  // 분석 게이트
+  if(!state.analysisRun){
+    const body = document.getElementById(dim + '-body');
+    if(body){
+      body.innerHTML = `<div class="aud-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:12px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><div class="aud-empty-t">분석 결과 대기 중</div><div class="aud-empty-s">빌더 탭에서 필터를 조정한 뒤 <b>[▶ 분석 시작]</b>을 눌러주세요.</div><button class="sm-cta-primary" style="margin-top:14px" onclick="switchTab('overview')">빌더로 이동 →</button></div>`;
+    }
+    return;
+  }
+
   const code = state.currentCountry;
   if(!code) return;
   const body = document.getElementById(`${dim}-body`);
@@ -3656,6 +3680,32 @@ async function sendInterview(){
 
 // ============ INSIGHTS TAB ============
 async function refreshInsightsTab(){
+  // 분석 게이트
+  if(!state.analysisRun){
+    const wrap = document.getElementById('tab-insights');
+    if(wrap){
+      const empty = `<div class="aud-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:12px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="aud-empty-t">분석 결과 대기 중</div><div class="aud-empty-s">빌더 탭에서 <b>[▶ 분석 시작]</b>을 눌러주세요.</div><button class="sm-cta-primary" style="margin-top:14px" onclick="switchTab('overview')">빌더로 이동 →</button></div>`;
+      // 첫 자식이 placeholder가 되도록 prepend는 위험하니 별도 영역 활용
+      const ph = document.getElementById('in-empty-ph');
+      if(!ph){
+        const div = document.createElement('div');
+        div.id = 'in-empty-ph';
+        div.innerHTML = empty;
+        wrap.insertBefore(div, wrap.firstChild);
+        // 나머지 자식 hide
+        Array.from(wrap.children).forEach(c => { if(c.id !== 'in-empty-ph') c.style.display = 'none'; });
+      }
+    }
+    return;
+  }
+  // 분석 후: empty placeholder 제거 + 나머지 자식 복구
+  const wrap = document.getElementById('tab-insights');
+  if(wrap){
+    const ph = document.getElementById('in-empty-ph');
+    if(ph) ph.remove();
+    Array.from(wrap.children).forEach(c => c.style.display = '');
+  }
+
   try{
     document.getElementById('in-loading').classList.remove('hide');
     document.getElementById('in-body').classList.add('hide');
@@ -3920,6 +3970,8 @@ async function runAnalysis(){
     renderAiNavigator();
     // 토스트
     if(typeof toast === 'function') toast('분석 완료 — 각 탭에서 결과를 확인하세요');
+    // 분석 완료: 빌더 탭(현재 표시 중인 KPI/매크로/인사이트) 갱신
+    refreshSegment();
     // 자연어 입력 경로(lastAsk)면 자동으로 요약 탭으로 이동
     if(state.lastAsk && state.autoRouteToSummary){
       state.autoRouteToSummary = false;
@@ -4021,6 +4073,16 @@ function clearFilters(){
 
 // ============ SEGMENT REFRESH (live API) ============
 async function refreshSegment(){
+  // 분석 게이트: 분석 실행 전에는 KPI/매크로/인사이트 모두 비움 (placeholder)
+  if(!state.analysisRun){
+    const ovKpis = document.getElementById('ov-kpis');
+    const ovIns = document.getElementById('ov-insights');
+    const macroBox = document.getElementById('ov-macro') || document.querySelector('#tab-overview .ov-section:last-child');
+    const placeholder = `<div class="ov-empty"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:10px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="ov-empty-t">아직 분석되지 않았습니다</div><div class="ov-empty-s">위 필터를 조정한 뒤 <b>[▶ 분석 시작]</b>을 눌러주세요.</div></div>`;
+    if(ovKpis) ovKpis.innerHTML = placeholder;
+    if(ovIns) ovIns.innerHTML = '';
+    return;
+  }
   try{
     if(state.compareCountries.length > 0){
       // 비교 모드
