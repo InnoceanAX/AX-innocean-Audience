@@ -13,6 +13,17 @@ function getClient() {
   return vertexClient;
 }
 
+// Google Search grounding은 일부 region에서만 지원 (asia-northeast3·asia-east1 미지원)
+// us-central1은 항상 지원 → 별도 클라이언트
+let vertexSearchClient = null;
+function getSearchClient() {
+  if (!vertexSearchClient) {
+    const SEARCH_LOC = process.env.VERTEX_SEARCH_LOCATION || "us-central1";
+    vertexSearchClient = new VertexAI({ project: PROJECT, location: SEARCH_LOC });
+  }
+  return vertexSearchClient;
+}
+
 // 가용성 체크 (배포 환경에서 실패해도 fallback)
 export function isGeminiAvailable() {
   try {
@@ -24,7 +35,8 @@ export function isGeminiAvailable() {
 // Vertex AI v2 SDK 스타일 (tools.googleSearch)
 export async function searchAndSummarize({ query, model = "gemini-2.5-flash", maxTokens = 1024 }) {
   if (!isGeminiAvailable()) return { text: "", grounded: false };
-  const client = getClient();
+  // grounding은 별도 클라이언트 (us-central1) 사용
+  const client = getSearchClient();
   // Gemini 1.5: tools.googleSearchRetrieval, Gemini 2.0+: tools.googleSearch — 순차 폴백
   const toolVariants = [
     [{ googleSearch: {} }],            // Gemini 2.0/2.5
