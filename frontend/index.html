@@ -68,6 +68,7 @@ a{color:inherit;text-decoration:none}
 .sb-new:hover{background:var(--ind2)}
 
 .sb-section{padding:8px 0 4px}
+.sb-section-title{padding:6px 18px 8px;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#9CA3AF;text-transform:uppercase}
 .sb-section-t{
   font-size:11px;font-weight:700;color:var(--tm);
   text-transform:uppercase;letter-spacing:.5px;padding:8px 22px 4px;
@@ -1060,15 +1061,19 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <div class="sb-section">
-      <div class="sb-item" onclick="openLibrary('targets')">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>Library</span>
-        <span class="sb-item-meta" id="lib-count">0</span>
+      <div class="sb-section-title">Library</div>
+      <div class="sb-item" onclick="openProjects()">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>프로젝트</span>
+        <span class="sb-item-meta" id="project-count">0</span>
+      </div>
+      <div class="sb-item" onclick="openPresets()">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>프리셋</span>
+        <span class="sb-item-meta" id="preset-count">0</span>
       </div>
     </div>
     <!-- 숨김 슬롯 (호환성 유지) -->
     <div id="sb-user-presets" style="display:none"></div>
-    <span id="preset-count" style="display:none">0</span>
-    <span id="project-count" style="display:none">0</span>
+    <span id="lib-count" style="display:none">0</span>
 
     <div class="sb-foot">
       <span class="sb-foot-badge">BETA</span>
@@ -1080,7 +1085,6 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
   <main class="main">
     <!-- TOP BAR -->
     <div class="topbar">
-      <input class="tb-search" placeholder="타겟·인사이트 검색...">
       <div class="tb-spacer"></div>
       <button class="tb-btn-ghost" onclick="exportTarget()">내보내기</button>
       <button class="tb-btn" onclick="saveTarget()">저장</button>
@@ -1622,7 +1626,11 @@ async function boot(){
     state.categories = data.categoryCarousel;
     loadUserPresets();
     loadProjectsFromStorage();
+    loadInboxFromStorage();
     renderUserPresetsInSidebar();
+    // 사이드바 카운트 초기화
+    const pCnt = document.getElementById('project-count');
+    if(pCnt) pCnt.textContent = (state.projects||[]).length;
     renderSuggested(data.suggestedPrompts);
     renderCategories();
     renderCountryList();
@@ -3059,15 +3067,389 @@ function renderSummaryActionBar(){
       '<svg viewBox="0 0 24 24" fill="' + (state.savedCurrent?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>' +
       (state.savedCurrent?'저장됨':'저장') +
     '</button>' +
-    '<button class="sm-action-btn fav ' + (state.favCurrent?'active':'') + '" onclick="toggleFavoriteTarget()">' +
-      '<svg viewBox="0 0 24 24" fill="' + (state.favCurrent?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
-      '즐겨찾기' +
-    '</button>' +
   '</div>';
 }
+// ============ NEW: 프로젝트 / 프리셋 독립 팝업 ============
+const INBOX_PROJECT_ID = '__inbox__';
+function getInboxProject(){
+  return { id: INBOX_PROJECT_ID, name: '임시 보관함', description: '프로젝트를 정하지 않은 분석 결과를 임시로 보관합니다.', targetIds: [], system: true, createdAt: 0, updatedAt: 0 };
+}
+function loadInboxFromStorage(){
+  try{ const raw = localStorage.getItem('innocean.audience.inbox'); state.inbox = raw ? JSON.parse(raw) : { targetIds: [], updatedAt: 0 }; }catch(e){ state.inbox = { targetIds: [], updatedAt: 0 }; }
+}
+function saveInboxToStorage(){
+  try{ localStorage.setItem('innocean.audience.inbox', JSON.stringify(state.inbox || { targetIds: [], updatedAt: 0 })); }catch(e){}
+}
+
+async function openProjects(){
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  state.projSort = state.projSort || 'recent';
+  let modal = document.getElementById('proj-modal'); if(modal) modal.remove();
+  modal = document.createElement('div'); modal.id='proj-modal'; modal.className='lib-modal';
+  modal.innerHTML = '<div class="lib-box">'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 프로젝트</div><button class="lib-close" onclick="document.getElementById(\'proj-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;padding:12px 22px;border-bottom:1px solid var(--bdr);background:#FAFBFF">'
+      + '<button onclick="projCreate()" style="padding:7px 13px;background:var(--ind);color:#fff;border:1px solid var(--ind);border-radius:6px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>새 프로젝트</button>'
+      + '<div style="margin-left:auto;display:flex;align-items:center;gap:8px">'
+        + '<label style="font-size:11px;color:var(--tm);font-weight:600">정렬</label>'
+        + '<select onchange="state.projSort=this.value;projRender()" style="padding:5px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11.5px;font-family:inherit;background:#fff;cursor:pointer">'
+          + '<option value="recent"' + (state.projSort==='recent'?' selected':'') + '>최근순</option>'
+          + '<option value="name"' + (state.projSort==='name'?' selected':'') + '>이름순</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+    + '<div class="lib-body" id="proj-body"></div>'
+  + '</div>';
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+  projRender();
+}
+function projRender(){
+  const body = document.getElementById('proj-body'); if(!body) return;
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  const inbox = getInboxProject();
+  inbox.targetIds = (state.inbox && state.inbox.targetIds) || [];
+  inbox.updatedAt = (state.inbox && state.inbox.updatedAt) || 0;
+  let userProjects = (state.projects||[]).slice();
+  userProjects = userProjects.map(p => ({ ...p, updatedAt: p.updatedAt || p.createdAt || 0 }));
+  userProjects = (typeof libSortItems==='function') ? libSortItems(userProjects, state.projSort) : userProjects.sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
+  const pCnt = document.getElementById('project-count');
+  if(pCnt) pCnt.textContent = userProjects.length;
+  const inboxHtml = projCardHtml(inbox);
+  const userHtml = userProjects.length === 0
+    ? '<div class="lib-empty" style="padding:30px 0"><div class="lib-empty-t" style="font-size:13px">프로젝트가 아직 없습니다</div><div class="lib-empty-s">상단 [새 프로젝트] 버튼으로 캠페인을 만드세요.</div></div>'
+    : userProjects.map(p=>projCardHtml(p)).join('');
+  body.innerHTML = '<div style="padding:14px 22px"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">시스템</div><div class="lib-cards">' + inboxHtml + '</div></div>'
+    + '<div style="padding:14px 22px;border-top:1px solid var(--bdr)"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">내 프로젝트</div>' + (userProjects.length===0 ? userHtml : '<div class="lib-cards">'+userHtml+'</div>') + '</div>';
+}
+function projCardHtml(p){
+  const isInbox = p.system === true;
+  const upd = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) : '—';
+  const tcount = (p.targetIds||[]).length;
+  let actions = '<button class="lib-card-btn" onclick="openProjectDetail(\'' + p.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>열기</button>';
+  if(!isInbox){
+    actions += '<button class="lib-card-btn" onclick="projRename(\'' + p.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>이름</button>'
+      + '<button class="lib-card-btn danger" onclick="projDelete(\'' + p.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>';
+  }
+  return '<div class="lib-card"' + (isInbox?' style="border-color:#D1D5DB;background:#FAFAFA;position:relative"':'') + '>'
+    + (isInbox?'<div style="position:absolute;top:10px;right:12px;font-size:9.5px;background:#374151;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.04em">SYSTEM</div>':'')
+    + '<div class="lib-card-t">' + (typeof escapeHtml==='function'?escapeHtml(p.name):p.name) + '</div>'
+    + '<div class="lib-card-meta"><span>타겟 ' + tcount + '개</span><span>' + upd + '</span></div>'
+    + (p.description ? '<div style="font-size:11.5px;color:var(--tm);margin-top:4px;line-height:1.5">'+(typeof escapeHtml==='function'?escapeHtml(p.description):p.description)+'</div>' : '')
+    + '<div class="lib-card-actions">' + actions + '</div>'
+  + '</div>';
+}
+function projCreate(){
+  const name = prompt('프로젝트 이름:', '캠페인 ' + ((state.projects||[]).length + 1));
+  if(!name) return;
+  const desc = prompt('설명 (선택):', '') || '';
+  loadProjectsFromStorage();
+  state.projects = state.projects || [];
+  state.projects.unshift({
+    id: 'pj_' + Math.random().toString(36).slice(2,9),
+    name, description: desc, targetIds: [],
+    createdAt: Date.now(), updatedAt: Date.now(),
+  });
+  saveProjectsToStorage();
+  projRender();
+  if(typeof toast==='function') toast('프로젝트 생성: ' + name);
+}
+function projRename(id){
+  const p = (state.projects||[]).find(x=>x.id===id); if(!p) return;
+  const nm = prompt('새 프로젝트 이름:', p.name||'');
+  if(!nm || nm===p.name) return;
+  const desc = prompt('설명 (비워두면 그대로):', p.description||'');
+  state.projects = (state.projects||[]).map(x => x.id===id ? { ...x, name: nm, description: desc!==null?desc:x.description, updatedAt: Date.now() } : x);
+  saveProjectsToStorage();
+  projRender();
+}
+function projDelete(id){
+  const p = (state.projects||[]).find(x=>x.id===id); if(!p) return;
+  if(!confirm('프로젝트 "' + p.name + '"를 삭제할까요?\n(포함된 타겟은 임시 보관함으로 이동됩니다)')) return;
+  loadInboxFromStorage();
+  state.inbox = state.inbox || { targetIds: [], updatedAt: 0 };
+  const orphanIds = (p.targetIds||[]).filter(t => !state.inbox.targetIds.includes(t));
+  if(orphanIds.length){
+    state.inbox.targetIds = [...state.inbox.targetIds, ...orphanIds];
+    state.inbox.updatedAt = Date.now();
+    saveInboxToStorage();
+  }
+  state.projects = (state.projects||[]).filter(x => x.id !== id);
+  saveProjectsToStorage();
+  projRender();
+}
+async function openProjectDetail(id){
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  let p;
+  if(id === INBOX_PROJECT_ID){
+    p = getInboxProject();
+    p.targetIds = (state.inbox && state.inbox.targetIds) || [];
+  } else {
+    p = (state.projects||[]).find(x=>x.id===id);
+  }
+  if(!p) return;
+  let targets = [];
+  if((p.targetIds||[]).length){
+    try{
+      const r = await fetch(API + '/library?owner=anon&saved=true'); const d = await r.json();
+      const all = d.targets || [];
+      targets = (p.targetIds||[]).map(tid => all.find(t=>t.id===tid)).filter(Boolean);
+    }catch(e){}
+  }
+  let modal = document.getElementById('pjd-modal'); if(modal) modal.remove();
+  modal = document.createElement('div'); modal.id='pjd-modal'; modal.className='lib-modal';
+  modal.dataset.projectId = id;
+  const tHtml = targets.length === 0
+    ? '<div class="lib-empty"><div class="lib-empty-t">프로젝트에 타겟이 없습니다</div><div class="lib-empty-s">분석 후 [저장] 버튼으로 이 프로젝트에 담아주세요.</div></div>'
+    : '<div class="lib-cards">' + targets.map(t => libTargetCardV2(t, id)).join('') + '</div>';
+  modal.innerHTML = '<div class="lib-box">'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' + (typeof escapeHtml==='function'?escapeHtml(p.name):p.name) + ' <span style="font-size:11px;color:var(--tm);font-weight:500;margin-left:4px">타겟 ' + targets.length + '개</span></div><button class="lib-close" onclick="document.getElementById(\'pjd-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + (p.description ? '<div style="padding:10px 22px;background:#F9FAFB;border-bottom:1px solid var(--bdr);font-size:12px;color:#4B5563">' + (typeof escapeHtml==='function'?escapeHtml(p.description):p.description) + '</div>' : '')
+    + '<div class="lib-body">' + tHtml + '</div>'
+  + '</div>';
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+function libTargetCardV2(t, projectId){
+  const country = (state.countries||[]).find(x=>x.code===t.country);
+  const fc = Object.keys(t.filters||{}).length;
+  const upd = new Date(t.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
+  const esc = typeof escapeHtml==='function' ? escapeHtml : (x=>x);
+  return '<div class="lib-card">'
+    + '<div class="lib-card-t">' + esc(t.name) + '</div>'
+    + '<div class="lib-card-meta"><span>' + (country?.name||t.country||'—') + '</span><span>' + fc + '개 필터</span><span>' + upd + '</span></div>'
+    + '<div class="lib-card-actions">'
+      + '<button class="lib-card-btn" onclick="reopenTarget(\'' + t.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>열기</button>'
+      + '<button class="lib-card-btn" onclick="renameTargetPromptById(\'' + t.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>이름</button>'
+      + '<button class="lib-card-btn" onclick="moveTargetPrompt(\'' + t.id + '\', \'' + (projectId||'') + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 5 17 5 17 13"/><line x1="7" y1="17" x2="17" y2="5"/></svg>이동</button>'
+      + '<button class="lib-card-btn danger" onclick="removeTargetFromHere(\'' + t.id + '\', \'' + (projectId||'') + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>'
+    + '</div></div>';
+}
+async function moveTargetPrompt(targetId, fromProjectId){
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  const opts = [{ id: INBOX_PROJECT_ID, name: '임시 보관함' }, ...(state.projects||[]).map(p=>({ id: p.id, name: p.name }))];
+  const filtered = opts.filter(o => o.id !== fromProjectId);
+  if(!filtered.length){ if(typeof toast==='function') toast('이동 가능한 곳 없음'); return; }
+  const list = filtered.map((o,i)=>`${i+1}. ${o.name}`).join('\n');
+  const sel = prompt('어디로 이동할까요?\n\n' + list, '1');
+  if(sel===null) return;
+  const idx = parseInt(sel,10) - 1;
+  const dst = filtered[idx]; if(!dst) return;
+  if(fromProjectId === INBOX_PROJECT_ID){
+    state.inbox.targetIds = (state.inbox.targetIds||[]).filter(t => t !== targetId);
+    state.inbox.updatedAt = Date.now();
+    saveInboxToStorage();
+  } else if(fromProjectId){
+    state.projects = (state.projects||[]).map(p => p.id===fromProjectId ? { ...p, targetIds: (p.targetIds||[]).filter(t=>t!==targetId), updatedAt: Date.now() } : p);
+    saveProjectsToStorage();
+  }
+  if(dst.id === INBOX_PROJECT_ID){
+    state.inbox.targetIds = [...(state.inbox.targetIds||[]), targetId];
+    state.inbox.updatedAt = Date.now();
+    saveInboxToStorage();
+  } else {
+    state.projects = (state.projects||[]).map(p => p.id===dst.id ? { ...p, targetIds: [...(p.targetIds||[]).filter(t=>t!==targetId), targetId], updatedAt: Date.now() } : p);
+    saveProjectsToStorage();
+  }
+  if(typeof toast==='function') toast('"' + dst.name + '"로 이동');
+  openProjectDetail(fromProjectId || INBOX_PROJECT_ID);
+}
+function removeTargetFromHere(targetId, projectId){
+  if(!confirm('이 프로젝트에서 타겟을 빼낼까요?\n(임시 보관함으로 이동되며, 타겟 자체는 삭제되지 않습니다)')) return;
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  if(projectId === INBOX_PROJECT_ID){
+    // 이미 inbox면 진짜 삭제 확인
+    if(!confirm('임시 보관함에서 완전 삭제할까요?')) return;
+    fetch(API + '/library/' + targetId, { method:'DELETE' });
+    state.inbox.targetIds = (state.inbox.targetIds||[]).filter(t => t !== targetId);
+    state.inbox.updatedAt = Date.now();
+    saveInboxToStorage();
+  } else {
+    state.projects = (state.projects||[]).map(p => p.id===projectId ? { ...p, targetIds: (p.targetIds||[]).filter(t=>t!==targetId), updatedAt: Date.now() } : p);
+    saveProjectsToStorage();
+    state.inbox = state.inbox || { targetIds: [], updatedAt: 0 };
+    if(!state.inbox.targetIds.includes(targetId)){
+      state.inbox.targetIds.push(targetId);
+      state.inbox.updatedAt = Date.now();
+      saveInboxToStorage();
+    }
+  }
+  openProjectDetail(projectId);
+}
+async function renameTargetPromptById(id){
+  try{
+    const r = await fetch(API + '/library/' + id); const d = await r.json();
+    if(!d.ok) return;
+    const oldName = d.target?.name || '';
+    const nm = prompt('새 타겟 이름:', oldName);
+    if(!nm || nm===oldName) return;
+    await fetch(API + '/library/' + id, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: nm }) });
+    const mp = document.getElementById('pjd-modal');
+    if(mp) openProjectDetail(mp.dataset.projectId || INBOX_PROJECT_ID);
+  }catch(e){}
+}
+
+// ============ 프리셋 팝업 (독립) ============
+async function openPresets(){
+  state.psetSort = state.psetSort || 'recent';
+  let modal = document.getElementById('pset-modal'); if(modal) modal.remove();
+  modal = document.createElement('div'); modal.id='pset-modal'; modal.className='lib-modal';
+  modal.innerHTML = '<div class="lib-box">'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> 프리셋</div><button class="lib-close" onclick="document.getElementById(\'pset-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;padding:12px 22px;border-bottom:1px solid var(--bdr);background:#FAFBFF">'
+      + '<div style="font-size:11.5px;color:var(--tm);font-style:italic">프리셋 생성은 빌더에서 필터 설정 후 [현재 필터 저장]을 누르세요</div>'
+      + '<div style="margin-left:auto;display:flex;align-items:center;gap:8px">'
+        + '<label style="font-size:11px;color:var(--tm);font-weight:600">정렬</label>'
+        + '<select onchange="state.psetSort=this.value;psetRender()" style="padding:5px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11.5px;font-family:inherit;background:#fff;cursor:pointer">'
+          + '<option value="recent"' + (state.psetSort==='recent'?' selected':'') + '>최근순</option>'
+          + '<option value="name"' + (state.psetSort==='name'?' selected':'') + '>이름순</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+    + '<div class="lib-body" id="pset-body"></div>'
+  + '</div>';
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+  psetRender();
+}
+function psetRender(){
+  const body = document.getElementById('pset-body'); if(!body) return;
+  let items = (state.userPresets||[]).slice();
+  items = items.map(p => ({ ...p, updatedAt: p.updatedAt || p.savedAt || (p.createdAt ? new Date(p.createdAt).getTime() : 0) }));
+  items = (typeof libSortItems==='function') ? libSortItems(items, state.psetSort) : items.sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
+  const cnt = document.getElementById('preset-count'); if(cnt) cnt.textContent = items.length;
+  if(items.length === 0){
+    body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">저장된 프리셋이 없습니다</div><div class="lib-empty-s">빌더에서 필터를 설정한 후 [+ 현재 필터 저장]을 눌러 프리셋으로 보관하세요.<br>프리셋은 분석 결과가 아닌 <b>필터 조합 템플릿</b>입니다.</div></div>';
+    return;
+  }
+  body.innerHTML = '<div class="lib-cards">' + items.map(p=>psetCardHtml(p)).join('') + '</div>';
+}
+function psetCardHtml(p){
+  const country = (state.countries||[]).find(x=>x.code===p.country);
+  const fc = Object.keys(p.filters||{}).length;
+  const upd = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) : '—';
+  const esc = typeof escapeHtml==='function' ? escapeHtml : (x=>x);
+  return '<div class="lib-card">'
+    + '<div class="lib-card-t">' + esc(p.name) + '</div>'
+    + '<div class="lib-card-meta"><span>' + (country?.name||p.country||'—') + '</span><span>' + fc + '개 필터</span><span>' + upd + '</span></div>'
+    + '<div class="lib-card-actions">'
+      + '<button class="lib-card-btn" onclick="applyPresetFromLib(\'' + p.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>적용</button>'
+      + '<button class="lib-card-btn" onclick="renamePresetPrompt(\'' + p.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>이름</button>'
+      + '<button class="lib-card-btn danger" onclick="deletePresetFromLib(\'' + p.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>'
+    + '</div></div>';
+}
+function applyPresetFromLib(id){
+  const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
+  if(p.country && typeof selectCountry==='function') selectCountry(p.country);
+  state.filters = JSON.parse(JSON.stringify(p.filters||{}));
+  document.getElementById('pset-modal')?.remove();
+  goWorkspace().then(()=>{ switchTab('overview'); if(typeof renderBuilder==='function') renderBuilder(); if(typeof refreshSegment==='function') refreshSegment(); if(typeof updateWsCountryLabel==='function') updateWsCountryLabel(); if(typeof toast==='function') toast('프리셋 적용: ' + p.name); });
+}
+function renamePresetPrompt(id){
+  const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
+  const nm = prompt('새 프리셋 이름:', p.name||'');
+  if(!nm || nm===p.name) return;
+  state.userPresets = (state.userPresets||[]).map(x => x.id===id ? { ...x, name: nm, updatedAt: Date.now() } : x);
+  saveUserPresets();
+  if(typeof renderUserPresetsInSidebar==='function') renderUserPresetsInSidebar();
+  psetRender();
+}
+function deletePresetFromLib(id){
+  const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
+  if(!confirm('프리셋 "' + p.name + '"를 삭제할까요?')) return;
+  state.userPresets = (state.userPresets||[]).filter(x => x.id !== id);
+  saveUserPresets();
+  if(typeof renderUserPresetsInSidebar==='function') renderUserPresetsInSidebar();
+  psetRender();
+}
+
+// ============ 저장 시 프로젝트 선택 강제 ============
+async function chooseProjectForSave(){
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  return new Promise((resolve) => {
+    let modal = document.getElementById('save-modal'); if(modal) modal.remove();
+    modal = document.createElement('div'); modal.id='save-modal'; modal.className='lib-modal';
+    const userProjects = (state.projects||[]).slice().sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
+    const esc = typeof escapeHtml==='function' ? escapeHtml : (x=>x);
+    const userCards = userProjects.map(p =>
+      '<div class="lib-card" onclick="window.__saveResolve(\'' + p.id + '\')" style="cursor:pointer">'
+      + '<div class="lib-card-t">' + esc(p.name) + '</div>'
+      + '<div class="lib-card-meta"><span>타겟 ' + (p.targetIds||[]).length + '개</span></div>'
+      + (p.description ? '<div style="font-size:11.5px;color:var(--tm);margin-top:4px">'+esc(p.description)+'</div>' : '')
+      + '</div>'
+    ).join('');
+    const inboxCard = '<div class="lib-card" onclick="window.__saveResolve(\'' + INBOX_PROJECT_ID + '\')" style="cursor:pointer;border-color:#D1D5DB;background:#FAFAFA;position:relative">'
+      + '<div style="position:absolute;top:10px;right:12px;font-size:9.5px;background:#374151;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700">SYSTEM</div>'
+      + '<div class="lib-card-t">임시 보관함</div>'
+      + '<div class="lib-card-meta"><span>나중에 정리</span></div>'
+      + '<div style="font-size:11.5px;color:var(--tm);margin-top:4px">프로젝트가 정해지지 않은 분석을 빠르게 저장하세요.</div>'
+      + '</div>';
+    modal.innerHTML = '<div class="lib-box">'
+      + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 어디에 저장할까요?</div><button class="lib-close" onclick="window.__saveResolve(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+      + '<div style="padding:12px 22px;border-bottom:1px solid var(--bdr);background:#FAFBFF;display:flex;gap:8px">'
+        + '<button onclick="window.__saveCreateNew()" style="padding:8px 14px;background:var(--ind);color:#fff;border:1px solid var(--ind);border-radius:6px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>새 프로젝트로 저장</button>'
+      + '</div>'
+      + '<div class="lib-body">'
+        + '<div style="padding:14px 22px"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">시스템</div><div class="lib-cards">' + inboxCard + '</div></div>'
+        + (userCards ? '<div style="padding:14px 22px;border-top:1px solid var(--bdr)"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">내 프로젝트</div><div class="lib-cards">' + userCards + '</div></div>' : '')
+      + '</div>'
+    + '</div>';
+    modal.onclick = function(e){ if(e.target===modal) window.__saveResolve(null); };
+    document.body.appendChild(modal);
+    window.__saveResolve = function(projectId){
+      modal.remove();
+      delete window.__saveResolve;
+      delete window.__saveCreateNew;
+      resolve(projectId);
+    };
+    window.__saveCreateNew = function(){
+      const name = prompt('새 프로젝트 이름:', '캠페인 ' + ((state.projects||[]).length + 1));
+      if(!name) return;
+      const desc = prompt('설명 (선택):', '') || '';
+      loadProjectsFromStorage();
+      state.projects = state.projects || [];
+      const newId = 'pj_' + Math.random().toString(36).slice(2,9);
+      state.projects.unshift({
+        id: newId, name, description: desc, targetIds: [],
+        createdAt: Date.now(), updatedAt: Date.now(),
+      });
+      saveProjectsToStorage();
+      window.__saveResolve(newId);
+    };
+  });
+}
+function attachTargetToProject(projectId, targetId){
+  loadProjectsFromStorage();
+  loadInboxFromStorage();
+  if(projectId === INBOX_PROJECT_ID){
+    state.inbox = state.inbox || { targetIds: [], updatedAt: 0 };
+    if(!state.inbox.targetIds.includes(targetId)){
+      state.inbox.targetIds.push(targetId);
+      state.inbox.updatedAt = Date.now();
+      saveInboxToStorage();
+    }
+  } else {
+    state.projects = (state.projects||[]).map(p => {
+      if(p.id !== projectId) return p;
+      const ids = (p.targetIds||[]).filter(t => t !== targetId);
+      ids.push(targetId);
+      return { ...p, targetIds: ids, updatedAt: Date.now() };
+    });
+    saveProjectsToStorage();
+  }
+}
+
 // ============ Library 통합 모달 (3탭: 타겟/프리셋/프로젝트) ============
 async function openLibrary(kind){
-  state.libCurrentTab = kind || state.libCurrentTab || 'targets';
+  if(kind==='presets' || kind==='preset') return openPresets();
+  return openProjects();
+  /* legacy: */ state.libCurrentTab = kind || state.libCurrentTab || 'targets';
   state.libSort = state.libSort || 'recent'; // recent | favorites | name
   let modal = document.getElementById('lib-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='lib-modal'; modal.className='lib-modal';
@@ -5186,15 +5568,29 @@ function renderWB(d){
 }
 
 // ============ LIBRARY (localStorage + backend) ============
-function saveTarget(){
+async function saveTarget(){
+  // 1) 프로젝트 선택 우선
+  const projectId = await chooseProjectForSave();
+  if(!projectId) return; // 취소
+  // 2) 이름 프롬프트
   const name = prompt('타겟 이름을 입력하세요', defaultTargetName());
   if(!name) return;
   const payload = { name, country: state.currentCountry, filters: state.filters, owner: 'anon' };
-  fetch(`${API}/library`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
-    .then(r=>r.json()).then(d => {
-      if(d.ok) { toast('저장됨: ' + name); refreshLibCount(); }
-      else toast('저장 실패');
-    });
+  try{
+    const r = await fetch(`${API}/library`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const d = await r.json();
+    if(d.ok && d.target?.id){
+      attachTargetToProject(projectId, d.target.id);
+      const pjName = projectId === INBOX_PROJECT_ID ? '임시 보관함' : (state.projects||[]).find(p=>p.id===projectId)?.name || '프로젝트';
+      toast('저장: "' + pjName + '" → ' + name);
+      state.currentTargetId = d.target.id;
+      state.savedCurrent = true;
+      if(typeof renderSummaryActionBar==='function') renderSummaryActionBar();
+      refreshLibCount();
+    } else {
+      toast('저장 실패');
+    }
+  }catch(e){ toast('저장 오류: ' + e.message); }
 }
 
 function defaultTargetName(){
