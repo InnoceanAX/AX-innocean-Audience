@@ -874,6 +874,9 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .cmp-matrix td{padding:10px 12px;border-bottom:1px solid #F3F4F6;font-variant-numeric:tabular-nums;color:#111;transition:background .15s}
 .cmp-matrix tr{cursor:pointer}
 .cmp-matrix tr:hover td{background:#EEF2FF !important}
+.cmp-matrix tr[data-pinned="1"]{position:sticky;background:#FEF3C7}
+.cmp-matrix tr[data-pinned="1"] td{border-bottom:2px solid #F59E0B}
+.cmp-matrix tr[data-pinned="1"]:hover td{background:#FDE68A !important}
 .cmp-th-country{min-width:160px;position:sticky;left:0;z-index:6}
 .cmp-country-cell{font-weight:600;color:#111;display:flex;align-items:center;gap:8px;position:sticky;left:0;background:#fff;z-index:4}
 .cmp-na{color:#9CA3AF}
@@ -1147,7 +1150,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>페르소나</span>
       </div>
       <div class="ws-tab-spacer"></div>
-      <button class="ws-tool-btn" onclick="switchTab('compare')" title="글로벌 비교 매트릭스 (28국가 × 5차원)">
+      <button class="ws-tool-btn" onclick="switchTab('compare')" title="글로벌 비교 매트릭스 (실데이터 확보국 × 5차원)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span>글로벌 비교</span>
       </button>
@@ -1233,7 +1236,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               </div>
               <div class="entry-mode-l">MODE 3 · 전역</div>
               <div class="entry-t">글로벌 비교</div>
-              <div class="entry-s">28국가 × 5차원(인물상·라이프·가치관·관심사·구매)을 한 화면 매트릭스로 펼쳐 비교합니다. 정렬·드릴다운·CSV 내보내기 지원.</div>
+              <div class="entry-s">실데이터 확보국 × 5차원(인물상·라이프·가치관·관심사·구매)을 한 화면 매트릭스로 펼쳐 비교합니다. 정렬·드릴다운·CSV 내보내기 지원.</div>
               <div class="entry-cta">매트릭스 열기 →</div>
             </div>
           </div>
@@ -1408,7 +1411,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             <div class="cmp-h-row">
               <div class="cmp-h-l">
                 <div class="cmp-h-t">글로벌 비교 매트릭스</div>
-                <div class="cmp-h-s">28개국 × 5차원 데이터를 한 화면에 펼쳐 비교합니다.</div>
+                <div class="cmp-h-s"><span id="cmp-coverage-label">데이터 로딩 중…</span> × 5차원 실데이터. <span style="color:var(--ind);font-weight:600;cursor:help" title="아이콘에 마우스를 올려 자세한 설명 확인">ⓘ</span></div>
               </div>
               <div class="cmp-h-r">
                 <button class="cmp-help-btn" onclick="showHelp('compare')" title="사용법">
@@ -1442,6 +1445,13 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <label class="cmp-control-l">정렬</label>
               <select id="cmp-sort" onchange="renderCompareMatrix()" class="cmp-select"></select>
             </div>
+            <div class="cmp-control-g" style="flex:1;min-width:220px">
+              <label class="cmp-control-l">국가 검색</label>
+              <input id="cmp-search" type="text" placeholder="국가명/코드 검색 (예: 독일, KR)" oninput="renderCompareMatrix()" style="width:100%;padding:7px 11px;border:1px solid var(--bdr);border-radius:6px;font-size:12.5px;font-family:inherit;background:#fff">
+            </div>
+          </div>
+          <div id="cmp-pinned-info" style="display:none;padding:8px 12px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;font-size:11.5px;color:#78350F;margin-bottom:8px">
+            <b style="color:#451A03">핀 국가:</b> <span id="cmp-pinned-list"></span> <span style="color:#92400E">(매트릭스 상단에 고정)</span>
           </div>
           <div id="cmp-matrix-wrap" class="cmp-matrix-wrap">
             <div class="aud-loading">데이터 로딩 중…</div>
@@ -2276,7 +2286,7 @@ let currentCompareDim = 'who';
 async function loadCompareData(){
   if(compareData) return compareData;
   const wrap = document.getElementById('cmp-matrix-wrap');
-  wrap.innerHTML = '<div class="aud-loading">28개국 데이터 로딩 중…</div>';
+  wrap.innerHTML = '<div class="aud-loading">글로벌 데이터 로딩 중…</div>';
   try {
     const res = await fetch(`${API}/audience/compare-all`);
     const data = await res.json();
@@ -2331,6 +2341,22 @@ async function setCompareDim(dim){
   await renderCompareMatrix();
 }
 
+function getCmpPinnedCodes(){
+  // 기준국 + AI 추출 비교국 + 수동 compareCountries
+  const set = new Set();
+  if(state.currentCountry) set.add(state.currentCountry);
+  (state.compareCountries||[]).forEach(c => set.add(c));
+  // 마지막 질문에서 추출된 국가들
+  const q = state.lastAsk?.parsed?.query || '';
+  try{
+    if(typeof AI_COUNTRY_KO === 'object'){
+      for(const [ko, code] of Object.entries(AI_COUNTRY_KO)){
+        if(q.includes(ko)) set.add(code);
+      }
+    }
+  }catch(e){}
+  return Array.from(set);
+}
 async function renderCompareMatrix(){
   const data = await loadCompareData();
   if(!data) return;
@@ -2338,36 +2364,87 @@ async function renderCompareMatrix(){
   const metrics = CMP_METRICS[dim];
   const rows = data[dim] || [];
 
+  // 컬버리지 라벨 업데이트
+  const covLabel = document.getElementById('cmp-coverage-label');
+  if(covLabel){
+    const tip = '5차원(인물상/라이프/가치관/관심사/구매) 실데이터가 모두 확보된 국가만 표시됩니다. 나머지 국가는 인구 데이터만 확보되어 적용하면 빈 칸이 많아집니다. 단일 국가 보기(인물상 탭)에서는 77국 모두 동작합니다.';
+    covLabel.innerHTML = '<b>' + rows.length + '개국</b> (전체 77국 중 5차원 완전 확보)';
+    covLabel.parentElement.title = tip;
+  }
+
   // 정렬 셀렉트 채우기
   const sortSel = document.getElementById('cmp-sort');
   const cur = sortSel.value;
   sortSel.innerHTML = '<option value="">국가명 순</option>' +
+    '<option value="__pinned">핀 우선</option>' +
     metrics.filter(m=>typeof rows[0]?.[m.key] === 'number').map(m=>`<option value="${m.key}">${m.label} 높은순</option>`).join('');
   if(cur && [...sortSel.options].some(o=>o.value===cur)) sortSel.value = cur;
+  if(!sortSel.value) sortSel.value = '__pinned'; // 기본: 핀 우선
 
-  let sorted = [...rows];
-  if(sortSel.value){
-    sorted.sort((a,b)=> (b[sortSel.value]||0) - (a[sortSel.value]||0));
+  // 검색 필터
+  const searchInput = document.getElementById('cmp-search');
+  const qs = (searchInput?.value || '').trim().toLowerCase();
+  let filtered = rows.slice();
+  if(qs){
+    filtered = filtered.filter(r => r.name.toLowerCase().includes(qs) || r.code.toLowerCase().includes(qs));
+  }
+
+  const pinnedCodes = getCmpPinnedCodes();
+  // 핀 국가 안내 레이블
+  const pinnedInfo = document.getElementById('cmp-pinned-info');
+  const pinnedList = document.getElementById('cmp-pinned-list');
+  const pinnedInRows = pinnedCodes.filter(c => rows.some(r => r.code === c));
+  if(pinnedInfo && pinnedList){
+    if(pinnedInRows.length > 0){
+      pinnedInfo.style.display = '';
+      pinnedList.innerHTML = pinnedInRows.map(c => {
+        const r = rows.find(x => x.code === c);
+        return '<span style="display:inline-block;padding:2px 8px;background:#fff;border:1px solid #FCD34D;border-radius:4px;margin:0 4px 0 0;font-weight:600">' + (r ? (r.name + ' (' + c + ')') : c) + '</span>';
+      }).join('');
+    } else {
+      pinnedInfo.style.display = 'none';
+    }
+  }
+
+  // 정렬
+  let sorted;
+  if(sortSel.value === '__pinned'){
+    // 핀 국가 먼저 (그 안에서는 pinnedCodes 순서), 나머지는 국가명 순
+    sorted = [];
+    pinnedCodes.forEach(c => {
+      const r = filtered.find(x => x.code === c);
+      if(r) sorted.push(r);
+    });
+    const rest = filtered.filter(r => !pinnedCodes.includes(r.code))
+      .sort((a,b)=> a.name.localeCompare(b.name, 'ko'));
+    sorted = sorted.concat(rest);
+  } else if(sortSel.value){
+    sorted = filtered.slice().sort((a,b)=> (b[sortSel.value]||0) - (a[sortSel.value]||0));
   } else {
-    sorted.sort((a,b)=> a.name.localeCompare(b.name, 'ko'));
+    sorted = filtered.slice().sort((a,b)=> a.name.localeCompare(b.name, 'ko'));
   }
 
   const head = `<tr><th class="cmp-th-country">국가</th>${metrics.map(m=>`<th>${m.label}${m.unit?` (${m.unit})`:''}</th>`).join('')}</tr>`;
-  // 색상 강도 계산 (수치형만)
+  // 색상 강도 계산 (수치형만) — 필터되지 않은 전체 rows 기준
   const maxByKey = {};
-  metrics.forEach(m=>{ if(typeof sorted[0]?.[m.key]==='number') maxByKey[m.key] = Math.max(...sorted.map(r=>r[m.key]||0)); });
+  metrics.forEach(m=>{ if(typeof rows[0]?.[m.key]==='number') maxByKey[m.key] = Math.max(...rows.map(r=>r[m.key]||0)); });
 
-  const body = sorted.map(r => {
-    const cells = metrics.map(m => {
-      const v = r[m.key];
-      if(v === undefined || v === null) return '<td class="cmp-na">—</td>';
-      const intensity = (typeof v === 'number' && maxByKey[m.key]) ? (v / maxByKey[m.key]) : 0;
-      const bg = typeof v === 'number' ? `style="background:rgba(79,70,229,${(intensity*0.35).toFixed(2)})"` : '';
-      const display = typeof v === 'number' ? m.fmt(v) : (Array.isArray(v) ? v.slice(0,3).join(', ') : v);
-      return `<td ${bg}>${display}</td>`;
+  const body = sorted.length === 0
+    ? `<tr><td colspan="${metrics.length+1}" style="text-align:center;padding:30px;color:var(--tm)">검색 결과가 없습니다. (전체 ${rows.length}개국)</td></tr>`
+    : sorted.map(r => {
+      const isPinned = pinnedCodes.includes(r.code);
+      const rowStyle = isPinned ? ' style="background:#FEF3C7" data-pinned="1"' : '';
+      const cells = metrics.map(m => {
+        const v = r[m.key];
+        if(v === undefined || v === null) return '<td class="cmp-na">—</td>';
+        const intensity = (typeof v === 'number' && maxByKey[m.key]) ? (v / maxByKey[m.key]) : 0;
+        const bg = typeof v === 'number' ? `style="background:rgba(79,70,229,${(intensity*0.35).toFixed(2)})"` : '';
+        const display = typeof v === 'number' ? m.fmt(v) : (Array.isArray(v) ? v.slice(0,3).join(', ') : v);
+        return `<td ${bg}>${display}</td>`;
+      }).join('');
+      const pin = isPinned ? '<svg viewBox="0 0 24 24" width="11" height="11" fill="#F59E0B" stroke="#92400E" stroke-width="1.5" style="vertical-align:-1px;margin-right:5px" title="핀"><path d="M12 17v5"/><path d="M9 10.76V6c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v4.76l2 4.24H7l2-4.24z"/></svg>' : '';
+      return `<tr onclick="cmpDrillDown('${r.code}')"${rowStyle}><td class="cmp-country-cell">${pin}<span class="cc-c-flag">${r.code}</span>${r.name}</td>${cells}</tr>`;
     }).join('');
-    return `<tr onclick="cmpDrillDown('${r.code}')"><td class="cmp-country-cell"><span class="cc-c-flag">${r.code}</span>${r.name}</td>${cells}</tr>`;
-  }).join('');
 
   document.getElementById('cmp-matrix-wrap').innerHTML = `<div class="cmp-table-wrap"><table class="cmp-matrix">${head}${body}</table></div>`;
   document.getElementById('cmp-source').textContent = data.sources[dim] || '';
