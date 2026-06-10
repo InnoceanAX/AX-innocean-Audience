@@ -2346,13 +2346,24 @@ function getCmpPinnedCodes(){
   const set = new Set();
   if(state.currentCountry) set.add(state.currentCountry);
   (state.compareCountries||[]).forEach(c => set.add(c));
-  // 마지막 질문에서 추출된 국가들
-  const q = state.lastAsk?.parsed?.query || '';
+  // 마지막 질문에서 추출된 국가들 — question 원문에서 국가명 매칭
+  // (서버 응답: {ok, question, parsed, meta} — question은 top-level)
+  const q = String(state.lastAsk?.question || state.lastAsk?.parsed?.summary || '');
   try{
     if(typeof AI_COUNTRY_KO === 'object'){
       for(const [ko, code] of Object.entries(AI_COUNTRY_KO)){
         if(q.includes(ko)) set.add(code);
       }
+    }
+  }catch(e){}
+  // parsed.country (서버가 해석한 기준국)도 포함
+  const pc = state.lastAsk?.parsed?.country;
+  if(pc && typeof pc === 'string') set.add(pc.toUpperCase());
+  // 전체 국가 코드 직접 매칭 (KR, DE 같은 코드 단어 투입 대응)
+  try{
+    const codeMatches = q.toUpperCase().match(/\b[A-Z]{2}\b/g) || [];
+    if(typeof AUDIENCE_COUNTRIES !== 'undefined'){
+      codeMatches.forEach(c => { if(AUDIENCE_COUNTRIES.indexOf(c) >= 0) set.add(c); });
     }
   }catch(e){}
   return Array.from(set);
