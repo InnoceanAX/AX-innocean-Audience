@@ -3223,6 +3223,9 @@ async function aiBuilderParse(){
       renderBuilder();
       refreshSegment();
       updateWsCountryLabel();
+      // 메인 채팅과 동일하게 ask-banner 표시
+      state.lastAsk = d;
+      try{ showAskBanner({ ...d, question: text }); }catch(e){}
       if(typeof toast==='function') toast('AI 적용 완료 — ' + applied + '개 차원 설정됨');
     } else {
       if(typeof toast==='function') toast('AI 파싱 실패 — 좀 더 구체적으로 입력해주세요');
