@@ -1060,21 +1060,15 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <div class="sb-section">
-      <div class="sb-item" onclick="openLibrary('all')">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"/><path d="M5 7v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><path d="M9 11h6"/><path d="M9 15h6"/></svg></span><span>Library</span>
+      <div class="sb-item" onclick="openLibrary('targets')">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>Library</span>
         <span class="sb-item-meta" id="lib-count">0</span>
-      </div>
-      <div class="sb-item" onclick="openMyPreset()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>My Preset</span>
-        <span class="sb-item-meta" id="preset-count">0</span>
-      </div>
-      <div class="sb-item" onclick="openMyProject()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span><span>My Project</span>
-        <span class="sb-item-meta" id="project-count">0</span>
       </div>
     </div>
     <!-- 숨김 슬롯 (호환성 유지) -->
     <div id="sb-user-presets" style="display:none"></div>
+    <span id="preset-count" style="display:none">0</span>
+    <span id="project-count" style="display:none">0</span>
 
     <div class="sb-foot">
       <span class="sb-foot-badge">BETA</span>
@@ -1602,6 +1596,9 @@ const state = {
   savedCurrent: false,
   favCurrent: false,
   userPresets: [],
+  projects: [],
+  libCurrentTab: 'targets',
+  libSort: 'recent',
   analyzedCountry: null,
   analyzedFilters: null,
   audienceCache: {},
@@ -1624,6 +1621,7 @@ async function boot(){
     state.groups = data.dimensionGroups;
     state.categories = data.categoryCarousel;
     loadUserPresets();
+    loadProjectsFromStorage();
     renderUserPresetsInSidebar();
     renderSuggested(data.suggestedPrompts);
     renderCategories();
@@ -3067,99 +3065,165 @@ function renderSummaryActionBar(){
     '</button>' +
   '</div>';
 }
+// ============ Library 통합 모달 (3탭: 타겟/프리셋/프로젝트) ============
 async function openLibrary(kind){
+  state.libCurrentTab = kind || state.libCurrentTab || 'targets';
+  state.libSort = state.libSort || 'recent'; // recent | favorites | name
   let modal = document.getElementById('lib-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='lib-modal'; modal.className='lib-modal';
   modal.innerHTML = '<div class="lib-box">' +
-    '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>라이브러리</div><button class="lib-close" onclick="closeLibrary()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
-    '<div class="lib-tabs"><button class="lib-tab" data-lkind="all" onclick="loadLibList(\'all\')">모든 타겟</button><button class="lib-tab" data-lkind="favorites" onclick="loadLibList(\'favorites\')">즐겨찾기</button><button class="lib-tab" data-lkind="recent" onclick="loadLibList(\'recent\')">최근</button></div>' +
+    '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Library</div><button class="lib-close" onclick="closeLibrary()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
+    '<div class="lib-tabs" style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bdr);padding:0 22px;background:#FAFBFF">' +
+      '<button class="lib-tab" data-lkind="targets" onclick="switchLibTab(\'targets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> 모든 타겟 <span class="lib-tab-cnt" id="lib-tc-targets">0</span></button>' +
+      '<button class="lib-tab" data-lkind="presets" onclick="switchLibTab(\'presets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> 프리셋 <span class="lib-tab-cnt" id="lib-tc-presets">0</span></button>' +
+      '<button class="lib-tab" data-lkind="projects" onclick="switchLibTab(\'projects\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 프로젝트 <span class="lib-tab-cnt" id="lib-tc-projects">0</span></button>' +
+      '<div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:10px 0">' +
+        '<button id="lib-create-btn" onclick="libCreateProject()" style="display:none;padding:6px 11px;background:var(--ind);color:#fff;border:1px solid var(--ind);border-radius:6px;font-size:11.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>새 프로젝트</button>' +
+        '<label style="font-size:11px;color:var(--tm);font-weight:600">정렬</label>' +
+        '<select id="lib-sort" onchange="state.libSort=this.value;loadLibTab(state.libCurrentTab)" style="padding:5px 9px;border:1px solid var(--bdr);border-radius:6px;font-size:11.5px;font-family:inherit;background:#fff;cursor:pointer">' +
+          '<option value="recent">최근순</option>' +
+          '<option value="favorites">즐겨찾기 우선</option>' +
+          '<option value="name">이름순</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
     '<div class="lib-body" id="lib-body"><div class="lib-empty"><div class="lib-empty-t">불러오는 중...</div></div></div>' +
   '</div>';
   modal.onclick = function(e){ if(e.target===modal) closeLibrary(); };
   document.body.appendChild(modal);
-  // 재오픈 시 항상 첫 탭 + 스크롤 상단
-  loadLibList(kind||'all');
+  // 정렬 값 복원
+  const sortSel = document.getElementById('lib-sort'); if(sortSel) sortSel.value = state.libSort;
+  switchLibTab(state.libCurrentTab);
   setTimeout(()=>{ const b=document.getElementById('lib-body'); if(b) b.scrollTop=0; const x=document.querySelector('.lib-box'); if(x) x.scrollTop=0; }, 0);
+  // 카운트 채우기
+  refreshLibTabCounts();
 }
 function closeLibrary(){ const m = document.getElementById('lib-modal'); if(m) m.remove(); }
-
-// ===== My Preset / My Project 공통 팝업 (Library와 동일 패턴) =====
-function openMyPreset(){
-  closeLibrary();
-  let modal = document.getElementById('mp-modal'); if(modal) modal.remove();
-  modal = document.createElement('div'); modal.id='mp-modal'; modal.className='lib-modal';
-  const list = (state.userPresets || []);
-  const itemsHtml = list.length === 0
-    ? '<div class="lib-empty"><div class="lib-empty-t">저장된 프리셋이 없습니다</div><div class="lib-empty-s">빌더에서 [+ 현재 필터 저장]을 클릭해서 추가하세요.</div></div>'
-    : '<div class="lib-list">' + list.map(p => {
-        const dimCount = Object.keys(p.filters || {}).length;
-        return `<div class="lib-card" style="cursor:pointer" onclick="applyPreset('${p.id}'); closeMyPreset(); switchTab('overview');">
-          <div class="lib-card-t" style="display:flex;align-items:center;gap:6px">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="#F59E0B" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            ${p.name}
-          </div>
-          <div class="lib-card-meta">${dimCount}개 차원 · ${p.country || '국가 미지정'}</div>
-          <div class="lib-card-acts">
-            <button class="lib-act" onclick="event.stopPropagation();applyPreset('${p.id}'); closeMyPreset(); switchTab('overview');">적용</button>
-            <button class="lib-act lib-act-del" onclick="event.stopPropagation();if(confirm('이 프리셋을 삭제할까요?')){deleteUserPreset('${p.id}'); openMyPreset();}">삭제</button>
-          </div>
-        </div>`;
-      }).join('') + '</div>';
-  modal.innerHTML = '<div class="lib-box">'
-    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>My Preset</div><button class="lib-close" onclick="closeMyPreset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-    + '<div class="lib-body" id="mp-body">' + itemsHtml + '</div>'
-    + '</div>';
-  modal.onclick = function(e){ if(e.target===modal) closeMyPreset(); };
-  document.body.appendChild(modal);
-  setTimeout(()=>{ const b=document.getElementById('mp-body'); if(b) b.scrollTop=0; }, 0);
-}
-function closeMyPreset(){ const m = document.getElementById('mp-modal'); if(m) m.remove(); }
-
-function openMyProject(){
-  closeLibrary();
-  let modal = document.getElementById('mj-modal'); if(modal) modal.remove();
-  modal = document.createElement('div'); modal.id='mj-modal'; modal.className='lib-modal';
-  modal.innerHTML = '<div class="lib-box">'
-    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>My Project</div><button class="lib-close" onclick="closeMyProject()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-    + '<div class="lib-body" id="mj-body"><div class="lib-empty"><div class="lib-empty-t">프로젝트 기능은 준비 중입니다</div><div class="lib-empty-s">다수의 타겟을 넍어 프로젝트 단위로 관리하는 기능이 추가될 예정입니다.</div></div></div>'
-    + '</div>';
-  modal.onclick = function(e){ if(e.target===modal) closeMyProject(); };
-  document.body.appendChild(modal);
-}
-function closeMyProject(){ const m = document.getElementById('mj-modal'); if(m) m.remove(); }
-async function loadLibList(kind){
+function switchLibTab(kind){
+  state.libCurrentTab = kind;
   document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.lkind===kind));
+  const createBtn = document.getElementById('lib-create-btn');
+  if(createBtn) createBtn.style.display = (kind==='projects') ? 'inline-flex' : 'none';
+  loadLibTab(kind);
+}
+async function refreshLibTabCounts(){
+  try{
+    const r = await fetch(API + '/library?owner=anon&saved=true'); const d = await r.json();
+    const tEl = document.getElementById('lib-tc-targets'); if(tEl) tEl.textContent = (d.targets||[]).length;
+  }catch(e){}
+  const pEl = document.getElementById('lib-tc-presets'); if(pEl) pEl.textContent = (state.userPresets||[]).length;
+  const jEl = document.getElementById('lib-tc-projects'); if(jEl) jEl.textContent = (state.projects||[]).length;
+}
+async function loadLibTab(kind){
+  if(kind==='targets') return loadLibTargets();
+  if(kind==='presets') return loadLibPresets();
+  if(kind==='projects') return loadLibProjects();
+}
+function libSortItems(items, sort){
+  const arr = items.slice();
+  if(sort==='favorites'){
+    arr.sort((a,b)=> (b.favorited?1:0) - (a.favorited?1:0) || (new Date(b.updatedAt||0) - new Date(a.updatedAt||0)));
+  } else if(sort==='name'){
+    arr.sort((a,b)=> (a.name||'').localeCompare(b.name||'', 'ko'));
+  } else { // recent
+    arr.sort((a,b)=> new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+  }
+  return arr;
+}
+
+
+// ============ 신규 탭별 로더 ============
+async function loadLibTargets(){
   const body = document.getElementById('lib-body'); if(!body) return;
   body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">불러오는 중...</div></div>';
   try{
-    let q='?owner=anon';
-    if(kind==='favorites') q+='&favorited=true';
-    if(kind==='recent') q+='&recent=true&limit=20';
-    if(kind==='all') q+='&saved=true';
-    const r = await fetch(API + '/library' + q); const d = await r.json();
-    const items = d.targets||[];
+    const r = await fetch(API + '/library?owner=anon&saved=true'); const d = await r.json();
+    let items = d.targets||[];
+    items = libSortItems(items, state.libSort);
+    const tEl = document.getElementById('lib-tc-targets'); if(tEl) tEl.textContent = items.length;
     if(items.length===0){
-      const msgMap = { all:['저장된 타겟이 없습니다','요약 탭 우측 상단 [저장] 버튼을 눌러 타겟을 보관하세요.'], favorites:['즐겨찾기가 비어있습니다','저장된 타겟의 별 버튼을 눌러 즐겨찾기에 추가하세요.'], recent:['최근 분석 이력이 없습니다','빌더 또는 자연어로 분석을 실행하면 여기 기록됩니다.'] };
-      const msg = msgMap[kind] || ['비어있습니다',''];
-      body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">' + msg[0] + '</div><div class="lib-empty-s">' + msg[1] + '</div></div>';
+      body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">저장된 타겟이 없습니다</div><div class="lib-empty-s">요약 탭 상단의 [저장] 버튼으로 분석 결과를 라이브러리에 보관하세요.</div></div>';
       return;
     }
-    body.innerHTML = '<div class="lib-cards">' + items.map(t=>libCardHtml(t)).join('') + '</div>';
+    body.innerHTML = '<div class="lib-cards">' + items.map(t=>libTargetCard(t)).join('') + '</div>';
   }catch(e){ body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">불러오기 실패</div><div class="lib-empty-s">' + e.message + '</div></div>'; }
 }
-function libCardHtml(t){
+
+function libTargetCard(t){
   const country = (state.countries||[]).find(x=>x.code===t.country);
   const fc = Object.keys(t.filters||{}).length;
   const upd = new Date(t.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
   return '<div class="lib-card">' +
-    '<button class="lib-card-fav-top ' + (t.favorited?'active':'') + '" onclick="toggleCardFav(\''+t.id+'\', ' + (!t.favorited) + ')" title="' + (t.favorited?'즐겨찾기 해제':'즐겨찾기 추가') + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (t.favorited?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>' +
-    '<div class="lib-card-t">' + t.name + '</div>' +
+    '<button class="lib-card-fav-top ' + (t.favorited?'active':'') + '" onclick="event.stopPropagation();toggleCardFav(\''+t.id+'\', ' + (!t.favorited) + ')" title="' + (t.favorited?'즐겨찾기 해제':'즐겨찾기 추가') + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (t.favorited?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>' +
+    '<div class="lib-card-t">' + escapeHtml(t.name) + '</div>' +
     '<div class="lib-card-meta"><span>' + (country?.name||t.country||'—') + '</span><span>' + fc + '개 필터</span><span>' + upd + '</span></div>' +
     '<div class="lib-card-actions">' +
       '<button class="lib-card-btn" onclick="reopenTarget(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>열기</button>' +
+      '<button class="lib-card-btn" onclick="renameTargetPromptById(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>이름</button>' +
+      '<button class="lib-card-btn" onclick="addTargetToProjectPrompt(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>프로젝트</button>' +
       '<button class="lib-card-btn danger" onclick="deleteTarget(\''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>' +
     '</div></div>';
 }
+
+async function loadLibPresets(){
+  const body = document.getElementById('lib-body'); if(!body) return;
+  let items = (state.userPresets||[]).slice();
+  // 정렬 (프리셋은 favorited 필드 보장 + savedAt)
+  items = items.map(p => ({ ...p, updatedAt: p.updatedAt || p.savedAt || Date.now() }));
+  items = libSortItems(items, state.libSort);
+  const pEl = document.getElementById('lib-tc-presets'); if(pEl) pEl.textContent = items.length;
+  if(items.length === 0){
+    body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">저장된 프리셋이 없습니다</div><div class="lib-empty-s">빌더에서 필터를 설정한 후 [+ 현재 필터 저장]을 눌러 프리셋으로 보관하세요.<br>프리셋은 분석 결과가 아닌 <b>필터 조합 템플릿</b>입니다.</div></div>';
+    return;
+  }
+  body.innerHTML = '<div class="lib-cards">' + items.map(p=>libPresetCard(p)).join('') + '</div>';
+}
+
+function libPresetCard(p){
+  const country = (state.countries||[]).find(x=>x.code===p.country);
+  const fc = Object.keys(p.filters||{}).length;
+  const upd = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) : '—';
+  return '<div class="lib-card">' +
+    '<button class="lib-card-fav-top ' + (p.favorited?'active':'') + '" onclick="event.stopPropagation();togglePresetFav(\''+p.id+'\')" title="' + (p.favorited?'즐겨찾기 해제':'즐겨찾기 추가') + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (p.favorited?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>' +
+    '<div class="lib-card-t">' + escapeHtml(p.name) + '</div>' +
+    '<div class="lib-card-meta"><span>' + (country?.name||p.country||'—') + '</span><span>' + fc + '개 필터</span><span>' + upd + '</span></div>' +
+    '<div class="lib-card-actions">' +
+      '<button class="lib-card-btn" onclick="applyPresetFromLib(\''+p.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>적용</button>' +
+      '<button class="lib-card-btn" onclick="renamePresetPrompt(\''+p.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>이름</button>' +
+      '<button class="lib-card-btn danger" onclick="deletePresetFromLib(\''+p.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>' +
+    '</div></div>';
+}
+
+async function loadLibProjects(){
+  const body = document.getElementById('lib-body'); if(!body) return;
+  loadProjectsFromStorage();
+  let items = (state.projects||[]).slice();
+  items = items.map(p => ({ ...p, updatedAt: p.updatedAt || p.createdAt || Date.now() }));
+  items = libSortItems(items, state.libSort);
+  const jEl = document.getElementById('lib-tc-projects'); if(jEl) jEl.textContent = items.length;
+  if(items.length === 0){
+    body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">프로젝트가 없습니다</div><div class="lib-empty-s">우측 상단 [새 프로젝트] 버튼으로 캠페인을 만드세요.<br>프로젝트는 <b>여러 타겟을 캠페인 단위로 묶는</b> 컨테이너입니다.</div></div>';
+    return;
+  }
+  body.innerHTML = '<div class="lib-cards">' + items.map(p=>libProjectCard(p)).join('') + '</div>';
+}
+
+function libProjectCard(p){
+  const upd = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}) : '—';
+  const tcount = (p.targetIds||[]).length;
+  return '<div class="lib-card">' +
+    '<button class="lib-card-fav-top ' + (p.favorited?'active':'') + '" onclick="event.stopPropagation();toggleProjectFav(\''+p.id+'\')" title="' + (p.favorited?'즐겨찾기 해제':'즐겨찾기 추가') + '"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (p.favorited?'currentColor':'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>' +
+    '<div class="lib-card-t">' + escapeHtml(p.name) + '</div>' +
+    '<div class="lib-card-meta"><span>타겟 ' + tcount + '개</span><span>' + upd + '</span></div>' +
+    (p.description ? '<div style="font-size:11.5px;color:var(--tm);margin-top:4px;line-height:1.5">'+escapeHtml(p.description)+'</div>' : '') +
+    '<div class="lib-card-actions">' +
+      '<button class="lib-card-btn" onclick="openProjectDetail(\''+p.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>열기</button>' +
+      '<button class="lib-card-btn" onclick="renameProjectPrompt(\''+p.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>이름</button>' +
+      '<button class="lib-card-btn danger" onclick="deleteProject(\''+p.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>' +
+    '</div></div>';
+}
+
+function escapeHtml(s){ return String(s||'').replace(/[&<>"\']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function toggleCardFav(id, fav){
   try{ await fetch(API + '/library/' + id, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ favorited: fav }) }); const a=document.querySelector('.lib-tab.active'); loadLibList(a?.dataset.lkind||'all'); }catch(e){}
 }
@@ -3184,6 +3248,168 @@ async function reopenTarget(id){
     setTimeout(()=>runAnalysis(),300);
     if(typeof toast==='function') toast('타겟 불러오기 — 자동 분석');
   }catch(e){ console.error(e); }
+}
+
+async function renameTargetPrompt(id, oldName){
+  const nm = prompt('새 이름을 입력하세요:', oldName||'');
+  if(!nm || nm===oldName) return;
+  try{
+    await fetch(API + '/library/' + id, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: nm }) });
+    loadLibTab(state.libCurrentTab);
+  }catch(e){ toast('이름 변경 실패: ' + e.message); }
+}
+async function renameTargetPromptById(id){
+  try{
+    const r = await fetch(API + '/library/' + id); const d = await r.json();
+    if(!d.ok) return;
+    return renameTargetPrompt(id, d.target?.name || '');
+  }catch(e){}
+}
+
+// ============ 프리셋 CRUD (라이브러리 내) ============
+function applyPresetFromLib(id){
+  const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
+  // 적용 — 메인의 applyPreset 대체 구현
+  if(p.country && typeof selectCountry==='function') selectCountry(p.country);
+  state.filters = JSON.parse(JSON.stringify(p.filters||{}));
+  closeLibrary();
+  goWorkspace().then(()=>{ switchTab('overview'); if(typeof renderBuilder==='function') renderBuilder(); if(typeof refreshSegment==='function') refreshSegment(); if(typeof updateWsCountryLabel==='function') updateWsCountryLabel(); toast('프리셋 적용: ' + p.name); });
+}
+function togglePresetFav(id){
+  state.userPresets = (state.userPresets||[]).map(p => p.id===id ? { ...p, favorited: !p.favorited, updatedAt: Date.now() } : p);
+  saveUserPresets();
+  loadLibTab('presets');
+}
+function renamePresetPrompt(id){
+  const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
+  const nm = prompt('새 프리셋 이름:', p.name||'');
+  if(!nm || nm===p.name) return;
+  state.userPresets = (state.userPresets||[]).map(x => x.id===id ? { ...x, name: nm, updatedAt: Date.now() } : x);
+  saveUserPresets();
+  renderUserPresetsInSidebar();
+  loadLibTab('presets');
+}
+function deletePresetFromLib(id){
+  const p = (state.userPresets||[]).find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm('프리셋 "' + p.name + '"을 삭제할까요?')) return;
+  state.userPresets = (state.userPresets||[]).filter(x => x.id !== id);
+  saveUserPresets();
+  renderUserPresetsInSidebar();
+  loadLibTab('presets');
+}
+
+// ============ 프로젝트 CRUD ============
+function loadProjectsFromStorage(){
+  try{
+    const raw = localStorage.getItem('innocean.audience.projects');
+    state.projects = raw ? JSON.parse(raw) : [];
+  }catch(e){ state.projects = []; }
+}
+function saveProjectsToStorage(){
+  try{ localStorage.setItem('innocean.audience.projects', JSON.stringify(state.projects || [])); }catch(e){}
+}
+function libCreateProject(){
+  const name = prompt('프로젝트 이름:', '캐페인 ' + ((state.projects||[]).length + 1));
+  if(!name) return;
+  const desc = prompt('설명 (선택):', '') || '';
+  loadProjectsFromStorage();
+  state.projects = state.projects || [];
+  state.projects.unshift({
+    id: 'pj_' + Math.random().toString(36).slice(2,9),
+    name,
+    description: desc,
+    favorited: false,
+    targetIds: [],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  saveProjectsToStorage();
+  loadLibTab('projects');
+  refreshLibTabCounts();
+  toast('프로젝트 생성: ' + name);
+}
+function toggleProjectFav(id){
+  loadProjectsFromStorage();
+  state.projects = (state.projects||[]).map(p => p.id===id ? { ...p, favorited: !p.favorited, updatedAt: Date.now() } : p);
+  saveProjectsToStorage();
+  loadLibTab('projects');
+}
+function renameProjectPrompt(id){
+  const p = (state.projects||[]).find(x=>x.id===id); if(!p) return;
+  const nm = prompt('새 프로젝트 이름:', p.name||'');
+  if(!nm || nm===p.name) return;
+  const desc = prompt('설명 (비워두려면 그대로):', p.description||'');
+  state.projects = (state.projects||[]).map(x => x.id===id ? { ...x, name: nm, description: desc!==null?desc:x.description, updatedAt: Date.now() } : x);
+  saveProjectsToStorage();
+  loadLibTab('projects');
+}
+function deleteProject(id){
+  const p = (state.projects||[]).find(x=>x.id===id); if(!p) return;
+  if(!confirm('프로젝트 "' + p.name + '"를 삭제할까요?\n(포함된 타겟 자체는 삭제되지 않아요)')) return;
+  state.projects = (state.projects||[]).filter(x => x.id !== id);
+  saveProjectsToStorage();
+  loadLibTab('projects');
+  refreshLibTabCounts();
+}
+async function openProjectDetail(id){
+  loadProjectsFromStorage();
+  const p = (state.projects||[]).find(x=>x.id===id); if(!p) return;
+  // 포함된 타겟 메타 조회
+  let targets = [];
+  if((p.targetIds||[]).length){
+    try{
+      const r = await fetch(API + '/library?owner=anon&saved=true'); const d = await r.json();
+      const all = d.targets || [];
+      targets = (p.targetIds||[]).map(tid => all.find(t=>t.id===tid)).filter(Boolean);
+    }catch(e){}
+  }
+  let modal = document.getElementById('pj-modal'); if(modal) modal.remove();
+  modal = document.createElement('div'); modal.id='pj-modal'; modal.className='lib-modal';
+  const tHtml = targets.length === 0
+    ? '<div class="lib-empty"><div class="lib-empty-t">프로젝트에 타겟이 없습니다</div><div class="lib-empty-s">[모든 타겟] 탭에서 각 카드의 [프로젝트] 버튼으로 담아 주세요.</div></div>'
+    : '<div class="lib-cards">' + targets.map(t => libTargetCard(t).replace('<div class="lib-card-actions">', '<div class="lib-card-actions"><button class="lib-card-btn danger" onclick="removeTargetFromProject(\''+p.id+'\', \''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>프로젝트에서 제거</button>')).join('') + '</div>';
+
+  modal.innerHTML = '<div class="lib-box">'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' + escapeHtml(p.name) + '<span style="font-size:11px;color:var(--tm);font-weight:500;margin-left:8px">타겟 ' + targets.length + '개</span></div><button class="lib-close" onclick="document.getElementById(\'pj-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + (p.description ? '<div style="padding:10px 22px;background:#F9FAFB;border-bottom:1px solid var(--bdr);font-size:12px;color:#4B5563">' + escapeHtml(p.description) + '</div>' : '')
+    + '<div class="lib-body">' + tHtml + '</div>'
+    + '</div>';
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+function removeTargetFromProject(projectId, targetId){
+  loadProjectsFromStorage();
+  state.projects = (state.projects||[]).map(p => p.id===projectId ? { ...p, targetIds: (p.targetIds||[]).filter(t => t !== targetId), updatedAt: Date.now() } : p);
+  saveProjectsToStorage();
+  openProjectDetail(projectId);
+  toast('프로젝트에서 제거');
+}
+async function addTargetToProjectPrompt(targetId){
+  loadProjectsFromStorage();
+  if(!(state.projects||[]).length){
+    if(confirm('아직 프로젝트가 없습니다. 새 프로젝트를 만드시겠어요?')){
+      libCreateProject();
+    }
+    return;
+  }
+  // 간단 선택 팝업
+  const list = (state.projects||[]).map((p,i) => `${i+1}. ${p.name} (타겟 ${(p.targetIds||[]).length}개)`).join('\n');
+  const sel = prompt('프로젝트 번호를 입력하세요 (0 = 새 프로젝트):\n\n' + list, '1');
+  if(sel === null) return;
+  const idx = parseInt(sel, 10) - 1;
+  let proj;
+  if(idx === -1){ libCreateProject(); return; }
+  proj = state.projects[idx];
+  if(!proj){ toast('잘못된 번호'); return; }
+  if((proj.targetIds||[]).includes(targetId)){
+    toast('이미 포함된 타겟');
+    return;
+  }
+  state.projects = state.projects.map(p => p.id===proj.id ? { ...p, targetIds: [...(p.targetIds||[]), targetId], updatedAt: Date.now() } : p);
+  saveProjectsToStorage();
+  toast('"' + proj.name + '"에 추가됨');
+  refreshLibTabCounts();
 }
 
 // ============ 워크스페이스 국가 선택기 (타겟 하단) ============
@@ -4712,8 +4938,11 @@ function savePresetFromCurrent(){
   state.userPresets = state.userPresets || [];
   state.userPresets.unshift({
     id, name: name.trim(),
+    country: state.currentCountry,
     filters: JSON.parse(JSON.stringify(state.filters)),
+    favorited: false,
     createdAt: new Date().toISOString(),
+    updatedAt: Date.now(),
   });
   saveUserPresets();
   renderBuilder();

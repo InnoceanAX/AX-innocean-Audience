@@ -5,7 +5,7 @@
 import { Router } from "express";
 import { COUNTRIES } from "../data/countries.js";
 import { DIMENSIONS } from "../data/dimensions.js";
-import { chat, generateJSON, isGeminiAvailable } from "../adapters/gemini.js";
+import { chat, generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
 import { getCountryStats } from "../adapters/worldbank.js";
 import {
   getCountryAdSpend, getKoreaMediaAdSpend,
@@ -61,6 +61,21 @@ interviewRouter.post("/persona", async (req, res) => {
   }
 
   const filterDesc = describeFilters(filters);
+
+  // 최신 이슈 grounding (Gemini + Google Search) — 실패 해도 괄괄하게 진행
+  let realtimeCtx = "";
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const filterKeywords = Object.values(filters || {}).flat().filter(Boolean).join(", ");
+    if (filterKeywords && isGeminiAvailable() && process.env.PERSONA_USE_GROUNDING !== "0") {
+      const q = `오늘 날짜: ${today}. ${meta.name}의 ${filterKeywords} 관련 광고/마케팅 최신 트렌드/이슈/인플루언서 동향을 4-6문장으로 요약해주세요. 최근 연예인 활동 변화, K-Pop 그룹 멤버 구성 변동, 주요 쯩킨 이슈 등 괄련되면 포함. 설명은 반드시 한국어로.`;
+      const g = await searchAndSummarize({ query: q, maxTokens: 600 });
+      if (g.text && g.text.length > 20) {
+        realtimeCtx = `\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(페르소나 설듵에 최신 내용을 반영, 단 부정확 가능성 수용)`;
+      }
+    }
+  } catch (e) { /* grounding 실패 괄괄 */ }
+
   const system = `당신은 광고 리서치 전문가입니다. 주어진 국가와 세그먼트 정보를 바탕으로 합성 페르소나를 생성합니다.
 페르소나는 통계적으로 그럴듯한 가상의 인물이며, 실제 사람이 아닙니다.
 JSON 스키마에 정확히 따르세요.
@@ -90,7 +105,7 @@ ${adSpendCtx}
 ${topChannels}${topMediaCtx}
 
 [세그먼트 필터]
-${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}
+${filterDesc || "(필터 없음 — 일반 시민 페르소나)"}${realtimeCtx}
 
 위 정보로 그럴듯한 합성 페르소나 1명을 생성하세요.
 ⚠️ 중요: 페르소나의 mediaHabits는 위 데이터의 실제 매체 점유율과 일치해야 합니다.

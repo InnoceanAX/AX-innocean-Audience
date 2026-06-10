@@ -20,6 +20,29 @@ export function isGeminiAvailable() {
   } catch { return false; }
 }
 
+// Google Search grounding·광고 시장 최신 이슈를 검색해 단답 요약을 재구성
+// Vertex AI v2 SDK 스타일 (tools.googleSearch)
+export async function searchAndSummarize({ query, model = "gemini-2.5-flash", maxTokens = 1024 }) {
+  if (!isGeminiAvailable()) return { text: "", grounded: false };
+  try {
+    const client = getClient();
+    const m = client.getGenerativeModel({
+      model,
+      generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens },
+      tools: [{ googleSearchRetrieval: {} }],
+    });
+    const result = await m.generateContent({
+      contents: [{ role: "user", parts: [{ text: query }] }],
+    });
+    const txt = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const meta = result.response?.candidates?.[0]?.groundingMetadata || null;
+    return { text: txt, grounded: !!meta, sources: meta?.webSearchQueries || [], model };
+  } catch (e) {
+    // grounding tool 미지원 또는 권한 없으면 fallback
+    return { text: "", grounded: false, error: e.message };
+  }
+}
+
 // 일반 텍스트 생성
 export async function generateText({ prompt, system, model = "gemini-2.5-flash", temperature = 0.4, maxTokens = 1024 }) {
   const client = getClient();

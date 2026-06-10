@@ -377,6 +377,15 @@ audienceRouter.post("/synthesize", async (req, res) => {
   // 베이스라인 (필터 없는 국가 통계)
   const baselineWho = getDemographics(meta.code);
   const baselineLife = getLifestyle(meta.code);
+  const baselineMind = getMindset(meta.code);
+  const baselineLove = getInterests(meta.code);
+  const baselineBuy = getPurchase(meta.code);
+  // 매체 고장 점유 (주요 채널)
+  let mediaShare = null;
+  try{
+    const adSpend = getCountryAdSpend(meta.code);
+    if(adSpend) mediaShare = adSpend.channels || null;
+  }catch(e){}
 
   // 필터 요약 → 사람이 읽기 좋은 한국어
   const filterSummary = Object.entries(filters)
@@ -405,11 +414,29 @@ audienceRouter.post("/synthesize", async (req, res) => {
 - 일본어(ひらがな·カタカナ·漢字 단독)·중국어(간체자)·기타 현지어는 절대 사용 금지.
 - 고유명사(브랜드/플랫폼 등)는 원이름 그대로 쓸 수 있으나 이외 서술은 전부 한국어.`;
 
-      const prompt = `국가: ${meta.name} (${meta.code})
-세그먼트 필터: ${filterSummary}
-국가 베이스라인(참고): 중위 연령 ${baselineWho?.medianAge || "N/A"}, 도시화율 ${baselineWho?.urbanRate || "N/A"}%, 인터넷 보급률 ${baselineLife?.internetPenetration || "N/A"}%
+      const chartBaseline = `
 
-위 세그먼트의 5차원 합성 통계를 JSON으로 생성하세요. 모든 값은 사실적이고 추정 가능한 범위 안에 있어야 합니다.`;
+[차트에 표시되는 실제 데이터 — 합성치는 이 값들과 일관되게 조정]
+· Who(인구통계) 베이스라인: ${baselineWho ? JSON.stringify(baselineWho).slice(0, 600) : 'N/A'}
+· Life(라이프스타일) 베이스라인: ${baselineLife ? JSON.stringify(baselineLife).slice(0, 600) : 'N/A'}
+· Mind(가치관) 베이스라인: ${baselineMind ? JSON.stringify(baselineMind).slice(0, 600) : 'N/A'}
+· Love(관심사) 베이스라인: ${baselineLove ? JSON.stringify(baselineLove).slice(0, 600) : 'N/A'}
+· Buy(구매) 베이스라인: ${baselineBuy ? JSON.stringify(baselineBuy).slice(0, 600) : 'N/A'}${mediaShare ? `
+· Media(매체 광고비 점유): ${JSON.stringify(mediaShare).slice(0, 600)}` : ''}
+
+[일관성 규칙 — 강제]
+· 위 베이스라인은 실제 차트에 그려지는 국가 평균 값입니다.
+· 합성 세그먼트 통계는 이 국가 평균을 **필터(제약 조건)으로 조정한 값**이 되어야 합니다.
+· 예: 국가 올라인 쿠머스 이용률 60% → 20-30대 세그먼트는 75% 수준으로 상향 조정 (5-20% 상향).
+· 국가 평균과 완전히 모순되는 값(예: 50%p 이상 차이)은 금지.
+· 매체 광고비 점유율이 주어지면 media.topChannels/adReceptivity는 그 순서·점유육을 반영.`;
+
+      const prompt = `국가: ${meta.name} (${meta.code})
+세그먼트 필터: ${filterSummary}${chartBaseline}
+
+위 세그먼트의 5차원 + Media 합성 통계를 JSON으로 생성하세요.
+- 모든 값은 위 베이스라인과 일관되게서도 **필터 제약 반영**된 값.
+- 수치는 사실적 범위, 극단값 금지.`;
 
       const schema = {
         type: "object",
