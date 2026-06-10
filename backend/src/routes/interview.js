@@ -252,6 +252,100 @@ interviewRouter.post("/influencer-match", async (req, res) => {
 });
 
 // POST /api/interview/panel  — 동일 세그먼트 안 다양성 패널 (3-5명)
+// POST /api/interview/persona/enrich — 간이 페르소나(패널 멤버)를 손용한 단일 프로필로 확장
+// → narratives 5차원 서술 추가
+interviewRouter.post("/persona/enrich", async (req, res) => {
+  const { persona: simple, country = "KR", filters = {} } = req.body || {};
+  if (!simple || !simple.name) return res.status(400).json({ ok: false, error: "persona required" });
+  const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());
+  if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
+
+  // narratives 이미 있으면 그대로 반환
+  if (simple.narratives && simple.narratives.who) {
+    return res.json({ ok: true, persona: simple, country: meta, meta: { method: "passthrough" } });
+  }
+
+  if (!isGeminiAvailable()) {
+    // 룰기반 간이 narratives
+    return res.json({
+      ok: true,
+      country: meta,
+      persona: { ...simple, narratives: synthesizeNarratives(simple, meta) },
+      meta: { method: "fallback" },
+    });
+  }
+
+  const filterDesc = describeFilters(filters);
+  const system = `당신은 광고 리서치 전문가입니다. 주어진 간이 페르소나를 바탕으로 심층 narratives 5차원을 한국어로 자연스러운 단락형 서술로 작성합니다.
+각 필드는 3–4문장 이상, 구체적 맥락·숨겨진 동기·일상의 장면 포함.
+"키워드, 키워드" 형식 금지. 완전한 문장 단락.
+Lifestyle, values, mediaHabits, purchaseDrivers, painPoints 의 기존 설정과 모순되지 않아야 함.`;
+
+  const prompt = `[국가] ${meta.name}
+[세그먼트] ${filterDesc || "(필터 없음)"}
+[이름] ${simple.name} | [나이] ${simple.age} | [직업] ${simple.occupation || ""}
+[아키타입] ${simple.archetype || ""}
+[라이프스타일] ${simple.lifestyle || ""}
+[가치관] ${(simple.values || []).join(", ")}
+[미디어 습관] ${(simple.mediaHabits || []).join(", ")}
+[구매 동기] ${(simple.purchaseDrivers || []).join(", ")}
+[페인포인트] ${(simple.painPoints || []).join(", ")}
+[인용구] ${simple.quote || ""}
+
+이 정보를 바탕으로 narratives.who / life / mind / love / buy 5개를 각각 3–4문장의 자연스러운 단락으로 작성하세요.`;
+
+  const schema = {
+    type: "object",
+    properties: {
+      narratives: {
+        type: "object",
+        properties: {
+          who: { type: "string" },
+          life: { type: "string" },
+          mind: { type: "string" },
+          love: { type: "string" },
+          buy: { type: "string" },
+        },
+        required: ["who", "life", "mind", "love", "buy"],
+      },
+    },
+    required: ["narratives"],
+  };
+
+  try {
+    const result = await generateJSON({ prompt, system, schema, model: "gemini-2.5-flash", temperature: 0.7 });
+    if (!result.json || !result.json.narratives) throw new Error("narratives generation failed");
+    res.json({
+      ok: true,
+      country: meta,
+      persona: { ...simple, narratives: result.json.narratives },
+      meta: { method: "gemini-2.5-flash (enrich)", ts: new Date().toISOString() },
+    });
+  } catch (e) {
+    res.json({
+      ok: true,
+      country: meta,
+      persona: { ...simple, narratives: synthesizeNarratives(simple, meta) },
+      meta: { method: "fallback", error: e.message },
+    });
+  }
+});
+
+// 룰기반 fallback narratives 합성
+function synthesizeNarratives(p, meta) {
+  const interests = (p.values || []).slice(0, 3).join(", ");
+  const media = (p.mediaHabits || []).slice(0, 3).join(", ");
+  const drivers = (p.purchaseDrivers || []).slice(0, 2).join(", ");
+  const pains = (p.painPoints || []).slice(0, 2).join(", ");
+  return {
+    who: `${p.age}세 ${p.gender || ""} ${p.occupation || "직장인"}으로, ${meta.name}의 일반적 ${p.archetype || "소비자"} 세그먼트에 속합니다. ${p.lifestyle || ""}`.trim(),
+    life: `일상은 ${media} 시청과 소비가 중심입니다. ${p.lifestyle || ""}`.trim(),
+    mind: `${interests}를 중요하게 여기며, ${pains} 같은 이슈에 민감합니다.`,
+    love: `${interests} 관련 콘텐츠와 미디어(${media})를 지속적으로 소비합니다.`,
+    buy: `${drivers}가 주요 구매 동기이며, ${pains}를 해소해 주는 제품/서비스에 관심이 높습니다.`,
+  };
+}
+
 interviewRouter.post("/panel", async (req, res) => {
   const { country = "KR", filters = {}, count = 4 } = req.body || {};
   const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());

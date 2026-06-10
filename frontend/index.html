@@ -4920,8 +4920,25 @@ async function generatePersona(persona){
     if(persona){
       state.ivPersona = persona;
       state.ivHistory = [];
-      renderPersonaCard(persona, { method: 'gemini-2.5-flash (panel)' });
       document.getElementById('iv-msgs').innerHTML = '';
+      // 일단 기본 렌더링 (narratives 로딩 중 표시)
+      renderPersonaCard(persona, { method: 'gemini-2.5-flash (panel)' });
+      // narratives 없으면 enrich 호출해서 단일 프로필처럼 완성
+      if(!persona.narratives || !persona.narratives.who){
+        try{
+          const enrichRes = await fetch(`${API}/interview/persona/enrich`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ persona, country: state.currentCountry, filters: state.filters }),
+          });
+          const enriched = await enrichRes.json();
+          if(enriched.ok && enriched.persona){
+            state.ivPersona = enriched.persona;
+            renderPersonaCard(enriched.persona, enriched.meta);
+          }
+        }catch(e){ console.warn('enrich failed', e); }
+      }
+      // 하루의 미디어 여정 자동 호출 (단일 페르소나와 동일한 경험)
+      fetchPersonaJourney(state.ivPersona);
       return;
     }
     // 국가 미선택 가드 — 모달 열고 종료
