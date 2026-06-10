@@ -177,7 +177,7 @@ a{color:inherit;text-decoration:none}
 
 /* Big chat input */
 .chat-input-wrap{
-  width:100%;max-width:720px;
+  width:100%;
   border:2px solid var(--ind);border-radius:20px;
   background:#fff;padding:18px 18px 14px;
   box-shadow:0 4px 24px -8px rgba(79,70,229,.25);
@@ -554,7 +554,7 @@ a{color:inherit;text-decoration:none}
 .mt-mr-s{font-size:11.5px;color:#1E40AF}
 /* Entry 3-way */
 
-.reco-flow{display:flex;align-items:center;gap:16px;padding:14px 18px;background:#FAFBFF;border:1px solid #E0E7FF;border-radius:10px;margin-top:28px;flex-wrap:wrap}
+.reco-flow{display:flex;align-items:center;gap:16px;padding:14px 18px;background:#FAFBFF;border:1px solid #E0E7FF;border-radius:10px;margin-top:28px;flex-wrap:wrap;width:100%;box-sizing:border-box}
 .reco-flow-l{font-size:11px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
 .reco-flow-steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:0 10px;width:100%}
 .reco-flow-steps .reco-step{display:flex;align-items:center;min-width:0;font-size:12.5px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1063,11 +1063,11 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <div class="sb-section">
       <div class="sb-section-title">Library</div>
       <div class="sb-item" onclick="openProjects()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>프로젝트</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span><span>프로젝트</span>
         <span class="sb-item-meta" id="project-count">0</span>
       </div>
       <div class="sb-item" onclick="openPresets()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>프리셋</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>프리셋</span>
         <span class="sb-item-meta" id="preset-count">0</span>
       </div>
     </div>
@@ -3088,7 +3088,7 @@ async function openProjects(){
   let modal = document.getElementById('proj-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='proj-modal'; modal.className='lib-modal';
   modal.innerHTML = '<div class="lib-box">'
-    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 프로젝트</div><button class="lib-close" onclick="document.getElementById(\'proj-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> 프로젝트</div><button class="lib-close" onclick="document.getElementById(\'proj-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + '<div style="display:flex;align-items:center;gap:8px;padding:12px 22px;border-bottom:1px solid var(--bdr);background:#FAFBFF">'
       + '<button onclick="projCreate()" style="padding:7px 13px;background:var(--ind);color:#fff;border:1px solid var(--ind);border-radius:6px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>새 프로젝트</button>'
       + '<div style="margin-left:auto;display:flex;align-items:center;gap:8px">'
@@ -3121,8 +3121,8 @@ function projRender(){
   const userHtml = userProjects.length === 0
     ? '<div class="lib-empty" style="padding:30px 0"><div class="lib-empty-t" style="font-size:13px">프로젝트가 아직 없습니다</div><div class="lib-empty-s">상단 [새 프로젝트] 버튼으로 캠페인을 만드세요.</div></div>'
     : userProjects.map(p=>projCardHtml(p)).join('');
-  body.innerHTML = '<div style="padding:14px 22px"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">시스템</div><div class="lib-cards">' + inboxHtml + '</div></div>'
-    + '<div style="padding:14px 22px;border-top:1px solid var(--bdr)"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">내 프로젝트</div>' + (userProjects.length===0 ? userHtml : '<div class="lib-cards">'+userHtml+'</div>') + '</div>';
+  body.innerHTML = '<div style="padding:14px 22px"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">내 프로젝트</div>' + (userProjects.length===0 ? userHtml : '<div class="lib-cards">'+userHtml+'</div>') + '</div>'
+    + '<div style="padding:14px 22px;border-top:1px solid var(--bdr);background:#FAFBFB"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">시스템</div><div class="lib-cards">' + inboxHtml + '</div></div>';
 }
 function projCardHtml(p){
   const isInbox = p.system === true;
@@ -3206,7 +3206,7 @@ async function openProjectDetail(id){
     ? '<div class="lib-empty"><div class="lib-empty-t">프로젝트에 타겟이 없습니다</div><div class="lib-empty-s">분석 후 [저장] 버튼으로 이 프로젝트에 담아주세요.</div></div>'
     : '<div class="lib-cards">' + targets.map(t => libTargetCardV2(t, id)).join('') + '</div>';
   modal.innerHTML = '<div class="lib-box">'
-    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' + (typeof escapeHtml==='function'?escapeHtml(p.name):p.name) + ' <span style="font-size:11px;color:var(--tm);font-weight:500;margin-left:4px">타겟 ' + targets.length + '개</span></div><button class="lib-close" onclick="document.getElementById(\'pjd-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> ' + (typeof escapeHtml==='function'?escapeHtml(p.name):p.name) + ' <span style="font-size:11px;color:var(--tm);font-weight:500;margin-left:4px">타겟 ' + targets.length + '개</span></div><button class="lib-close" onclick="document.getElementById(\'pjd-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + (p.description ? '<div style="padding:10px 22px;background:#F9FAFB;border-bottom:1px solid var(--bdr);font-size:12px;color:#4B5563">' + (typeof escapeHtml==='function'?escapeHtml(p.description):p.description) + '</div>' : '')
     + '<div class="lib-body">' + tHtml + '</div>'
   + '</div>';
@@ -3300,7 +3300,7 @@ async function openPresets(){
   let modal = document.getElementById('pset-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='pset-modal'; modal.className='lib-modal';
   modal.innerHTML = '<div class="lib-box">'
-    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> 프리셋</div><button class="lib-close" onclick="document.getElementById(\'pset-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> 프리셋</div><button class="lib-close" onclick="document.getElementById(\'pset-modal\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + '<div style="display:flex;align-items:center;gap:8px;padding:12px 22px;border-bottom:1px solid var(--bdr);background:#FAFBFF">'
       + '<div style="font-size:11.5px;color:var(--tm);font-style:italic">프리셋 생성은 빌더에서 필터 설정 후 [현재 필터 저장]을 누르세요</div>'
       + '<div style="margin-left:auto;display:flex;align-items:center;gap:8px">'
@@ -3396,8 +3396,8 @@ async function chooseProjectForSave(){
         + '<button onclick="window.__saveCreateNew()" style="padding:8px 14px;background:var(--ind);color:#fff;border:1px solid var(--ind);border-radius:6px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>새 프로젝트로 저장</button>'
       + '</div>'
       + '<div class="lib-body">'
-        + '<div style="padding:14px 22px"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">시스템</div><div class="lib-cards">' + inboxCard + '</div></div>'
-        + (userCards ? '<div style="padding:14px 22px;border-top:1px solid var(--bdr)"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">내 프로젝트</div><div class="lib-cards">' + userCards + '</div></div>' : '')
+        + (userCards ? '<div style="padding:14px 22px"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">내 프로젝트</div><div class="lib-cards">' + userCards + '</div></div>' : '')
+        + '<div style="padding:14px 22px;' + (userCards ? 'border-top:1px solid var(--bdr);' : '') + 'background:#FAFBFB"><div style="font-size:10.5px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">시스템</div><div class="lib-cards">' + inboxCard + '</div></div>'
       + '</div>'
     + '</div>';
     modal.onclick = function(e){ if(e.target===modal) window.__saveResolve(null); };
