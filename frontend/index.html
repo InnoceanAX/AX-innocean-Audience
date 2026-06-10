@@ -4373,6 +4373,20 @@ async function runAnalysis(){
   // 5차원 + 미디어 캐시 무효화
   state.audienceCache = {};
   state.mediaCache = null;
+  // 페르소나/인터뷰/심층 대화 리셋 — 이전 타겟 잔존 방지
+  state.ivPersona = null;
+  state.ivHistory = [];
+  state.synthCache = null;
+  try{
+    const ivCard = document.getElementById('iv-card');
+    if(ivCard) ivCard.innerHTML = '';
+    const ivMsgs = document.getElementById('iv-msgs');
+    if(ivMsgs) ivMsgs.innerHTML = '';
+    const ivEmpty = document.getElementById('iv-empty');
+    if(ivEmpty) ivEmpty.classList.remove('hide');
+    const ivBody = document.getElementById('iv-body');
+    if(ivBody) ivBody.classList.add('hide');
+  }catch(e){}
   try {
     // 병렬 fetch — 핵심 차원 데이터 미리 로드
     const code = state.currentCountry;
