@@ -1149,7 +1149,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
       <div class="ws-tab-spacer"></div>
       <button class="ws-tool-btn" onclick="switchTab('compare')" title="글로벌 비교 매트릭스 (28국가 × 5차원)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span>전체 비교</span>
+        <span>글로벌 비교</span>
       </button>
     </div>
 
@@ -3043,8 +3043,19 @@ async function saveToLibrary(opts){
 }
 async function toggleSaveTarget(){
   if(!state.analysisRun){ if(typeof toast==='function') toast('먼저 분석을 실행해주세요'); return; }
-  const t = await saveToLibrary({ saved: true });
-  if(t){ state.savedCurrent = true; renderSummaryActionBar(); if(typeof toast==='function') toast('모든 타겟에 저장됨'); }
+  // 프로젝트 선택 강제 (일관성)
+  const projectId = await chooseProjectForSave();
+  if(!projectId) return;
+  const name = prompt('분석 결과 이름을 입력하세요', (typeof defaultTargetName==='function'? defaultTargetName() : ''));
+  if(!name) return;
+  const t = await saveToLibrary({ saved: true, name });
+  if(t && t.id){
+    attachTargetToProject(projectId, t.id);
+    const pjName = projectId === INBOX_PROJECT_ID ? '임시 보관함' : (state.projects||[]).find(p=>p.id===projectId)?.name || '프로젝트';
+    state.savedCurrent = true; state.currentTargetId = t.id;
+    renderSummaryActionBar();
+    if(typeof toast==='function') toast('저장: "' + pjName + '" → ' + name);
+  }
 }
 async function toggleFavoriteTarget(){
   if(!state.currentTargetId){ const t = await saveToLibrary({ saved: true }); if(!t) return; state.savedCurrent = true; }
@@ -3456,7 +3467,7 @@ async function openLibrary(kind){
   modal.innerHTML = '<div class="lib-box">' +
     '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Library</div><button class="lib-close" onclick="closeLibrary()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
     '<div class="lib-tabs" style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bdr);padding:0 22px;background:#FAFBFF">' +
-      '<button class="lib-tab" data-lkind="targets" onclick="switchLibTab(\'targets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> 모든 타겟 <span class="lib-tab-cnt" id="lib-tc-targets">0</span></button>' +
+      '<button class="lib-tab" data-lkind="targets" onclick="switchLibTab(\'targets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> 분석 결과 <span class="lib-tab-cnt" id="lib-tc-targets">0</span></button>' +
       '<button class="lib-tab" data-lkind="presets" onclick="switchLibTab(\'presets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> 프리셋 <span class="lib-tab-cnt" id="lib-tc-presets">0</span></button>' +
       '<button class="lib-tab" data-lkind="projects" onclick="switchLibTab(\'projects\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 프로젝트 <span class="lib-tab-cnt" id="lib-tc-projects">0</span></button>' +
       '<div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:10px 0">' +
@@ -3640,7 +3651,7 @@ async function renameTargetPrompt(id, oldName){
     loadLibTab(state.libCurrentTab);
   }catch(e){ toast('이름 변경 실패: ' + e.message); }
 }
-async function renameTargetPromptById(id){
+async function __legacyRenameTargetPromptById(id){
   try{
     const r = await fetch(API + '/library/' + id); const d = await r.json();
     if(!d.ok) return;
@@ -3649,7 +3660,7 @@ async function renameTargetPromptById(id){
 }
 
 // ============ 프리셋 CRUD (라이브러리 내) ============
-function applyPresetFromLib(id){
+function __legacyApplyPresetFromLib(id){
   const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
   // 적용 — 메인의 applyPreset 대체 구현
   if(p.country && typeof selectCountry==='function') selectCountry(p.country);
@@ -3662,7 +3673,7 @@ function togglePresetFav(id){
   saveUserPresets();
   loadLibTab('presets');
 }
-function renamePresetPrompt(id){
+function __legacyRenamePresetPrompt(id){
   const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
   const nm = prompt('새 프리셋 이름:', p.name||'');
   if(!nm || nm===p.name) return;
@@ -3671,7 +3682,7 @@ function renamePresetPrompt(id){
   renderUserPresetsInSidebar();
   loadLibTab('presets');
 }
-function deletePresetFromLib(id){
+function __legacyDeletePresetFromLib(id){
   const p = (state.userPresets||[]).find(x=>x.id===id);
   if(!p) return;
   if(!confirm('프리셋 "' + p.name + '"을 삭제할까요?')) return;
@@ -3734,7 +3745,7 @@ function deleteProject(id){
   loadLibTab('projects');
   refreshLibTabCounts();
 }
-async function openProjectDetail(id){
+async function __legacyOpenProjectDetail(id){
   loadProjectsFromStorage();
   const p = (state.projects||[]).find(x=>x.id===id); if(!p) return;
   // 포함된 타겟 메타 조회
@@ -3749,7 +3760,7 @@ async function openProjectDetail(id){
   let modal = document.getElementById('pj-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='pj-modal'; modal.className='lib-modal';
   const tHtml = targets.length === 0
-    ? '<div class="lib-empty"><div class="lib-empty-t">프로젝트에 타겟이 없습니다</div><div class="lib-empty-s">[모든 타겟] 탭에서 각 카드의 [프로젝트] 버튼으로 담아 주세요.</div></div>'
+    ? '<div class="lib-empty"><div class="lib-empty-t">프로젝트에 타겟이 없습니다</div><div class="lib-empty-s">분석 후 [저장] 버튼으로 이 프로젝트에 담아주세요.</div></div>'
     : '<div class="lib-cards">' + targets.map(t => libTargetCard(t).replace('<div class="lib-card-actions">', '<div class="lib-card-actions"><button class="lib-card-btn danger" onclick="removeTargetFromProject(\''+p.id+'\', \''+t.id+'\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>프로젝트에서 제거</button>')).join('') + '</div>';
 
   modal.innerHTML = '<div class="lib-box">'
