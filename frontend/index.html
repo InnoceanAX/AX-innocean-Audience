@@ -4406,7 +4406,7 @@ async function refreshAudienceTab(dim){
       if(src && data.source){
         const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
         const badgeHtml = hasSyn
-          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">★ 빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
+          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
           : '<span class="aud-src-badge">실데이터</span>';
         src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
       }
@@ -4455,7 +4455,7 @@ async function _refreshAudienceTabFetch(dim){
     }
     const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
         const badgeHtml = hasSyn
-          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">★ 빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
+          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
           : '<span class="aud-src-badge">실데이터</span>';
         src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
     body.dataset.country = code;
