@@ -1797,6 +1797,8 @@ function selectCountry(code){
     toast(`${c.name}: Trends 만 일시로 제외 — World Bank·인사이트·페르소나는 정상 제공됩니다.`);
   }
   state.currentCountry = code;
+  // 사용자가 명시적으로 국가를 선택 — entryBuilder/entryExplore 에서 상태 리셋 시 보존
+  state.userPickedCountry = true;
   // 기준국이 비교국 목록에 있으면 제거 (중복 방지)
   const dupIdx = state.compareCountries.indexOf(code);
   if(dupIdx >= 0) state.compareCountries.splice(dupIdx, 1);
@@ -1946,6 +1948,7 @@ function goHome(opts){
     state.cmpManualPins = [];
     state.analysisRun = false;
     state.currentCountry = 'KR';  // 기본 국가로 되돌림 — 이전 분석 국가 핀 잔존 방지
+    state.userPickedCountry = false;  // 홈 복귀 시 사용자 선택 플래그 해제
     state.filters = {};
     state.audienceCache = {};
     state.mediaCache = null;
@@ -2291,6 +2294,9 @@ async function renderMediaTab(data){
 function entryAI(){
   // 워크스페이스 진입 상태 초기화 (이전 진입 잔존 방지)
   state.entryMode = 'ai';
+  // AI 입력창에 이전 질의 잔존 제거 (goHome 경유 안 더라도 보장)
+  const ci = document.getElementById('chat-input');
+  if(ci){ ci.value=''; if(typeof autoResize==='function') autoResize(ci); if(typeof toggleSend==='function') toggleSend(); }
   document.getElementById('chat-input').focus();
   document.getElementById('chat-input').placeholder = '예) 미국 30대 마케터 여성, 디지털 친화적, 피트니스 관심도 높음';
   // 시각적 피드백
@@ -2305,6 +2311,19 @@ function entryAI(){
 async function entryBuilder(){
   state.entryMode = 'builder';
   state.filters = {};
+  // 홈에서 별도 다른 국가를 선택 안 했다면 기본 KR로 (이전 분석 국가 잔존 방지)
+  if(!state.userPickedCountry){
+    state.currentCountry = 'KR';
+  }
+  state.lastAsk = null;
+  state.compareCountries = [];
+  state.cmpManualPins = [];
+  state.analysisRun = false;
+  state.audienceCache = {};
+  state.mediaCache = null;
+  state.synthCache = null;
+  state.ivPersona = null;
+  state.ivHistory = [];
   await goWorkspace();
   switchTab('overview');  // BUGFIX: 명시적 탭 전환 (이전 compare 잔존 방지)
   // 빌더 패널 강조 (애니메이션)
@@ -2334,7 +2353,9 @@ async function entryExplore(){
   state.compareCountries = [];
   state.cmpManualPins = [];
   state.analysisRun = false;
-  // currentCountry는 유지(탐색 시작점으로 유효) — 국가 드롭다운으로 잘 보임
+  if(!state.userPickedCountry){
+    state.currentCountry = 'KR';
+  }
   await goWorkspace();
   switchTab('compare');
 }
