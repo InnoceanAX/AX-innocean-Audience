@@ -99,17 +99,71 @@ ${dimDescriptors}
   const validCodes = new Set(COUNTRIES.map(c => c.code));
   if (!validCodes.has(result.json.country)) result.json.country = "KR";
 
-  // 필터 검증 (잘못된 디멘션·옵션 제거)
+  // 필터 검증 — 정확·부분 매칭 + 동의어 테이블
+  const SYN = {
+    age: { '20-29': '20대', '30-39': '30대', '40-49': '40대', '50-59': '50대', '60+': '60대 이상', '18-24': '20대', '25-34': '20대', '35-44': '30대', '45-54': '40대', '60이상': '60대 이상', '청소년': '10대', '청년': '20대', '장년': '40대', '노년': '60대 이상' },
+    gender: { 'female': '여성', 'male': '남성', 'f': '여성', 'm': '남성', '여자': '여성', '남자': '남성' },
+    maritalStatus: { '결혼': '기혼', 'married': '기혼', 'single': '미혼', '미혼·독신': '미혼', '도혼': '기혼' },
+    household: { '으자녀 가구': '유자녀 가구', '자녀있음': '유자녀 가구', '자녀있는가구': '유자녀 가구', '워킹맘': '유자녀 가구', '싱글': '1인 가구', '독립가구': '1인 가구' },
+    musicGenre: { 'kpop': 'K-Pop', '케이팝': 'K-Pop', 'k팝': 'K-Pop', 'hiphop': '힙합·R&B', 'rnb': '힙합·R&B', 'pop': '팝', 'rock': '록·메탈' },
+    income: { 'high': '상위 20%', 'middle': '40~60%', 'low': '하위 20%', '고소득': '상위 20%', '중소득': '40~60%', '저소득': '하위 20%', '프리미엄': '상위 20%' },
+  };
   const validDims = {};
   for (const d of DIMENSIONS) {
-    validDims[d.id] = new Set(d.options.map(o => typeof o === "string" ? o : o.label));
+    validDims[d.id] = (d.options || []).map(o => typeof o === "string" ? o : o.label);
+  }
+  function matchOption(dimId, want) {
+    if (want == null) return null;
+    const wantStr = String(want).trim();
+    if (!wantStr || wantStr === '전체' || wantStr.toLowerCase() === 'all' || wantStr.toLowerCase() === 'any') return null;
+    const opts = validDims[dimId] || [];
+    // 1) 정확 일치
+    if (opts.includes(wantStr)) return wantStr;
+    // 2) 동의어 테이블
+    const syn = (SYN[dimId] || {})[wantStr.toLowerCase()] || (SYN[dimId] || {})[wantStr];
+    if (syn && opts.includes(syn)) return syn;
+    // 3) 부분 일치 (원한 값 ⊇ 옵션 또는 옵션 ⊇ 원한 값)
+    const lower = wantStr.toLowerCase();
+    for (const opt of opts) {
+      const optLower = opt.toLowerCase();
+      if (optLower === lower) return opt;
+      if (optLower.includes(lower) || lower.includes(optLower)) return opt;
+    }
+    // 4) 숫자 명시적 처리 (예: '30' → '30대')
+    const num = wantStr.match(/^(\d{1,2})/);
+    if (num) {
+      const decade = num[1].length === 1 ? num[1] + '0대' : num[1] + '대';
+      if (opts.includes(decade)) return decade;
+      if (opts.includes(decade + ' 이상')) return decade + ' 이상';
+    }
+    return null;
+  }
+  function expandValues(vals) {
+    // '30-40대' → ['30대','40대'], '3040대' → ['30대','40대']
+    const out = [];
+    for (const v of vals) {
+      const s = String(v);
+      const range = s.match(/(\d{1,2})\s*[-~–]\s*(\d{1,2})\s*대/);
+      const compact = s.match(/^(\d)0(\d)0\s*대/);
+      if (range) {
+        const a = +range[1], b = +range[2];
+        for (let i = a; i <= b; i += 10) out.push(i + '대');
+      } else if (compact) {
+        out.push(compact[1] + '0대', compact[2] + '0대');
+      } else {
+        out.push(s);
+      }
+    }
+    return out;
   }
   const cleanedFilters = {};
   for (const [key, vals] of Object.entries(result.json.filters || {})) {
     if (!validDims[key]) continue;
-    if (!Array.isArray(vals)) continue;
-    const filtered = vals.filter(v => validDims[key].has(v));
-    if (filtered.length) cleanedFilters[key] = filtered;
+    const rawArr = Array.isArray(vals) ? vals : [vals];
+    const expanded = expandValues(rawArr);
+    const matched = expanded.map(v => matchOption(key, v)).filter(Boolean);
+    const unique = [...new Set(matched)];
+    if (unique.length) cleanedFilters[key] = unique;
   }
   result.json.filters = cleanedFilters;
   return result.json;

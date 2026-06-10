@@ -1073,11 +1073,6 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <div class="topbar">
       <input class="tb-search" placeholder="타겟·인사이트 검색...">
       <div class="tb-spacer"></div>
-      <!-- 워크스페이스 진입 시에만 노출되는 타겟 국가 표시 (수정 불가, 워크스페이스 컨텍스트) -->
-      <div class="tb-target-cc hide" id="tb-target-cc" title="현재 타겟 국가">
-        <span id="tb-cc-flag" class="cc-flag-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
-        <span id="tb-cc-name">한국</span>
-      </div>
       <button class="tb-btn-ghost" onclick="exportTarget()">내보내기</button>
       <button class="tb-btn" onclick="saveTarget()">저장</button>
     </div>
@@ -1744,8 +1739,7 @@ function updateCountryPillLabel(){
   if(!c) return;
   const cnt = state.compareCountries.length;
   document.getElementById('chat-cc-name').textContent = cnt > 0 ? `${c.name} +${cnt}국 비교` : c.name;
-  const tbn = document.getElementById('tb-cc-name');
-  if(tbn) tbn.textContent = cnt > 0 ? `${c.name} +${cnt}국` : c.name;
+  if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
 }
 
 function toggleCountryList(){
@@ -1874,7 +1868,7 @@ function goHome(opts){
   document.getElementById('screen-workspace').classList.add('hide');
   document.getElementById('ws-tabs').classList.add('hide');
   document.getElementById('breadcrumb-wrap').classList.add('hide');
-  document.getElementById('tb-target-cc')?.classList.add('hide');
+  // tb-target-cc 제거됨
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.sb-item')[0].classList.add('active');
   if(!(opts && opts.fromHistory)){
@@ -1897,14 +1891,6 @@ async function goWorkspace(opts){
   document.getElementById('ws-tools')?.classList.remove('hide');
   document.getElementById('breadcrumb-wrap').classList.remove('hide');
   if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
-  // topbar 타겟 국가 인디스쪀 노출 + 현재 국가로 업데이트
-  const c = state.countries.find(x => x.code === state.currentCountry);
-  const tb = document.getElementById('tb-target-cc');
-  if(c){
-    document.getElementById('tb-cc-name').textContent = c.name;
-    tb.classList.toggle('partial', !!c.trendsUnavailable);
-  }
-  tb.classList.remove('hide');
   renderBuilder();
   await refreshSegment();
   // 기본 탭은 케이스별로 분기 (entry 함수가 추가 switchTab 호출함)
@@ -3205,7 +3191,7 @@ async function aiBuilderParse(){
   const btn = document.getElementById('bld-ai-btn');
   if(btn){ btn.disabled = true; btn.innerHTML = '분석 중…'; }
   try{
-    const r = await fetch(API + '/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ q: text }) });
+    const r = await fetch(API + '/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: text }) });
     const d = await r.json();
     if(d.ok && d.parsed){
       if(d.parsed.country) selectCountry(d.parsed.country);
@@ -4170,10 +4156,16 @@ function renderBuilder(){
     <button class="bld-hd-btn" onclick="showHelp('builder')" style="margin-right:6px">사용법</button>
     <button class="bld-hd-btn" onclick="clearFilters()">전체 해제</button>
   </div>
-  <div class="bld-ai-bar" style="display:flex;gap:8px;margin-bottom:14px;padding:10px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="color:var(--ind);flex-shrink:0;margin-top:6px"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/><path d="M18 14l.75 2.25L21 17l-2.25.75L18 20l-.75-2.25L15 17l2.25-.75L18 14z"/></svg>
-    <input id="bld-ai-input" placeholder="AI 빌더 — 예) 소설을 좋아하는 50대 서울 프리미엄 쇼퍼" style="flex:1;padding:8px 10px;border:1px solid var(--bdr);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fff" onkeydown="if(event.key==='Enter'){aiBuilderParse();}">
-    <button class="bld-hd-btn" id="bld-ai-btn" onclick="aiBuilderParse()" style="background:var(--ind);color:#fff;border-color:var(--ind);font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>AI 빌더 적용</button>
+  <div class="bld-ai-bar" style="margin-bottom:14px;padding:12px 14px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11.5px;color:var(--ind);font-weight:700">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
+      AI 자동 입력 — 한 문장으로 타겟 설명하면 필터/국가 자동 설정
+      <span style="font-weight:500;color:var(--ts);margin-left:auto;font-size:10.5px">· 질문·해석은 우측 AI 비서</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input id="bld-ai-input" placeholder="예) kpop을 좋아하는 3040대 일본 워킹맘" style="flex:1;padding:9px 11px;border:1px solid var(--bdr);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fff" onkeydown="if(event.key==='Enter'){aiBuilderParse();}">
+      <button class="bld-hd-btn" id="bld-ai-btn" onclick="aiBuilderParse()" style="background:var(--ind);color:#fff;border-color:var(--ind);font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:9px 14px;white-space:nowrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>필터 자동 설정</button>
+    </div>
   </div>
   <div class="bld-guide">
     <div class="bld-guide-l">단계별 설정</div>
