@@ -1033,7 +1033,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </button>
 
     <div class="sb-section">
-      <div class="sb-section-t">라이브러리</div>
+      <div class="sb-section-t">Library</div>
       <div class="sb-item active" onclick="goHome()">
         <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.91 5.84L19.5 11l-5.59 2.16L12 19l-1.91-5.84L4.5 11l5.59-2.16L12 3z"/><path d="M19 4l.5 1.5L21 6l-1.5.5L19 8l-.5-1.5L17 6l1.5-.5L19 4z"/><path d="M5 16l.5 1.5L7 18l-1.5.5L5 20l-.5-1.5L3 18l1.5-.5L5 16z"/></svg></span><span>홈</span>
       </div>
@@ -1050,14 +1050,14 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <div class="sb-section">
-      <div class="sb-section-t">내 프리셋</div>
-      <div id="sb-user-presets"><div style="font-size:11px;color:var(--tm);padding:4px 10px">저장된 프리셋 없음</div></div>
+      <div class="sb-section-t">My Preset</div>
+      <div id="sb-user-presets"><div class="sb-item" style="color:var(--tm);font-size:12.5px;cursor:default">저장된 프리셋 없음</div></div>
     </div>
 
     <div class="sb-section">
-      <div class="sb-section-t">프로젝트</div>
-      <div class="sb-item">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg></span><span style="color:var(--tm)">프로젝트 없음</span>
+      <div class="sb-section-t">My Project</div>
+      <div class="sb-item" style="color:var(--tm);cursor:default">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg></span><span>프로젝트 없음</span>
       </div>
     </div>
 
@@ -4511,7 +4511,7 @@ function renderUserPresetsInSidebar(){
   if(!box) return;
   const list = state.userPresets || [];
   if(list.length === 0){
-    box.innerHTML = '<div style="font-size:11px;color:var(--tm);padding:4px 10px">저장된 프리셋 없음</div>';
+    box.innerHTML = '<div class="sb-item" style="color:var(--tm);font-size:12.5px;cursor:default">저장된 프리셋 없음</div>';
     return;
   }
   box.innerHTML = list.map(p => `<div class="sb-item" onclick="applyPreset('${p.id}')" style="padding-right:8px"><span style="flex:1">${p.name}</span><button onclick="event.stopPropagation();deleteUserPreset('${p.id}')" style="background:none;border:none;color:var(--tm);cursor:pointer;font-size:14px;padding:2px 6px" title="삭제">×</button></div>`).join('');
