@@ -1496,6 +1496,7 @@ function labelOfCategory(id){
 
 function renderCategories(){
   const wrap = document.getElementById('cc-cats');
+  if(!wrap) return; // 캐러셀 UI 제거됨
   wrap.innerHTML = state.categories.map((c, i) => `
     <button class="cc-cat ${i === state.categoryIdx ? 'active' : ''}" onclick="selectCategory(${i})">${c.label}</button>
   `).join('');
