@@ -534,12 +534,13 @@ a{color:inherit;text-decoration:none}
 
 .reco-flow{display:flex;align-items:center;gap:16px;padding:14px 18px;background:#FAFBFF;border:1px solid #E0E7FF;border-radius:10px;margin-top:28px;flex-wrap:wrap}
 .reco-flow-l{font-size:11px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
-.reco-flow-steps{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1}
+.reco-flow-steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:0 10px;width:100%}
+.reco-flow-steps .reco-step{display:flex;align-items:center;min-width:0}
 .reco-step{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#374151}
 .reco-step b{color:#111;font-weight:600}
 .reco-num{width:18px;height:18px;background:var(--ind);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .reco-arrow{color:#9CA3AF;font-weight:700}
-@media (max-width:880px){.reco-flow{flex-direction:column;align-items:flex-start}.reco-arrow{display:none}.reco-flow-steps{flex-direction:column;align-items:flex-start;gap:6px}}
+@media (max-width:880px){.reco-flow{grid-template-columns:1fr;align-items:flex-start}.reco-flow-steps{grid-template-columns:1fr;gap:6px}.reco-arrow{display:none}}
 .entry-3way{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;margin-bottom:32px}
 @media (max-width:900px){.entry-3way{grid-template-columns:1fr}}
 .entry-card{background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:22px 18px;cursor:pointer;text-align:left;transition:all .2s}
@@ -551,6 +552,8 @@ a{color:inherit;text-decoration:none}
 /* AI Side Panel */
 .ai-panel{position:fixed;top:0;right:0;height:100vh;width:380px;background:#fff;border-left:1px solid var(--bdr);box-shadow:-8px 0 24px rgba(0,0,0,.06);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:200;transform:translateX(0)}
 .ai-panel.collapsed{transform:translateX(380px)}
+/* AI 비서 토글 — 홈에서 숨김, 워크스페이스에서만 표시 */
+body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .ai-toggle{position:absolute;top:50%;left:-46px;transform:translateY(-50%);width:46px;padding:12px 0;background:var(--ind);color:#fff;border:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:-4px 0 12px rgba(79,70,229,.25)}
 .ai-toggle:hover{background:var(--ind2)}
 .ai-toggle-ico{width:18px;height:18px}
@@ -915,7 +918,7 @@ a{color:inherit;text-decoration:none}
 /* ============ End AI Panel Ultra CSS ============ */
 </style>
 </head>
-<body>
+<body class="home-mode">
 
 <div class="app">
   <!-- ============ SIDEBAR ============ -->
@@ -1101,31 +1104,12 @@ a{color:inherit;text-decoration:none}
             </div>
           </div>
 
-          <!-- Keyboard Shortcuts -->
-          <div class="kb-hint-bar">
-            <div class="kb-hint-l">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/></svg>
-              <span>단축키</span>
-            </div>
-            <div class="kb-hint-list">
-              <span><kbd>Cmd/Ctrl</kbd>+<kbd>K</kbd> AI 비서</span>
-              <span><kbd>Enter</kbd> 검색</span>
-              <span><kbd>Esc</kbd> 닫기</span>
-            </div>
-          </div>
-
           <!-- Suggested prompts -->
           <div class="sg-wrap">
             <div class="sg-hd">어디서 시작할지 모르겠다면?</div>
             <div class="sg-grid" id="sg-grid"></div>
           </div>
 
-          <!-- Category carousel -->
-          <div class="cc-wrap">
-            <button class="cc-arrow" onclick="shiftCategory(-1)">‹</button>
-            <div class="cc-cats" id="cc-cats"></div>
-            <button class="cc-arrow" onclick="shiftCategory(1)">›</button>
-          </div>
         </div>
       </div>
 
@@ -1728,6 +1712,7 @@ function showAskBanner(data){
 
 // ============ NAVIGATION ============
 function goHome(opts){
+  document.body.classList.add("home-mode");
   document.getElementById('screen-home').classList.remove('hide');
   document.getElementById('screen-workspace').classList.add('hide');
   document.getElementById('ws-tabs').classList.add('hide');
@@ -1748,6 +1733,7 @@ function goBuilder(){
 }
 
 async function goWorkspace(opts){
+  document.body.classList.remove("home-mode");
   document.getElementById('screen-home').classList.add('hide');
   document.getElementById('screen-workspace').classList.remove('hide');
   document.getElementById('ws-tabs').classList.remove('hide');
@@ -3949,6 +3935,7 @@ boot();
 
 // AI 비서 첫 진입 펄스 (1회만)
 function showAiTogglePulse(){
+  if(document.body.classList.contains("home-mode")) return;
   const btn = document.querySelector('.ai-toggle');
   if(!btn) return;
   btn.classList.add('ai-toggle-pulse');
