@@ -4924,6 +4924,14 @@ async function generatePersona(persona){
       document.getElementById('iv-msgs').innerHTML = '';
       return;
     }
+    // 국가 미선택 가드 — 모달 열고 종료
+    if(!state.currentCountry){
+      document.getElementById('iv-body').classList.add('hide');
+      document.getElementById('iv-empty').classList.remove('hide');
+      toast('먼저 타겟 국가를 선택해주세요');
+      if(typeof openWsCountrySelector==='function') openWsCountrySelector();
+      return;
+    }
     document.getElementById('iv-card').innerHTML = '<div class="iv-loading">페르소나를 만들고 있어요… (수 초 소요)</div>';
     document.getElementById('iv-msgs').innerHTML = '';
     state.ivHistory = [];
@@ -4945,6 +4953,12 @@ async function generatePersona(persona){
 
 async function generatePanel(count = 4){
   try{
+    // 국가 미선택 가드
+    if(!state.currentCountry){
+      toast('먼저 타겟 국가를 선택해주세요');
+      if(typeof openWsCountrySelector==='function') openWsCountrySelector();
+      return;
+    }
     document.getElementById('iv-empty').classList.add('hide');
     document.getElementById('iv-body').classList.remove('hide');
     document.getElementById('iv-single-wrap').classList.add('hide');
