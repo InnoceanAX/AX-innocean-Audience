@@ -1863,6 +1863,7 @@ function goHome(opts){
   document.getElementById('screen-home').classList.remove('hide');
   document.getElementById('screen-workspace').classList.add('hide');
   document.getElementById('ws-tabs').classList.add('hide');
+  document.getElementById('ws-tools')?.classList.add('hide');
   document.getElementById('breadcrumb-wrap').classList.add('hide');
   // tb-target-cc 제거됨
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
@@ -3301,6 +3302,85 @@ async function refreshSummaryTab(){
   }
 }
 
+// ============ AI 합성 세그먼트 카드 렌더링 ============
+function renderSynthSegment(dim){
+  const syn = state.synthCache;
+  if(!syn || !syn.segments || !syn.segments[dim]) return '';
+  const seg = syn.segments[dim];
+  const filterChips = Object.entries(syn.filters || {})
+    .filter(([_,v]) => Array.isArray(v) && v.length > 0 && !v.includes('전체'))
+    .map(([k,v]) => `<span style="display:inline-block;padding:2px 8px;background:#fff;border:1px solid #C7D2FE;border-radius:10px;font-size:10.5px;color:var(--ind);margin:1px 3px 1px 0">${k}: ${v.join('/')}</span>`).join('');
+
+  // dim별 커스텀 렌더
+  let bodyHtml = '';
+  if(dim === 'who'){
+    const ad = seg.ageDistribution || {};
+    const gr = seg.genderRatio || {};
+    const ageRows = Object.entries(ad).map(([k,v]) => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0"><span>${k}</span><b>${(+v||0).toFixed(1)}%</b></div>`).join('');
+    bodyHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">연령 분포</div>${ageRows}</div>
+      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">성별 / 소득 / 가구</div>
+        <div style="font-size:11.5px;padding:3px 0">여성: <b>${gr['여성']||0}%</b> / 남성: <b>${gr['남성']||0}%</b></div>
+        <div style="font-size:11.5px;padding:3px 0">소득 수준: <b>${seg.incomeLevel||'-'}</b></div>
+        <div style="font-size:11.5px;padding:3px 0">가구 형태: <b>${seg.householdType||'-'}</b></div>
+      </div>
+    </div>`;
+  } else if(dim === 'life'){
+    const du = seg.digitalUsage || {};
+    const acts = (seg.topActivities||[]).map(a => `<span style="display:inline-block;padding:3px 9px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;font-size:11px;margin:2px">${a}</span>`).join('');
+    bodyHtml = `<div style="font-size:12px;line-height:1.6">
+      <div style="margin-bottom:8px"><b>일과:</b> ${seg.dailyRoutine||'-'}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">${Object.entries(du).map(([k,v])=>`<div style="font-size:11.5px"><span style="color:var(--tm)">${k}:</span> <b>${v}</b></div>`).join('')}</div>
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">주요 활동</div>
+      <div>${acts || '-'}</div>
+    </div>`;
+  } else if(dim === 'mind'){
+    const vals = (seg.coreValues||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:12px;font-size:11px;margin:2px">${v}</span>`).join('');
+    bodyHtml = `<div style="font-size:12px;line-height:1.6">
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">핵심 가치</div>
+      <div style="margin-bottom:10px">${vals || '-'}</div>
+      <div>브랜드 신뢰: <b>${seg.brandTrust||'-'}</b> / 리스크 태도: <b>${seg.riskAttitude||'-'}</b></div>
+    </div>`;
+  } else if(dim === 'love'){
+    const intCh = (seg.topInterests||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#FCE7F3;border:1px solid #F9A8D4;border-radius:12px;font-size:11px;margin:2px">${v}</span>`).join('');
+    const musCh = (seg.musicGenres||[]).map(v => `<span style="display:inline-block;padding:2px 7px;background:#F3F4F6;border-radius:8px;font-size:10.5px;margin:1px">${v}</span>`).join('');
+    const conCh = (seg.contentGenres||[]).map(v => `<span style="display:inline-block;padding:2px 7px;background:#F3F4F6;border-radius:8px;font-size:10.5px;margin:1px">${v}</span>`).join('');
+    const celCh = (seg.celebrities||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#EDE9FE;border:1px solid #C4B5FD;border-radius:12px;font-size:11px;margin:2px;color:var(--ind2)"><svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${v}</span>`).join('');
+    bodyHtml = `<div style="font-size:12px">
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin:0 0 4px">관심사</div>
+      <div style="margin-bottom:8px">${intCh}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">
+        <div><div style="font-size:10.5px;color:var(--tm);font-weight:700;margin-bottom:2px">음악</div>${musCh}</div>
+        <div><div style="font-size:10.5px;color:var(--tm);font-weight:700;margin-bottom:2px">콘텐츠</div>${conCh}</div>
+      </div>
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin:4px 0">타갟 추정 셀럽·IP</div>
+      <div>${celCh || '-'}</div>
+    </div>`;
+  } else if(dim === 'buy'){
+    const sc = seg.shoppingChannels || {};
+    const cats = (seg.topCategories||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#D1FAE5;border:1px solid #6EE7B7;border-radius:12px;font-size:11px;margin:2px;color:#065F46">${v}</span>`).join('');
+    bodyHtml = `<div style="font-size:12px;line-height:1.6">
+      <div style="margin-bottom:8px">온라인: <b>${sc['온라인']||0}%</b> / 오프라인: <b>${sc['오프라인']||0}%</b></div>
+      <div style="margin-bottom:8px">가격 민감도: <b>${seg.priceSensitivity||'-'}</b> / 브랜드 충성도: <b>${seg.brandLoyalty||'-'}</b></div>
+      <div style="margin-bottom:8px">결제 선호: <b>${seg.paymentPreference||'-'}</b></div>
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin:4px 0">주요 지출 카테고리</div>
+      <div>${cats || '-'}</div>
+    </div>`;
+  }
+
+  return `<div style="margin-bottom:18px;padding:14px 16px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--ind)"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
+      <span style="font-size:12px;font-weight:700;color:var(--ind)">AI 합성 소비자 — 타겟 세그먼트 추정치</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--tm)">${syn.method||''}</span>
+    </div>
+    <div style="margin-bottom:8px">${filterChips}</div>
+    <div style="padding:10px 12px;background:#fff;border-radius:8px;margin-bottom:8px;font-size:11.5px;color:#374151"><b>요약:</b> ${seg.summary||'-'}</div>
+    ${bodyHtml}
+    <div style="margin-top:10px;font-size:10px;color:var(--tm);font-style:italic">[주의] ${syn.source?.caveat || 'AI 추정 출처 표시'}</div>
+  </div>`;
+}
+
 async function refreshAudienceTab(dim){
   if(!state.analysisRun) return _refreshAudienceTabFetch(dim);
   // 캐시가 있으면 우선 사용
@@ -3311,7 +3391,8 @@ async function refreshAudienceTab(dim){
       const body = document.getElementById(dim + '-body');
       if(body){
         body.dataset.country = code;
-        body.innerHTML = renderAudienceDim(dim, data);
+        const synthHtml = renderSynthSegment(dim);
+        body.innerHTML = synthHtml + renderAudienceDim(dim, data);
         setTimeout(() => renderDimCharts(dim, data), 50);
       }
       // 출처 배지도 갱신
@@ -4296,6 +4377,19 @@ async function runAnalysis(){
     // 캐시 저장
     dims.forEach((d, i) => { if(results[i]?.ok) state.audienceCache[d] = results[i]; });
     if(results[results.length-1]?.ok) state.mediaCache = results[results.length-1];
+    // AI 합성 소비자: 필터가 있을 때만 호출
+    state.synthCache = null;
+    const hasAnyFilter = Object.values(state.filters||{}).some(v => Array.isArray(v) && v.length > 0 && !(v.length===1 && v[0]==='전체'));
+    if(hasAnyFilter){
+      try{
+        const synR = await fetch(API + '/audience/synthesize', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ country: code, filters: state.filters }),
+        });
+        const synD = await synR.json();
+        if(synD.ok && synD.segments) state.synthCache = synD;
+      }catch(e){ console.warn('synthesize failed', e); }
+    }
     // 분석 완료 메시지
     if(status){
       status.innerHTML = `<div class="bld-analyze-ok">

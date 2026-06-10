@@ -361,3 +361,139 @@ audienceRouter.get("/compare-all", async (req, res) => {
     },
   });
 });
+
+// ============================================================
+// POST /api/audience/synthesize
+// AI 합성 소비자 — 빌더 필터 기반 5차원 세그먼트 데이터 생성
+// 입력: { country, filters }
+// 출력: { ok, country, filters, segments: { who, life, mind, love, buy } }
+// 각 segment는 baseline에서 출발해 LLM으로 필터 컨텍스트 반영한 합성 통계
+// ============================================================
+audienceRouter.post("/synthesize", async (req, res) => {
+  const { country: code = "KR", filters = {} } = req.body || {};
+  const meta = COUNTRIES.find(c => c.code === String(code).toUpperCase());
+  if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
+
+  // 베이스라인 (필터 없는 국가 통계)
+  const baselineWho = getDemographics(meta.code);
+  const baselineLife = getLifestyle(meta.code);
+
+  // 필터 요약 → 사람이 읽기 좋은 한국어
+  const filterSummary = Object.entries(filters)
+    .filter(([_, v]) => Array.isArray(v) && v.length > 0 && !v.includes("전체"))
+    .map(([k, v]) => `${k}=${v.join("/")}`)
+    .join(", ") || "(필터 없음)";
+
+  const hasFilters = filterSummary !== "(필터 없음)";
+
+  // 합성 시도 (Gemini)
+  const { generateJSON, isGeminiAvailable } = await import("../adapters/gemini.js");
+  let synthesized = null;
+  let method = "baseline-only";
+
+  if (hasFilters && isGeminiAvailable() && process.env.SYNTHESIZE_USE_LLM !== "0") {
+    try {
+      const sys = `당신은 광고 솔루션의 오디언스 합성 통계 생성기입니다.
+입력으로 받은 국가 + 세그먼트 필터에 대해 5차원(Who/Life/Mind/Love/Buy) 통계를 추정합니다.
+각 수치는 0~100 범위의 비중(%)이며 카테고리별로 합이 100에 가깝게 만드세요.
+실제 학술/업계 추정에 가까운 합리적 수치를 제시합니다.
+출처는 'AI 합성 추정 (GWI/Statista/DataReportal 일반 트렌드 기반)'으로 표기합니다.`;
+
+      const prompt = `국가: ${meta.name} (${meta.code})
+세그먼트 필터: ${filterSummary}
+국가 베이스라인(참고): 중위 연령 ${baselineWho?.medianAge || "N/A"}, 도시화율 ${baselineWho?.urbanRate || "N/A"}%, 인터넷 보급률 ${baselineLife?.internetPenetration || "N/A"}%
+
+위 세그먼트의 5차원 합성 통계를 JSON으로 생성하세요. 모든 값은 사실적이고 추정 가능한 범위 안에 있어야 합니다.`;
+
+      const schema = {
+        type: "object",
+        properties: {
+          who: {
+            type: "object",
+            properties: {
+              summary: { type: "string", description: "이 세그먼트의 인구통계 요약 (1-2문장)" },
+              ageDistribution: { type: "object", properties: { "10대": {type:"number"}, "20대": {type:"number"}, "30대": {type:"number"}, "40대": {type:"number"}, "50대": {type:"number"}, "60대 이상": {type:"number"} } },
+              genderRatio: { type: "object", properties: { "남성": {type:"number"}, "여성": {type:"number"} } },
+              incomeLevel: { type: "string", description: "예: 상위 20%, 중상위 등" },
+              householdType: { type: "string" },
+            },
+          },
+          life: {
+            type: "object",
+            properties: {
+              summary: { type: "string" },
+              dailyRoutine: { type: "string", description: "일과 패턴 묘사" },
+              digitalUsage: { type: "object", properties: { "스마트폰 사용시간(시간)": {type:"number"}, "SNS 사용시간(시간)": {type:"number"}, "OTT 사용시간(시간)": {type:"number"} } },
+              topActivities: { type: "array", items: { type: "string" } },
+            },
+          },
+          mind: {
+            type: "object",
+            properties: {
+              summary: { type: "string" },
+              coreValues: { type: "array", items: { type: "string" } },
+              brandTrust: { type: "string", description: "낮음/보통/높음" },
+              riskAttitude: { type: "string" },
+            },
+          },
+          love: {
+            type: "object",
+            properties: {
+              summary: { type: "string" },
+              topInterests: { type: "array", items: { type: "string" } },
+              musicGenres: { type: "array", items: { type: "string" } },
+              contentGenres: { type: "array", items: { type: "string" } },
+              celebrities: { type: "array", items: { type: "string" }, description: "이 세그먼트가 좋아할 만한 유명인/IP 3-5개" },
+            },
+          },
+          buy: {
+            type: "object",
+            properties: {
+              summary: { type: "string" },
+              shoppingChannels: { type: "object", properties: { "온라인": {type:"number"}, "오프라인": {type:"number"} } },
+              priceSensitivity: { type: "string" },
+              brandLoyalty: { type: "string" },
+              topCategories: { type: "array", items: { type: "string" }, description: "주요 지출 카테고리 3-5개" },
+              paymentPreference: { type: "string" },
+            },
+          },
+        },
+        required: ["who", "life", "mind", "love", "buy"],
+      };
+
+      const result = await generateJSON({
+        prompt, system: sys, schema,
+        model: "gemini-2.5-flash", temperature: 0.4,
+      });
+      if (result.json) {
+        synthesized = result.json;
+        method = "gemini-2.5-flash";
+      }
+    } catch (e) {
+      console.warn("[synthesize] LLM failed:", e.message);
+    }
+  }
+
+  res.json({
+    ok: true,
+    country: meta,
+    filters,
+    filterSummary,
+    hasFilters,
+    segments: synthesized,
+    baseline: hasFilters ? null : {
+      who: baselineWho,
+      life: baselineLife,
+    },
+    source: {
+      type: synthesized ? "AI 합성 추정" : "공개 데이터 베이스라인",
+      attribution: synthesized
+        ? "AI 합성 (GWI/Statista/DataReportal 일반 트렌드 기반 추정)"
+        : "UN Population Division + DataReportal 2024",
+      caveat: synthesized
+        ? "실측 데이터가 아닌 AI 추정치이며, 의사결정용으로 사용 시 별도 검증이 필요합니다."
+        : null,
+    },
+    method,
+  });
+});
