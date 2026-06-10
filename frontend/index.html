@@ -1920,13 +1920,26 @@ function goHome(opts){
     // 2. AI 사이드 패널 입력창도 제거
     const aiInput = document.getElementById('ai-input');
     if(aiInput){ aiInput.value = ''; if(typeof aiResize==='function') aiResize(aiInput); }
-    // 3. 직전 분석 상태 리셋 (핀/비교국 등)
+    // 3. 직전 분석 상태 완전 리셋
     state.lastAsk = null;
     state.savedCurrent = false;
     state.currentTargetId = null;
     state.compareCountries = [];
     state.cmpManualPins = [];
     state.analysisRun = false;
+    state.currentCountry = 'KR';  // 기본 국가로 되돌림 — 이전 분석 국가 핀 잔존 방지
+    state.filters = {};
+    state.audienceCache = {};
+    state.mediaCache = null;
+    state.synthCache = null;
+    state.ivPersona = null;
+    state.ivHistory = [];
+    // 홈 화면의 국가 피 레이블도 기본값 재동기화
+    try{
+      const ccName = document.getElementById('chat-cc-name');
+      if(ccName) ccName.textContent = '한국';
+      if(typeof updateCountryPillLabel === 'function') updateCountryPillLabel();
+    }catch(e){}
     // 4. compareData 컬시는 유지 (동일 세션 다음 보기에서 재사용 가능)
     const url = new URL(window.location.href);
     url.search = '';
@@ -2295,8 +2308,15 @@ async function entryBuilder(){
 
 // MODE 3: 글로벌 비교 매트릭스 (전역 탐색)
 async function entryExplore(){
+  // 모드3 진입은 이전 분석 잔존과 무관한 글로벌 탐색 — 핀/자동핀 추출 이력을 완전 리셋
   state.entryMode = 'explore';
   state.currentTab = 'compare';
+  // 이전 분석 관련 핀 원인(state.lastAsk → AI_COUNTRY_KO 추출, currentCountry, compareCountries) 제거
+  state.lastAsk = null;
+  state.compareCountries = [];
+  state.cmpManualPins = [];
+  state.analysisRun = false;
+  // currentCountry는 유지(탐색 시작점으로 유효) — 국가 드롭다운으로 잘 보임
   await goWorkspace();
   switchTab('compare');
 }
@@ -5355,8 +5375,18 @@ async function runAnalysis(){
     renderAiNavigator();
     // 토스트
     if(typeof toast === 'function') toast('분석 완료 — 각 탭에서 결과를 확인하세요');
-    // 라이브러리 자동 등록 (recent)
-    try{ await saveToLibrary({ recent: true }); }catch(e){}
+    // 라이브러리 자동 등록 (recent) + 임시 보관함에 자동 attach
+    try{
+      const autoTarget = await saveToLibrary({ recent: true });
+      if(autoTarget && autoTarget.id && typeof attachTargetToProject === 'function'){
+        // 이미 특정 프로젝트에 담아 둔 타겟이 아니면 임시 보관함에 attach
+        const alreadyAttached = (state.projects||[]).some(p => (p.targetIds||[]).includes(autoTarget.id));
+        const inInbox = (state.inbox?.targetIds||[]).includes(autoTarget.id);
+        if(!alreadyAttached && !inInbox){
+          attachTargetToProject(INBOX_PROJECT_ID, autoTarget.id);
+        }
+      }
+    }catch(e){ console.warn('auto inbox attach failed', e); }
     // 항상 요약 탭으로 자동 이동
     state.autoRouteToSummary = false;
     switchTab('summary');
