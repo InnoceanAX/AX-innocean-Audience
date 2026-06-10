@@ -87,11 +87,20 @@ ${dimDescriptors}
 질의: "소설을 좋아하는 50대 서울 프리미엄 쇼퍼"
 → { country: "KR", filters: { age: ["50대"], income: ["상위 20%"], interests: ["일반·지식 콘텐츠"] }, intent: "target-definition" }`;
 
+  // filters 스키마 동적 생성 — Gemini structured output은 properties 명시 필요
+  const filtersProperties = {};
+  for (const d of DIMENSIONS) {
+    filtersProperties[d.id] = {
+      type: "array",
+      items: { type: "string" },
+      description: `${d.label} — 허용 값: ${(d.options||[]).map(o=>typeof o==="string"?o:o.label).join(" | ")}`,
+    };
+  }
   const schema = {
     type: "object",
     properties: {
       country: { type: "string", description: "ISO 3166-1 alpha-2 국가 코드" },
-      filters: { type: "object" },
+      filters: { type: "object", properties: filtersProperties },
       intent: { type: "string" },
       reasoning: { type: "string" },
       summary: { type: "string", description: "사용자에게 보여줄 짧은 요약 (1-2 문장)" },
