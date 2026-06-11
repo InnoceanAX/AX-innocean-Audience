@@ -635,7 +635,7 @@ a{color:inherit;text-decoration:none}
 .sm-dim-stat b{color:#111;font-weight:700}
 .sm-empty{padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:12px;display:flex;flex-direction:column;align-items:center}
 .sm-empty-t{font-size:15px;font-weight:700;color:#111;margin-bottom:6px}
-.sm-answer-card{margin-bottom:16px;border:1px solid #E0E7FF;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:12px;padding:18px 20px}
+.sm-answer-card{margin:8px 0 24px;border:1px solid #C7D2FE;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:14px;padding:20px 22px;box-shadow:0 2px 8px rgba(99,102,241,.08)}
 .sm-answer-q{font-size:12px;color:#6366F1;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .sm-answer-h{font-size:16px;font-weight:700;color:#1E1B4B;margin-bottom:12px;line-height:1.5}
 .sm-answer-b{list-style:none;padding:0;margin:0 0 12px}
@@ -650,7 +650,7 @@ a{color:inherit;text-decoration:none}
 .sm-answer-oos .sm-answer-b li{color:#7C2D12}
 .sm-answer-oos .sm-answer-b li::before{background:#F59E0B}
 .sm-answer-oos-msg{font-size:12.5px;color:#9A3412;line-height:1.7;padding:10px 12px;background:#FEF3C7;border-radius:6px;margin-bottom:12px}
-.sm-answer-loader{display:flex;align-items:center;gap:10px;font-size:13px;color:#6366F1;padding:14px 16px;background:#EEF2FF;border:1px dashed #C7D2FE;border-radius:8px;margin-bottom:14px}
+.sm-answer-loader{display:flex;align-items:center;gap:10px;font-size:13px;color:#6366F1;padding:14px 18px;background:#EEF2FF;border:1px dashed #C7D2FE;border-radius:10px;margin:8px 0 24px}
 .sm-empty-s{font-size:12.5px;color:var(--ts);line-height:1.5}
 .sm-cta-primary{padding:10px 18px;background:var(--ind);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .sm-cta-primary:hover{background:var(--ind2)}
@@ -3430,6 +3430,14 @@ async function fetchAnswerCard(){
     state.answerCard = { error: true };
   }
   renderAnswerCard();
+  // 답변 카드 완성 시 요약 탭 업데이트 (sm-ai-nav 숨김 처리 등)
+  if(state.currentTab === 'summary'){
+    const navBox = document.getElementById('sm-ai-nav');
+    if(navBox && state.answerCard && !state.answerCard.error && !state.answerCard.loading
+      && (state.answerCard.headline || state.answerCard.outOfScopeMessage)){
+      navBox.innerHTML = '';
+    }
+  }
 }
 function renderSummaryActionBar(){
   const bar = document.getElementById('sm-action-bar'); if(!bar) return;
@@ -4330,23 +4338,35 @@ async function refreshSummaryTab(){
     return;
   }
   if(empty) empty.style.display = 'none';
-  // 1) ask-banner clone — 제거 (CEO: 상단 ask-banner 하나만 남김)
+  // 1) ask-banner clone — 제거
   if(banner) banner.innerHTML = '';
-  // 2) AI 네비게이터
+  // 2) AI 네비게이터 — 답변 카드가 있으면 숨김 (중복 방지)
+  const hasAnswerCard = state.answerCard && !state.answerCard.error && !state.answerCard.loading
+    && (state.answerCard.headline || state.answerCard.outOfScopeMessage);
   if(navBox){
-    const intent = state.lastAsk?.parsed?.intent;
-    const TAB_RECO = {
-      'media-strategy':       [['media','미디어 전략 상세'],['who','타겟 인물상']],
-      'persona-deep-dive':    [['interview','페르소나 인터뷰'],['life','라이프스타일']],
-      'competitive-insights': [['compare','글로벌 비교'],['buy','구매 행동']],
-      'market-entry':         [['compare','글로벌 비교'],['who','시장 인물상']],
-      'global-comparison':    [['compare','글로벌 비교 매트릭스']],
-      'target-definition':    [['who','인물상'],['life','라이프스타일'],['mind','가치관']],
-      'general':              [['who','인물상'],['life','라이프스타일'],['media','미디어']],
-    };
-    const reco = TAB_RECO[intent] || TAB_RECO['general'];
-    const chips = reco.map(([t, l]) => `<button class="ai-nav-chip" onclick="switchTab('${t}')">${l}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>`).join('');
-    navBox.innerHTML = `<div class="ai-nav" style="margin-bottom:24px"><div class="ai-nav-l">AI 추천 — 다음 탭에서 더 자세히</div><div class="ai-nav-chips">${chips}</div></div>`;
+    if(hasAnswerCard){
+      navBox.innerHTML = '';
+    } else {
+      const intent = state.lastAsk?.parsed?.intent;
+      const TAB_RECO = {
+        'media-strategy':       [['media','미디어 전략 상세'],['who','타겟 인물상']],
+        'media-insight':        [['media','미디어 소비 패턴'],['life','라이프스타일']],
+        'persona-deep-dive':    [['interview','페르소나 인터뷰'],['life','라이프스타일']],
+        'competitive-insights': [['compare','글로벌 비교'],['buy','구매 행동']],
+        'market-entry':         [['compare','글로벌 비교'],['who','시장 인물상']],
+        'global-comparison':    [['compare','글로벌 비교 매트릭스']],
+        'target-definition':    [['who','인물상'],['life','라이프스타일'],['mind','가치관']],
+        'lifestyle-insight':    [['life','라이프스타일'],['buy','구매']],
+        'values-insight':       [['mind','가치관'],['love','관심사']],
+        'interest-insight':     [['love','관심사'],['media','콘텐츠 소비']],
+        'purchase-insight':     [['buy','구매'],['life','라이프스타일']],
+        'demographic-insight':  [['who','인물상'],['life','라이프스타일']],
+        'general':              [['who','인물상'],['life','라이프스타일'],['media','미디어']],
+      };
+      const reco = TAB_RECO[intent] || TAB_RECO['general'];
+      const chips = reco.map(([t, l]) => `<button class="ai-nav-chip" onclick="switchTab('${t}')">${l}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>`).join('');
+      navBox.innerHTML = `<div class="ai-nav" style="margin-bottom:24px"><div class="ai-nav-l">AI 추천 — 다음 탭에서 더 자세히</div><div class="ai-nav-chips">${chips}</div></div>`;
+    }
   }
   // 3) KPI
   const c = state.audienceCache || {};
