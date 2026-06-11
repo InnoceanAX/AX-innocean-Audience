@@ -96,13 +96,13 @@ export async function generateText({ prompt, system, model = "gemini-2.5-flash",
 }
 
 // JSON 구조화 출력 (Gemini는 응답 스키마 지원)
-export async function generateJSON({ prompt, system, schema, model = "gemini-2.5-flash", temperature = 0.2 }) {
+export async function generateJSON({ prompt, system, schema, model = "gemini-2.5-flash", temperature = 0.2, maxOutputTokens = 8192 }) {
   const client = getClient();
   const m = client.getGenerativeModel({
     model,
     generationConfig: {
       temperature,
-      maxOutputTokens: 8192,
+      maxOutputTokens,
       responseMimeType: "application/json",
       responseSchema: schema,
     },

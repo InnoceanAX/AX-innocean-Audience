@@ -1,113 +1,208 @@
-// insight-answer.js — 사용자 원문 질문에 대한 인사이트 직답 카드
-// 입력: 사용자 질문 + 합성 5차원 데이터 + 빌더 필터
-// 출력: 핵심 답변 + bullet points + 관련 탭 강조 + 범위 밖이면 안내
+// insight-answer.js — AI 채팅 정밀 컨설팅 답변 (요약 금지)
+// 입력: 사용자 원문 질문 + (선택) 합성 데이터 + 필터
+// 출력: 본문 서술 + 데이터 표 + 차트 명세 + 출처 인용 + 관련 표준 분석 링크
 
 import { Router } from "express";
 import { generateJSON, isGeminiAvailable } from "../adapters/gemini.js";
 
 export const insightAnswerRouter = Router();
 
-// POST /api/insight/answer
+// POST /api/insight
 insightAnswerRouter.post("/", async (req, res) => {
   const { question, country, filters, synthesized } = req.body || {};
-  if (!question || !synthesized) {
-    return res.status(400).json({ ok: false, error: "question + synthesized required" });
+  if (!question) {
+    return res.status(400).json({ ok: false, error: "question required" });
   }
   if (!isGeminiAvailable()) {
     return res.json({
       ok: true,
-      cached: false,
       answer: {
         inScope: true,
         headline: "AI 답변 비활성",
-        bullets: [],
-        relatedTabs: [],
+        sections: [],
+        tables: [],
+        charts: [],
+        sources: [],
+        relatedInsights: [],
         outOfScopeMessage: null,
       },
     });
   }
 
   try {
-    const system = `당신은 INNOCEAN의 타겟 인사이트 분석 AI입니다.
+    const system = `당신은 INNOCEAN의 시니어 타겟 인사이트 컨설턴트입니다.
+사용자의 질문에 대해 '요약'이 아니라 '정밀 컨설팅 답변'을 제공합니다.
 
-[솔루션 범위]
-이 솔루션은 '타겟 인사이트' 솔루션입니다:
-- 인구통계 (Who)
-- 라이프스타일 (Life)
-- 가치관·심리 (Mind)
-- 관심사·취향 (Love)
-- 구매행태 (Buy)
-- 미디어 소비 (Media)
+[절대 원칙 — 요약 금지]
+- 짧은 헤드라인 + 불릿 3개로 끝내지 마세요. 그건 요약입니다.
+- 사용자가 '이게 다야?' 라고 묻지 않도록, 데이터 기반 서술형 답변을 작성합니다.
+- 본문은 최소 3개 섹션, 각 섹션 2~4문단, 문단마다 구체 수치/사실 인용.
+- 표/차트는 답변을 뒷받침하는 정량 데이터를 시각화.
 
-[솔루션 범위 밖]
-- 광고 효율·ROAS·CTR 예측 (별도 광고 솔루션)
-- 시장 트렌드·검색량 (별도 트렌드 솔루션)
-- 매체 단가·구매 가이드 (별도 미디어 플래닝 솔루션)
-- 캠페인 기획·크리에이티브 추천
+[다루는 영역 — 타겟 인사이트 솔루션]
+- 인구통계 / 라이프스타일 / 가치관·심리 / 관심사·취향 / 구매행태 / 미디어 소비
+- 비교 / 추상적 가치 질문 / 심층 페르소나 / 맥락 해석 모두 답변 가능
 
-[당신의 일]
-사용자 질문과 합성된 타겟 인사이트 데이터를 보고, 사용자가 정확히 알고 싶어한 것에 대해 답하세요.
+[범위 밖]
+- 광고 효율·ROAS·CTR 예측, 매체 단가, 캠페인 기획·크리에이티브 추천
+- 범위 밖이면 inScope:false, outOfScopeMessage 제공 + 가능한 인접 인사이트 1-2개 제시
 
-1. 질문이 범위 안이면:
-   - 핵심 답변 (headline) 1줄
-   - 근거 bullet points 3-5개 (구체 수치 포함)
-   - 관련 탭 ID (who/life/mind/love/buy/media 중)
-   - inScope: true
+[답변 구조]
+{
+  inScope: true|false,
+  headline: "1줄 핵심 결론 (40~70자, 임팩트 있게)",
+  sections: [
+    {
+      title: "섹션 제목 (예: 인구·사회적 배경)",
+      paragraphs: ["문단1", "문단2", "문단3"]
+    },
+    { title: "...", paragraphs: [...] }
+  ],
+  tables: [
+    {
+      title: "표 제목",
+      headers: ["항목", "수치", "출처"],
+      rows: [["...", "...", "..."], ...]
+    }
+  ],
+  charts: [
+    {
+      type: "bar"|"doughnut"|"line"|"radar",
+      title: "차트 제목",
+      labels: ["A","B","C"],
+      values: [10, 20, 30],
+      unit: "%" | "명" | "원" 등
+    }
+  ],
+  sources: [
+    {label: "UN Population Division 2024", url: ""},
+    {label: "DataReportal 2024", url: ""}
+  ],
+  relatedInsights: [
+    {tab: "life", label: "라이프스타일 표준 분석", reason: "이 답변과 연결된 표준 결과"}
+  ],
+  outOfScopeMessage: null | "범위 밖 안내문"
+}
 
-2. 질문이 범위 밖(광고 효율/트렌드/단가 등)이면:
-   - inScope: false
-   - outOfScopeMessage: "이 솔루션은 타겟 인사이트 분석 도구입니다. [질문 주제]는 별도 솔루션을 참고해 주세요. 대신 이 타겟에 대해 다음을 보실 수 있어요: [어떤 인사이트가 있는지 1-2개 제안]"
-   - 그래도 가능한 인사이트 bullet 1-2개 제공`;
+[섹션 작성 가이드]
+- 최소 3개 ~ 최대 5개 섹션
+- 각 섹션은 분석의 다른 측면 (배경 → 행동 → 가치 → 시사점 등 흐름)
+- 문단마다 출처 가능한 통계 인용 ("UN 인구 데이터 기준 30대 한국 여성의 67%가...")
+- 추측 표현 자제, 데이터 기반 단정 어조
+
+[표 작성 가이드]
+- 1~3개 표, 각 4~8행
+- 답변의 핵심 수치를 정리 (인구 비율 / 행동 점수 / 가치 순위 / 미디어 사용시간 등)
+
+[차트 작성 가이드]
+- 1~3개 차트, 답변 시각적 보강
+- 비교 → bar, 분포/구성 → doughnut, 추세 → line, 다축 → radar
+- labels와 values는 실제 의미있는 값
+
+[출처 가이드]
+- UN Population Division 2024 / DataReportal Digital 2024 / OECD Family Database / Statista / 자체 패널 조사 등에서 인용
+- 2~5개 출처
+
+[관련 표준 분석 (relatedInsights)]
+- 답변에 도움되는 표준 9차원 탭이 있으면 1~3개 제시
+- tab: who|life|mind|love|buy|media 중 선택
+- label: 사용자가 클릭할 때 보일 짧은 안내
+- reason: 왜 이 답변과 연결되는지 한 줄
+- 답변이 비교 형식이거나 표준 9차원으로 안 풀리면 빈 배열`;
 
     const filterStr = filters && Object.keys(filters).length
       ? Object.entries(filters).filter(([_, v]) => Array.isArray(v) && v.length).map(([k, v]) => `${k}: ${v.join(", ")}`).join(" / ")
       : "(없음)";
 
-    const dataSummary = JSON.stringify({
-      who: synthesized.who,
-      life: synthesized.life,
-      mind: synthesized.mind,
-      love: synthesized.love,
-      buy: synthesized.buy,
-      media: synthesized.media,
-    }, null, 0).slice(0, 8000); // 토큰 제한
+    const dataSummary = synthesized && Object.keys(synthesized).length
+      ? JSON.stringify(synthesized, null, 0).slice(0, 6000)
+      : "(합성 데이터 없음 — 일반 지식 + 공개 통계 기반으로 답변)";
 
     const prompt = `사용자 질문: "${question}"
 국가: ${country || "KR"}
 빌더 필터: ${filterStr}
 
-합성된 타겟 인사이트 데이터:
+참고 합성 데이터 (있는 경우):
 ${dataSummary}
 
-위 질문에 대해 답변을 작성하세요. 구체적 수치를 인용하고, 핵심을 짚어주세요.`;
+위 질문에 대해 시니어 컨설턴트 수준의 정밀 답변을 작성하세요.
+요약하지 말고, 데이터 기반 서술 + 표 + 차트 + 출처를 포함한 풍부한 분석으로 답변하세요.`;
 
     const schema = {
       type: "object",
       properties: {
-        inScope: { type: "boolean", description: "질문이 타겟 인사이트 범위 안에 있는지" },
-        headline: { type: "string", description: "핵심 답변 (1줄, 30-50자)" },
-        bullets: {
+        inScope: { type: "boolean" },
+        headline: { type: "string" },
+        sections: {
           type: "array",
-          items: { type: "string" },
-          description: "근거 bullet (3-5개, 구체 수치 포함, 각 30-60자)",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              paragraphs: { type: "array", items: { type: "string" } },
+            },
+            required: ["title", "paragraphs"],
+          },
         },
-        relatedTabs: {
+        tables: {
           type: "array",
-          items: { type: "string" },
-          description: "관련 탭 ID (who/life/mind/love/buy/media 중)",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              headers: { type: "array", items: { type: "string" } },
+              rows: { type: "array", items: { type: "array", items: { type: "string" } } },
+            },
+            required: ["title", "headers", "rows"],
+          },
         },
-        outOfScopeMessage: {
-          type: "string",
-          description: "범위 밖일 때만: 사용자에게 안내 + 대안 제시 (2-3문장)",
+        charts: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              type: { type: "string" },
+              title: { type: "string" },
+              labels: { type: "array", items: { type: "string" } },
+              values: { type: "array", items: { type: "number" } },
+              unit: { type: "string" },
+            },
+            required: ["type", "title", "labels", "values"],
+          },
         },
+        sources: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              label: { type: "string" },
+              url: { type: "string" },
+            },
+            required: ["label"],
+          },
+        },
+        relatedInsights: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              tab: { type: "string" },
+              label: { type: "string" },
+              reason: { type: "string" },
+            },
+            required: ["tab", "label"],
+          },
+        },
+        outOfScopeMessage: { type: "string" },
       },
-      required: ["inScope", "headline", "bullets"],
+      required: ["inScope", "headline", "sections"],
     };
 
     const result = await generateJSON({
       prompt, system, schema,
       model: "gemini-2.5-flash",
-      temperature: 0.4,
+      temperature: 0.5,
+      maxOutputTokens: 8192,
     });
 
     if (!result || !result.json) {
