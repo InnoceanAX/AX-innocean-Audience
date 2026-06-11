@@ -1968,20 +1968,20 @@ async function sendChat(){
     if(state.currentMode === 'chat'){
       input.value = '';
       if(typeof autoResize === 'function') autoResize(input);
-      // 채팅 전용 경량 답변 흐름: synthesize + fetchAnswerCard 직행 (워크스페이스 전환 없음)
       state.chatAnswerTarget = 'chat-answer-area';
-      // 즉시 로더 표시
       state.answerCard = { loading: true, question: q };
       renderAnswerCard();
-      try{
-        const code = state.currentCountry || 'KR';
-        if(!state.currentCountry) selectCountry('KR');
-        const synR = await fetch(API + '/audience/synthesize', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ country: code, filters: state.filters }),
-        });
-        const synD = await synR.json();
+      if(!state.currentCountry) selectCountry('KR');
+      const code = state.currentCountry || 'KR';
+      // synthesize는 선택적 · 동기 대기 하지 않고 백그라운드로
+      fetch(API + '/audience/synthesize', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ country: code, filters: state.filters }),
+      }).then(r => r.json()).then(synD => {
         if(synD.ok && synD.segments) state.synthCache = synD;
+      }).catch(()=>{});
+      // 답변 카드 바로 호출 (synthCache 없으든 있으든)
+      try{
         await fetchAnswerCard();
       }catch(err){
         console.error('chat answer failed', err);
@@ -3671,22 +3671,19 @@ function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 }
 async function fetchAnswerCard(){
-  // 원문 질문 + 합성 데이터가 있어야 함
+  // 원문 질문이 있으면 호출 (synthCache는 선택)
   const q = state.lastAsk?.question || state.lastAsk?.parsed?.query || '';
   if(!q){ state.answerCard = null; renderAnswerCard(); return; }
-  if(!state.synthCache || !state.synthCache.segments){
-    state.answerCard = null; renderAnswerCard(); return;
-  }
   state.answerCard = { loading: true, question: q };
   renderAnswerCard();
   try{
     // 세그먼트 데이터 조립 (synthCache.segments는 dim별 객체)
-    const seg = state.synthCache.segments || {};
+    const seg = (state.synthCache && state.synthCache.segments) || {};
     const synthesized = {
       who: seg.who, life: seg.life, mind: seg.mind,
       love: seg.love, buy: seg.buy, media: seg.media,
     };
-    const r = await fetch(API + '/insight/answer', {
+    const r = await fetch(API + '/insight', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         question: q,
