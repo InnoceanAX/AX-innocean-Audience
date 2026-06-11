@@ -435,8 +435,29 @@ audienceRouter.post("/synthesize", async (req, res) => {
 세그먼트 필터: ${filterSummary}${chartBaseline}
 
 위 세그먼트의 5차원 + Media 합성 통계를 JSON으로 생성하세요.
-- 모든 값은 위 베이스라인과 일관되게서도 **필터 제약 반영**된 값.
-- 수치는 사실적 범위, 극단값 금지.`;
+
+[중요 원칙 — 심화 분석 관점]
+· 빌더 필터 = 모집단 경계 (제약). 당신의 응답 = 그 모집단의 *세부 분포/심화 통계*.
+· 예: 필터 '연령=30대' → ageDistribution은 30대 내 세분 (30–34대 vs 35–39대) 하지 말고 원시 키 그대로 쓰되 30대=100%
+· 예: 필터 '성별=여성' → genderRatio.여성=100, 남성=0
+· 그러나 빌더에 명시되지 않은 차원은 풍부한 분포로 채워 주세요:
+  - occupationDistribution (직업 분포, 합계 100)
+  - incomeDistribution (소득 구간 분포, 합계 100)
+  - educationDistribution (학력 분포, 합계 100)
+  - cityTierDistribution (도시 규모 분포, 합계 100)
+  - mind.coreValuesScore (각 가치관 자타겟 내 강도 점수 0-100)
+  - mind.socialConcerns (사회적 관심사 점수 0-100)
+  - love.interestsScore (관심사 강도 점수 0-100)
+  - love.musicGenreShares / contentGenreShares (점유율 합계 100)
+  - love.fandomLevelDistribution (팬덤 수준 분포)
+  - life.activityShares / wellnessFreq / travelFreq (합계 100)
+  - buy.categoryShares / decisionFactors / paymentDistribution
+· 이 세부 분포는 모집단 특성을 반영해야 함 (예: 30대 워킹맘 → 사무·관리/전문직 비중 높음, 교육 카테고리 지출 높음)
+
+[수치 규칙]
+· 모든 값은 위 베이스라인과 일관, 필터 제약 반영.
+· 수치는 사실적 범위, 극단값 금지.
+· 분포는 합계 100이 되도록 조정.`;
 
       const schema = {
         type: "object",
@@ -449,6 +470,10 @@ audienceRouter.post("/synthesize", async (req, res) => {
               genderRatio: { type: "object", properties: { "남성": {type:"number"}, "여성": {type:"number"} } },
               incomeLevel: { type: "string", description: "예: 상위 20%, 중상위 등" },
               householdType: { type: "string" },
+              occupationDistribution: { type: "object", description: "직업 분포 (% 합계 100). 예: {\"사무·관리\": 25, \"전문직\": 18, ...}", additionalProperties: { type: "number" } },
+              incomeDistribution: { type: "object", description: "소득 분포 (% 합계 100). 예: {\"하위 20%\": 5, \"20-40%\": 15, ...}", additionalProperties: { type: "number" } },
+              educationDistribution: { type: "object", description: "학력 분포 (% 합계 100)", additionalProperties: { type: "number" } },
+              cityTierDistribution: { type: "object", description: "도시 규모 분포 (% 합계 100)", additionalProperties: { type: "number" } },
             },
           },
           life: {
@@ -456,27 +481,39 @@ audienceRouter.post("/synthesize", async (req, res) => {
             properties: {
               summary: { type: "string" },
               dailyRoutine: { type: "string", description: "일과 패턴 묘사" },
-              digitalUsage: { type: "object", properties: { "스마트폰 사용시간(시간)": {type:"number"}, "SNS 사용시간(시간)": {type:"number"}, "OTT 사용시간(시간)": {type:"number"} } },
-              topActivities: { type: "array", items: { type: "string" } },
+              digitalUsage: { type: "object", properties: { "스마트폰 사용시간(시간)": {type:"number"}, "SNS 사용시간(시간)": {type:"number"}, "OTT 사용시간(시간)": {type:"number"}, "동영상 시청(시간)": {type:"number"}, "게임 플레이(시간)": {type:"number"} } },
+              topActivities: { type: "array", items: { type: "string" }, description: "주요 활동 5-7개 (순서 중요)" },
+              activityShares: { type: "object", description: "topActivities 각 활동 참여율 (% 합계 100)", additionalProperties: { type: "number" } },
+              wellnessFreq: { type: "object", description: "운동 빈도 분포 (주 3회+/주 1-2회/월 1-3회/비운동)", additionalProperties: { type: "number" } },
+              travelFreq: { type: "object", description: "여행 빈도 분포", additionalProperties: { type: "number" } },
             },
           },
           mind: {
             type: "object",
             properties: {
               summary: { type: "string" },
-              coreValues: { type: "array", items: { type: "string" } },
+              coreValues: { type: "array", items: { type: "string" }, description: "핵심 가치관 상위 5-7개 (순서 중요)" },
+              coreValuesScore: { type: "object", description: "coreValues 각 항목의 타겟 내 강도 점수 0-100. 예: {\"가족 중심\": 88, \"건강·웰빙\": 76}", additionalProperties: { type: "number" } },
               brandTrust: { type: "string", description: "낮음/보통/높음" },
+              brandTrustScore: { type: "number", description: "브랜드 신뢰도 0-100" },
               riskAttitude: { type: "string" },
+              riskScore: { type: "number", description: "리스크 수용 점수 0-100" },
+              socialConcerns: { type: "object", description: "사회적 관심사 점수 0-100 (예: 환경/공정·다양성/안전·고용)", additionalProperties: { type: "number" } },
+              futureOutlookScore: { type: "number", description: "미래 낙관도 0-100" },
             },
           },
           love: {
             type: "object",
             properties: {
               summary: { type: "string" },
-              topInterests: { type: "array", items: { type: "string" } },
+              topInterests: { type: "array", items: { type: "string" }, description: "관심사 상위 6-8개 (순서 중요)" },
+              interestsScore: { type: "object", description: "topInterests 각 항목의 관심 강도 점수 0-100", additionalProperties: { type: "number" } },
               musicGenres: { type: "array", items: { type: "string" } },
+              musicGenreShares: { type: "object", description: "음악 장르 점유율 (% 합계 100)", additionalProperties: { type: "number" } },
               contentGenres: { type: "array", items: { type: "string" } },
+              contentGenreShares: { type: "object", description: "콘텐츠 장르 점유율 (% 합계 100)", additionalProperties: { type: "number" } },
               celebrities: { type: "array", items: { type: "string" }, description: "이 세그먼트가 좋아할 만한 유명인/IP 3-5개" },
+              fandomLevelDistribution: { type: "object", description: "팬덤 참여 수준 분포 (헤비/라이트/관심·비팬)", additionalProperties: { type: "number" } },
             },
           },
           buy: {
@@ -485,9 +522,14 @@ audienceRouter.post("/synthesize", async (req, res) => {
               summary: { type: "string" },
               shoppingChannels: { type: "object", properties: { "온라인": {type:"number"}, "오프라인": {type:"number"} } },
               priceSensitivity: { type: "string" },
+              priceSensitivityScore: { type: "number", description: "가격 민감도 0-100" },
               brandLoyalty: { type: "string" },
-              topCategories: { type: "array", items: { type: "string" }, description: "주요 지출 카테고리 3-5개" },
+              brandLoyaltyScore: { type: "number", description: "브랜드 충성도 0-100" },
+              topCategories: { type: "array", items: { type: "string" }, description: "주요 지출 카테고리 5-8개 (순서 중요)" },
+              categoryShares: { type: "object", description: "topCategories 각 카테고리 지출 점유율 (% 합계 100)", additionalProperties: { type: "number" } },
+              decisionFactors: { type: "object", description: "구매 결정 요인 점수 0-100 (가격/품질/브랜드/디자인/리뷰 등)", additionalProperties: { type: "number" } },
               paymentPreference: { type: "string" },
+              paymentDistribution: { type: "object", description: "주 결제 수단 분포 (% 합계 100)", additionalProperties: { type: "number" } },
             },
           },
           media: {
@@ -517,14 +559,14 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
   }
 
-  // 명시 필터 강제 일치화: 사용자가 명시로 선택한 연령/성별은 100%로 고정
-  // CEO 지적: '30대·여성' 선택했으면 차트도 100%로 보이도록
+  // CEO 지시 (방법 A): 빌더 = 모집단 필터, 차트 = 심화 분석.
+  // 빌더 명시 필터(연령/성별)는 해당 키 그대로 100% 표시 (제약 명시).
+  // 단, 빌더 안 한 세부 분포(직업/소득/학력 등)은 LLM 자유 생성 유지.
   if (synthesized && hasFilters) {
     try {
       const selectedAges = (filters.age || []).filter(v => v !== "전체");
       const selectedGenders = (filters.gender || []).filter(v => v !== "전체");
       if (selectedAges.length > 0 && synthesized.who) {
-        // 디멘션 옵션: ['10대', '20대', '30대', '40대', '50대', '60대 이상']
         const allAgeKeys = ["10대", "20대", "30대", "40대", "50대", "60대 이상"];
         const newAge = {};
         const share = +(100 / selectedAges.length).toFixed(1);

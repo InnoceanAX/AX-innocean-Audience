@@ -4647,14 +4647,41 @@ function renderDimCharts(dim, data){
   const d = data.data || {};
   try {
     if(dim === 'who'){
-      // 연령 분포: 합성이 있으면 합성 절문차트
+      // 연령 분포 (빌더 명시 차원)
       const synAges = syn && syn.ageDistribution;
       const ages = synAges || d.ageDistribution || {};
       const ageKeys = Object.keys(ages);
       const ageVals = ageKeys.map(k => +ages[k] || 0);
-      const ageLabels = ageKeys.map(k => /^\d/.test(k) ? k + '세' : k);
+      const ageLabels = ageKeys.map(k => /^\d/.test(k) ? k : k);
       renderChartSafe('chart-who-doughnut', 'doughnut', ageLabels, ageVals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4']);
-      renderChartSafe('chart-who-bar', 'bar', ageLabels, ageVals, '#6366F1', { suffix: '%' });
+      // 성별 (빌더 명시 차원)
+      const synGen = syn && syn.genderRatio;
+      if(synGen){
+        const genKeys = Object.keys(synGen);
+        const genVals = genKeys.map(k => +synGen[k] || 0);
+        renderChartSafe('chart-who-gender', 'doughnut', genKeys, genVals, ['#6366F1','#EC4899']);
+      }
+      // 세부 분포 (빌더 안 한 차원 — 심화 인사이트)
+      const occ = syn && syn.occupationDistribution;
+      if(occ && Object.keys(occ).length){
+        const k = Object.keys(occ); const v = k.map(x => +occ[x] || 0);
+        renderChartSafe('chart-who-occupation', 'bar', k, v, '#8B5CF6', { suffix: '%' });
+      }
+      const inc = syn && syn.incomeDistribution;
+      if(inc && Object.keys(inc).length){
+        const k = Object.keys(inc); const v = k.map(x => +inc[x] || 0);
+        renderChartSafe('chart-who-income', 'bar', k, v, '#10B981', { suffix: '%' });
+      }
+      const edu = syn && syn.educationDistribution;
+      if(edu && Object.keys(edu).length){
+        const k = Object.keys(edu); const v = k.map(x => +edu[x] || 0);
+        renderChartSafe('chart-who-education', 'doughnut', k, v, ['#F59E0B','#EF4444','#06B6D4','#10B981']);
+      }
+      const city = syn && syn.cityTierDistribution;
+      if(city && Object.keys(city).length){
+        const k = Object.keys(city); const v = k.map(x => +city[x] || 0);
+        renderChartSafe('chart-who-city', 'doughnut', k, v, ['#6366F1','#0EA5E9','#84CC16','#F97316']);
+      }
     } else if(dim === 'life'){
       // 합성 목롭이 있으면 이를 우선 (digitalUsage + topActivities)
       if(syn && (syn.digitalUsage || syn.topActivities)){
@@ -4677,16 +4704,24 @@ function renderDimCharts(dim, data){
     } else if(dim === 'mind'){
       // 합성 우선: coreValues + brandTrust/riskAttitude 등컴 수치화
       if(syn && (syn.coreValues || syn.brandTrust)){
-        // 가치 레이더: coreValues 각 항목 80~95 범위로 균등배치 (타겟 공통 점수)
+        // 가치 레이더 (coreValuesScore 우선)
+        const scoreMap = syn.coreValuesScore || {};
         const vals = (syn.coreValues || []).slice(0, 6);
-        const valVals = vals.map((_, i) => 95 - i*5);
+        const valVals = vals.map((v, i) => +scoreMap[v] || (95 - i*5));
         renderChartSafe('chart-mind-values', 'radar', vals, valVals, '#8B5CF6', { rmax: 100 });
-        // 신뢰/리스크 교차: 레이더 겴 polarArea
         const trustMap = { '낮음': 25, '보통': 55, '높음': 85 };
-        const bt = trustMap[syn.brandTrust] || 55;
-        const rt = trustMap[syn.riskAttitude] || 55;
-        renderChartSafe('chart-mind-trust', 'radar', ['브랜드 신뢰','리스크 수용'], [bt, rt], '#10B981', { rmax: 100 });
-        renderChartSafe('chart-mind-culture', 'polarArea', vals.slice(0, 3), valVals.slice(0, 3), ['#F59E0B','#EF4444','#06B6D4']);
+        const bt = +syn.brandTrustScore || trustMap[syn.brandTrust] || 55;
+        const rt = +syn.riskScore || trustMap[syn.riskAttitude] || 55;
+        const fo = +syn.futureOutlookScore || 55;
+        renderChartSafe('chart-mind-trust', 'radar', ['브랜드 신뢰','리스크 수용','미래 낙관'], [bt, rt, fo], '#10B981', { rmax: 100 });
+        // 사회적 관심사 (있으면 polarArea)
+        const socC = syn.socialConcerns || {};
+        const scKeys = Object.keys(socC);
+        if(scKeys.length){
+          renderChartSafe('chart-mind-culture', 'polarArea', scKeys, scKeys.map(k => +socC[k] || 0), ['#F59E0B','#EF4444','#06B6D4','#10B981','#8B5CF6']);
+        } else {
+          renderChartSafe('chart-mind-culture', 'polarArea', vals.slice(0, 3), valVals.slice(0, 3), ['#F59E0B','#EF4444','#06B6D4']);
+        }
       } else {
         const trust = d.trust || {};
         const vals = d.values || {};
@@ -4696,10 +4731,10 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-mind-culture', 'polarArea', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
       }
     } else if(dim === 'love'){
-      // 합성: topInterests 각 항목을 95≅90 단조 감소 점수화
       if(syn && (syn.topInterests || []).length){
         const items = (syn.topInterests || []).slice(0, 8);
-        const scores = items.map((_, i) => Math.max(60, 95 - i*5));
+        const scoreMap = syn.interestsScore || {};
+        const scores = items.map((v, i) => +scoreMap[v] || Math.max(60, 95 - i*5));
         renderChartSafe('chart-love-radar', 'radar', items, scores, '#EC4899', { rmax: 100 });
         renderChartSafe('chart-love-bar', 'bar', items, scores, '#EC4899', { suffix: '' });
       } else {
@@ -4710,19 +4745,33 @@ function renderDimCharts(dim, data){
       }
     } else if(dim === 'buy'){
       if(syn && (syn.shoppingChannels || syn.topCategories)){
-        // 주요 카테고리 (균등배치 도넛)
-        const cats = (syn.topCategories || []).slice(0, 7);
-        const eq = cats.length ? Array(cats.length).fill(Math.round(100/cats.length)) : [];
-        renderChartSafe('chart-buy-cat', 'doughnut', cats, eq, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
-        // 신용 요소: 가격민감/브랜드충성/온라인비율/결제다양성
-        const trustMap = { '낮음': 30, '보통': 55, '높음': 80 };
-        const ps = trustMap[syn.priceSensitivity] || 55;
-        const bl = trustMap[syn.brandLoyalty] || 55;
-        const sc = syn.shoppingChannels || {};
-        const onl = +sc['온라인'] || 50;
-        renderChartSafe('chart-buy-decision', 'radar', ['가격 민감도','브랜드 충성','온라인 서호','신제품 관심'], [ps, bl, onl, 70], '#0EA5E9', { rmax: 100 });
-        // 쇼핑 채널: 온라인/오프라인
-        renderChartSafe('chart-buy-pay', 'doughnut', ['온라인','오프라인'], [sc['온라인']||0, sc['오프라인']||0], ['#84CC16','#22C55E']);
+        // 카테고리 점유율 (실제 분포 우선)
+        const catShares = syn.categoryShares || {};
+        const hasCatShares = Object.keys(catShares).length > 0;
+        const cats = hasCatShares ? Object.keys(catShares).slice(0,8) : (syn.topCategories || []).slice(0, 7);
+        const catVals = hasCatShares ? cats.map(k => +catShares[k] || 0) : Array(cats.length).fill(Math.round(100/Math.max(cats.length,1)));
+        renderChartSafe('chart-buy-cat', 'doughnut', cats, catVals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B']);
+        // 구매 결정 요인 (실제 점수 우선)
+        const df = syn.decisionFactors || {};
+        const dfKeys = Object.keys(df);
+        if(dfKeys.length){
+          renderChartSafe('chart-buy-decision', 'radar', dfKeys, dfKeys.map(k => +df[k] || 0), '#0EA5E9', { rmax: 100 });
+        } else {
+          const trustMap = { '낮음': 30, '보통': 55, '높음': 80 };
+          const ps = +syn.priceSensitivityScore || trustMap[syn.priceSensitivity] || 55;
+          const bl = +syn.brandLoyaltyScore || trustMap[syn.brandLoyalty] || 55;
+          const sc = syn.shoppingChannels || {};
+          const onl = +sc['온라인'] || 50;
+          renderChartSafe('chart-buy-decision', 'radar', ['가격 민감도','브랜드 충성','온라인 선호','신제품 관심'], [ps, bl, onl, 70], '#0EA5E9', { rmax: 100 });
+        }
+        // 결제 수단 분포 또는 쇼핑채널 fallback
+        const payDist = syn.paymentDistribution || {};
+        if(Object.keys(payDist).length){
+          renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(payDist), Object.values(payDist).map(v => +v||0), ['#84CC16','#22C55E','#10B981','#06B6D4','#0EA5E9']);
+        } else {
+          const sc = syn.shoppingChannels || {};
+          renderChartSafe('chart-buy-pay', 'doughnut', ['온라인','오프라인'], [sc['온라인']||0, sc['오프라인']||0], ['#84CC16','#22C55E']);
+        }
       } else {
         const tc = d.topCategories || {};
         const df = d.decisionFactors || {};
@@ -4751,12 +4800,28 @@ function renderAudienceDim(dim, data){
     </div>
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">연령 분포 (도넛)</div>
+        <div class="aud-chart-t">연령 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-doughnut"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">연령별 비교 (막대)</div>
-        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-bar"></canvas></div>
+        <div class="aud-chart-t">직업 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-occupation"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">소득 구간 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-income"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">학력 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-education"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">도시 규모 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-city"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">성별 비율</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-gender"></canvas></div>
       </div>
     </div>
     `;
