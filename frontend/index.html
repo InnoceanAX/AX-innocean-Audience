@@ -4279,11 +4279,49 @@ function showHelp(key){
 function closeHelp(){ const m = document.getElementById('help-modal'); if(m) m.remove(); }
 
 // ============ AI 빌더 (자연어 → 필터 자동 선택) ============
+// 질문형 감지 (빌더는 타겟 정의 입력용, 질문은 AI 채팅으로 안내)
+function isQuestionInput(text){
+  if(!text) return false;
+  // 한국어 의문 끝림/의문사
+  const qPatterns = [
+    /[?\uff1f]\s*$/,
+    /\b(알려줘|알려주|보여줘|보여주|찾아줘|분석해|분석해줘|설명해|설명해줘)\b/,
+    /\b(어떤|어떻|뭐|무엇|왜|언제|어디서)\b.{0,15}(인가|인지|입니까)/,
+    /(은곳과|과의)\s.{0,8}(소비|구매|관심|가치관|일상|라이프스타일)/,
+    /\b(소비|구매|관심|가치관|일상|라이프스타일)\s*(은|는|이|가)\s*\S{0,3}\??$/,
+  ];
+  return qPatterns.some(p => p.test(text));
+}
+
+function showBuilderQuestionGuide(text){
+  const ta = document.getElementById('bld-ai-input');
+  if(typeof toast === 'function') toast('질문형 입력은 AI 채팅을 이용해 주세요', 4000);
+  // 빌더 바로 아래에 안내 카드 임시 표시
+  const bar = document.querySelector('.bld-ai-bar');
+  if(bar){
+    let guide = document.getElementById('bld-q-guide');
+    if(!guide){
+      guide = document.createElement('div');
+      guide.id = 'bld-q-guide';
+      guide.style.cssText = 'margin-top:10px;padding:11px 14px;background:#FFFBEB;border:1px solid #FED7AA;border-radius:8px;font-size:12px;color:#9A3412;line-height:1.6;display:flex;align-items:flex-start;gap:10px';
+      bar.appendChild(guide);
+    }
+    guide.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      + '<div><b>이 빌더는 타겟 정의 입력용입니다.</b><br>· 좋은 예: ‘30대 한국 워킹맘’, ‘kpop 좋아하는 일본 20대 여성’<br>· 질문·해석 되진 질문은 좌측 <b>AI 채팅</b>을 이용해 주세요.</div>';
+    setTimeout(() => { try{ guide.remove(); }catch(e){} }, 8000);
+  }
+}
+
 async function aiBuilderParse(){
   const ta = document.getElementById('bld-ai-input');
   if(!ta) return;
   const text = (ta.value||'').trim();
-  if(!text){ if(typeof toast==='function') toast('설명을 입력해주세요'); return; }
+  if(!text){ if(typeof toast==='function') toast('타겟 설명을 입력해 주세요'); return; }
+  // 질문형 감지 — AI 채팅으로 안내
+  if(isQuestionInput(text)){
+    showBuilderQuestionGuide(text);
+    return;
+  }
   const btn = document.getElementById('bld-ai-btn');
   if(btn){ btn.disabled = true; btn.innerHTML = '분석 중…'; }
   try{
@@ -4292,7 +4330,6 @@ async function aiBuilderParse(){
     if(d.ok && d.parsed){
       if(d.parsed.country) selectCountry(d.parsed.country);
       const filters = d.parsed.filters || {};
-      // 실제 옵션에 존재하는 값만 적용
       const dimMap = {}; state.dimensions.forEach(dim => { dimMap[dim.id] = dim; });
       state.filters = {};
       let applied = 0;
@@ -4306,15 +4343,14 @@ async function aiBuilderParse(){
       renderBuilder();
       refreshSegment();
       updateWsCountryLabel();
-      // 메인 채팅과 동일하게 ask-banner 표시
-      state.lastAsk = d;
-      try{ showAskBanner({ ...d, question: text }); }catch(e){}
-      if(typeof toast==='function') toast('AI 적용 완료 — ' + applied + '개 차원 설정됨');
+      // 빌더는 타겟 정의용 — ask-banner 표시 안 함 (질문·해석은 AI 채팅 전용)
+      state.lastAsk = null;
+      if(typeof toast==='function') toast('타겟 설정 완료 — ' + applied + '개 차원 적용됨');
     } else {
-      if(typeof toast==='function') toast('AI 파싱 실패 — 좀 더 구체적으로 입력해주세요');
+      if(typeof toast==='function') toast('파싱 실패 — 타겟을 좀 더 구체적으로 입력해 주세요');
     }
   }catch(e){ if(typeof toast==='function') toast('AI 호출 실패: ' + e.message); }
-  finally{ if(btn){ btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>AI 빌더 적용'; } }
+  finally{ if(btn){ btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>타겟 자동 설정'; } }
 }
 
 // ============ 요약 탭 렌더링 ============
@@ -5731,12 +5767,12 @@ function renderBuilder(){
   <div class="bld-ai-bar" style="margin-bottom:14px;padding:12px 14px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11.5px;color:var(--ind);font-weight:700">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
-      AI 자동 입력 — 한 문장으로 타겟 설명하면 필터/국가 자동 설정
-      <span style="font-weight:500;color:var(--ts);margin-left:auto;font-size:10.5px">· 질문·해석은 우측 AI 비서</span>
+      AI 빌더 — 타겟 설명을 한 문장으로 입력하면 필터/국가 자동 설정
+      <span style="font-weight:500;color:var(--ts);margin-left:auto;font-size:10.5px">· 질문은 AI 채팅 이용</span>
     </div>
     <div style="display:flex;gap:8px">
-      <input id="bld-ai-input" placeholder="예) kpop을 좋아하는 3040대 일본 워킹맘" style="flex:1;padding:9px 11px;border:1px solid var(--bdr);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fff" onkeydown="if(event.key==='Enter'){aiBuilderParse();}">
-      <button class="bld-hd-btn" id="bld-ai-btn" onclick="aiBuilderParse()" style="background:var(--ind);color:#fff;border-color:var(--ind);font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:9px 14px;white-space:nowrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>필터 자동 설정</button>
+      <input id="bld-ai-input" placeholder="예) 30대 한국 워킹맘 / kpop 좋아하는 일본 20대 여성 / 독일 친환경 소비자" style="flex:1;padding:9px 11px;border:1px solid var(--bdr);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fff" onkeydown="if(event.key==='Enter'){aiBuilderParse();}">
+      <button class="bld-hd-btn" id="bld-ai-btn" onclick="aiBuilderParse()" style="background:var(--ind);color:#fff;border-color:var(--ind);font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:9px 14px;white-space:nowrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>타겟 자동 설정</button>
     </div>
   </div>
   <div class="bld-guide">
