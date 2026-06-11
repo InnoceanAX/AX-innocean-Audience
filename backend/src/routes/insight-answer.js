@@ -94,21 +94,32 @@ insightAnswerRouter.post("/", async (req, res) => {
 - 1~3개 표, 각 4~8행
 - 답변의 핵심 수치를 정리 (인구 비율 / 행동 점수 / 가치 순위 / 미디어 사용시간 등)
 
-[차트 작성 가이드]
-- 1~3개 차트, 답변 시각적 보강
-- 비교 → bar, 분포/구성 → doughnut, 추세 → line, 다축 → radar
-- labels와 values는 실제 의미있는 값
+[차트 작성 가이드 — 반드시 최소 1개]
+- 1~3개 차트, 답변 시각적 보강 (절대 빈 배열 금지)
+- 비교 질문 → bar 차트로 그룹 간 수치 비교
+- 분포/구성 질문 → doughnut 차트로 비율 표현
+- 추세 → line 차트
+- 가치/특성 다축 → radar 차트
+- labels와 values는 실제 의미있는 값 (추정도 허용)
+- 비교 답변일 때는 반드시 bar 차트 1개 이상 (그룹별 비교용)
 
-[출처 가이드]
-- UN Population Division 2024 / DataReportal Digital 2024 / OECD Family Database / Statista / 자체 패널 조사 등에서 인용
-- 2~5개 출처
+[출처 가이드 — 반드시 최소 2개]
+- UN Population Division 2024 / DataReportal Digital 2024 / OECD Family Database / Statista / 통계청 / 자체 패널 조사 / 한국갤럽 / 닐슨 등
+- 2~5개 출처 (절대 빈 배열 금지)
+- url은 비워도 좋으나 label은 명확히
 
 [관련 표준 분석 (relatedInsights)]
 - 답변에 도움되는 표준 9차원 탭이 있으면 1~3개 제시
 - tab: who|life|mind|love|buy|media 중 선택
-- label: 사용자가 클릭할 때 보일 짧은 안내
+- label: 사용자가 클릭할 때 보일 짧은 안내 (예: '인구통계 표준 분석 보기')
 - reason: 왜 이 답변과 연결되는지 한 줄
-- 답변이 비교 형식이거나 표준 9차원으로 안 풀리면 빈 배열`;
+- 답변이 비교 형식이거나 표준 9차원으로 안 풀리면 빈 배열
+
+[범위 밖 (inScope=false) 작성 가이드]
+- outOfScopeMessage 절대 빈 문자열 금지 (필수 작성):
+  '이 솔루션은 타겟 인사이트 분석 도구입니다. 광고 효율(ROAS)은 별도 광고 성과 솔루션을 이용해 주세요. 다만 이 타겟의 미디어 소비 패턴이나 구매 의사결정 요소는 광고 효율 개선에 핵심 단서가 됩니다.' 같은 형식
+- sections는 그래도 채워서 인접 인사이트 제공 (광고 효율 → 미디어 소비 + 구매 행태 + 가치관)
+- tables/charts/sources는 비워도 됨`;
 
     const filterStr = filters && Object.keys(filters).length
       ? Object.entries(filters).filter(([_, v]) => Array.isArray(v) && v.length).map(([k, v]) => `${k}: ${v.join(", ")}`).join(" / ")
@@ -209,9 +220,20 @@ ${dataSummary}
       return res.json({ ok: false, error: "no answer generated" });
     }
 
+    // 안전 기본값 보완 (LLM이 일부 필드 생략 시)
+    const ans = result.json;
+    if (!Array.isArray(ans.sections)) ans.sections = [];
+    if (!Array.isArray(ans.tables)) ans.tables = [];
+    if (!Array.isArray(ans.charts)) ans.charts = [];
+    if (!Array.isArray(ans.sources)) ans.sources = [];
+    if (!Array.isArray(ans.relatedInsights)) ans.relatedInsights = [];
+    if (ans.inScope === false && !ans.outOfScopeMessage) {
+      ans.outOfScopeMessage = "이 솔루션은 타겟 인사이트 분석 도구입니다. 해당 주제는 별도 솔루션을 참고해 주세요. 다만 타겟의 인구통계/미디어 소비/구매 행태 정보는 아래 분석을 참고해 주세요.";
+    }
+
     res.json({
       ok: true,
-      answer: result.json,
+      answer: ans,
       meta: { model: "gemini-2.5-flash", ts: new Date().toISOString() },
     });
   } catch (e) {
