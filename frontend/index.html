@@ -3915,6 +3915,8 @@ async function reopenTarget(id){
     const t=d.target;
     state.currentTargetId=t.id; state.savedCurrent=!!t.saved; state.favCurrent=!!t.favorited;
     state.filters=t.filters||{}; if(t.country && typeof selectCountry==='function') selectCountry(t.country);
+    // 저장된 타겟에도 브더 '전체' 자동 채움 적용
+    if(typeof fillRemainingWithAll==='function') fillRemainingWithAll();
     state.analysisRun=false; state.audienceCache={}; state.mediaCache=null;
     closeLibrary();
     await goWorkspace(); switchTab('overview'); renderBuilder();
@@ -3945,6 +3947,7 @@ function __legacyApplyPresetFromLib(id){
   // 적용 — 메인의 applyPreset 대체 구현
   if(p.country && typeof selectCountry==='function') selectCountry(p.country);
   state.filters = JSON.parse(JSON.stringify(p.filters||{}));
+  if(typeof fillRemainingWithAll==='function') fillRemainingWithAll();
   closeLibrary();
   goWorkspace().then(()=>{ switchTab('overview'); if(typeof renderBuilder==='function') renderBuilder(); if(typeof refreshSegment==='function') refreshSegment(); if(typeof updateWsCountryLabel==='function') updateWsCountryLabel(); toast('프리셋 적용: ' + p.name); });
 }
