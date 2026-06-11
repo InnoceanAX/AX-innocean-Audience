@@ -635,6 +635,22 @@ a{color:inherit;text-decoration:none}
 .sm-dim-stat b{color:#111;font-weight:700}
 .sm-empty{padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:12px;display:flex;flex-direction:column;align-items:center}
 .sm-empty-t{font-size:15px;font-weight:700;color:#111;margin-bottom:6px}
+.sm-answer-card{margin-bottom:16px;border:1px solid #E0E7FF;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:12px;padding:18px 20px}
+.sm-answer-q{font-size:12px;color:#6366F1;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sm-answer-h{font-size:16px;font-weight:700;color:#1E1B4B;margin-bottom:12px;line-height:1.5}
+.sm-answer-b{list-style:none;padding:0;margin:0 0 12px}
+.sm-answer-b li{font-size:13px;color:#312E81;line-height:1.7;padding:4px 0 4px 18px;position:relative}
+.sm-answer-b li::before{content:'';position:absolute;left:4px;top:13px;width:5px;height:5px;border-radius:50%;background:#6366F1}
+.sm-answer-tabs{display:flex;flex-wrap:wrap;gap:6px;padding-top:10px;border-top:1px solid #E0E7FF}
+.sm-answer-tab-chip{background:#fff;border:1px solid #C7D2FE;color:#4338CA;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:14px;cursor:pointer;transition:all .15s}
+.sm-answer-tab-chip:hover{background:#6366F1;color:#fff;border-color:#6366F1}
+.sm-answer-oos{border:1px solid #FED7AA;background:#FFFBEB}
+.sm-answer-oos .sm-answer-q{color:#C2410C}
+.sm-answer-oos .sm-answer-h{color:#9A3412}
+.sm-answer-oos .sm-answer-b li{color:#7C2D12}
+.sm-answer-oos .sm-answer-b li::before{background:#F59E0B}
+.sm-answer-oos-msg{font-size:12.5px;color:#9A3412;line-height:1.7;padding:10px 12px;background:#FEF3C7;border-radius:6px;margin-bottom:12px}
+.sm-answer-loader{display:flex;align-items:center;gap:10px;font-size:13px;color:#6366F1;padding:14px 16px;background:#EEF2FF;border:1px dashed #C7D2FE;border-radius:8px;margin-bottom:14px}
 .sm-empty-s{font-size:12.5px;color:var(--ts);line-height:1.5}
 .sm-cta-primary{padding:10px 18px;background:var(--ind);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .sm-cta-primary:hover{background:var(--ind2)}
@@ -1177,7 +1193,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             <textarea
               class="chat-input"
               id="chat-input"
-              placeholder="INNOCEAN Audience에게 물어보세요 — 예) 30대 워킹맘의 미디어 소비 행태와 광고 효율은?"
+              placeholder="INNOCEAN Audience에게 물어보세요 — 예) 30대 한국 워킹맘의 라이프스타일과 가치관은?"
               rows="1"
               oninput="autoResize(this); toggleSend()"
               onkeydown="onChatKey(event)"
@@ -1218,7 +1234,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               </div>
               <div class="entry-mode-l">MODE 1 · 자연어</div>
               <div class="entry-t">AI에게 질문</div>
-              <div class="entry-s">"30대 워킹맘, 디지털 소비행태?" 같은 자연어를 위 검색창에 입력하면 AI가 자동으로 타겟을 정의하고 인사이트를 보여줍니다.</div>
+              <div class="entry-s">"30대 워킹맘의 관심사와 일상?" 같은 자연어를 위 검색창에 입력하면 AI가 자동으로 타겟을 정의하고 인사이트를 보여줍니다.</div>
               <div class="entry-cta">검색창에 입력하기 →</div>
             </div>
             <div class="entry-card entry-mode-builder" onclick="entryBuilder()">
@@ -1261,6 +1277,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <div id="tab-summary" class="ws-content">
           <div id="sm-action-bar"></div>
           <div id="sm-banner"></div>
+          <div id="sm-answer-card"></div>
           <div id="sm-ai-nav"></div>
           <div class="sm-kpi-grid" id="sm-kpis"></div>
           <div class="sm-dim-grid" id="sm-dims"></div>
@@ -1271,7 +1288,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="sm-empty" id="sm-empty">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:14px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <div class="sm-empty-t">아직 분석된 타겟이 없습니다</div>
-            <div class="sm-empty-s">자연어로 "30대 워킹맘의 미디어 소비..." 같은 질문을 입력하거나, 빌더 탭에서 직접 만들어보세요.</div>
+            <div class="sm-empty-s">자연어로 "30대 워킹맘의 가치관·일상..." 같은 질문을 입력하거나, 빌더 탭에서 직접 만들어보세요.</div>
             <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
               <button class="sm-cta-primary" onclick="switchTab('overview')">빌더로 가기 →</button>
             </div>
@@ -2308,7 +2325,7 @@ function entryAI(){
   const ci = document.getElementById('chat-input');
   if(ci){ ci.value=''; if(typeof autoResize==='function') autoResize(ci); if(typeof toggleSend==='function') toggleSend(); }
   document.getElementById('chat-input').focus();
-  document.getElementById('chat-input').placeholder = '예) 미국 30대 마케터 여성, 디지털 친화적, 피트니스 관심도 높음';
+  document.getElementById('chat-input').placeholder = '예) 미국 30대 마케터 여성, 디지털 친화적, 피트니스 관심도 높음의 소비 성향은?';
   // 시각적 피드백
   const wrap = document.querySelector('.chat-input-wrap');
   if(wrap){ wrap.style.boxShadow='0 0 0 3px rgba(79,70,229,.2)'; setTimeout(()=>{wrap.style.boxShadow='';},1500); }
@@ -3343,6 +3360,77 @@ async function toggleFavoriteTarget(){
     if(d.ok){ state.favCurrent = newFav; renderSummaryActionBar(); if(typeof toast==='function') toast(newFav?'즐겨찾기 추가':'즐겨찾기 해제'); }
   }catch(e){}
 }
+// AI 인사이트 답변 카드 (원문 질문에 대한 직답 + 관련 탭 링크)
+function renderAnswerCard(){
+  const box = document.getElementById('sm-answer-card'); if(!box) return;
+  const ans = state.answerCard;
+  if(!ans){ box.innerHTML = ''; return; }
+  if(ans.loading){
+    box.innerHTML = '<div class="sm-answer-loader"><span class="loader"></span>AI가 질문에 답하는 중...</div>';
+    return;
+  }
+  if(ans.error){ box.innerHTML = ''; return; }
+  const tabLabels = { who: '인물상', life: '라이프스타일', mind: '가치관', love: '관심사', buy: '구매', media: '미디어' };
+  const isOOS = !ans.inScope;
+  const q = ans.question || '';
+  const bulletsHtml = (ans.bullets || []).map(b => '<li>' + escapeHtml(b) + '</li>').join('');
+  const tabsHtml = (ans.relatedTabs || []).filter(t => tabLabels[t]).map(t =>
+    '<span class="sm-answer-tab-chip" onclick="switchTab(\'' + t + '\')">' + tabLabels[t] + ' 탭 열기 →</span>'
+  ).join('');
+  const oosMsg = isOOS && ans.outOfScopeMessage
+    ? '<div class="sm-answer-oos-msg">' + escapeHtml(ans.outOfScopeMessage) + '</div>'
+    : '';
+  box.innerHTML = '<div class="sm-answer-card' + (isOOS ? ' sm-answer-oos' : '') + '">'
+    + '<div class="sm-answer-q">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+      + (q ? '“' + escapeHtml(q) + '”' : 'AI 인사이트')
+    + '</div>'
+    + oosMsg
+    + '<div class="sm-answer-h">' + escapeHtml(ans.headline || '') + '</div>'
+    + (bulletsHtml ? '<ul class="sm-answer-b">' + bulletsHtml + '</ul>' : '')
+    + (tabsHtml ? '<div class="sm-answer-tabs">' + tabsHtml + '</div>' : '')
+    + '</div>';
+}
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+}
+async function fetchAnswerCard(){
+  // 원문 질문 + 합성 데이터가 있어야 함
+  const q = state.lastAsk?.question || state.lastAsk?.parsed?.query || '';
+  if(!q){ state.answerCard = null; renderAnswerCard(); return; }
+  if(!state.synthCache || !state.synthCache.segments){
+    state.answerCard = null; renderAnswerCard(); return;
+  }
+  state.answerCard = { loading: true, question: q };
+  renderAnswerCard();
+  try{
+    // 세그먼트 데이터 조립 (synthCache.segments는 dim별 객체)
+    const seg = state.synthCache.segments || {};
+    const synthesized = {
+      who: seg.who, life: seg.life, mind: seg.mind,
+      love: seg.love, buy: seg.buy, media: seg.media,
+    };
+    const r = await fetch(API + '/insight/answer', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        question: q,
+        country: state.currentCountry,
+        filters: state.filters,
+        synthesized,
+      }),
+    });
+    const d = await r.json();
+    if(d.ok && d.answer){
+      state.answerCard = { ...d.answer, question: q, loading: false };
+    } else {
+      state.answerCard = { error: true };
+    }
+  }catch(e){
+    console.warn('answer card fetch failed', e);
+    state.answerCard = { error: true };
+  }
+  renderAnswerCard();
+}
 function renderSummaryActionBar(){
   const bar = document.getElementById('sm-action-bar'); if(!bar) return;
   if(!state.analysisRun){ bar.innerHTML=''; return; }
@@ -4161,7 +4249,7 @@ const HELP_CONTENT = {
     blocks: [
       { h: '« 전체 » 칩 의미', p: '차원 맨 앞의 «전체» 칩을 누르면 해당 차원은 필터링 없이 전체 모수를 포함합니다.' },
       { h: '프리셋이란', p: 'Gen Z, K-Pop 팬 등 자주 쓰는 타겟 조합을 원클릭으로 적용하는 단축 버튼입니다. 직접 만든 조합은 [+ 현재 필터 저장]으로 보관할 수 있습니다.' },
-      { h: 'AI 빌더', p: '맨 위 입력창에 «30대 워킹맘 중 프리미엄 쇼퍼» 같이 자연어를 수입하면 자동으로 적합한 차원이 선택됩니다.' },
+      { h: 'AI 빌더', p: '맨 위 입력창에 «30대 워킹맘 중 프리미엄 쇼퍼» 같이 자연어를 입력하면 자동으로 적합한 차원이 선택됩니다.' },
       { h: '6개 그룹', p: 'Who(인구)·Life(라이프)·Mind(가치관)·Love(관심사)·Media(미디어)·Buy(구매)로 총 64개 차원입니다.' },
     ],
   },
@@ -4229,6 +4317,7 @@ async function refreshSummaryTab(){
   const insWrap = document.getElementById('sm-insights-wrap');
   const macroWrap = document.getElementById('sm-macro-wrap');
   renderSummaryActionBar();
+  renderAnswerCard();
   if(!state.analysisRun){
     if(insWrap) insWrap.innerHTML='';
     if(macroWrap) macroWrap.innerHTML='';
@@ -4237,6 +4326,7 @@ async function refreshSummaryTab(){
     if(dims) dims.innerHTML = '';
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
+    const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
     return;
   }
   if(empty) empty.style.display = 'none';
@@ -5815,6 +5905,13 @@ async function runAnalysis(){
     // 항상 요약 탭으로 자동 이동
     state.autoRouteToSummary = false;
     switchTab('summary');
+    // AI 인사이트 답변 카드 생성 (원문 질문이 있을 때)
+    if(state.lastAsk && state.lastAsk.question && state.synthCache){
+      fetchAnswerCard(); // non-blocking
+    } else {
+      state.answerCard = null;
+      renderAnswerCard();
+    }
   } catch(e){
     console.error('runAnalysis failed', e);
     if(status) status.innerHTML = '<div class="bld-analyze-ok" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B">분석 실패: ' + e.message + '</div>';

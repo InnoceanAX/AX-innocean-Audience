@@ -61,12 +61,21 @@ ${dimDescriptors}
 
 [Intent 종류]
 - target-definition: 타겟 정의·세그먼트 분석
-- media-strategy: 매체 믹스·광고 전략
-- competitive-insights: 경쟁사 비교·시장 포지셔닝
-- market-entry: 신규 시장 진입
-- global-comparison: 국가별 비교
+- lifestyle-insight: 라이프스타일 · 일상
+- values-insight: 가치관 · 심리 · 의사결정
+- interest-insight: 관심사 · 취미 · 콘텐츠
+- purchase-insight: 구매행태 · 쇼핑
+- media-insight: 미디어 소비 패턴 (단순 소비 행태, 광고 전략 아님)
+- demographic-insight: 인구통계 · 직업 · 소득
 - persona-deep-dive: 페르소나 심층 분석
+- global-comparison: 국가별 비교
+- out-of-scope: 소루션 범위 밖 (광고 효율/ROAS/CTR/트렌드/단가/미디어 플래닝/시장규모/경쟁사 등)
 - general: 일반 질문
+
+[주의]
+이 솔루션은 '타겟 인사이트 분석' 소루션입니다.
+- '광고 효율', 'ROAS', 'CTR', '트렌드', '시장규모', '단가', '매체 구매', '경쟁사' 등은 범위 밖(out-of-scope)으로 분류.
+- 단, '미디어 소비 패턴' '매체 이용 시간' '어디서 콘텐츠를 소비하는지' 같은 소비 행태는 media-insight로 분류.
 
 규칙 (중요):
 - filters의 키는 위 디멘션 id와 정확히 일치 (age, gender, musicGenre 등).
