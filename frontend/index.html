@@ -1972,15 +1972,7 @@ async function sendChat(){
       state.answerCard = { loading: true, question: q };
       renderAnswerCard();
       if(!state.currentCountry) selectCountry('KR');
-      const code = state.currentCountry || 'KR';
-      // synthesize는 선택적 · 동기 대기 하지 않고 백그라운드로
-      fetch(API + '/audience/synthesize', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ country: code, filters: state.filters }),
-      }).then(r => r.json()).then(synD => {
-        if(synD.ok && synD.segments) state.synthCache = synD;
-      }).catch(()=>{});
-      // 답변 카드 바로 호출 (synthCache 없으든 있으든)
+      // synthesize 호출 안 함 (70초 소요) — 답변 카드는 synthCache 없이도 생성 가능
       try{
         await fetchAnswerCard();
       }catch(err){
