@@ -635,7 +635,9 @@ a{color:inherit;text-decoration:none}
 .sm-dim-stat b{color:#111;font-weight:700}
 .sm-empty{padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:12px;display:flex;flex-direction:column;align-items:center}
 .sm-empty-t{font-size:15px;font-weight:700;color:#111;margin-bottom:6px}
-.sm-answer-card{margin:8px 0 24px;border:1px solid #C7D2FE;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:14px;padding:20px 22px;box-shadow:0 2px 8px rgba(99,102,241,.08)}
+.sm-answer-card{margin:0 0 24px;border:2px solid #6366F1;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:14px;padding:22px 24px;box-shadow:0 4px 16px rgba(99,102,241,.15);position:relative}
+.sm-answer-card::before{content:'AI 인사이트 답변';position:absolute;top:-10px;left:18px;background:#6366F1;color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:11px;letter-spacing:.4px}
+.sm-answer-card.sm-answer-oos::before{content:'안내';background:#F59E0B}
 .sm-answer-q{font-size:12px;color:#6366F1;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .sm-answer-h{font-size:16px;font-weight:700;color:#1E1B4B;margin-bottom:12px;line-height:1.5}
 .sm-answer-b{list-style:none;padding:0;margin:0 0 12px}
@@ -4641,6 +4643,30 @@ function renderChartSafe(canvasId, type, labels, data, color, opts){
       try { window._chartInstances[canvasId].destroy(); } catch(e){}
       delete window._chartInstances[canvasId];
     }
+    // 빈 데이터 처리: 레이블 없거나 모든 값이 0이면 '데이터 없음' 표시
+    const hasData = Array.isArray(labels) && labels.length > 0
+      && Array.isArray(data) && data.some(v => +v > 0);
+    if(!hasData){
+      const parent = canvas.parentElement;
+      if(parent){
+        // 캔버스 숨기고 플레이스홀더 표시
+        canvas.style.display = 'none';
+        let ph = parent.querySelector('.chart-empty-ph');
+        if(!ph){
+          ph = document.createElement('div');
+          ph.className = 'chart-empty-ph';
+          ph.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:160px;color:#9CA3AF;font-size:12px;gap:6px';
+          ph.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>데이터 준비 중</span>';
+          parent.appendChild(ph);
+        }
+      }
+      return;
+    } else {
+      // 데이터 있으면 캔버스 복구 + 플레이스홀더 제거
+      canvas.style.display = '';
+      const ph = canvas.parentElement && canvas.parentElement.querySelector('.chart-empty-ph');
+      if(ph) ph.remove();
+    }
     const ctx = canvas.getContext('2d');
     const isMulti = Array.isArray(color);
     const colors = isMulti ? color : data.map(() => color);
@@ -5863,7 +5889,9 @@ async function runAnalysis(){
     state.synthCache = null;
     state.panelCache = null; // 한국 30명 패널 결과
     const hasAnyFilter = Object.values(state.filters||{}).some(v => Array.isArray(v) && v.length > 0 && !(v.length===1 && v[0]==='전체'));
-    if(hasAnyFilter){
+    // 자연어 질문이 있으면 필터가 없어도 합성 호출 (답변 카드 생성용)
+    const hasQuestion = !!(state.lastAsk && state.lastAsk.question);
+    if(hasAnyFilter || hasQuestion){
       try{
         const synR = await fetch(API + '/audience/synthesize', {
           method:'POST', headers:{'Content-Type':'application/json'},
@@ -5873,29 +5901,25 @@ async function runAnalysis(){
         if(synD.ok && synD.segments) state.synthCache = synD;
       }catch(e){ console.warn('synthesize failed', e); }
 
-      // 한국 단독: 30명 페르소나 패널 추가 호출 (병렬, 캐시 hit이면 즉시)
+      // 한국 단독: 30명 페르소나 패널 조회 (백그라운드, 도착 시 현재 탭만 조용히 갱신)
       if(code === 'KR'){
-        try{
-          // filters를 panel 요청 형식으로 변환
-          const f = state.filters || {};
-          const ageRange = (Array.isArray(f.age) && f.age.length > 0 && f.age[0] !== '전체') ? f.age.join('|') : null;
-          const gender = (Array.isArray(f.gender) && f.gender.length === 1 && f.gender[0] !== '전체') ? f.gender[0] : null;
-          const interests = Array.isArray(f.interests) ? f.interests.filter(i => i !== '전체') : [];
-          // 토스트로 진행 표시 (캐시 miss일 때 30초 대기 안내)
-          if(typeof toast === 'function') toast('한국 30명 페르소나 패널 조회 중...', 5000);
-          const panelR = await fetch(API + '/research/segment', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ country: 'KR', ageRange, gender, interests, panelSize: 30 }),
-          });
-          const panelD = await panelR.json();
-          if(panelD.ok){
+        const f = state.filters || {};
+        const ageRange = (Array.isArray(f.age) && f.age.length > 0 && f.age[0] !== '전체') ? f.age.join('|') : null;
+        const gender = (Array.isArray(f.gender) && f.gender.length === 1 && f.gender[0] !== '전체') ? f.gender[0] : null;
+        const interests = Array.isArray(f.interests) ? f.interests.filter(i => i !== '전체') : [];
+        // 백그라운드 fire-and-forget — 메인 흐름 차단 안됨
+        fetch(API + '/research/segment', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ country: 'KR', ageRange, gender, interests, panelSize: 30 }),
+        }).then(r => r.json()).then(panelD => {
+          if(panelD && panelD.ok){
             state.panelCache = panelD;
-            if(typeof toast === 'function'){
-              const cacheLabel = panelD.cached ? '캐시 적중' : `신규 생성 (${Math.round((panelD.durationMs||0)/1000)}초)`;
-              toast(`한국 30명 패널 응답 완료 — ${cacheLabel}`);
+            // 현재 다이멘션 탭이면 조용히 갱신
+            if(['who','life','mind','love','buy'].includes(state.currentTab)){
+              refreshAudienceTab(state.currentTab);
             }
           }
-        }catch(e){ console.warn('panel research failed', e); }
+        }).catch(e => console.warn('panel research failed', e));
       }
     }
     // 분석 완료 메시지
@@ -5907,7 +5931,7 @@ async function runAnalysis(){
     }
     // AI 네비게이터: 추천 탭 칩 표시 (lastAsk가 있으면 intent 기반, 없으면 기본)
     renderAiNavigator();
-    // 토스트
+    // 토스트 — 최종 1회만 (다른 곳의 중간 토스트 제거)
     if(typeof toast === 'function') toast('분석 완료 — 각 탭에서 결과를 확인하세요');
     // 라이브러리 자동 등록 (recent) + 임시 보관함에 자동 attach
     try{
