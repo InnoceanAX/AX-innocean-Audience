@@ -25,26 +25,26 @@ catalogRouter.get("/", (_, res) => {
 const SUGGESTED_PROMPTS = [
   {
     category: "target-definition",
-    text: "30대 워킹맘의 미디어 소비 행태와 광고 효율을 알려줘",
+    text: "30대 한국 워킹맘의 라이프스타일과 가치관은?",
   },
   {
-    category: "competitive-insights",
-    text: "일본 Z세대가 한국 럭셔리 브랜드에 갖는 인식을 분석해줘",
+    category: "persona-deep-dive",
+    text: "일본 Z세대 한류 팬의 일상·관심사·소비 성향은?",
   },
   {
-    category: "media-strategy",
-    text: "동남아 모바일 헤비 유저에게 도달하는 미디어 믹스는?",
+    category: "interest-insight",
+    text: "동남아 모바일 헤비 유저의 콘텐츠·취미 성향은?",
   },
   {
     category: "global-comparison",
-    text: "독일 친환경 가치관 소비자와 한국 비교해줘",
+    text: "독일 친환경 소비자와 한국 소비자 가치관 비교",
   },
 ];
 
 const CATEGORY_CAROUSEL = [
   { id: "target-definition", label: "타겟 정의", icon: "target" },
-  { id: "competitive-insights", label: "경쟁 인사이트", icon: "compass" },
-  { id: "media-strategy", label: "미디어 전략", icon: "broadcast" },
-  { id: "market-entry", label: "시장 진입", icon: "globe" },
+  { id: "persona-deep-dive", label: "페르소나 심층", icon: "compass" },
+  { id: "interest-insight", label: "관심사·취미", icon: "broadcast" },
   { id: "global-comparison", label: "글로벌 비교", icon: "scale" },
+  { id: "lifestyle-insight", label: "라이프스타일", icon: "globe" },
 ];
