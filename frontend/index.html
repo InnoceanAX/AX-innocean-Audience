@@ -1663,6 +1663,11 @@ const state = {
   categories: [],
   categoryIdx: 0,
   segment: null,
+  // 아키텍처 v2
+  currentMode: null,         // 'chat' | 'insight'
+  chatSessions: [],          // 저장된 채팅 세션
+  currentChatId: null,       // 현재 활성 채팅 id
+  chatMessages: [],          // 현재 세션 메시지 배열
 };
 
 // ============ BOOT ============
@@ -1716,8 +1721,37 @@ async function boot(){
       await goWorkspace();
       switchTab(tab, { fromHistory: true });
     } else if(initialMode === 'insight'){
-      // 타겟 인사이트 메인: 빌더 보기
-      goBuilder();
+      // 타겟 인사이트 메인: 이전 상태 복원 후 빌더
+      const restored = restoreModeState('insight');
+      if(restored){
+        if(restored.country) state.currentCountry = restored.country;
+        if(restored.filters && Object.keys(restored.filters).length > 0) state.filters = restored.filters;
+      }
+      const hasFilters = state.filters && Object.keys(state.filters).length > 0;
+      if(hasFilters){
+        await goWorkspace();
+        switchTab((restored && restored.currentTab) || 'overview');
+      } else {
+        goBuilder();
+      }
+    } else {
+      // AI 채팅 메인: 이전 질문/국가 복원
+      const restored = restoreModeState('chat');
+      if(restored){
+        if(restored.country && !state.currentCountry){
+          state.currentCountry = restored.country;
+          state.userPickedCountry = true;
+          if(typeof updateCountryPillLabel === 'function') updateCountryPillLabel();
+        }
+        if(restored.lastQuestion){
+          const inp = document.getElementById('chat-input');
+          if(inp && !inp.value){
+            inp.value = restored.lastQuestion;
+            if(typeof autoResize === 'function') autoResize(inp);
+            if(typeof toggleSend === 'function') toggleSend();
+          }
+        }
+      }
     }
   } catch(e){
     toast('백엔드 연결 실패: ' + e.message);
@@ -2021,7 +2055,52 @@ function showAskBanner(data){
 
 // ============ NAVIGATION ============
 // ============ MODE V2: AI 채팅 / 타겟 인사이트 ============
+
+// 모드별 마지막 상태 메모리 (CEO 결정: 이동 시 기존 메모리 기반)
+function saveModeState(mode){
+  try{
+    if(mode === 'chat'){
+      const snapshot = {
+        country: state.currentCountry || null,
+        lastQuestion: state.lastAsk && state.lastAsk.question ? state.lastAsk.question : null,
+        currentChatId: state.currentChatId || null,
+        filters: state.filters || {},
+        updatedAt: Date.now(),
+      };
+      localStorage.setItem('innocean.audience.lastChat', JSON.stringify(snapshot));
+    } else if(mode === 'insight'){
+      const snapshot = {
+        country: state.currentCountry || null,
+        filters: state.filters || {},
+        currentTab: state.currentTab || 'summary',
+        analysisRun: !!state.analysisRun,
+        updatedAt: Date.now(),
+      };
+      localStorage.setItem('innocean.audience.lastInsight', JSON.stringify(snapshot));
+    }
+  }catch(e){}
+}
+
+function restoreModeState(mode){
+  try{
+    if(mode === 'chat'){
+      const raw = localStorage.getItem('innocean.audience.lastChat');
+      if(!raw) return null;
+      return JSON.parse(raw);
+    } else if(mode === 'insight'){
+      const raw = localStorage.getItem('innocean.audience.lastInsight');
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }
+  }catch(e){ return null; }
+  return null;
+}
+
 function switchMode(mode){
+  // 이전 모드 상태 저장 (변경 전에 다음 방문 대비)
+  const prev = state.currentMode;
+  if(prev && prev !== mode) saveModeState(prev);
+
   state.currentMode = mode;
   try{ localStorage.setItem('innocean.audience.mode', mode); }catch(e){}
   // 사이드바 활성 갱신
@@ -2031,23 +2110,50 @@ function switchMode(mode){
   if(sbIns) sbIns.classList.toggle('active', mode === 'insight');
   document.body.classList.toggle('mode-chat', mode === 'chat');
   document.body.classList.toggle('mode-insight', mode === 'insight');
+
+  // 새 모드의 저장된 상태 복원
+  const restored = restoreModeState(mode);
+
   if(mode === 'chat'){
-    // AI 채팅: 기존 home 재사용 + 대화형 연장
+    // AI 채팅: 입력창 더하기 + 이전 질문/국가 복원
     goHome({ keepFilters: true, fromMode: true });
-    // 필터 상태만 보존, 대화 자세 초기화
-    const url = new URL(window.location.href); url.pathname = '/'; url.search = '';
+    if(restored){
+      if(restored.country && !state.currentCountry){
+        state.currentCountry = restored.country;
+        state.userPickedCountry = true;
+        if(typeof updateCountryPillLabel === 'function') updateCountryPillLabel();
+      }
+      if(restored.lastQuestion){
+        const inp = document.getElementById('chat-input');
+        if(inp && !inp.value){
+          inp.value = restored.lastQuestion;
+          if(typeof autoResize === 'function') autoResize(inp);
+          if(typeof toggleSend === 'function') toggleSend();
+        }
+      }
+    }
     history.pushState({ view: 'chat' }, '', '/chat');
   } else {
-    // 타겟 인사이트: 빌더 진입 (필터 있으면 워크스페이스)
+    // 타겟 인사이트: 이전 필터 + 탭 복원
+    if(restored){
+      if(restored.country) state.currentCountry = restored.country;
+      if(restored.filters && Object.keys(restored.filters).length > 0) state.filters = restored.filters;
+    }
     const hasFilters = state.filters && Object.keys(state.filters).length > 0;
     if(hasFilters){
       goWorkspace({ fromMode: true });
-      switchTab('overview');
+      const lastTab = (restored && restored.currentTab) || 'overview';
+      switchTab(lastTab);
     } else {
       goBuilder();
     }
     history.pushState({ view: 'insight' }, '', '/insight');
   }
+}
+
+// 주요 상태 변경 시 자동 스냅샷 (분석 완료 시 호출)
+function snapshotCurrentMode(){
+  if(state.currentMode) saveModeState(state.currentMode);
 }
 
 function startNewChat(){
@@ -2141,6 +2247,8 @@ async function goWorkspace(opts){
 function switchTab(tab, opts){
   const fromHistory = opts && opts.fromHistory;
   state.currentTab = tab;
+  // 타겟 인사이트 모드의 마지막 탭 자동 스냅샷
+  if(state.currentMode === 'insight') { try{ snapshotCurrentMode(); }catch(e){} }
   document.querySelectorAll('.ws-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   const toolBtn = document.querySelector('.ws-tool-btn');
   if(toolBtn) toolBtn.classList.toggle('active', tab === 'compare');
@@ -6238,6 +6346,8 @@ async function runAnalysis(){
     // 항상 요약 탭으로 자동 이동
     state.autoRouteToSummary = false;
     switchTab('summary');
+    // 현재 모드 상태 자동 스냅샷
+    try{ snapshotCurrentMode(); }catch(e){}
     // AI 인사이트 답변 카드 생성 (원문 질문이 있을 때)
     if(state.lastAsk && state.lastAsk.question && state.synthCache){
       fetchAnswerCard(); // non-blocking
