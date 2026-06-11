@@ -4688,12 +4688,25 @@ function renderDimCharts(dim, data){
         const du = syn.digitalUsage || {};
         const duKeys = Object.keys(du);
         const duVals = duKeys.map(k => +du[k] || 0);
-        // 레이더 = 디지털 사용 시간 프로파일 (시간 그대로 표시, 최대 24)
         renderChartSafe('chart-life-radar', 'radar', duKeys, duVals, '#6366F1', { rmax: 24 });
-        // 도넛 = 주요 활동 (균등 분배, 5개 표시)
-        const acts = (syn.topActivities||[]).slice(0,5);
-        const eq = acts.length ? Array(acts.length).fill(Math.round(100/acts.length)) : [];
-        renderChartSafe('chart-life-travel', 'doughnut', acts, eq, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6']);
+        // 활동 분포 (점유율 우선)
+        const shares = syn.activityShares || {};
+        const hasShares = Object.keys(shares).length > 0;
+        const acts = hasShares ? Object.keys(shares).slice(0,7) : (syn.topActivities||[]).slice(0,5);
+        const aVals = hasShares ? acts.map(k => +shares[k] || 0) : Array(acts.length).fill(Math.round(100/Math.max(acts.length,1)));
+        renderChartSafe('chart-life-travel', 'doughnut', acts, aVals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
+        // 시간대별 활동
+        const dp = syn.dayparts || {};
+        if(Object.keys(dp).length) renderChartSafe('chart-life-dayparts', 'bar', Object.keys(dp), Object.values(dp).map(v=>+v||0), '#0EA5E9', { suffix: '' });
+        // 식생활
+        const fh = syn.foodHabits || {};
+        if(Object.keys(fh).length) renderChartSafe('chart-life-food', 'doughnut', Object.keys(fh), Object.values(fh).map(v=>+v||0), ['#F59E0B','#EF4444','#10B981','#06B6D4','#8B5CF6']);
+        // 운동 빈도
+        const wf = syn.wellnessFreq || {};
+        if(Object.keys(wf).length) renderChartSafe('chart-life-wellness', 'doughnut', Object.keys(wf), Object.values(wf).map(v=>+v||0), ['#10B981','#84CC16','#F59E0B','#EF4444']);
+        // 여행 빈도
+        const tf = syn.travelFreq || {};
+        if(Object.keys(tf).length) renderChartSafe('chart-life-travelfreq', 'doughnut', Object.keys(tf), Object.values(tf).map(v=>+v||0), ['#3B82F6','#6366F1','#8B5CF6','#A855F7']);
       } else {
         const act = d.activities || {};
         const t = d.travel || {};
@@ -4713,8 +4726,9 @@ function renderDimCharts(dim, data){
         const bt = +syn.brandTrustScore || trustMap[syn.brandTrust] || 55;
         const rt = +syn.riskScore || trustMap[syn.riskAttitude] || 55;
         const fo = +syn.futureOutlookScore || 55;
-        renderChartSafe('chart-mind-trust', 'radar', ['브랜드 신뢰','리스크 수용','미래 낙관'], [bt, rt, fo], '#10B981', { rmax: 100 });
-        // 사회적 관심사 (있으면 polarArea)
+        const op = +syn.optimismScore || 55;
+        const st = +syn.stressLevel || 50;
+        renderChartSafe('chart-mind-trust', 'radar', ['브랜드 신뢰','리스크 수용','미래 낙관','개인 낙관','스트레스'], [bt, rt, fo, op, st], '#10B981', { rmax: 100 });
         const socC = syn.socialConcerns || {};
         const scKeys = Object.keys(socC);
         if(scKeys.length){
@@ -4722,6 +4736,15 @@ function renderDimCharts(dim, data){
         } else {
           renderChartSafe('chart-mind-culture', 'polarArea', vals.slice(0, 3), valVals.slice(0, 3), ['#F59E0B','#EF4444','#06B6D4']);
         }
+        // 의사결정 스타일
+        const ds = syn.decisionStyle || {};
+        if(Object.keys(ds).length) renderChartSafe('chart-mind-decision', 'doughnut', Object.keys(ds), Object.values(ds).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981']);
+        // 정보 소비
+        const ic = syn.infoConsumption || {};
+        if(Object.keys(ic).length) renderChartSafe('chart-mind-info', 'doughnut', Object.keys(ic), Object.values(ic).map(v=>+v||0), ['#0EA5E9','#06B6D4','#10B981','#F59E0B']);
+        // 성격 (빅파이브)
+        const pt = syn.personalityTrait || {};
+        if(Object.keys(pt).length) renderChartSafe('chart-mind-personality', 'radar', Object.keys(pt), Object.values(pt).map(v=>+v||0), '#A855F7', { rmax: 100 });
       } else {
         const trust = d.trust || {};
         const vals = d.values || {};
@@ -4737,6 +4760,14 @@ function renderDimCharts(dim, data){
         const scores = items.map((v, i) => +scoreMap[v] || Math.max(60, 95 - i*5));
         renderChartSafe('chart-love-radar', 'radar', items, scores, '#EC4899', { rmax: 100 });
         renderChartSafe('chart-love-bar', 'bar', items, scores, '#EC4899', { suffix: '' });
+        const mg = syn.musicGenreShares || {};
+        if(Object.keys(mg).length) renderChartSafe('chart-love-music', 'doughnut', Object.keys(mg), Object.values(mg).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4']);
+        const cg = syn.contentGenreShares || {};
+        if(Object.keys(cg).length) renderChartSafe('chart-love-content', 'doughnut', Object.keys(cg), Object.values(cg).map(v=>+v||0), ['#EF4444','#F59E0B','#10B981','#06B6D4','#3B82F6','#A855F7']);
+        const inf = syn.influencerTypes || {};
+        if(Object.keys(inf).length) renderChartSafe('chart-love-influencer', 'doughnut', Object.keys(inf), Object.values(inf).map(v=>+v||0), ['#EC4899','#A855F7','#8B5CF6','#6366F1']);
+        const sp = syn.sportsAffinity || {};
+        if(Object.keys(sp).length) renderChartSafe('chart-love-sports', 'radar', Object.keys(sp), Object.values(sp).map(v=>+v||0), '#10B981', { rmax: 100 });
       } else {
         const ranked = data.rankedInterests || [];
         const top8 = ranked.slice(0, 8);
@@ -4764,7 +4795,7 @@ function renderDimCharts(dim, data){
           const onl = +sc['온라인'] || 50;
           renderChartSafe('chart-buy-decision', 'radar', ['가격 민감도','브랜드 충성','온라인 선호','신제품 관심'], [ps, bl, onl, 70], '#0EA5E9', { rmax: 100 });
         }
-        // 결제 수단 분포 또는 쇼핑채널 fallback
+        // 결제 수단
         const payDist = syn.paymentDistribution || {};
         if(Object.keys(payDist).length){
           renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(payDist), Object.values(payDist).map(v => +v||0), ['#84CC16','#22C55E','#10B981','#06B6D4','#0EA5E9']);
@@ -4772,6 +4803,20 @@ function renderDimCharts(dim, data){
           const sc = syn.shoppingChannels || {};
           renderChartSafe('chart-buy-pay', 'doughnut', ['온라인','오프라인'], [sc['온라인']||0, sc['오프라인']||0], ['#84CC16','#22C55E']);
         }
+        // 쇼핑 채널
+        const cm = syn.channelMix || {};
+        if(Object.keys(cm).length) renderChartSafe('chart-buy-channel', 'doughnut', Object.keys(cm), Object.values(cm).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#0EA5E9']);
+        // 구매 주기
+        const pf = syn.purchaseFrequency || {};
+        if(Object.keys(pf).length) renderChartSafe('chart-buy-freq', 'doughnut', Object.keys(pf), Object.values(pf).map(v=>+v||0), ['#10B981','#84CC16','#F59E0B','#EF4444']);
+        // 구매 속성 프로파일
+        const ps2 = +syn.priceSensitivityScore || 55;
+        const bl2 = +syn.brandLoyaltyScore || 55;
+        const ds2 = +syn.discountSensitivity || 55;
+        const ri = +syn.reviewInfluence || 55;
+        const bs = +syn.brandSwitching || 55;
+        const ec2 = +syn.ethicalConsumerScore || 55;
+        renderChartSafe('chart-buy-profile', 'radar', ['가격 민감','브랜드 충성','할인 민감','리뷰 영향','브랜드 전환','윤리 소비'], [ps2, bl2, ds2, ri, bs, ec2], '#A855F7', { rmax: 100 });
       } else {
         const tc = d.topCategories || {};
         const df = d.decisionFactors || {};
@@ -4839,12 +4884,28 @@ function renderAudienceDim(dim, data){
     </div>
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">디지털 활동 프로파일 (레이더)</div>
+        <div class="aud-chart-t">디지털 사용 시간 (레이더)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">여행 성향 (도넛)</div>
+        <div class="aud-chart-t">주요 활동 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travel"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">시간대별 활동 강도</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-dayparts"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">식생활 패턴</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-food"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">운동 빈도</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-wellness"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">여행 빈도</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travelfreq"></canvas></div>
       </div>
     </div>
     `;
@@ -4853,18 +4914,30 @@ function renderAudienceDim(dim, data){
     const trust = d.trust || {};
     const vals = d.values || {};
     const cul = d.culture || {};
-    return `<div class="aud-chart-grid aud-chart-grid-3">
+    return `<div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">기관 신뢰도 (Edelman)</div>
-        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-trust"></canvas></div>
-      </div>
-      <div class="aud-chart-card">
-        <div class="aud-chart-t">가치관 (WVS)</div>
+        <div class="aud-chart-t">핵심 가치관 (레이더)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-values"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">문화 (Hofstede)</div>
+        <div class="aud-chart-t">신뢰·리스크·낙관</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-trust"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">사회적 관심사</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-culture"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">의사결정 스타일</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-decision"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">정보 소비 패턴</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-info"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">성격 (빅 파이브)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-personality"></canvas></div>
       </div>
     </div>
     `;
@@ -4874,12 +4947,28 @@ function renderAudienceDim(dim, data){
     const top8 = ranked.slice(0, 8);
     return `<div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">Top 8 관심사 프로파일 (레이더)</div>
+        <div class="aud-chart-t">Top 관심사 (레이더)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">Top 8 관심사 점수 (막대)</div>
+        <div class="aud-chart-t">Top 관심사 점수</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-bar"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">음악 장르 점유율</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-music"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">콘텐츠 장르 점유율</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-content"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">인플루언서 선호 유형</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-influencer"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">스포츠 선호도</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-sports"></canvas></div>
       </div>
     </div>
     <div class="aud-section"><div class="aud-section-t">전체 랭킹 (${ranked.length}개)</div>
@@ -4906,18 +4995,30 @@ function renderAudienceDim(dim, data){
       <div class="aud-kpi"><div class="aud-kpi-l">월평균 지출</div><div class="aud-kpi-v">$${ec.avgMonthlySpendUSD}</div></div>
       <div class="aud-kpi"><div class="aud-kpi-l">가격민감도</div><div class="aud-kpi-v">${psy.priceSensitivity}</div></div>
     </div>
-    <div class="aud-chart-grid aud-chart-grid-3">
+    <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">구매 카테고리 (도넛)</div>
+        <div class="aud-chart-t">주요 카테고리 점유율</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-cat"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">의사결정 요인 (레이더)</div>
+        <div class="aud-chart-t">구매 결정 요인</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-decision"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">결제 수단 (도넛)</div>
+        <div class="aud-chart-t">결제 수단 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-pay"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">쇼핑 채널 세분</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-channel"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">구매 주기</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-freq"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">구매 속성 프로파일</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-profile"></canvas></div>
       </div>
     </div>
     `;

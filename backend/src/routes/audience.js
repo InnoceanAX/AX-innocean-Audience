@@ -450,8 +450,14 @@ audienceRouter.post("/synthesize", async (req, res) => {
   - love.interestsScore (관심사 강도 점수 0-100)
   - love.musicGenreShares / contentGenreShares (점유율 합계 100)
   - love.fandomLevelDistribution (팬덤 수준 분포)
-  - life.activityShares / wellnessFreq / travelFreq (합계 100)
-  - buy.categoryShares / decisionFactors / paymentDistribution
+  - life.activityShares / wellnessFreq / travelFreq / dayparts / foodHabits / hobbyShares
+  - life.sleepHours / workLifeBalance / homeOfficeRatio
+  - mind.decisionStyle / infoConsumption / personalityTrait
+  - mind.optimismScore / stressLevel / spiritualityScore
+  - love.influencerTypes / sportsAffinity / hobbyShares / culturalConsumption
+  - love.petAffinity / gamingAffinity
+  - buy.categoryShares / decisionFactors / paymentDistribution / channelMix / purchaseFrequency
+  - buy.discountSensitivity / reviewInfluence / brandSwitching / ethicalConsumerScore / avgBasketSizeUSD / subscriptionCount
 · 이 세부 분포는 모집단 특성을 반영해야 함 (예: 30대 워킹맘 → 사무·관리/전문직 비중 높음, 교육 카테고리 지출 높음)
 
 [수치 규칙]
@@ -486,6 +492,13 @@ audienceRouter.post("/synthesize", async (req, res) => {
               activityShares: { type: "object", description: "topActivities 각 활동 참여율 (% 합계 100)", additionalProperties: { type: "number" } },
               wellnessFreq: { type: "object", description: "운동 빈도 분포 (주 3회+/주 1-2회/월 1-3회/비운동)", additionalProperties: { type: "number" } },
               travelFreq: { type: "object", description: "여행 빈도 분포", additionalProperties: { type: "number" } },
+              dayparts: { type: "object", description: "시간대별 활동 강도 (아침/오전/점심/오후/저녁/심야) 0-100", additionalProperties: { type: "number" } },
+              foodHabits: { type: "object", description: "식생활 패턴 (외식/배달/집밥/HMR/카페) % 합계 100", additionalProperties: { type: "number" } },
+              sleepHours: { type: "number", description: "평균 수면 시간 (시간)" },
+              workLifeBalance: { type: "number", description: "워크라이프 밸런스 점수 0-100" },
+              homeOfficeRatio: { type: "number", description: "재택·하이브리드 비율 (%)" },
+              hobbies: { type: "array", items: { type: "string" }, description: "취미 상위 5-7개" },
+              hobbyShares: { type: "object", description: "취미 참여율 (% 합계 100)", additionalProperties: { type: "number" } },
             },
           },
           mind: {
@@ -493,13 +506,20 @@ audienceRouter.post("/synthesize", async (req, res) => {
             properties: {
               summary: { type: "string" },
               coreValues: { type: "array", items: { type: "string" }, description: "핵심 가치관 상위 5-7개 (순서 중요)" },
-              coreValuesScore: { type: "object", description: "coreValues 각 항목의 타겟 내 강도 점수 0-100. 예: {\"가족 중심\": 88, \"건강·웰빙\": 76}", additionalProperties: { type: "number" } },
+              coreValuesScore: { type: "object", description: "coreValues 각 항목의 타겟 내 강도 점수 0-100", additionalProperties: { type: "number" } },
               brandTrust: { type: "string", description: "낮음/보통/높음" },
               brandTrustScore: { type: "number", description: "브랜드 신뢰도 0-100" },
               riskAttitude: { type: "string" },
               riskScore: { type: "number", description: "리스크 수용 점수 0-100" },
-              socialConcerns: { type: "object", description: "사회적 관심사 점수 0-100 (예: 환경/공정·다양성/안전·고용)", additionalProperties: { type: "number" } },
+              socialConcerns: { type: "object", description: "사회적 관심사 점수 0-100 (환경/공정·다양성/안전·고용 등)", additionalProperties: { type: "number" } },
               futureOutlookScore: { type: "number", description: "미래 낙관도 0-100" },
+              decisionStyle: { type: "object", description: "의사결정 스타일 분포 (이성·분석·감성·직관·사회적) % 합계 100", additionalProperties: { type: "number" } },
+              infoConsumption: { type: "object", description: "정보 소비 패턴 (심층·스키마·추천·탐색 등) % 합계 100", additionalProperties: { type: "number" } },
+              lifeStage: { type: "string", description: "라이프스테이지 (예: 신혼·유자년·자녀독립·은퇴준비 등)" },
+              optimismScore: { type: "number", description: "개인적 낙관·자존감 점수 0-100" },
+              stressLevel: { type: "number", description: "장기 스트레스 수준 0-100" },
+              spiritualityScore: { type: "number", description: "영성·종교 성향 0-100" },
+              personalityTrait: { type: "object", description: "빅 파이브 성격 (외향/개방/성실/신경성/싹풍) 0-100", additionalProperties: { type: "number" } },
             },
           },
           love: {
@@ -514,6 +534,12 @@ audienceRouter.post("/synthesize", async (req, res) => {
               contentGenreShares: { type: "object", description: "콘텐츠 장르 점유율 (% 합계 100)", additionalProperties: { type: "number" } },
               celebrities: { type: "array", items: { type: "string" }, description: "이 세그먼트가 좋아할 만한 유명인/IP 3-5개" },
               fandomLevelDistribution: { type: "object", description: "팬덤 참여 수준 분포 (헤비/라이트/관심·비팬)", additionalProperties: { type: "number" } },
+              influencerTypes: { type: "object", description: "선호 인플루언서 유형 (대형연예인·크리에이터·전문가·일반인) % 합계 100", additionalProperties: { type: "number" } },
+              sportsAffinity: { type: "object", description: "스포츠 선호 점수 (축구·야구·농구·골프·e스포츠 등) 0-100", additionalProperties: { type: "number" } },
+              hobbyShares: { type: "object", description: "취미 참여율 (% 합계 100)", additionalProperties: { type: "number" } },
+              petAffinity: { type: "number", description: "반려동물 관심도 0-100" },
+              gamingAffinity: { type: "number", description: "게임 관심도 0-100" },
+              culturalConsumption: { type: "object", description: "문화 소비 (영화·공연·전시·독서·여행) 월평균 참여 횟수", additionalProperties: { type: "number" } },
             },
           },
           buy: {
@@ -530,6 +556,14 @@ audienceRouter.post("/synthesize", async (req, res) => {
               decisionFactors: { type: "object", description: "구매 결정 요인 점수 0-100 (가격/품질/브랜드/디자인/리뷰 등)", additionalProperties: { type: "number" } },
               paymentPreference: { type: "string" },
               paymentDistribution: { type: "object", description: "주 결제 수단 분포 (% 합계 100)", additionalProperties: { type: "number" } },
+              channelMix: { type: "object", description: "쇼핑 채널 세분 분포 (종합몰·오픈마·소셜커머스·마트·편의점·대형마트·전문점 등) % 합계 100", additionalProperties: { type: "number" } },
+              discountSensitivity: { type: "number", description: "할인·프로모션 민감도 0-100" },
+              reviewInfluence: { type: "number", description: "리뷰·추천 영향력 0-100" },
+              purchaseFrequency: { type: "object", description: "구매 주기 분포 (주1회+/월2-3회/월1회/분기) % 합계 100", additionalProperties: { type: "number" } },
+              avgBasketSizeUSD: { type: "number", description: "평균 온라인 장바구니 USD" },
+              brandSwitching: { type: "number", description: "브랜드 전환 성향 0-100 (높을수록 전환 잘 함)" },
+              ethicalConsumerScore: { type: "number", description: "윤리·지속 소비 성향 0-100" },
+              subscriptionCount: { type: "number", description: "월 구독 서비스 개수 (OTT/음악/쇼핑 등)" },
             },
           },
           media: {
