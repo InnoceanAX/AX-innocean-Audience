@@ -1966,12 +1966,29 @@ async function sendChat(){
 
     // AI 채팅 모드 — 9탭/빌더 안 보이고 채팅 답변 영역에만 표시 (CEO 약속)
     if(state.currentMode === 'chat'){
-      // home 유지, 자동 분석 (탭 전환 없이)
       input.value = '';
       if(typeof autoResize === 'function') autoResize(input);
-      state.autoRouteToSummary = false;
-      state.chatModeAnalysis = true;
-      setTimeout(() => runAnalysis(), 400);
+      // 채팅 전용 경량 답변 흐름: synthesize + fetchAnswerCard 직행 (워크스페이스 전환 없음)
+      state.chatAnswerTarget = 'chat-answer-area';
+      // 즉시 로더 표시
+      state.answerCard = { loading: true, question: q };
+      renderAnswerCard();
+      try{
+        const code = state.currentCountry || 'KR';
+        if(!state.currentCountry) selectCountry('KR');
+        const synR = await fetch(API + '/audience/synthesize', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ country: code, filters: state.filters }),
+        });
+        const synD = await synR.json();
+        if(synD.ok && synD.segments) state.synthCache = synD;
+        await fetchAnswerCard();
+      }catch(err){
+        console.error('chat answer failed', err);
+        state.answerCard = null;
+        renderAnswerCard();
+        toast('답변 생성 실패: ' + err.message);
+      }
       return;
     }
 
