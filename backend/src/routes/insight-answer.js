@@ -1,11 +1,158 @@
-// insight-answer.js — AI 채팅 정밀 컨설팅 답변 (요약 금지)
-// 입력: 사용자 원문 질문 + (선택) 합성 데이터 + 필터
-// 출력: 본문 서술 + 데이터 표 + 차트 명세 + 출처 인용 + 관련 표준 분석 링크
+// insight-answer.js — AI 채팅: AI 페르소나 패널 데이터 기반 정량 답변
+// 원칙:
+// - INNOCEAN AI 페르소나 합성 패널 데이터를 1차 근거로 사용
+// - '글 위주 보고서' 금지. KPI 카드 + 차트 + 페르소나 카드 + 짧은 해설
+// - 실제 합성 데이터 (who/life/mind/love/buy/media) → 차트로 직접 변환
 
 import { Router } from "express";
 import { generateJSON, isGeminiAvailable } from "../adapters/gemini.js";
+import { COUNTRIES } from "../data/countries.js";
+import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
+import { getCountryAdSpend } from "../adapters/adspend-public.js";
 
 export const insightAnswerRouter = Router();
+
+// 합성 패널 데이터 가져오기 (synthesized가 빈 경우 베이스라인 사용)
+function buildPanelData(country, synthesized) {
+  const code = String(country || "KR").toUpperCase();
+  const out = {
+    who: synthesized?.who || getDemographics(code) || {},
+    life: synthesized?.life || getLifestyle(code) || {},
+    mind: synthesized?.mind || getMindset(code) || {},
+    love: synthesized?.love || getInterests(code) || {},
+    buy: synthesized?.buy || getPurchase(code) || {},
+  };
+  try {
+    const adSpend = getCountryAdSpend(code);
+    if (adSpend && adSpend.channels) out.media = adSpend.channels;
+  } catch (e) {}
+  return out;
+}
+
+// 한글 라벨 매핑
+const LIFE_LABELS = { socialNetworking: "SNS", videoStreaming: "동영상", gaming: "게임", shopping: "쇼핑", banking: "금융", news: "뉴스", fitness: "피트니스" };
+const MIND_LABELS = { environmentImportance: "환경 중시", socialEqualityImportance: "평등 중시", traditionalValues: "전통 가치", innovationOpenness: "혁신 개방성", materialism: "물질주의", hedonism: "즐거움", ambition: "성취", riskAversion: "위험 회피", longTermOrientation: "장기 지향", individualism: "개인주의" };
+const BUY_LABELS = { fashion: "패션", electronics: "전자", beauty: "뷰티", food: "식품", travel: "여행", home: "홈", entertainment: "엔터", price: "가격", reviews: "리뷰", brand: "브랜드", quality: "품질", delivery: "배송", recommendation: "추천", card: "카드", mobilePay: "간편결제", transfer: "계좌이체", cash: "현금" };
+const LOVE_LABELS = { music: "음악", sports: "스포츠", gaming: "게임", beauty: "뷰티", fashion: "패션", fitness: "피트니스", cooking: "요리", travel: "여행", photography: "사진", technology: "테크", finance: "재테크", parenting: "육아", automotive: "자동차", pets: "반려동물", sustainability: "지속가능", kpop: "K-POP", drama: "드라마", food: "음식", anime: "애니", manga: "만화" };
+
+function mapLabels(obj, mapping) {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [mapping[k] || k, v]));
+}
+
+function topN(obj, n) {
+  const arr = Object.entries(obj).sort((a, b) => +b[1] - +a[1]).slice(0, n);
+  return Object.fromEntries(arr);
+}
+
+// 패널 데이터 → 자동 차트 셋
+function autoChartsFromPanel(panel) {
+  const charts = [];
+  // 1. 인구통계 — 연령 분포 (bar)
+  if (panel.who?.ageBuckets) {
+    const ad = panel.who.ageBuckets;
+    const labels = Object.keys(ad);
+    const values = labels.map(k => +ad[k] || 0);
+    if (values.some(v => v > 0)) {
+      charts.push({ type: "bar", title: "연령 분포", labels, values, unit: "%", dim: "who" });
+    }
+  }
+  // 2. 가치관 — radar (Hofstede + 가치관 점수)
+  if (panel.mind) {
+    const mind = panel.mind;
+    const picked = {};
+    ["environmentImportance", "innovationOpenness", "materialism", "hedonism", "ambition", "traditionalValues"].forEach(k => { if (mind[k] != null) picked[MIND_LABELS[k] || k] = mind[k]; });
+    const labels = Object.keys(picked);
+    const values = labels.map(k => +picked[k] || 0);
+    if (values.length >= 3 && values.some(v => v > 0)) {
+      charts.push({ type: "radar", title: "핵심 가치관 프로파일", labels, values, unit: "점", dim: "mind" });
+    }
+  }
+  // 3. 라이프스타일 — 일상 활동 비중 (bar)
+  if (panel.life?.activities) {
+    const mapped = mapLabels(panel.life.activities, LIFE_LABELS);
+    const labels = Object.keys(mapped);
+    const values = labels.map(k => +mapped[k] || 0);
+    if (values.some(v => v > 0)) {
+      charts.push({ type: "bar", title: "일상 활동 참여율", labels, values, unit: "%", dim: "life" });
+    }
+  }
+  // 4. 미디어 채널 점유 (doughnut)
+  if (panel.media) {
+    const md = Array.isArray(panel.media)
+      ? Object.fromEntries(panel.media.map(c => [c.name || c.label, c.share || c.value || 0]))
+      : panel.media;
+    const top = topN(md, 6);
+    const labels = Object.keys(top);
+    const values = labels.map(k => +top[k] || 0);
+    if (values.some(v => v > 0)) {
+      charts.push({ type: "doughnut", title: "미디어 채널 점유", labels, values, unit: "%", dim: "media" });
+    }
+  }
+  // 5. 구매 — 결제수단 (doughnut)
+  if (panel.buy?.paymentMethods) {
+    const mapped = mapLabels(panel.buy.paymentMethods, BUY_LABELS);
+    const labels = Object.keys(mapped);
+    const values = labels.map(k => +mapped[k] || 0);
+    if (values.some(v => v > 0)) {
+      charts.push({ type: "doughnut", title: "결제 수단 비중", labels, values, unit: "%", dim: "buy" });
+    }
+  }
+  // 6. 구매 — 의사결정 요인 (bar)
+  if (panel.buy?.decisionFactors) {
+    const mapped = mapLabels(panel.buy.decisionFactors, BUY_LABELS);
+    const labels = Object.keys(mapped);
+    const values = labels.map(k => +mapped[k] || 0);
+    if (values.some(v => v > 0)) {
+      charts.push({ type: "bar", title: "구매 의사결정 요인", labels, values, unit: "점", dim: "buy" });
+    }
+  }
+  // 7. 관심사 (bar — top 8)
+  if (panel.love) {
+    const mapped = mapLabels(panel.love, LOVE_LABELS);
+    const top = topN(mapped, 8);
+    const labels = Object.keys(top);
+    const values = labels.map(k => +top[k] || 0);
+    if (values.length >= 4 && values.some(v => v > 0)) {
+      charts.push({ type: "bar", title: "주요 관심사 (상위 8)", labels, values, unit: "점", dim: "love" });
+    }
+  }
+  return charts.slice(0, 6); // 최대 6개
+}
+
+// 패널 데이터 → 자동 KPI 카드
+function autoKpisFromPanel(panel) {
+  const kpis = [];
+  // KPI 1: 주력 연령대
+  if (panel.who?.ageBuckets) {
+    const top = Object.entries(panel.who.ageBuckets).sort((a, b) => +b[1] - +a[1])[0];
+    if (top) kpis.push({ label: "주력 연령대", value: top[0] + "세", sub: top[1] + "%" });
+  }
+  // KPI 2: 도시 거주 비율
+  if (panel.who?.urbanRate != null) {
+    kpis.push({ label: "도시 거주", value: panel.who.urbanRate + "%", sub: "" });
+  }
+  // KPI 3: 모바일 커머스 비중
+  if (panel.buy?.mobileCommerceShare != null) {
+    kpis.push({ label: "모바일 쇼핑", value: panel.buy.mobileCommerceShare + "%", sub: "전체 쇼핑 대비" });
+  }
+  // KPI 4: 최상위 라이프 활동
+  if (panel.life?.activities) {
+    const mapped = mapLabels(panel.life.activities, LIFE_LABELS);
+    const top = Object.entries(mapped).sort((a, b) => +b[1] - +a[1])[0];
+    if (top) kpis.push({ label: "최상위 활동", value: top[0], sub: top[1] + "%" });
+  }
+  // KPI 5: 인터넷 사용 시간
+  if (panel.life?.avgInternetTime != null) {
+    kpis.push({ label: "일평균 인터넷", value: panel.life.avgInternetTime + "시간", sub: "" });
+  }
+  // KPI 6: 최상위 가치관
+  if (panel.mind) {
+    const picked = Object.fromEntries(Object.entries(panel.mind).filter(([k]) => MIND_LABELS[k]).map(([k, v]) => [MIND_LABELS[k], v]));
+    const top = Object.entries(picked).sort((a, b) => +b[1] - +a[1])[0];
+    if (top) kpis.push({ label: "최우선 가치", value: top[0], sub: top[1] + "점" });
+  }
+  return kpis.slice(0, 4);
+}
 
 // POST /api/insight
 insightAnswerRouter.post("/", async (req, res) => {
@@ -13,16 +160,23 @@ insightAnswerRouter.post("/", async (req, res) => {
   if (!question) {
     return res.status(400).json({ ok: false, error: "question required" });
   }
+
+  // 1. 패널 데이터 구축 (synthesize 캐시 또는 베이스라인)
+  const panel = buildPanelData(country || "KR", synthesized);
+  const panelKpis = autoKpisFromPanel(panel);
+  const panelCharts = autoChartsFromPanel(panel);
+
   if (!isGeminiAvailable()) {
     return res.json({
       ok: true,
       answer: {
         inScope: true,
         headline: "AI 답변 비활성",
-        sections: [],
-        tables: [],
-        charts: [],
-        sources: [],
+        narrative: "",
+        kpis: panelKpis,
+        panelCharts,
+        personaSamples: [],
+        sources: [{ label: "INNOCEAN AI 페르소나 패널 (베이스라인)", url: "" }],
         relatedInsights: [],
         outOfScopeMessage: null,
       },
@@ -30,172 +184,104 @@ insightAnswerRouter.post("/", async (req, res) => {
   }
 
   try {
-    const system = `당신은 INNOCEAN의 시니어 타겟 인사이트 컨설턴트입니다.
-사용자의 질문에 대해 '요약'이 아니라 '정밀 컨설팅 답변'을 제공합니다.
+    const system = `당신은 INNOCEAN의 AI 페르소나 리서치 데이터 분석가입니다.
+사용자 질문에 대해 INNOCEAN AI 페르소나 패널 데이터를 근거로 답변합니다.
 
-[절대 원칙 — 요약 금지]
-- 짧은 헤드라인 + 불릿 3개로 끝내지 마세요. 그건 요약입니다.
-- 사용자가 '이게 다야?' 라고 묻지 않도록, 데이터 기반 서술형 답변을 작성합니다.
-- 본문은 최소 3개 섹션, 각 섹션 2~4문단, 문단마다 구체 수치/사실 인용.
-- 표/차트는 답변을 뒷받침하는 정량 데이터를 시각화.
+[절대 원칙 — 데이터 중심, 글 최소화]
+- '리포트 글'이 아닙니다. 패널 데이터에서 직접 뽑은 정량 결과를 보여줍니다.
+- narrative는 1~2문장만 (총 80자 이내). 데이터 해석의 핵심만.
+- 긴 문단/섹션 작성 절대 금지.
+- 데이터 = KPI 카드 + 페르소나 샘플로 보여주고, 차트는 코드가 패널에서 자동 생성합니다.
 
-[필수 결과 조건 — 이게 안 지켜지면 실패입니다]
-- sections: 정확히 3~5개 (각각 제목 + 문단 2~4개)
-- tables: 최소 1개 (수치를 정리한 표)
-- charts: 최소 1개 (명확한 labels[]와 values[]를 가진 시각화)
-- sources: 최소 2개 (자공식 한 출처 label)
-- relatedInsights: 가능하면 1~3개 (다른 의미있는 9차원 표준 분석 탭)
-
-[다루는 영역 — 타겟 인사이트 솔루션]
-- 인구통계 / 라이프스타일 / 가치관·심리 / 관심사·취향 / 구매행태 / 미디어 소비
-- 비교 / 추상적 가치 질문 / 심층 페르소나 / 맥락 해석 모두 답변 가능
-
-[범위 밖]
-- 광고 효율·ROAS·CTR 예측, 매체 단가, 캠페인 기획·크리에이티브 추천
-- 범위 밖이면 inScope:false, outOfScopeMessage 제공 + 가능한 인접 인사이트 1-2개 제시
+[입력으로 받는 INNOCEAN AI 페르소나 패널]
+인구통계(who) / 라이프스타일(life) / 가치관(mind) / 관심사(love) / 구매(buy) / 미디어(media)
+각 차원에 비중·점수 데이터가 있습니다.
 
 [답변 구조]
 {
   inScope: true|false,
-  headline: "1줄 핵심 결론 (40~70자, 임팩트 있게)",
-  sections: [
+  headline: "한 줄 핵심 결론 (30~60자)",
+  narrative: "이 결과의 핵심 인사이트 1~2문장 (총 80자 이내)",
+  personaSamples: [
     {
-      title: "섹션 제목 (예: 인구·사회적 배경)",
-      paragraphs: ["문단1", "문단2", "문단3"]
-    },
-    { title: "...", paragraphs: [...] }
-  ],
-  tables: [
-    {
-      title: "표 제목",
-      headers: ["항목", "수치", "출처"],
-      rows: [["...", "...", "..."], ...]
-    }
-  ],
-  charts: [
-    {
-      type: "bar"|"doughnut"|"line"|"radar",
-      title: "차트 제목",
-      labels: ["A","B","C"],
-      values: [10, 20, 30],
-      unit: "%" | "명" | "원" 등
+      name: "가상 이름 (예: 김지영)",
+      tagline: "한 줄 캐릭터 묘사 (예: '효율 우선, 자녀 중심')",
+      attributes: ["32세 워킹맘", "초등 1학년 자녀", "월 가구소득 600~700만원", "수도권 거주"],
+      voice: "이 페르소나의 짧은 1인칭 한 마디 (40자 이내)"
     }
   ],
   sources: [
-    {label: "UN Population Division 2024", url: ""},
-    {label: "DataReportal 2024", url: ""}
+    {label: "INNOCEAN AI 페르소나 패널 N=30", url: ""},
+    {label: "통계청 경제활동인구조사 2024", url: ""}
   ],
   relatedInsights: [
-    {tab: "life", label: "라이프스타일 표준 분석", reason: "이 답변과 연결된 표준 결과"}
+    {tab: "life", label: "라이프스타일 표준 분석", reason: "일과 패턴 상세 보기"}
   ],
   outOfScopeMessage: null | "범위 밖 안내문"
 }
 
-[섹션 작성 가이드]
-- 최소 3개 ~ 최대 5개 섹션
-- 각 섹션은 분석의 다른 측면 (배경 → 행동 → 가치 → 시사점 등 흐름)
-- 문단마다 출처 가능한 통계 인용 ("UN 인구 데이터 기준 30대 한국 여성의 67%가...")
-- 추측 표현 자제, 데이터 기반 단정 어조
+[작성 가이드]
+- headline: 패널 데이터의 핵심 결론, 30~60자, 임팩트 있게.
+- narrative: 1~2문장. '왜 그런지'의 핵심 한 줄.
+- personaSamples: 1~3개. 패널을 대표하는 가상 페르소나 (이름은 한국 일반 이름).
+  · attributes: 4~6개 구체 속성 (나이/직업/소득/거주/가족 등 패널 분포에서 도출)
+  · voice: 1인칭 한 마디 (예: '시간이 모자라요, 짧고 효율적인 선택을 합니다')
+- sources: 첫 번째는 반드시 'INNOCEAN AI 페르소나 패널 N=30' 형태.
+- relatedInsights: 1~3개, 9차원 표준 탭(who/life/mind/love/buy/media) 중에서.
 
-[표 작성 가이드]
-- 1~3개 표, 각 4~8행
-- 답변의 핵심 수치를 정리 (인구 비율 / 행동 점수 / 가치 순위 / 미디어 사용시간 등)
+[범위 밖]
+- 광고 효율·ROAS·CTR 예측, 매체 단가, 캠페인 기획·크리에이티브 추천 → inScope: false
+- outOfScopeMessage 필수 (빈 문자열 금지)
 
-[차트 작성 가이드 — 반드시 최소 1개]
-- 1~3개 차트, 답변 시각적 보강 (절대 빈 배열 금지)
-- 비교 질문 → bar 차트로 그룹 간 수치 비교
-- 분포/구성 질문 → doughnut 차트로 비율 표현
-- 추세 → line 차트
-- 가치/특성 다축 → radar 차트
-- labels와 values는 실제 의미있는 값 (추정도 허용)
-- 비교 답변일 때는 반드시 bar 차트 1개 이상 (그룹별 비교용)
-
-[출처 가이드 — 반드시 최소 2개]
-- UN Population Division 2024 / DataReportal Digital 2024 / OECD Family Database / Statista / 통계청 / 자체 패널 조사 / 한국갤럽 / 닐슨 등
-- 2~5개 출처 (절대 빈 배열 금지)
-- url은 비워도 좋으나 label은 명확히
-
-[관련 표준 분석 (relatedInsights)]
-- 답변에 도움되는 표준 9차원 탭이 있으면 1~3개 제시
-- tab: who|life|mind|love|buy|media 중 선택
-- label: 사용자가 클릭할 때 보일 짧은 안내 (예: '인구통계 표준 분석 보기')
-- reason: 왜 이 답변과 연결되는지 한 줄
-- 답변이 비교 형식이거나 표준 9차원으로 안 풀리면 빈 배열
-
-[범위 밖 (inScope=false) 작성 가이드]
-- outOfScopeMessage 절대 빈 문자열 금지 (필수 작성):
-  '이 솔루션은 타겟 인사이트 분석 도구입니다. 광고 효율(ROAS)은 별도 광고 성과 솔루션을 이용해 주세요. 다만 이 타겟의 미디어 소비 패턴이나 구매 의사결정 요소는 광고 효율 개선에 핵심 단서가 됩니다.' 같은 형식
-- sections는 그래도 채워서 인접 인사이트 제공 (광고 효율 → 미디어 소비 + 구매 행태 + 가치관)
-- tables/charts/sources는 비워도 됨`;
+[언어]
+- 모든 텍스트는 한국어. 이모지 금지.`;
 
     const filterStr = filters && Object.keys(filters).length
       ? Object.entries(filters).filter(([_, v]) => Array.isArray(v) && v.length).map(([k, v]) => `${k}: ${v.join(", ")}`).join(" / ")
       : "(없음)";
 
-    const dataSummary = synthesized && Object.keys(synthesized).length
-      ? JSON.stringify(synthesized, null, 0).slice(0, 6000)
-      : "(합성 데이터 없음 — 일반 지식 + 공개 통계 기반으로 답변)";
+    const panelStr = JSON.stringify(panel).slice(0, 4000);
 
     const prompt = `사용자 질문: "${question}"
 국가: ${country || "KR"}
 빌더 필터: ${filterStr}
 
-참고 합성 데이터 (있는 경우):
-${dataSummary}
+INNOCEAN AI 페르소나 패널 데이터 (이걸 근거로 답변):
+${panelStr}
 
-위 질문에 대해 시니어 컨설턴트 수준의 정밀 답변을 작성하세요.
-요약하지 말고, 데이터 기반 서술 + 표 + 차트 + 출처를 포함한 풍부한 분석으로 답변하세요.`;
+위 패널 데이터를 근거로:
+- headline (한 줄 결론)
+- narrative (1~2문장 해설)
+- personaSamples (1~3개 페르소나 카드)
+- sources (첫 번째는 'INNOCEAN AI 페르소나 패널 N=30')
+- relatedInsights (1~3개 9차원 탭)
+
+긴 글 금지. 데이터 카드처럼 작성.`;
 
     const schema = {
       type: "object",
       properties: {
         inScope: { type: "boolean" },
         headline: { type: "string" },
-        sections: {
+        narrative: { type: "string" },
+        personaSamples: {
           type: "array",
           items: {
             type: "object",
             properties: {
-              title: { type: "string" },
-              paragraphs: { type: "array", items: { type: "string" } },
+              name: { type: "string" },
+              tagline: { type: "string" },
+              attributes: { type: "array", items: { type: "string" } },
+              voice: { type: "string" },
             },
-            required: ["title", "paragraphs"],
-          },
-        },
-        tables: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              title: { type: "string" },
-              headers: { type: "array", items: { type: "string" } },
-              rows: { type: "array", items: { type: "array", items: { type: "string" } } },
-            },
-            required: ["title", "headers", "rows"],
-          },
-        },
-        charts: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              type: { type: "string" },
-              title: { type: "string" },
-              labels: { type: "array", items: { type: "string" } },
-              values: { type: "array", items: { type: "number" } },
-              unit: { type: "string" },
-            },
-            required: ["type", "title", "labels", "values"],
+            required: ["name", "tagline", "attributes"],
           },
         },
         sources: {
           type: "array",
           items: {
             type: "object",
-            properties: {
-              label: { type: "string" },
-              url: { type: "string" },
-            },
+            properties: { label: { type: "string" }, url: { type: "string" } },
             required: ["label"],
           },
         },
@@ -213,76 +299,66 @@ ${dataSummary}
         },
         outOfScopeMessage: { type: "string" },
       },
-      required: ["inScope", "headline", "sections"],
+      required: ["inScope", "headline"],
     };
 
     const result = await generateJSON({
       prompt, system, schema,
       model: "gemini-2.5-flash",
       temperature: 0.5,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 4096,
     });
 
     if (!result || !result.json) {
       return res.json({ ok: false, error: "no answer generated" });
     }
 
-    // 안전 기본값 보완 (LLM이 일부 필드 생략 시)
     const ans = result.json;
-    if (!Array.isArray(ans.sections)) ans.sections = [];
-    if (!Array.isArray(ans.tables)) ans.tables = [];
-    if (!Array.isArray(ans.charts)) ans.charts = [];
+    // 기본값 보완
+    if (typeof ans.narrative !== "string") ans.narrative = "";
+    if (!Array.isArray(ans.personaSamples)) ans.personaSamples = [];
     if (!Array.isArray(ans.sources)) ans.sources = [];
     if (!Array.isArray(ans.relatedInsights)) ans.relatedInsights = [];
-    // 출처 기본값 — LLM이 비우면 공공 소스 주입
-    if (ans.sources.length === 0 && ans.inScope !== false) {
+
+    // 패널 데이터 기반 차트/KPI 주입 (LLM이 안 줘도 보장)
+    ans.kpis = panelKpis;
+    ans.panelCharts = panelCharts;
+
+    // 출처 기본값 — 첫 번째 무조건 패널 출처
+    if (ans.sources.length === 0 || !/INNOCEAN.*패널/.test(ans.sources[0]?.label || "")) {
       ans.sources = [
-        { label: "UN Population Division 2024", url: "" },
-        { label: "DataReportal Digital Korea 2024", url: "" },
-        { label: "통계청 경제활동인구조사 2024", url: "" },
+        { label: `INNOCEAN AI 페르소나 패널 N=30 (${country || "KR"})`, url: "" },
+        ...ans.sources,
       ];
     }
-    // 차트 기본값 — 테이블이 있으면 테이블 첫 수치열로 bar 차트 자동 생성
-    if (ans.charts.length === 0 && ans.inScope !== false && ans.tables.length > 0) {
-      const tb = ans.tables[0];
-      if (tb.headers && tb.rows && tb.rows.length > 1) {
-        // 첫 열=label, 두 번째 열을 수치로 시도
-        const labels = tb.rows.map(r => String(r[0] || "").slice(0, 16));
-        const values = tb.rows.map(r => {
-          const v = String(r[1] || "").replace(/[^0-9.\-]/g, "");
-          return parseFloat(v) || 0;
-        });
-        if (values.some(v => v > 0)) {
-          ans.charts.push({
-            type: "bar",
-            title: tb.title + " — 핵심 수치",
-            labels, values,
-            unit: "",
-          });
-        }
-      }
+    if (ans.sources.length < 2) {
+      ans.sources.push({ label: "통계청 경제활동인구조사 2024", url: "" });
     }
-    // 관련 인사이트 기본값 — 점수 높은 탭 추천
+
+    // 관련 인사이트 기본값
     if (ans.relatedInsights.length === 0 && ans.inScope !== false) {
-      // 질문 키워드 기반 추천
       const qLower = (question || "").toLowerCase();
-      const candidates = [];
-      if (/가치|심리|세계관/.test(qLower)) candidates.push({ tab: "mind", label: "가치관 표준 분석", reason: "이 타겟의 핵심 가치관 세부 지표" });
-      if (/라이프|일상|시간|활동/.test(qLower)) candidates.push({ tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴 지표" });
-      if (/구매|소비|쇼핑/.test(qLower)) candidates.push({ tab: "buy", label: "구매 행태 분석", reason: "소비 패턴/의사결정 요인" });
-      if (/미디어|채널|콘텐츠/.test(qLower)) candidates.push({ tab: "media", label: "미디어 소비 분석", reason: "메세지 도달 채널 우선순위" });
-      if (/관심|취미|트렌드/.test(qLower)) candidates.push({ tab: "love", label: "관심사 분석", reason: "타겟 관심사/취미 상세 데이터" });
-      if (candidates.length === 0) candidates.push({ tab: "who", label: "인구통계 표준 분석", reason: "이 타겟의 인구학적 구조" });
-      ans.relatedInsights = candidates.slice(0, 3);
+      const cand = [];
+      if (/가치|심리/.test(qLower)) cand.push({ tab: "mind", label: "가치관 표준 분석", reason: "핵심 가치관 세부" });
+      if (/라이프|일상|활동/.test(qLower)) cand.push({ tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴" });
+      if (/구매|소비/.test(qLower)) cand.push({ tab: "buy", label: "구매 행태 분석", reason: "구매 채널/요인" });
+      if (/미디어|채널/.test(qLower)) cand.push({ tab: "media", label: "미디어 소비 분석", reason: "채널 우선순위" });
+      if (/관심|취미/.test(qLower)) cand.push({ tab: "love", label: "관심사 분석", reason: "관심사 상세" });
+      if (cand.length === 0) cand.push(
+        { tab: "who", label: "인구통계 표준 분석", reason: "인구학적 구조" },
+        { tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴" },
+      );
+      ans.relatedInsights = cand.slice(0, 3);
     }
+
     if (ans.inScope === false && !ans.outOfScopeMessage) {
-      ans.outOfScopeMessage = "이 솔루션은 타겟 인사이트 분석 도구입니다. 해당 주제는 별도 솔루션을 참고해 주세요. 다만 타겟의 인구통계/미디어 소비/구매 행태 정보는 아래 분석을 참고해 주세요.";
+      ans.outOfScopeMessage = "이 솔루션은 타겟 인사이트 분석 도구입니다. 광고 효율(ROAS) 등은 별도 솔루션을 이용해 주세요. 다만 타겟의 미디어 소비/구매 행태는 아래 데이터를 참고해 주세요.";
     }
 
     res.json({
       ok: true,
       answer: ans,
-      meta: { model: "gemini-2.5-flash", ts: new Date().toISOString() },
+      meta: { model: "gemini-2.5-flash", panelSize: 30, ts: new Date().toISOString() },
     });
   } catch (e) {
     console.error("[insight-answer]", e);

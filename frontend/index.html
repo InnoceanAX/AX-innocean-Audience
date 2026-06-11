@@ -290,10 +290,64 @@ body.chat-board-active #screen-workspace{display:none !important}
 .cb-a-loading-txt{font-size:14px;font-weight:600;color:#4F46E5;line-height:1.5}
 .cb-a-loading-sub{font-size:11.5px;font-weight:400;color:#6366F1;margin-top:3px}
 
+.cb-data-label{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10.5px;font-weight:700;color:#6366F1;
+  background:#EEF2FF;padding:4px 10px;border-radius:12px;
+  margin-bottom:14px;letter-spacing:.04em;
+}
 .cb-a-headline{
   font-size:22px;font-weight:700;color:#1E1B4B;
-  line-height:1.4;margin:0 0 24px;
+  line-height:1.4;margin:0 0 12px;
   letter-spacing:-0.01em;
+}
+.cb-a-narrative{
+  font-size:13.5px;color:#4B5563;line-height:1.65;
+  margin:0 0 24px;padding:12px 16px;
+  background:#F9FAFB;border-left:3px solid #C7D2FE;border-radius:6px;
+}
+
+/* KPI 그리드 */
+.cb-kpis{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;margin:0 0 24px;
+}
+.cb-kpi{
+  background:linear-gradient(135deg,#FFFFFF 0%,#FAFBFF 100%);
+  border:1px solid #E0E7FF;border-radius:12px;
+  padding:14px 16px;text-align:left;
+  transition:transform .15s,border-color .15s;
+}
+.cb-kpi:hover{transform:translateY(-2px);border-color:#A78BFA}
+.cb-kpi-label{font-size:11px;font-weight:600;color:#6B7280;margin-bottom:6px;letter-spacing:.02em}
+.cb-kpi-value{font-size:20px;font-weight:800;color:#1E1B4B;line-height:1.2;letter-spacing:-0.01em}
+.cb-kpi-sub{font-size:10.5px;color:#9CA3AF;margin-top:3px}
+
+/* 페르소나 카드 */
+.cb-personas{margin:24px 0 0}
+.cb-personas-t{font-size:12px;font-weight:700;color:#4338CA;margin-bottom:12px;letter-spacing:.04em}
+.cb-personas-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.cb-persona-card{
+  background:#fff;border:1px solid #E5E7EB;border-radius:12px;
+  padding:14px 16px;transition:border-color .15s,box-shadow .15s;
+}
+.cb-persona-card:hover{border-color:#A78BFA;box-shadow:0 4px 14px rgba(99,102,241,.12)}
+.cb-persona-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.cb-persona-avatar{
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:16px;flex-shrink:0;
+}
+.cb-persona-name{font-size:14px;font-weight:700;color:#1E1B4B;line-height:1.2}
+.cb-persona-tagline{font-size:11.5px;color:#6B7280;margin-top:2px}
+.cb-persona-attrs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.cb-persona-attr{
+  font-size:10.5px;color:#4338CA;background:#EEF2FF;
+  padding:3px 8px;border-radius:6px;font-weight:600;
+}
+.cb-persona-voice{
+  font-size:12px;font-style:italic;color:#6366F1;
+  line-height:1.5;padding-top:8px;border-top:1px dashed #E5E7EB;
 }
 .cb-a-oos-msg{
   font-size:13px;color:#9A3412;line-height:1.65;
@@ -2273,53 +2327,89 @@ function renderChatTurn(t, idx){
 function renderAnswerBoard(a, idx){
   const isOOS = a.inScope === false;
   const tabLabels = { who: '인물상', life: '라이프스타일', mind: '가치관', love: '관심사', buy: '구매', media: '미디어' };
-  // 섹션
-  const sectionsHtml = (a.sections || []).map(s => {
-    const paras = (s.paragraphs || []).map(p => '<p class="cb-section-p">' + escapeHtml(p) + '</p>').join('');
-    return '<div class="cb-section"><div class="cb-section-t">' + escapeHtml(s.title || '') + '</div>' + paras + '</div>';
-  }).join('');
-  // 표
-  const tablesHtml = (a.tables || []).length ? '<div class="cb-tables">' + (a.tables || []).map(tb => {
-    const head = '<tr>' + (tb.headers || []).map(h => '<th>' + escapeHtml(h) + '</th>').join('') + '</tr>';
-    const rows = (tb.rows || []).map(r => '<tr>' + (r || []).map(c => '<td>' + escapeHtml(String(c)) + '</td>').join('') + '</tr>').join('');
-    return '<div class="cb-table-wrap"><div class="cb-table-t">' + escapeHtml(tb.title || '') + '</div><table class="cb-table"><thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>';
-  }).join('') + '</div>' : '';
-  // 차트
-  const chartsHtml = (a.charts || []).length ? '<div class="cb-charts">' + (a.charts || []).map((c, ci) => {
+
+  // 타이틀바 — INNOCEAN AI 패널 레이블
+  const titleBar = '<div class="cb-data-label">'
+    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>'
+    + 'INNOCEAN AI 페르소나 패널 N=30 기반'
+    + '</div>';
+
+  // 헤드라인 + 해설 (1~2문장)
+  const headlineHtml = '<div class="cb-a-headline">' + escapeHtml(a.headline || '') + '</div>';
+  const narrativeHtml = a.narrative ? '<div class="cb-a-narrative">' + escapeHtml(a.narrative) + '</div>' : '';
+
+  // KPI 그리드
+  const kpisHtml = (a.kpis || []).length ? '<div class="cb-kpis">' + (a.kpis || []).map(k =>
+    '<div class="cb-kpi"><div class="cb-kpi-label">' + escapeHtml(k.label || '') + '</div>'
+    + '<div class="cb-kpi-value">' + escapeHtml(String(k.value || '')) + '</div>'
+    + (k.sub ? '<div class="cb-kpi-sub">' + escapeHtml(k.sub) + '</div>' : '')
+    + '</div>').join('') + '</div>' : '';
+
+  // 패널 차트 그리드
+  const charts = a.panelCharts || a.charts || [];
+  const chartsHtml = charts.length ? '<div class="cb-charts">' + charts.map((c, ci) => {
     const cid = 'cb-chart-' + idx + '-' + ci;
     return '<div class="cb-chart-card"><div class="cb-chart-t">' + escapeHtml(c.title || '') + '</div><div class="cb-chart-c"><canvas id="' + cid + '"></canvas></div></div>';
   }).join('') + '</div>' : '';
+
+  // 페르소나 샘플 카드
+  const personaHtml = (a.personaSamples || []).length ? '<div class="cb-personas">'
+    + '<div class="cb-personas-t">패널 대표 페르소나</div>'
+    + '<div class="cb-personas-list">' + (a.personaSamples || []).map((p, pi) => {
+      const attrs = (p.attributes || []).map(a => '<span class="cb-persona-attr">' + escapeHtml(a) + '</span>').join('');
+      const voice = p.voice ? '<div class="cb-persona-voice">“' + escapeHtml(p.voice) + '”</div>' : '';
+      const initial = (p.name || '?').slice(0, 1);
+      const colors = ['#6366F1','#EC4899','#10B981','#F59E0B','#06B6D4'];
+      const color = colors[pi % colors.length];
+      return '<div class="cb-persona-card">'
+        + '<div class="cb-persona-head">'
+          + '<div class="cb-persona-avatar" style="background:' + color + '">' + escapeHtml(initial) + '</div>'
+          + '<div><div class="cb-persona-name">' + escapeHtml(p.name || '') + '</div>'
+          + '<div class="cb-persona-tagline">' + escapeHtml(p.tagline || '') + '</div></div>'
+        + '</div>'
+        + '<div class="cb-persona-attrs">' + attrs + '</div>'
+        + voice
+        + '</div>';
+    }).join('') + '</div></div>' : '';
+
   // 출처
   const sourcesHtml = (a.sources || []).length ? '<div class="cb-sources">'
-    + '<div class="cb-sources-t">데이터 출처</div>'
+    + '<div class="cb-sources-t">데이터 근거</div>'
     + '<div class="cb-sources-list">' + (a.sources || []).map(s => {
       const lbl = escapeHtml(s.label || '');
       return s.url ? '<span class="cb-sources-item"><a href="' + escapeHtml(s.url) + '" target="_blank">' + lbl + '</a></span>' : '<span class="cb-sources-item">' + lbl + '</span>';
     }).join('') + '</div></div>' : '';
+
   // 관련 표준 분석 링크
   const relatedHtml = (a.relatedInsights || []).length ? '<div class="cb-related">'
-    + '<div class="cb-related-t">◆ 관련 표준 분석 참고</div>'
+    + '<div class="cb-related-t">◆ 관련 표준 분석 — 이 타겟의 9차원 상세 데이터</div>'
     + '<div class="cb-related-list">' + (a.relatedInsights || []).map(ri => {
       const lbl = tabLabels[ri.tab] || ri.tab;
       return '<button class="cb-related-btn" onclick="chatBoardJumpToTab(\'' + ri.tab + '\')">' + escapeHtml(ri.label || lbl + ' 표준 분석 보기') + ' →</button>';
     }).join('') + '</div></div>' : '';
+
   // OOS 안내
   const oosHtml = isOOS && a.outOfScopeMessage ? '<div class="cb-a-oos-msg">' + escapeHtml(a.outOfScopeMessage) + '</div>' : '';
+
   return '<div class="cb-a-board">'
-    + '<div class="cb-a-headline">' + escapeHtml(a.headline || '') + '</div>'
+    + titleBar
+    + headlineHtml
+    + narrativeHtml
     + oosHtml
-    + sectionsHtml
-    + tablesHtml
+    + kpisHtml
     + chartsHtml
+    + personaHtml
     + sourcesHtml
     + relatedHtml
     + '</div>';
 }
 
 function renderTurnCharts(t, idx){
-  if(!t.a || !t.a.charts || !Array.isArray(t.a.charts)) return;
+  if(!t.a) return;
+  const charts = t.a.panelCharts || t.a.charts || [];
+  if(!Array.isArray(charts) || !charts.length) return;
   const palette = ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#F472B6','#A5B4FC'];
-  t.a.charts.forEach((c, ci) => {
+  charts.forEach((c, ci) => {
     const id = 'cb-chart-' + idx + '-' + ci;
     if(typeof renderChartSafe !== 'function') return;
     const labels = c.labels || [];
@@ -2338,13 +2428,43 @@ function renderTurnCharts(t, idx){
   });
 }
 
-function chatBoardJumpToTab(tab){
-  // chat-board 종료 + workspace 이동 + 해당 탭
+async function chatBoardJumpToTab(tab){
+  // chat-board 종료 + workspace 이동 + 조건부 분석 자동 실행
+  // 현재 대화의 첫 질문과 필터를 복구 — 빌더에 주입 후 분석 시작
+  const firstTurn = (state.chatTurns || [])[0];
+  const q = firstTurn && firstTurn.q;
+  // Insight 모드로 전환 (사이드바 표시 자동 갱신)
+  state.currentMode = 'insight';
+  try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
+  document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
+  const sbChat = document.getElementById('sb-mode-chat'); if(sbChat) sbChat.classList.remove('active');
+  const sbIns = document.getElementById('sb-mode-insight'); if(sbIns) sbIns.classList.add('active');
   chatBoardClose(true);
-  setTimeout(() => {
-    if(typeof goWorkspace === 'function') goWorkspace();
-    if(typeof switchTab === 'function') switchTab(tab);
-  }, 50);
+  // 워크스페이스 이동
+  if(typeof goWorkspace === 'function') await goWorkspace();
+  if(typeof renderBuilder === 'function') renderBuilder();
+  if(typeof switchTab === 'function') switchTab(tab);
+  // 질문이 있으면 NLU 다시 돌려서 필터/국가 추출 → synthesize → 도메인 분석
+  if(q){
+    try{
+      const r = await fetch(API + '/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: q }) });
+      const data = await r.json();
+      if(data && data.ok){
+        state.lastAsk = data;
+        state.filters = data.parsed?.filters || {};
+        if(data.parsed?.country) selectCountry(data.parsed.country);
+        if(typeof showAskBanner === 'function') showAskBanner(data);
+        if(typeof renderBuilder === 'function') renderBuilder();
+      }
+    }catch(e){ console.warn('jump ask failed', e); }
+    if(!state.currentCountry) selectCountry('KR');
+    state.autoRouteToSummary = false; // 이미 해당 탭을 선택했으므로
+    if(typeof runAnalysis === 'function'){
+      try{ await runAnalysis(); }catch(e){ console.warn('runAnalysis failed', e); }
+      // 다시 해당 탭으로 이동 (runAnalysis가 탭을 바꿈 수 있음)
+      if(typeof switchTab === 'function') switchTab(tab);
+    }
+  }
 }
 
 function chatBoardClose(skipHome){
