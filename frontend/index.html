@@ -638,6 +638,8 @@ a{color:inherit;text-decoration:none}
 .sm-answer-card{margin:0 0 24px;border:2px solid #6366F1;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:14px;padding:22px 24px;box-shadow:0 4px 16px rgba(99,102,241,.15);position:relative}
 .sm-answer-card::before{content:'AI 인사이트 답변';position:absolute;top:-10px;left:18px;background:#6366F1;color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:11px;letter-spacing:.4px}
 .sm-answer-card.sm-answer-oos::before{content:'안내';background:#F59E0B}
+.chat-answer-area{margin:32px 0 0;padding:0;max-width:920px;margin-left:auto;margin-right:auto}
+.chat-answer-area.hide{display:none}
 .sm-answer-actions{margin-top:14px;display:flex;gap:8px;justify-content:flex-end}
 .sm-answer-deep-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid #6366F1;color:#6366F1;border-radius:8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .12s}
 .sm-answer-deep-btn:hover{background:#6366F1;color:#fff}
@@ -1094,15 +1096,15 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 
     <div class="sb-section">
       <div class="sb-section-title">저장소</div>
+      <div class="sb-item" onclick="openLibraryMenu()">
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span>채팅 라이브러리</span>
+      </div>
       <div class="sb-item" onclick="openProjects()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span><span>프로젝트</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span><span>분석 프로젝트</span>
         <span class="sb-item-meta" id="project-count">0</span>
       </div>
-      <div class="sb-item" onclick="openLibraryMenu()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span><span>라이브러리</span>
-      </div>
       <div class="sb-item" onclick="openPresets()">
-        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>프리셋</span>
+        <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>타겟 프리셋</span>
         <span class="sb-item-meta" id="preset-count">0</span>
       </div>
     </div>
@@ -1229,6 +1231,9 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             </div>
             <div class="chat-disclaim">AI는 실수할 수 있어요. 중요 결정은 한 번 더 확인하세요.</div>
           </div>
+
+          <!-- AI 채팅 답변 영역 (채팅 모드 전용) -->
+          <div id="chat-answer-area" class="chat-answer-area hide"></div>
 
           <!-- Recommended Flow -->
           <div class="reco-flow">
@@ -1896,6 +1901,14 @@ function onChatKey(e){
   }
 }
 function setChatAndSend(q){
+  // 메인 화면 예시 카드 클릭 — 항상 AI 채팅 모드로 강제 (CEO 약속)
+  if(state.currentMode !== 'chat'){
+    state.currentMode = 'chat';
+    try{ localStorage.setItem('innocean.audience.mode', 'chat'); }catch(e){}
+    document.body.classList.add('mode-chat'); document.body.classList.remove('mode-insight');
+    const sbChat = document.getElementById('sb-mode-chat'); if(sbChat) sbChat.classList.add('active');
+    const sbIns = document.getElementById('sb-mode-insight'); if(sbIns) sbIns.classList.remove('active');
+  }
   document.getElementById('chat-input').value = q;
   toggleSend();
   sendChat();
@@ -1967,14 +1980,23 @@ async function sendChat(){
     if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
     // 채팅 세션 저장
     saveChatSession(q, data.parsed);
+
+    // AI 채팅 모드 — 9탭/빌더 안 보이고 채팅 답변 영역에만 표시 (CEO 약속)
+    if(state.currentMode === 'chat'){
+      // home 유지, 자동 분석 (탭 전환 없이)
+      input.value = '';
+      if(typeof autoResize === 'function') autoResize(input);
+      state.autoRouteToSummary = false;
+      state.chatModeAnalysis = true;
+      setTimeout(() => runAnalysis(), 400);
+      return;
+    }
+
+    // 타겟 인사이트 모드 — 기존 흐름
     await goWorkspace();
-    // 자연어 입력 → 자동 분석 → 요약 탭으로 이동
-    // 1) 빌더 탭으로 이동 (필터 미리 채워서 사용자가 보이도록)
     switchTab('overview');
     renderBuilder();
-    // 2) ask-banner 표시
     showAskBanner(data);
-    // 3) 자동 분석 트리거 + 완료 후 요약으로 라우팅
     state.autoRouteToSummary = true;
     setTimeout(() => runAnalysis(), 400);
   } catch(e){
@@ -2048,6 +2070,9 @@ function switchMode(mode){
     // AI 채팅 메인: 첫 화면 리셋 (대화/필터/답변 카드 초기화)
     state.currentChatId = null;
     state.chatMessages = [];
+    state.chatAnswerTarget = null;
+    const ca = document.getElementById('chat-answer-area');
+    if(ca){ ca.classList.add('hide'); ca.innerHTML = ''; }
     goHome();  // 기존 리셋 정책 적용 (lastAsk/filters/country 초기화)
     history.pushState({ view: 'chat' }, '', '/chat');
   } else {
@@ -2065,6 +2090,25 @@ function switchMode(mode){
 // 호움 함수 (본 파일 에서 호출용 — 과거 호출처 유지)
 function snapshotCurrentMode(){ /* no-op: reset policy */ }
 
+// AI 채팅에서 '타겟 인사이트로 자세히 보기' — 구독이 아닌 이동, 현재 분석 결과 유지
+async function openInsightFromChat(){
+  // 리셋 없이 타겟 인사이트 모드로 이동 (현재 필터/분석 유지)
+  state.currentMode = 'insight';
+  try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
+  document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
+  const sbChat = document.getElementById('sb-mode-chat'); if(sbChat) sbChat.classList.remove('active');
+  const sbIns = document.getElementById('sb-mode-insight'); if(sbIns) sbIns.classList.add('active');
+  // chat-answer-area 숨김
+  const ca = document.getElementById('chat-answer-area'); if(ca) ca.classList.add('hide');
+  state.chatAnswerTarget = null;
+  // 워크스페이스로 이동 + 요약 탭
+  await goWorkspace();
+  switchTab('summary');
+  // 답변 카드 워크스페이스 영역으로 다시 렌더링
+  renderAnswerCard();
+  history.pushState({ view: 'insight' }, '', '/insight');
+}
+
 function startNewChat(){
   // 새 대화 세션 시작 — 채팅 메시지/필터 게시
   state.chatMessages = [];
@@ -2073,9 +2117,9 @@ function startNewChat(){
 }
 
 function openLibraryMenu(){
-  // 라이브러리 모달 진입 (4섬션: 분석 결과/채팅/프리셋/프로젝트)
-  state.libCurrentTab = state.libCurrentTab || 'targets';
-  if(typeof openLibrary === 'function') openLibrary(state.libCurrentTab);
+  // 채팅 라이브러리 — AI 채팅 세션 전용 (CEO 결정)
+  state.libCurrentTab = 'chats';
+  if(typeof openLibrary === 'function') openLibrary('chats');
 }
 
 function goHome(opts){
@@ -3568,7 +3612,20 @@ function renderAnswerCharts(group){
 
 // AI 인사이트 답변 카드 (원문 질문에 대한 직답 + 차트 미리보기 + 관련 탭 링크)
 function renderAnswerCard(){
-  const box = document.getElementById('sm-answer-card'); if(!box) return;
+  // 채팅 모드: chat-answer-area에 렌더링 + 그 영역 표시
+  const isChat = state.currentMode === 'chat' && state.chatAnswerTarget === 'chat-answer-area';
+  let box;
+  if(isChat){
+    box = document.getElementById('chat-answer-area');
+    if(box){
+      box.classList.remove('hide');
+      // sm-answer-card도 비우기 (일관성)
+      const ws = document.getElementById('sm-answer-card'); if(ws) ws.innerHTML = '';
+    }
+  } else {
+    box = document.getElementById('sm-answer-card');
+  }
+  if(!box) return;
   const ans = state.answerCard;
   if(!ans){ box.innerHTML = ''; return; }
   if(ans.loading){
@@ -3605,7 +3662,7 @@ function renderAnswerCard(){
     + (bulletsHtml ? '<ul class="sm-answer-b">' + bulletsHtml + '</ul>' : '')
     + chartsHtml
     + (tabsHtml ? '<div class="sm-answer-tabs">' + tabsHtml + '</div>' : '')
-    + (!isOOS ? '<div class="sm-answer-actions"><button class="sm-answer-deep-btn" onclick="switchMode(\'insight\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>타겟 인사이트로 자세히 보기</button></div>' : '')
+    + (!isOOS ? '<div class="sm-answer-actions"><button class="sm-answer-deep-btn" onclick="openInsightFromChat()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>타겟 인사이트로 자세히 보기</button></div>' : '')
     + '</div>';
   // 차트 렌더링
   renderAnswerCharts(chartGroup);
@@ -4053,20 +4110,17 @@ function attachTargetToProject(projectId, targetId){
 
 // ============ Library 통합 모달 (3탭: 타겟/프리셋/프로젝트) ============
 async function openLibrary(kind){
-  // 라이브러리는 분석 결과 + 채팅 두 섬션만 포함 (CEO 정책)
+  // 채팅 라이브러리 = AI 채팅 세션 전용 (CEO 결정)
   if(kind==='presets' || kind==='preset') return openPresets();
   if(kind==='projects') return openProjects();
-  if(kind && kind!=='targets' && kind!=='chats') kind = 'targets';
-  state.libCurrentTab = kind || state.libCurrentTab || 'targets';
-  if(state.libCurrentTab !== 'targets' && state.libCurrentTab !== 'chats') state.libCurrentTab = 'targets';
+  state.libCurrentTab = 'chats';
   state.libSort = state.libSort || 'recent'; // recent | favorites | name
   let modal = document.getElementById('lib-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='lib-modal'; modal.className='lib-modal';
   modal.innerHTML = '<div class="lib-box">' +
     '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Library</div><button class="lib-close" onclick="closeLibrary()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
     '<div class="lib-tabs" style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bdr);padding:0 22px;background:#FAFBFF">' +
-      '<button class="lib-tab" data-lkind="targets" onclick="switchLibTab(\'targets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> 분석 결과 <span class="lib-tab-cnt" id="lib-tc-targets">0</span></button>' +
-      '<button class="lib-tab" data-lkind="chats" onclick="switchLibTab(\'chats\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 채팅 히스토리 <span class="lib-tab-cnt" id="lib-tc-chats">0</span></button>' +
+      '<button class="lib-tab active" data-lkind="chats" onclick="switchLibTab(\'chats\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> AI 채팅 세션 <span class="lib-tab-cnt" id="lib-tc-chats">0</span></button>' +
       '<div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:10px 0">' +
         '<button id="lib-create-btn" onclick="libCreateProject()" style="display:none;padding:6px 11px;background:var(--ind);color:#fff;border:1px solid var(--ind);border-radius:6px;font-size:11.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>새 프로젝트</button>' +
         '<label style="font-size:11px;color:var(--tm);font-weight:600">정렬</label>' +
@@ -4090,11 +4144,11 @@ async function openLibrary(kind){
 }
 function closeLibrary(){ const m = document.getElementById('lib-modal'); if(m) m.remove(); }
 function switchLibTab(kind){
-  state.libCurrentTab = kind;
-  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.lkind===kind));
+  state.libCurrentTab = 'chats';
+  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.lkind==='chats'));
   const createBtn = document.getElementById('lib-create-btn');
   if(createBtn) createBtn.style.display = 'none';
-  loadLibTab(kind);
+  loadLibTab('chats');
 }
 async function refreshLibTabCounts(){
   try{
@@ -6253,14 +6307,24 @@ async function runAnalysis(){
         }
       }
     }catch(e){ console.warn('auto inbox attach failed', e); }
-    // 항상 요약 탭으로 자동 이동
+    // 채팅 모드: home 유지, 답변 카드만 chat-answer-area에 표시
+    if(state.currentMode === 'chat'){
+      state.chatAnswerTarget = 'chat-answer-area';
+      if(state.lastAsk && state.lastAsk.question && state.synthCache){
+        fetchAnswerCard();
+      } else {
+        state.answerCard = null;
+        renderAnswerCard();
+      }
+      state.chatModeAnalysis = false;
+      return;
+    }
+    // 타겟 인사이트 모드: 요약 탭으로 이동
     state.autoRouteToSummary = false;
     switchTab('summary');
-    // 현재 모드 상태 자동 스냅샷
     try{ snapshotCurrentMode(); }catch(e){}
-    // AI 인사이트 답변 카드 생성 (원문 질문이 있을 때)
     if(state.lastAsk && state.lastAsk.question && state.synthCache){
-      fetchAnswerCard(); // non-blocking
+      fetchAnswerCard();
     } else {
       state.answerCard = null;
       renderAnswerCard();
