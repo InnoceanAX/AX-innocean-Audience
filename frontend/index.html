@@ -1866,9 +1866,11 @@ async function sendChat(){
     });
     const data = await res.json();
     if(!data.ok) throw new Error('ask failed');
-    state.filters = data.parsed.filters;
+    state.filters = data.parsed.filters || {};
     state.lastAsk = data;
     if(data.parsed.country) selectCountry(data.parsed.country);
+    // AI 추출 필터 외 디멘션은 '전체'로 채움 (CEO 결정)
+    if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
     await goWorkspace();
     // 자연어 입력 → 자동 분석 → 요약 탭으로 이동
     // 1) 빌더 탭으로 이동 (필터 미리 채워서 사용자가 보이도록)
