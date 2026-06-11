@@ -4294,6 +4294,37 @@ async function refreshSummaryTab(){
 }
 
 // ============ AI 합성 세그먼트 카드 렌더링 ============
+// 한국 30명 패널 응답 샘플 렌더 (상단 합성 박스 위에 표시)
+function renderPanelSample(dim){
+  const panel = state.panelCache;
+  if(!panel || !panel.aggregated) return '';
+  // dim별 관련 질문 키 매핑
+  const dimKeys = {
+    who: ['age_perception','household','income_self','occupation','education'],
+    life: ['daily_routine','digital_hours','weekend_activity','travel','fitness'],
+    mind: ['core_values','brand_trust','risk_attitude','social_concern','future_outlook'],
+    love: ['top_interests','celebrities','music_genre','content_genre','ip_brands'],
+    buy: ['shopping_channels','top_categories','price_sensitivity','brand_loyalty','decision_factors'],
+  };
+  const keys = dimKeys[dim] || [];
+  const items = keys.map(k => panel.aggregated[k]).filter(x => x && x.answers && x.answers.length);
+  if(items.length === 0) return '';
+  const sampleHtml = items.slice(0, 3).map(item => {
+    const samples = item.answers.slice(0, 2).map(a => `<div style="font-size:11.5px;color:#374151;padding:6px 9px;background:#FEFCE8;border-left:2px solid #F59E0B;border-radius:4px;margin:3px 0">“${(a||'').substring(0, 140)}”</div>`).join('');
+    return `<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:3px">${item.question||''}</div>${samples}</div>`;
+  }).join('');
+  const cacheLabel = panel.cached ? '캐시' : `${Math.round((panel.durationMs||0)/1000)}초 생성`;
+  return `<div style="margin-bottom:18px;padding:14px 16px;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1px solid #FCD34D;border-radius:10px">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:#92400E"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+      <span style="font-size:12px;font-weight:700;color:#92400E">AI 합성 페르소나 30명 패널 응답 샘플</span>
+      <span style="margin-left:auto;font-size:10px;color:#A16207">${panel.panelSize}명 · ${panel.source?.marginOfError || '±17.9%'} · ${cacheLabel}</span>
+    </div>
+    ${sampleHtml}
+    <div style="margin-top:6px;font-size:10px;color:#A16207;font-style:italic">[출처] AI 합성 페르소나 ${panel.panelSize}명 시뮬레이션 응답을 집계. 아래 수치 차트는 이 패널의 응답을 반영합니다.</div>
+  </div>`;
+}
+
 function renderSynthSegment(dim){
   const syn = state.synthCache;
   if(!syn || !syn.segments || !syn.segments[dim]) return '';
@@ -4397,17 +4428,24 @@ async function refreshAudienceTab(dim){
       const body = document.getElementById(dim + '-body');
       if(body){
         body.dataset.country = code;
+        const panelHtml = renderPanelSample(dim);
         const synthHtml = renderSynthSegment(dim);
-        body.innerHTML = synthHtml + renderAudienceDim(dim, data);
+        body.innerHTML = panelHtml + synthHtml + renderAudienceDim(dim, data);
         setTimeout(() => renderDimCharts(dim, data), 50);
       }
       // 출처 배지도 갱신
       const src = document.getElementById(dim + '-src');
       if(src && data.source){
         const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
-        const badgeHtml = hasSyn
-          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
-          : '<span class="aud-src-badge">실데이터</span>';
+        const hasPanel = !!(state.panelCache && state.panelCache.aggregated);
+        let badgeHtml;
+        if(hasPanel){
+          badgeHtml = '<span class="aud-src-badge" style="background:#FEF3C7;color:#92400E"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:2px"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>AI 패널 30명</span> <span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
+        } else if(hasSyn){
+          badgeHtml = '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
+        } else {
+          badgeHtml = '<span class="aud-src-badge">실데이터</span>';
+        }
         src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
       }
       return;
@@ -4454,9 +4492,15 @@ async function _refreshAudienceTabFetch(dim){
       return;
     }
     const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
-        const badgeHtml = hasSyn
-          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
-          : '<span class="aud-src-badge">실데이터</span>';
+    const hasPanel = !!(state.panelCache && state.panelCache.aggregated);
+    let badgeHtml;
+    if(hasPanel){
+      badgeHtml = '<span class="aud-src-badge" style="background:#FEF3C7;color:#92400E"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:2px"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>AI 패널 30명</span> <span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
+    } else if(hasSyn){
+      badgeHtml = '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
+    } else {
+      badgeHtml = '<span class="aud-src-badge">실데이터</span>';
+    }
         src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
     body.dataset.country = code;
     body.innerHTML = renderAudienceDim(dim, data);
@@ -5532,6 +5576,7 @@ async function runAnalysis(){
     if(results[results.length-1]?.ok) state.mediaCache = results[results.length-1];
     // AI 합성 소비자: 필터가 있을 때만 호출
     state.synthCache = null;
+    state.panelCache = null; // 한국 30명 패널 결과
     const hasAnyFilter = Object.values(state.filters||{}).some(v => Array.isArray(v) && v.length > 0 && !(v.length===1 && v[0]==='전체'));
     if(hasAnyFilter){
       try{
@@ -5542,6 +5587,31 @@ async function runAnalysis(){
         const synD = await synR.json();
         if(synD.ok && synD.segments) state.synthCache = synD;
       }catch(e){ console.warn('synthesize failed', e); }
+
+      // 한국 단독: 30명 페르소나 패널 추가 호출 (병렬, 캐시 hit이면 즉시)
+      if(code === 'KR'){
+        try{
+          // filters를 panel 요청 형식으로 변환
+          const f = state.filters || {};
+          const ageRange = (Array.isArray(f.age) && f.age.length > 0 && f.age[0] !== '전체') ? f.age.join('|') : null;
+          const gender = (Array.isArray(f.gender) && f.gender.length === 1 && f.gender[0] !== '전체') ? f.gender[0] : null;
+          const interests = Array.isArray(f.interests) ? f.interests.filter(i => i !== '전체') : [];
+          // 토스트로 진행 표시 (캐시 miss일 때 30초 대기 안내)
+          if(typeof toast === 'function') toast('한국 30명 페르소나 패널 조회 중...', 5000);
+          const panelR = await fetch(API + '/research/segment', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ country: 'KR', ageRange, gender, interests, panelSize: 30 }),
+          });
+          const panelD = await panelR.json();
+          if(panelD.ok){
+            state.panelCache = panelD;
+            if(typeof toast === 'function'){
+              const cacheLabel = panelD.cached ? '캐시 적중' : `신규 생성 (${Math.round((panelD.durationMs||0)/1000)}초)`;
+              toast(`한국 30명 패널 응답 완료 — ${cacheLabel}`);
+            }
+          }
+        }catch(e){ console.warn('panel research failed', e); }
+      }
     }
     // 분석 완료 메시지
     if(status){
