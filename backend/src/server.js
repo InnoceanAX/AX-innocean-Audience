@@ -16,6 +16,7 @@ import { audienceRouter } from "./routes/audience.js";
 import { stratRouter } from "./routes/stratify.js";
 import { askRouter } from "./routes/ask.js";
 import { libraryRouter } from "./routes/library.js";
+import { researchRouter } from "./routes/research.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -61,6 +62,7 @@ app.use("/api/ask", askRouter);
 
 // 타겟 라이브러리 (저장·불러오기·공유)
 app.use("/api/library", libraryRouter);
+app.use("/api/research", researchRouter);
 
 // 에러 핸들러
 app.use((err, _req, res, _next) => {
