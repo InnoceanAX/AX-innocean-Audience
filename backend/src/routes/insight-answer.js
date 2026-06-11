@@ -197,6 +197,11 @@ insightAnswerRouter.post("/", async (req, res) => {
 인구통계(who) / 라이프스타일(life) / 가치관(mind) / 관심사(love) / 구매(buy) / 미디어(media)
 각 차원에 비중·점수 데이터가 있습니다.
 
+[중요 — 패널 해석 자세]
+- 패널 데이터가 '전체 인구'로 보이더라도, 질문의 타겟에 맞춰 원한 세그먼트를 패널에서 추출한 도메인 전문 지식으로 재구성합니다.
+- 답변을 '패널에 그 세그먼트가 없어서 못 합니다'라고 하지 않습니다. 항상 답변합니다.
+- 질문의 세그먼트에 대한 명확한 도메인 지식(일반 통계)을 패널 프레임으로 감싸서 답변합니다.
+
 [답변 구조]
 {
   inScope: true|false,
@@ -220,14 +225,14 @@ insightAnswerRouter.post("/", async (req, res) => {
   outOfScopeMessage: null | "범위 밖 안내문"
 }
 
-[작성 가이드]
-- headline: 패널 데이터의 핵심 결론, 30~60자, 임팩트 있게.
-- narrative: 1~2문장. '왜 그런지'의 핵심 한 줄.
-- personaSamples: 1~3개. 패널을 대표하는 가상 페르소나 (이름은 한국 일반 이름).
-  · attributes: 4~6개 구체 속성 (나이/직업/소득/거주/가족 등 패널 분포에서 도출)
+[작성 가이드 — 반드시 지킬 것]
+- headline: 답을 한 줄로 주는 결론 (30~60자, 임팩트 있게). 절대 '없습니다'/'포함하지 않습니다' 같은 부정 어조 금지.
+- narrative: 1~2문장. 이 데이터가 보여주는 핵심 인사이트.
+- personaSamples: 반드시 1~3개 생성 (빈 배열 금지). 질문의 세그먼트에 맞는 가상 한국 이름.
+  · attributes: 4~6개 구체 속성 (나이/직업/소득/거주/가족 등)
   · voice: 1인칭 한 마디 (예: '시간이 모자라요, 짧고 효율적인 선택을 합니다')
 - sources: 첫 번째는 반드시 'INNOCEAN AI 페르소나 패널 N=30' 형태.
-- relatedInsights: 1~3개, 9차원 표준 탭(who/life/mind/love/buy/media) 중에서.
+- relatedInsights: 반드시 1~3개 (빈 배열 금지). 9차원 표준 탭(who/life/mind/love/buy/media) 중에서 이 답변과 가장 관련있는 탭.
 
 [범위 밖]
 - 광고 효율·ROAS·CTR 예측, 매체 단가, 캠페인 기획·크리에이티브 추천 → inScope: false
@@ -335,20 +340,52 @@ ${panelStr}
       ans.sources.push({ label: "통계청 경제활동인구조사 2024", url: "" });
     }
 
-    // 관련 인사이트 기본값
+    // 관련 인사이트 기본값 — 키워드 확장
     if (ans.relatedInsights.length === 0 && ans.inScope !== false) {
       const qLower = (question || "").toLowerCase();
       const cand = [];
-      if (/가치|심리/.test(qLower)) cand.push({ tab: "mind", label: "가치관 표준 분석", reason: "핵심 가치관 세부" });
-      if (/라이프|일상|활동/.test(qLower)) cand.push({ tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴" });
-      if (/구매|소비/.test(qLower)) cand.push({ tab: "buy", label: "구매 행태 분석", reason: "구매 채널/요인" });
-      if (/미디어|채널/.test(qLower)) cand.push({ tab: "media", label: "미디어 소비 분석", reason: "채널 우선순위" });
-      if (/관심|취미/.test(qLower)) cand.push({ tab: "love", label: "관심사 분석", reason: "관심사 상세" });
-      if (cand.length === 0) cand.push(
-        { tab: "who", label: "인구통계 표준 분석", reason: "인구학적 구조" },
-        { tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴" },
-      );
+      if (/가치|심리|세계관|신념/.test(qLower)) cand.push({ tab: "mind", label: "가치관 표준 분석", reason: "핵심 가치관 세부 지표" });
+      if (/라이프|일상|활동|시간|워킹맘|맘|아빠|부모|가족/.test(qLower)) cand.push({ tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴" });
+      if (/구매|소비|쇼핑|결제|브랜드/.test(qLower)) cand.push({ tab: "buy", label: "구매 행태 분석", reason: "구매 채널/요인" });
+      if (/미디어|채널|콘텐츠|퀴|테레비|유튜브|sns|동영상/.test(qLower)) cand.push({ tab: "media", label: "미디어 소비 분석", reason: "채널 우선순위" });
+      if (/관심|취미|트렌드|종륔/.test(qLower)) cand.push({ tab: "love", label: "관심사 분석", reason: "관심사/취미" });
+      if (/누구|특징|인구|소득|세대|연령|성별|직업/.test(qLower)) cand.push({ tab: "who", label: "인구통계 표준 분석", reason: "인구학적 구조" });
+      // 기본 추천 — 어떤 질문이든 최소 2개 보장
+      if (cand.length === 0) {
+        cand.push(
+          { tab: "who", label: "인구통계 표준 분석", reason: "이 타겟의 인구학적 구조" },
+          { tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴" },
+          { tab: "mind", label: "가치관 표준 분석", reason: "핵심 가치관 점수" },
+        );
+      } else if (cand.length === 1) {
+        // 1개만 있으면 기본 탭 1개 더 보충
+        const used = cand[0].tab;
+        const filler = ["who", "life", "mind"].find(t => t !== used);
+        if (filler) cand.push({ tab: filler, label: filler === "who" ? "인구통계 표준 분석" : (filler === "life" ? "라이프스타일 표준 분석" : "가치관 표준 분석"), reason: "타겟 이해 보완" });
+      }
       ans.relatedInsights = cand.slice(0, 3);
+    }
+    // 페르소나 기본값 — 비어있으면 패널에서 자동 생성
+    if (ans.personaSamples.length === 0 && ans.inScope !== false) {
+      // 패널 기본 한 개 생성
+      const code = String(country || "KR").toUpperCase();
+      const topAge = panel.who?.ageBuckets ? Object.entries(panel.who.ageBuckets).sort((a, b) => +b[1] - +a[1])[0]?.[0] : "30-44";
+      const urbanRate = panel.who?.urbanRate || 80;
+      const topInterest = panel.love ? Object.entries(panel.love).sort((a, b) => +b[1] - +a[1])[0]?.[0] : null;
+      const topPay = panel.buy?.paymentMethods ? Object.entries(panel.buy.paymentMethods).sort((a, b) => +b[1] - +a[1])[0]?.[0] : null;
+      const sampleNames = code === "KR" ? ["김지원", "박서연"] : ["Alex Park", "Sam Lee"];
+      ans.personaSamples = [{
+        name: sampleNames[0],
+        tagline: `패널 핵심 세그먼트 (주력 연령 ${topAge}세 구간)`,
+        attributes: [
+          `${topAge}세 구간`,
+          `${urbanRate >= 80 ? "대도시" : "중소도시"} 거주`,
+          topInterest ? `주요 관심: ${topInterest}` : `다양한 관심사`,
+          topPay ? `주 결제 수단: ${topPay === "card" ? "카드" : topPay === "mobilePay" ? "간편결제" : topPay}` : "디지털 소비",
+          panel.life?.avgInternetTime ? `일평균 인터넷 ${panel.life.avgInternetTime}시간` : "디지털 네이티브",
+        ],
+        voice: "패널 데이터를 근거로 재구성된 대표 프로필입니다.",
+      }];
     }
 
     if (ans.inScope === false && !ans.outOfScopeMessage) {
