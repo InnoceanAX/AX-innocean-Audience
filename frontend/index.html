@@ -638,6 +638,13 @@ a{color:inherit;text-decoration:none}
 .sm-answer-card{margin:0 0 24px;border:2px solid #6366F1;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border-radius:14px;padding:22px 24px;box-shadow:0 4px 16px rgba(99,102,241,.15);position:relative}
 .sm-answer-card::before{content:'AI 인사이트 답변';position:absolute;top:-10px;left:18px;background:#6366F1;color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:11px;letter-spacing:.4px}
 .sm-answer-card.sm-answer-oos::before{content:'안내';background:#F59E0B}
+.sm-answer-actions{margin-top:14px;display:flex;gap:8px;justify-content:flex-end}
+.sm-answer-deep-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid #6366F1;color:#6366F1;border-radius:8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .12s}
+.sm-answer-deep-btn:hover{background:#6366F1;color:#fff}
+.sm-answer-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:18px 0 14px}
+.sm-answer-chart{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px}
+.sm-answer-chart-t{font-size:11.5px;font-weight:700;color:#374151;margin-bottom:8px;letter-spacing:.02em}
+.sm-answer-chart-c{position:relative;height:180px}
 .sm-answer-q{font-size:12px;color:#6366F1;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .sm-answer-h{font-size:16px;font-weight:700;color:#1E1B4B;margin-bottom:12px;line-height:1.5}
 .sm-answer-b{list-style:none;padding:0;margin:0 0 12px}
@@ -1091,7 +1098,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span><span>프로젝트</span>
         <span class="sb-item-meta" id="project-count">0</span>
       </div>
-      <div class="sb-item" onclick="openLibrary()">
+      <div class="sb-item" onclick="openLibraryMenu()">
         <span class="sb-item-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span><span>라이브러리</span>
       </div>
       <div class="sb-item" onclick="openPresets()">
@@ -1672,6 +1679,7 @@ async function boot(){
     loadUserPresets();
     loadProjectsFromStorage();
     loadInboxFromStorage();
+    loadChatSessions();
     renderUserPresetsInSidebar();
     // 사이드바 카운트 초기화
     const pCnt = document.getElementById('project-count');
@@ -1897,6 +1905,40 @@ const INTENT_TAB_MAP = {
   'general': 'overview',
 };
 
+// 채팅 세션 관리 (localStorage)
+function loadChatSessions(){
+  try{ const raw = localStorage.getItem('innocean.audience.chats'); state.chatSessions = raw ? JSON.parse(raw) : []; }catch(e){ state.chatSessions = []; }
+}
+function saveChatSessions(){
+  try{ localStorage.setItem('innocean.audience.chats', JSON.stringify(state.chatSessions || [])); }catch(e){}
+}
+function saveChatSession(question, parsed){
+  state.chatSessions = state.chatSessions || [];
+  if(!state.currentChatId) state.currentChatId = 'chat_' + Date.now();
+  // 이미 존재하는 세션이면 메시지 추가, 아니면 새로 생성
+  let sess = state.chatSessions.find(s => s.id === state.currentChatId);
+  if(!sess){
+    sess = {
+      id: state.currentChatId,
+      createdAt: Date.now(),
+      country: state.currentCountry,
+      title: question.length > 36 ? question.slice(0, 36) + '…' : question,
+      messages: [],
+    };
+    state.chatSessions.unshift(sess);
+  }
+  sess.updatedAt = Date.now();
+  sess.lastQuestion = question;
+  sess.messages.push({
+    role: 'user', content: question, ts: Date.now(),
+  });
+  if(parsed && parsed.intent){
+    sess.lastIntent = parsed.intent;
+    sess.country = state.currentCountry;
+  }
+  saveChatSessions();
+}
+
 async function sendChat(){
   const input = document.getElementById('chat-input');
   const q = input.value.trim();
@@ -1916,6 +1958,8 @@ async function sendChat(){
     if(data.parsed.country) selectCountry(data.parsed.country);
     // AI 추출 필터 외 디멘션은 '전체'로 채움 (CEO 결정)
     if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
+    // 채팅 세션 저장
+    saveChatSession(q, data.parsed);
     await goWorkspace();
     // 자연어 입력 → 자동 분석 → 요약 탭으로 이동
     // 1) 빌더 탭으로 이동 (필터 미리 채워서 사용자가 보이도록)
@@ -2013,16 +2057,10 @@ function startNewChat(){
   switchMode('chat');
 }
 
-function openLibrary(){
-  // 프로젝트 아래 열린 라이브러리 시트와 동일 — 4섬션 (자동 키화)
-  if(typeof openProjects === 'function'){
-    openProjects();
-    setTimeout(() => {
-      // libCurrentTab을 'chats'로 (없으면 'targets')
-      state.libCurrentTab = 'targets';
-      if(typeof renderLibrary === 'function') renderLibrary();
-    }, 50);
-  }
+function openLibraryMenu(){
+  // 라이브러리 모달 진입 (4섬션: 분석 결과/채팅/프리셋/프로젝트)
+  state.libCurrentTab = state.libCurrentTab || 'targets';
+  if(typeof openLibrary === 'function') openLibrary(state.libCurrentTab);
 }
 
 function goHome(opts){
@@ -3438,7 +3476,80 @@ async function toggleFavoriteTarget(){
     if(d.ok){ state.favCurrent = newFav; renderSummaryActionBar(); if(typeof toast==='function') toast(newFav?'즐겨찾기 추가':'즐겨찾기 해제'); }
   }catch(e){}
 }
-// AI 인사이트 답변 카드 (원문 질문에 대한 직답 + 관련 탭 링크)
+// 의도별 추천 차트 그룹 (id는 sm-answer-card 안 고유)
+const INTENT_CHART_GROUPS = {
+  'lifestyle-insight': [
+    { id: 'ans-life-dayparts', dim: 'life', type: 'radar', source: 'dayparts', title: '시간대별 활동 강도' },
+    { id: 'ans-life-activity', dim: 'life', type: 'bar', source: 'activityShares', title: '활동 비중' },
+    { id: 'ans-life-food', dim: 'life', type: 'doughnut', source: 'foodHabits', title: '식생활 패턴' },
+  ],
+  'values-insight': [
+    { id: 'ans-mind-core', dim: 'mind', type: 'radar', source: 'coreValuesScore', title: '핵심 가치관' },
+    { id: 'ans-mind-decide', dim: 'mind', type: 'doughnut', source: 'decisionStyle', title: '의사결정 스타일' },
+    { id: 'ans-mind-concern', dim: 'mind', type: 'bar', source: 'socialConcerns', title: '사회적 관심사' },
+  ],
+  'interest-insight': [
+    { id: 'ans-love-int', dim: 'love', type: 'bar', source: 'interestsScore', title: '관심사 강도' },
+    { id: 'ans-love-music', dim: 'love', type: 'doughnut', source: 'musicGenreShares', title: '음악 장르' },
+    { id: 'ans-love-content', dim: 'love', type: 'doughnut', source: 'contentGenreShares', title: '콘텐츠 장르' },
+  ],
+  'purchase-insight': [
+    { id: 'ans-buy-cat', dim: 'buy', type: 'bar', source: 'categoryShares', title: '카테고리별 소비' },
+    { id: 'ans-buy-decision', dim: 'buy', type: 'doughnut', source: 'decisionFactors', title: '구매 결정 요인' },
+    { id: 'ans-buy-channel', dim: 'buy', type: 'doughnut', source: 'channelMix', title: '채널 믹스' },
+  ],
+  'demographic-insight': [
+    { id: 'ans-who-age', dim: 'who', type: 'doughnut', source: 'ageDistribution', title: '연령 분포' },
+    { id: 'ans-who-occ', dim: 'who', type: 'bar', source: 'occupationDistribution', title: '직업 분포' },
+    { id: 'ans-who-edu', dim: 'who', type: 'doughnut', source: 'educationDistribution', title: '학력 분포' },
+  ],
+  'media-insight': [
+    { id: 'ans-media', dim: 'media', type: 'media', source: null, title: '미디어 소비 패턴' },
+  ],
+  'target-definition': [
+    { id: 'ans-who-age', dim: 'who', type: 'doughnut', source: 'ageDistribution', title: '연령 분포' },
+    { id: 'ans-life-dayparts', dim: 'life', type: 'radar', source: 'dayparts', title: '일상 활동 패턴' },
+  ],
+  'persona-deep-dive': [
+    { id: 'ans-life-dayparts', dim: 'life', type: 'radar', source: 'dayparts', title: '일상 패턴' },
+    { id: 'ans-mind-core', dim: 'mind', type: 'radar', source: 'coreValuesScore', title: '가치관' },
+    { id: 'ans-love-int', dim: 'love', type: 'bar', source: 'interestsScore', title: '관심사' },
+  ],
+  'global-comparison': [],
+  'general': [
+    { id: 'ans-who-age', dim: 'who', type: 'doughnut', source: 'ageDistribution', title: '연령 분포' },
+    { id: 'ans-life-dayparts', dim: 'life', type: 'radar', source: 'dayparts', title: '일상 패턴' },
+    { id: 'ans-mind-core', dim: 'mind', type: 'radar', source: 'coreValuesScore', title: '가치관' },
+  ],
+};
+
+function renderAnswerCharts(group){
+  if(!group || !group.length) return;
+  const seg = (state.synthCache && state.synthCache.segments) || {};
+  const dimColors = {
+    who: '#6366F1', life: '#10B981', mind: '#8B5CF6',
+    love: '#EC4899', buy: '#F59E0B', media: '#06B6D4',
+  };
+  setTimeout(() => {
+    group.forEach(c => {
+      const data = seg[c.dim] && c.source ? seg[c.dim][c.source] : null;
+      if(!data) return;
+      const keys = Object.keys(data);
+      const vals = keys.map(k => +data[k] || 0);
+      if(!keys.length || vals.every(v => v === 0)) return;
+      if(c.type === 'doughnut'){
+        renderChartSafe(c.id, 'doughnut', keys, vals,
+          ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#F472B6','#A5B4FC']);
+      } else if(c.type === 'bar'){
+        renderChartSafe(c.id, 'bar', keys, vals, dimColors[c.dim] || '#6366F1', { suffix: '' });
+      } else if(c.type === 'radar'){
+        renderChartSafe(c.id, 'radar', keys, vals, dimColors[c.dim] || '#6366F1');
+      }
+    });
+  }, 50);
+}
+
+// AI 인사이트 답변 카드 (원문 질문에 대한 직답 + 차트 미리보기 + 관련 탭 링크)
 function renderAnswerCard(){
   const box = document.getElementById('sm-answer-card'); if(!box) return;
   const ans = state.answerCard;
@@ -3451,6 +3562,8 @@ function renderAnswerCard(){
   const tabLabels = { who: '인물상', life: '라이프스타일', mind: '가치관', love: '관심사', buy: '구매', media: '미디어' };
   const isOOS = !ans.inScope;
   const q = ans.question || '';
+  const intent = (state.lastAsk && state.lastAsk.parsed && state.lastAsk.parsed.intent) || 'general';
+  const chartGroup = !isOOS ? (INTENT_CHART_GROUPS[intent] || INTENT_CHART_GROUPS['general']) : [];
   const bulletsHtml = (ans.bullets || []).map(b => '<li>' + escapeHtml(b) + '</li>').join('');
   const tabsHtml = (ans.relatedTabs || []).filter(t => tabLabels[t]).map(t =>
     '<span class="sm-answer-tab-chip" onclick="switchTab(\'' + t + '\')">' + tabLabels[t] + ' 탭 열기 →</span>'
@@ -3458,6 +3571,13 @@ function renderAnswerCard(){
   const oosMsg = isOOS && ans.outOfScopeMessage
     ? '<div class="sm-answer-oos-msg">' + escapeHtml(ans.outOfScopeMessage) + '</div>'
     : '';
+  // 의도별 차트 미리보기 영역
+  const chartsHtml = chartGroup.length ? '<div class="sm-answer-charts">'
+    + chartGroup.map(c => '<div class="sm-answer-chart">'
+      + '<div class="sm-answer-chart-t">' + escapeHtml(c.title) + '</div>'
+      + '<div class="sm-answer-chart-c"><canvas id="' + c.id + '"></canvas></div>'
+    + '</div>').join('')
+    + '</div>' : '';
   box.innerHTML = '<div class="sm-answer-card' + (isOOS ? ' sm-answer-oos' : '') + '">'
     + '<div class="sm-answer-q">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
@@ -3466,8 +3586,12 @@ function renderAnswerCard(){
     + oosMsg
     + '<div class="sm-answer-h">' + escapeHtml(ans.headline || '') + '</div>'
     + (bulletsHtml ? '<ul class="sm-answer-b">' + bulletsHtml + '</ul>' : '')
+    + chartsHtml
     + (tabsHtml ? '<div class="sm-answer-tabs">' + tabsHtml + '</div>' : '')
+    + (!isOOS ? '<div class="sm-answer-actions"><button class="sm-answer-deep-btn" onclick="switchMode(\'insight\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>타겟 인사이트로 자세히 보기</button></div>' : '')
     + '</div>';
+  // 차트 렌더링
+  renderAnswerCharts(chartGroup);
 }
 function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
@@ -3913,8 +4037,8 @@ function attachTargetToProject(projectId, targetId){
 // ============ Library 통합 모달 (3탭: 타겟/프리셋/프로젝트) ============
 async function openLibrary(kind){
   if(kind==='presets' || kind==='preset') return openPresets();
-  return openProjects();
-  /* legacy: */ state.libCurrentTab = kind || state.libCurrentTab || 'targets';
+  if(kind && kind!=='targets' && kind!=='projects' && kind!=='chats') return openProjects();
+  state.libCurrentTab = kind || state.libCurrentTab || 'targets';
   state.libSort = state.libSort || 'recent'; // recent | favorites | name
   let modal = document.getElementById('lib-modal'); if(modal) modal.remove();
   modal = document.createElement('div'); modal.id='lib-modal'; modal.className='lib-modal';
@@ -3922,6 +4046,7 @@ async function openLibrary(kind){
     '<div class="lib-hd"><div class="lib-hd-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Library</div><button class="lib-close" onclick="closeLibrary()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
     '<div class="lib-tabs" style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bdr);padding:0 22px;background:#FAFBFF">' +
       '<button class="lib-tab" data-lkind="targets" onclick="switchLibTab(\'targets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> 분석 결과 <span class="lib-tab-cnt" id="lib-tc-targets">0</span></button>' +
+      '<button class="lib-tab" data-lkind="chats" onclick="switchLibTab(\'chats\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> 채팅 <span class="lib-tab-cnt" id="lib-tc-chats">0</span></button>' +
       '<button class="lib-tab" data-lkind="presets" onclick="switchLibTab(\'presets\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> 프리셋 <span class="lib-tab-cnt" id="lib-tc-presets">0</span></button>' +
       '<button class="lib-tab" data-lkind="projects" onclick="switchLibTab(\'projects\')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 프로젝트 <span class="lib-tab-cnt" id="lib-tc-projects">0</span></button>' +
       '<div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:10px 0">' +
@@ -3960,11 +4085,63 @@ async function refreshLibTabCounts(){
   }catch(e){}
   const pEl = document.getElementById('lib-tc-presets'); if(pEl) pEl.textContent = (state.userPresets||[]).length;
   const jEl = document.getElementById('lib-tc-projects'); if(jEl) jEl.textContent = (state.projects||[]).length;
+  const cEl = document.getElementById('lib-tc-chats'); if(cEl) cEl.textContent = (state.chatSessions||[]).length;
 }
 async function loadLibTab(kind){
   if(kind==='targets') return loadLibTargets();
   if(kind==='presets') return loadLibPresets();
   if(kind==='projects') return loadLibProjects();
+  if(kind==='chats') return loadLibChats();
+}
+
+async function loadLibChats(){
+  const body = document.getElementById('lib-body'); if(!body) return;
+  const items = (state.chatSessions||[]).slice();
+  items.sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+  if(!items.length){
+    body.innerHTML = '<div class="lib-empty"><div class="lib-empty-t">저장된 채팅이 없습니다</div><div class="lib-empty-s">AI 채팅에서 자연어 질문을 하면 자동 저장됩니다.</div></div>';
+    return;
+  }
+  body.innerHTML = '<div class="lib-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:18px 22px">' +
+    items.map(c => {
+      const time = c.updatedAt ? new Date(c.updatedAt).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+      const country = c.country || '–';
+      const cnt = (c.messages||[]).filter(m=>m.role==='user').length;
+      return '<div class="lib-card" style="border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;background:#fff;cursor:pointer;transition:border-color .12s" '
+        + 'onmouseenter="this.style.borderColor=\'var(--ind)\'" onmouseleave="this.style.borderColor=\'var(--bdr)\'" '
+        + 'onclick="openChatSession(\'' + c.id + '\')">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:10px;font-weight:700;color:var(--ind);letter-spacing:.05em">AI 세션</span>'
+        + '<button onclick="event.stopPropagation();deleteChatSession(\'' + c.id + '\')" style="padding:2px 6px;background:none;border:1px solid #FEE2E2;color:#DC2626;border-radius:4px;font-size:10px;cursor:pointer">삭제</button></div>'
+        + '<div style="font-size:13.5px;font-weight:600;color:#111;line-height:1.45;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + escapeHtml(c.title || '제목 없음') + '</div>'
+        + '<div style="font-size:11px;color:var(--tm);display:flex;align-items:center;gap:8px;justify-content:space-between"><span>' + escapeHtml(country) + ' · 메시지 ' + cnt + '개</span><span>' + time + '</span></div>'
+        + '</div>';
+    }).join('') + '</div>';
+}
+
+function openChatSession(id){
+  const sess = (state.chatSessions||[]).find(s => s.id === id);
+  if(!sess) return;
+  state.currentChatId = id;
+  // 국가 복원
+  if(sess.country) selectCountry(sess.country);
+  // 마지막 질문으로 재분석
+  const lastUser = (sess.messages||[]).slice().reverse().find(m => m.role === 'user');
+  if(lastUser){
+    closeLibrary();
+    switchMode('chat');
+    setTimeout(() => {
+      const inp = document.getElementById('chat-input');
+      if(inp){ inp.value = lastUser.content; if(typeof toggleSend === 'function') toggleSend(); }
+      if(typeof toast === 'function') toast('채팅 불러온 — 질문을 수정하거나 전송해 재분석하세요');
+    }, 200);
+  }
+}
+function deleteChatSession(id){
+  if(!confirm('이 채팅을 삭제할까요?')) return;
+  state.chatSessions = (state.chatSessions||[]).filter(s => s.id !== id);
+  saveChatSessions();
+  loadLibChats();
+  refreshLibTabCounts();
 }
 function libSortItems(items, sort){
   const arr = items.slice();
