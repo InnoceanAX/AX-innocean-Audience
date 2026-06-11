@@ -242,6 +242,39 @@ ${dataSummary}
         { label: "통계청 경제활동인구조사 2024", url: "" },
       ];
     }
+    // 차트 기본값 — 테이블이 있으면 테이블 첫 수치열로 bar 차트 자동 생성
+    if (ans.charts.length === 0 && ans.inScope !== false && ans.tables.length > 0) {
+      const tb = ans.tables[0];
+      if (tb.headers && tb.rows && tb.rows.length > 1) {
+        // 첫 열=label, 두 번째 열을 수치로 시도
+        const labels = tb.rows.map(r => String(r[0] || "").slice(0, 16));
+        const values = tb.rows.map(r => {
+          const v = String(r[1] || "").replace(/[^0-9.\-]/g, "");
+          return parseFloat(v) || 0;
+        });
+        if (values.some(v => v > 0)) {
+          ans.charts.push({
+            type: "bar",
+            title: tb.title + " — 핵심 수치",
+            labels, values,
+            unit: "",
+          });
+        }
+      }
+    }
+    // 관련 인사이트 기본값 — 점수 높은 탭 추천
+    if (ans.relatedInsights.length === 0 && ans.inScope !== false) {
+      // 질문 키워드 기반 추천
+      const qLower = (question || "").toLowerCase();
+      const candidates = [];
+      if (/가치|심리|세계관/.test(qLower)) candidates.push({ tab: "mind", label: "가치관 표준 분석", reason: "이 타겟의 핵심 가치관 세부 지표" });
+      if (/라이프|일상|시간|활동/.test(qLower)) candidates.push({ tab: "life", label: "라이프스타일 표준 분석", reason: "일상 행동 패턴 지표" });
+      if (/구매|소비|쇼핑/.test(qLower)) candidates.push({ tab: "buy", label: "구매 행태 분석", reason: "소비 패턴/의사결정 요인" });
+      if (/미디어|채널|콘텐츠/.test(qLower)) candidates.push({ tab: "media", label: "미디어 소비 분석", reason: "메세지 도달 채널 우선순위" });
+      if (/관심|취미|트렌드/.test(qLower)) candidates.push({ tab: "love", label: "관심사 분석", reason: "타겟 관심사/취미 상세 데이터" });
+      if (candidates.length === 0) candidates.push({ tab: "who", label: "인구통계 표준 분석", reason: "이 타겟의 인구학적 구조" });
+      ans.relatedInsights = candidates.slice(0, 3);
+    }
     if (ans.inScope === false && !ans.outOfScopeMessage) {
       ans.outOfScopeMessage = "이 솔루션은 타겟 인사이트 분석 도구입니다. 해당 주제는 별도 솔루션을 참고해 주세요. 다만 타겟의 인구통계/미디어 소비/구매 행태 정보는 아래 분석을 참고해 주세요.";
     }
