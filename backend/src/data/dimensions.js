@@ -75,7 +75,7 @@ export const DIMENSIONS = [
   },
   {
     id: "occupation", label: "직업", group: "who",
-    options: withAll(["사무·관리", "전문직", "서비스·판매", "기능·노무", "자영업", "주부·학생", "무직·은퇴", "공무원·공공", "예술·문화", "IT·테크"]),
+    options: withAll(["사무·관리", "전문직", "서비스·판매", "기능·노무", "자영업", "주부", "프리랜서", "무직·은퇴", "공무원·공공", "예술·문화", "IT·테크", "학생"]),
   },
   {
     id: "cityTier", label: "거주 도시 규모", group: "who",
@@ -87,7 +87,7 @@ export const DIMENSIONS = [
   },
   {
     id: "ethnicity", label: "민족·문화 배경", group: "who",
-    options: withAll(["주류 민족", "소수 민족", "이민자·다문화", "외국인 거주자"]),
+    options: withAll(["주류 인구", "소수 민족·다문화", "이민자·1세대", "외국인 거주자"]),
   },
 
   // ============ Life (10) ============
@@ -101,7 +101,7 @@ export const DIMENSIONS = [
   },
   {
     id: "wellness", label: "운동·웰니스", group: "life",
-    options: withAll(["주 3회 이상 운동", "주 1~2회", "비정기", "관심 있음", "관심 없음"]),
+    options: withAll(["주 3회 이상 운동", "주 1~2회", "월 1~3회", "비운동·관심 있음", "비운동·관심 없음"]),
   },
   {
     id: "diet", label: "식습관", group: "life",
@@ -117,7 +117,7 @@ export const DIMENSIONS = [
   },
   {
     id: "petOwnership", label: "반려동물", group: "life",
-    options: withAll(["없음", "강아지", "고양이", "소동물 (햄스터·물고기 등)", "이색 반려동물"]),
+    options: withAll(["없음", "강아지", "고양이", "소동물 (햄스터·물고기·새 등)", "파충류·이색"]),
   },
   {
     id: "languages", label: "외국어 능력", group: "life",
@@ -125,7 +125,7 @@ export const DIMENSIONS = [
   },
   {
     id: "religion", label: "종교", group: "life",
-    options: withAll(["무종교", "개신교", "천주교", "불교", "이슬람", "유대교", "힌두교", "기타"]),
+    options: withAll(["무종교", "개신교", "천주교", "불교", "이슬람", "힌두교", "유대교", "기타"]),
   },
   {
     id: "socialActivity", label: "사회 활동", group: "life",
@@ -139,7 +139,7 @@ export const DIMENSIONS = [
   },
   {
     id: "personalityType", label: "성격 유형", group: "mind",
-    options: withAll(["외향형 (E)", "내향형 (I)", "현실형 (S)", "직관형 (N)", "사고형 (T)", "감정형 (F)", "계획형 (J)", "탐색형 (P)"]),
+    options: withAll(["외향 (E)", "내향 (I)", "현실 (S)", "직관 (N)", "사고 (T)", "감정 (F)", "계획 (J)", "탐색 (P)"]),
   },
   {
     id: "politicalLean", label: "정치 성향", group: "mind",
@@ -219,7 +219,7 @@ export const DIMENSIONS = [
   // ============ Media (10) ============
   {
     id: "mediaUsage", label: "주 사용 매체", group: "media",
-    options: withAll(["TV·OTT", "YouTube", "Instagram", "TikTok", "Facebook", "X (Twitter)", "LinkedIn", "Threads", "Naver·검색 포털", "Daum·다음 카페", "뉴스 앱", "팟캐스트", "라디오", "신문·잡지", "옥외 광고"]),
+    options: withAll(["TV·OTT", "YouTube", "Instagram", "TikTok", "Facebook", "X (Twitter)", "LinkedIn", "Threads", "검색 포털 (Naver·Google)", "온라인 커뮤니티·카페", "뉴스 앱", "팟캐스트", "라디오", "신문·잡지", "옥외 광고"]),
   },
   {
     id: "mediaTime", label: "일 매체 소비 시간", group: "media",
@@ -239,7 +239,7 @@ export const DIMENSIONS = [
   },
   {
     id: "ottPlatform", label: "주 사용 OTT", group: "media",
-    options: withAll(["Netflix", "Disney+", "Coupang Play", "Tving", "Wavve", "Apple TV+", "Amazon Prime", "유료 OTT 없음"]),
+    options: withAll(["Netflix", "Disney+", "Apple TV+", "Amazon Prime", "HBO Max", "YouTube Premium", "Coupang Play (KR)", "Tving (KR)", "Wavve (KR)", "유료 OTT 없음"]),
   },
   {
     id: "adReceptivity", label: "광고 수용도", group: "media",
@@ -255,13 +255,13 @@ export const DIMENSIONS = [
   },
   {
     id: "mediaTrust", label: "매체 신뢰도", group: "media",
-    options: withAll(["전통 매체 (TV·신문)", "포털 뉴스", "유튜브·크리에이터", "SNS 친구·지인", "전문 매체·뉴스레터", "정부·공공기관", "신뢰 매체 없음"]),
+    options: withAll(["전통 매체 (TV·신문)", "포털 뉴스", "유튜브·크리에이터", "SNS 친구·지인", "전문 매체·뉴스레터", "정부·공공기관", "어떤 매체도 신뢰 안 함"]),
   },
 
   // ============ Buy (12) ============
   {
     id: "shoppingChannel", label: "쇼핑 채널", group: "buy",
-    options: withAll(["오프라인 매장", "온라인 종합몰 (쿠팡·아마존)", "라이브 커머스", "소셜 커머스", "해외 직구", "구독 서비스", "중고 거래", "공동구매"]),
+    options: withAll(["오프라인 매장", "온라인 종합몰 (Coupang·Amazon 등)", "라이브 커머스", "소셜 커머스 (SNS)", "해외 직구", "구독 서비스", "중고 거래 (당근·eBay 등)", "공동구매"]),
   },
   {
     id: "purchaseDriver", label: "구매 결정 요인", group: "buy",
@@ -281,7 +281,7 @@ export const DIMENSIONS = [
   },
   {
     id: "payment", label: "결제 수단", group: "buy",
-    options: withAll(["신용카드", "체크카드", "간편결제 (페이)", "BNPL·후불결제", "현금·계좌이체", "암호화폐", "기프트카드·포인트"]),
+    options: withAll(["신용카드", "체크카드", "간편결제 (Pay·Wallet)", "BNPL·후불결제", "현금·계좌이체", "암호화폐", "기프트카드·포인트"]),
   },
   {
     id: "spendCategory", label: "주요 지출 카테고리 (다중)", group: "buy",

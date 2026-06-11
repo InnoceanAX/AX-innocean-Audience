@@ -3634,6 +3634,8 @@ function applyPresetFromLib(id){
   const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
   if(p.country && typeof selectCountry==='function') selectCountry(p.country);
   state.filters = JSON.parse(JSON.stringify(p.filters||{}));
+  // 프리셋에 명시되지 않은 디멘션은 '전체'로 채움
+  if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
   document.getElementById('pset-modal')?.remove();
   goWorkspace().then(()=>{ switchTab('overview'); if(typeof renderBuilder==='function') renderBuilder(); if(typeof refreshSegment==='function') refreshSegment(); if(typeof updateWsCountryLabel==='function') updateWsCountryLabel(); if(typeof toast==='function') toast('프리셋 적용: ' + p.name); });
 }
@@ -4196,6 +4198,8 @@ async function aiBuilderParse(){
         const valid = (Array.isArray(filters[k])?filters[k]:[filters[k]]).filter(v => dim.options.includes(v));
         if(valid.length > 0){ state.filters[k] = valid; applied++; }
       }
+      // AI로 추출되지 않은 디멘션은 '전체'로 채움
+      fillRemainingWithAll();
       renderBuilder();
       refreshSegment();
       updateWsCountryLabel();
@@ -5764,6 +5768,17 @@ const BUILTIN_PRESETS = {
   },
 };
 
+// AI/프리셋으로 자동 빌더 생성 시 비어있는 디멘션을 '전체'로 채움
+// CEO 결정: 자동 생성되는 필터는 모든 디멘션이 명시적으로 '전체' 또는 특정값을 가져야 함
+function fillRemainingWithAll(){
+  if(!Array.isArray(state.dimensions)) return;
+  for(const dim of state.dimensions){
+    if(!state.filters[dim.id] || !Array.isArray(state.filters[dim.id]) || state.filters[dim.id].length === 0){
+      state.filters[dim.id] = ['전체'];
+    }
+  }
+}
+
 function applyPreset(key){
   // 1) 병합 프리셋: 사용자 저장된 것을 먼저 탐색
   let preset = (state.userPresets || []).find(p => p.id === key);
@@ -5786,6 +5801,8 @@ function applyPreset(key){
       applied++;
     }
   }
+  // 프리셋에 명시되지 않은 디멘션은 '전체'로 채움
+  fillRemainingWithAll();
   renderBuilder();
   refreshSegment();
   // 시각 피드백

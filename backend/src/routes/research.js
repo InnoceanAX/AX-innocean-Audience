@@ -14,10 +14,110 @@ if (!fs.existsSync(CACHE_DIR)) {
   try { fs.mkdirSync(CACHE_DIR, { recursive: true }); } catch (e) { /* ignore */ }
 }
 
-// 캐시 키 정규화
+// 연령대 정규화: 25-30, 25-34, "20대", "30대" 등을 표준 버킷으로
+function normalizeAgeRange(ageRange) {
+  if (!ageRange) return "all";
+  const s = String(ageRange).toLowerCase();
+  // 한국식 "10대~60대 이상"
+  if (s.includes("10대")) return "10s";
+  if (s.includes("20대")) return "20s";
+  if (s.includes("30대")) return "30s";
+  if (s.includes("40대")) return "40s";
+  if (s.includes("50대")) return "50s";
+  if (s.includes("60대") || s.includes("60+")) return "60s";
+  // 숫자 범위 (예: 25-34, 18-29)
+  const m = s.match(/(\d{1,2})\s*[-~]\s*(\d{1,2})/);
+  if (m) {
+    const lo = parseInt(m[1], 10);
+    const hi = parseInt(m[2], 10);
+    const mid = (lo + hi) / 2;
+    if (mid < 20) return "10s";
+    if (mid < 30) return "20s";
+    if (mid < 40) return "30s";
+    if (mid < 50) return "40s";
+    if (mid < 60) return "50s";
+    return "60s";
+  }
+  // 다중 ("20대|30대") 첫 번째만 사용
+  if (s.includes("|")) return normalizeAgeRange(s.split("|")[0]);
+  return s.replace(/[^a-z0-9]/g, "");
+}
+
+// 성별 정규화
+function normalizeGender(gender) {
+  if (!gender) return "all";
+  const s = String(gender).toLowerCase();
+  if (s.includes("남") || s === "male" || s === "m") return "m";
+  if (s.includes("여") || s === "female" || s === "f") return "f";
+  return "all";
+}
+
+// 관심사 정규화: 정렬 + 소문자 + 공백 제거
+function normalizeInterests(interests) {
+  if (!Array.isArray(interests)) return [];
+  return interests
+    .map(i => String(i).toLowerCase().replace(/[\s·]/g, "").trim())
+    .filter(i => i && i !== "전체" && i !== "all")
+    .sort();
+}
+
+// 캐시 키 정규화 (정확 매칭용)
 function cacheKey({ country, ageRange, gender, interests, dim }) {
-  const ints = Array.isArray(interests) ? [...interests].sort().join(",") : (interests || "");
-  return `${country}|${ageRange || "all"}|${gender || "all"}|${ints}|${dim || "all"}`.toLowerCase().replace(/[^a-z0-9가-힣|,_-]/g, "_");
+  const age = normalizeAgeRange(ageRange);
+  const gen = normalizeGender(gender);
+  const ints = normalizeInterests(interests).join(",");
+  return `${country}|${age}|${gen}|${ints}|${dim || "all"}`.toLowerCase();
+}
+
+// 관심사 부분 매칭: 요청 관심사가 캐시 관심사의 부분집합이면 hit
+// 예: 요청 [K-Pop] vs 캐시 [K-Pop, 뷰티] → 부분집합이므로 hit
+// 예: 요청 [K-Pop, 뷰티, 패션] vs 캐시 [K-Pop, 뷰티] → 캐시에 패션 없으니 miss
+function isInterestsCompatible(requestInts, cachedInts) {
+  if (!requestInts.length) return true; // 요청이 비어있으면 모든 캐시 호환
+  // 요청한 관심사가 모두 캐시에 포함되어야 함
+  return requestInts.every(i => cachedInts.includes(i));
+}
+
+// 가까운 캐시 찾기: country/age/gender/dim 정확 일치 + interests 부분 매칭
+function findNearestCache(target) {
+  const targetAge = normalizeAgeRange(target.ageRange);
+  const targetGen = normalizeGender(target.gender);
+  const targetInts = normalizeInterests(target.interests);
+  const targetDim = target.dim || "all";
+  const country = target.country;
+
+  try {
+    const files = fs.readdirSync(CACHE_DIR);
+    let best = null;
+    let bestScore = -1;
+    for (const f of files) {
+      if (!f.endsWith(".json")) continue;
+      const decoded = Buffer.from(f.replace(/\.json$/, ""), "base64url").toString("utf-8");
+      const parts = decoded.split("|");
+      if (parts.length < 5) continue;
+      const [c, age, gen, ints, dim] = parts;
+      if (c !== country.toLowerCase() && c !== country) continue;
+      if (age !== targetAge && age !== "all" && targetAge !== "all") continue;
+      if (gen !== targetGen && gen !== "all" && targetGen !== "all") continue;
+      if (dim !== targetDim && dim !== "all" && targetDim !== "all") continue;
+      // 캐시 관심사 파싱
+      const cachedInts = ints ? ints.split(",").filter(Boolean) : [];
+      if (!isInterestsCompatible(targetInts, cachedInts)) continue;
+      // 점수: 더 적은 관심사를 가진 캐시 (광범위)가 더 가까움, 정확 일치는 최고점
+      let score = 0;
+      if (targetInts.length === cachedInts.length && targetInts.every((v, i) => v === cachedInts[i])) score += 100; // 정확 일치
+      if (age === targetAge) score += 10;
+      if (gen === targetGen) score += 5;
+      score += (10 - Math.abs(cachedInts.length - targetInts.length)); // 차이 적을수록 +
+      if (score > bestScore) {
+        bestScore = score;
+        best = { file: f, key: decoded, score };
+      }
+    }
+    return best;
+  } catch (e) {
+    return null;
+  }
 }
 
 function cachePath(key) {
@@ -184,7 +284,7 @@ researchRouter.post("/segment", async (req, res) => {
 
   const key = cacheKey({ country, ageRange, gender, interests, dim });
 
-  // 캐시 hit
+  // 정확 캐시 hit
   if (!forceRefresh) {
     const cached = readCache(key);
     if (cached) {
@@ -192,8 +292,26 @@ researchRouter.post("/segment", async (req, res) => {
         ok: true,
         cached: true,
         cacheKey: key,
+        matchType: "exact",
         ...cached,
       });
+    }
+    // 근사 캐시 탐색: country/age/gender/dim 일치 + interests 부분 매칭
+    const nearest = findNearestCache({ country, ageRange, gender, interests, dim });
+    if (nearest) {
+      try {
+        const raw = fs.readFileSync(path.join(CACHE_DIR, nearest.file), "utf-8");
+        const data = JSON.parse(raw);
+        return res.json({
+          ok: true,
+          cached: true,
+          cacheKey: nearest.key,
+          matchType: "nearest",
+          matchScore: nearest.score,
+          requestKey: key,
+          ...data,
+        });
+      } catch (e) { /* fall through */ }
     }
   }
 
