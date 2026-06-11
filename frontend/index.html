@@ -1955,6 +1955,10 @@ async function sendChat(){
     state.filters = data.parsed.filters || {};
     state.lastAsk = data;
     if(data.parsed.country) selectCountry(data.parsed.country);
+    // 채팅 모드 — 국가 자동 추출 안 되면 KR 기본값
+    if(!state.currentCountry){
+      selectCountry('KR');
+    }
     // AI 추출 필터 외 디멘션은 '전체'로 채움 (CEO 결정)
     if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
     // 채팅 세션 저장
