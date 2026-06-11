@@ -517,6 +517,36 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
   }
 
+  // 명시 필터 강제 일치화: 사용자가 명시로 선택한 연령/성별은 100%로 고정
+  // CEO 지적: '30대·여성' 선택했으면 차트도 100%로 보이도록
+  if (synthesized && hasFilters) {
+    try {
+      const selectedAges = (filters.age || []).filter(v => v !== "전체");
+      const selectedGenders = (filters.gender || []).filter(v => v !== "전체");
+      if (selectedAges.length > 0 && synthesized.who) {
+        // 디멘션 옵션: ['10대', '20대', '30대', '40대', '50대', '60대 이상']
+        const allAgeKeys = ["10대", "20대", "30대", "40대", "50대", "60대 이상"];
+        const newAge = {};
+        const share = +(100 / selectedAges.length).toFixed(1);
+        for (const k of allAgeKeys) {
+          newAge[k] = selectedAges.includes(k) ? share : 0;
+        }
+        synthesized.who.ageDistribution = newAge;
+      }
+      if (selectedGenders.length > 0 && synthesized.who) {
+        const allGenderKeys = ["남성", "여성"];
+        const newGen = {};
+        const share = +(100 / selectedGenders.length).toFixed(1);
+        for (const k of allGenderKeys) {
+          newGen[k] = selectedGenders.includes(k) ? share : 0;
+        }
+        synthesized.who.genderRatio = newGen;
+      }
+    } catch (e) {
+      console.warn("[synthesize] filter clamp failed:", e.message);
+    }
+  }
+
   res.json({
     ok: true,
     country: meta,
