@@ -211,6 +211,23 @@ a{color:inherit;text-decoration:none}
 .chat-disclaim{
   margin-top:10px;font-size:11.5px;color:var(--tm);text-align:center;
 }
+/* 채팅 입력창 로딩 상태 — 테두리 폄파 애니메이션 */
+.chat-input-wrap.chat-input-loading{
+  border-color:#A78BFA;
+  background:linear-gradient(135deg,#fff 0%,#FAFBFF 100%);
+  position:relative;
+}
+.chat-input-wrap.chat-input-loading::after{
+  content:'';position:absolute;left:0;right:0;bottom:-2px;height:3px;
+  background:linear-gradient(90deg,transparent,#6366F1,transparent);
+  background-size:200% 100%;animation:chat-wave 1.4s ease-in-out infinite;
+  border-radius:0 0 20px 20px;
+}
+@keyframes chat-wave{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.chat-input-wrap.chat-input-loading .chat-input{color:#9CA3AF;font-style:italic}
+.chat-input-wrap.chat-input-loading .chat-input::placeholder{color:#6366F1;font-weight:600;font-style:normal}
+.chat-input-wrap.chat-input-loading .chat-send{background:#A78BFA;animation:pulse-send 1.2s ease-in-out infinite}
+@keyframes pulse-send{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
 
 /* Suggested prompts */
 .sg-wrap{
@@ -670,7 +687,13 @@ a{color:inherit;text-decoration:none}
 .sm-answer-oos .sm-answer-b li{color:#7C2D12}
 .sm-answer-oos .sm-answer-b li::before{background:#F59E0B}
 .sm-answer-oos-msg{font-size:12.5px;color:#9A3412;line-height:1.7;padding:10px 12px;background:#FEF3C7;border-radius:6px;margin-bottom:12px}
-.sm-answer-loader{display:flex;align-items:center;gap:10px;font-size:13px;color:#6366F1;padding:14px 18px;background:#EEF2FF;border:1px dashed #C7D2FE;border-radius:10px;margin:8px 0 24px}
+.sm-answer-loader{display:flex;align-items:center;gap:14px;font-size:14.5px;font-weight:600;color:#4F46E5;padding:24px 28px;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);border:2px solid #6366F1;border-radius:14px;margin:8px 0 24px;box-shadow:0 4px 16px rgba(99,102,241,.18);position:relative;overflow:hidden}
+.sm-answer-loader::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:3px;background:linear-gradient(90deg,transparent,#6366F1,transparent);animation:loader-sweep 1.6s ease-in-out infinite}
+@keyframes loader-sweep{0%{left:-100%}100%{left:100%}}
+.sm-answer-loader .loader{width:22px;height:22px;border:3px solid #C7D2FE;border-top-color:#4F46E5;border-radius:50%;animation:spin 0.9s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sm-answer-loader-text{flex:1;line-height:1.4}
+.sm-answer-loader-q{font-size:12px;font-weight:400;color:var(--tm);margin-top:4px}
 .sm-empty-s{font-size:12.5px;color:var(--ts);line-height:1.5}
 .sm-cta-primary{padding:10px 18px;background:var(--ind);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .sm-cta-primary:hover{background:var(--ind2)}
@@ -1888,8 +1911,11 @@ function setChatAndSend(q){
     const sbChat = document.getElementById('sb-mode-chat'); if(sbChat) sbChat.classList.add('active');
     const sbIns = document.getElementById('sb-mode-insight'); if(sbIns) sbIns.classList.remove('active');
   }
-  document.getElementById('chat-input').value = q;
+  const ci = document.getElementById('chat-input');
+  ci.value = q;
   toggleSend();
+  // 입력창이 지금 임의 질문을 적용 중으로 표시 (세렉션 이동 환각 방지)
+  ci.scrollIntoView({behavior:'smooth', block:'center'});
   sendChat();
 }
 
@@ -1966,11 +1992,29 @@ async function sendChat(){
 
     // AI 채팅 모드 — 9탭/빌더 안 보이고 채팅 답변 영역에만 표시 (CEO 약속)
     if(state.currentMode === 'chat'){
+      // 채팅 입력창의 placeholder/value 이동 목적으로 잘라내지 않음 — 진행 상태 표시
       input.value = '';
       if(typeof autoResize === 'function') autoResize(input);
+      // 입력창 자체에 진행 상태 표시 (placeholder)
+      const origPlaceholder = input.placeholder;
+      input.placeholder = '✨ AI가 "' + (q.length > 30 ? q.slice(0,30) + '…' : q) + '"에 답변 생성 중…';
+      input.disabled = true;
+      const wrap = document.querySelector('.chat-input-wrap');
+      if(wrap) wrap.classList.add('chat-input-loading');
+      // 종료 시 상태 복원을 위해 state 저장
+      state._chatLoadingCleanup = () => {
+        input.placeholder = origPlaceholder;
+        input.disabled = false;
+        if(wrap) wrap.classList.remove('chat-input-loading');
+      };
       state.chatAnswerTarget = 'chat-answer-area';
       state.answerCard = { loading: true, question: q };
       renderAnswerCard();
+      // 답변 영역으로 스크롤
+      setTimeout(() => {
+        const ca = document.getElementById('chat-answer-area');
+        if(ca) ca.scrollIntoView({behavior:'smooth', block:'center'});
+      }, 200);
       if(!state.currentCountry) selectCountry('KR');
       // synthesize 호출 안 함 (70초 소요) — 답변 카드는 synthCache 없이도 생성 가능
       try{
@@ -1980,6 +2024,8 @@ async function sendChat(){
         state.answerCard = null;
         renderAnswerCard();
         toast('답변 생성 실패: ' + err.message);
+      } finally {
+        if(typeof state._chatLoadingCleanup === 'function'){ try{ state._chatLoadingCleanup(); }catch(e){} state._chatLoadingCleanup = null; }
       }
       return;
     }
@@ -3621,7 +3667,8 @@ function renderAnswerCard(){
   const ans = state.answerCard;
   if(!ans){ box.innerHTML = ''; return; }
   if(ans.loading){
-    box.innerHTML = '<div class="sm-answer-loader"><span class="loader"></span>AI가 질문에 답하는 중...</div>';
+    const lq = state.lastAsk?.question || state.answerCard?.question || '';
+    box.innerHTML = '<div class="sm-answer-loader"><span class="loader"></span><div class="sm-answer-loader-text">AI가 질문에 답하는 중입니다<div class="sm-answer-loader-q">' + (lq ? '“' + escapeHtml(lq) + '”' : '') + '</div></div></div>';
     return;
   }
   if(ans.error){ box.innerHTML = ''; return; }
