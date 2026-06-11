@@ -2150,7 +2150,48 @@ function setChatAndSend(q){
   const ci = document.getElementById('chat-input');
   ci.value = q;
   toggleSend();
-  sendChat();
+  // 즉시 chat-board로 전환 — ask는 백그라운드
+  chatBoardDirectEnter(q);
+}
+
+// /ask 없이 바로 chat-board 진입 — NLU는 백그라운드 (답변에 필수 아님)
+async function chatBoardDirectEnter(q){
+  // home 페이드 아웃 + chat-board 온
+  document.body.classList.add('home-fade-out');
+  await new Promise(r => setTimeout(r, 200));
+  document.body.classList.add('chat-board-active');
+  document.body.classList.remove('home-fade-out');
+  const home = document.getElementById('screen-home'); if(home) home.classList.add('hide');
+  const board = document.getElementById('screen-chat-board'); if(board) board.classList.remove('hide');
+  state.chatTurns = [];
+  const turn = { q: q, a: { loading: true } };
+  state.chatTurns.push(turn);
+  renderChatBoardTurns();
+  // 채팅 입력창 리셋
+  const ci = document.getElementById('chat-input'); if(ci){ ci.value = ''; if(typeof autoResize === 'function') autoResize(ci); }
+  if(!state.currentCountry) selectCountry('KR');
+  // 백그라운드 /ask (NLU) + 메인 답변
+  try{
+    // ask는 메타용 — 필터 파싱, 국가 추출
+    fetch(API + '/ask', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ question: q }),
+    }).then(r => r.json()).then(data => {
+      if(data.ok){
+        state.filters = data.parsed?.filters || {};
+        state.lastAsk = data;
+        if(data.parsed?.country) selectCountry(data.parsed.country);
+        if(typeof saveChatSession === 'function'){ try{ saveChatSession(q, data.parsed); }catch(e){} }
+      }
+    }).catch(()=>{});
+    // 메인 답변
+    const ans = await fetchInsightAnswer(q, null);
+    turn.a = ans;
+  }catch(err){
+    console.error('chat board answer failed', err);
+    turn.a = { error: err.message || 'fetch failed' };
+  }
+  renderChatBoardTurns();
 }
 
 // ============ CHAT BOARD (Option C) ============

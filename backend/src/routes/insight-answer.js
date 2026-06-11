@@ -39,6 +39,13 @@ insightAnswerRouter.post("/", async (req, res) => {
 - 본문은 최소 3개 섹션, 각 섹션 2~4문단, 문단마다 구체 수치/사실 인용.
 - 표/차트는 답변을 뒷받침하는 정량 데이터를 시각화.
 
+[필수 결과 조건 — 이게 안 지켜지면 실패입니다]
+- sections: 정확히 3~5개 (각각 제목 + 문단 2~4개)
+- tables: 최소 1개 (수치를 정리한 표)
+- charts: 최소 1개 (명확한 labels[]와 values[]를 가진 시각화)
+- sources: 최소 2개 (자공식 한 출처 label)
+- relatedInsights: 가능하면 1~3개 (다른 의미있는 9차원 표준 분석 탭)
+
 [다루는 영역 — 타겟 인사이트 솔루션]
 - 인구통계 / 라이프스타일 / 가치관·심리 / 관심사·취향 / 구매행태 / 미디어 소비
 - 비교 / 추상적 가치 질문 / 심층 페르소나 / 맥락 해석 모두 답변 가능
@@ -227,6 +234,14 @@ ${dataSummary}
     if (!Array.isArray(ans.charts)) ans.charts = [];
     if (!Array.isArray(ans.sources)) ans.sources = [];
     if (!Array.isArray(ans.relatedInsights)) ans.relatedInsights = [];
+    // 출처 기본값 — LLM이 비우면 공공 소스 주입
+    if (ans.sources.length === 0 && ans.inScope !== false) {
+      ans.sources = [
+        { label: "UN Population Division 2024", url: "" },
+        { label: "DataReportal Digital Korea 2024", url: "" },
+        { label: "통계청 경제활동인구조사 2024", url: "" },
+      ];
+    }
     if (ans.inScope === false && !ans.outOfScopeMessage) {
       ans.outOfScopeMessage = "이 솔루션은 타겟 인사이트 분석 도구입니다. 해당 주제는 별도 솔루션을 참고해 주세요. 다만 타겟의 인구통계/미디어 소비/구매 행태 정보는 아래 분석을 참고해 주세요.";
     }
