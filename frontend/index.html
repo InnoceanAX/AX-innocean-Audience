@@ -2889,17 +2889,17 @@ function switchMode(mode){
     });
     const summaryEl = document.getElementById('tab-summary');
     if(summaryEl){
-      // summary 내부는 refreshSummaryTab이 재생성 — 여기서는 탭 자체 숨김
       summaryEl.classList.add('hide');
+      summaryEl.innerHTML = ''; // CEO 2026-06-12 15:37: 요약 잔존 DOM 완전 제거
     }
     const askBanner = document.getElementById('ask-banner');
     if(askBanner){ askBanner.classList.add('hide'); askBanner.innerHTML = ''; }
-    // CEO 2026-06-12: 글로벌 비교 탭 DOM 잔존 제거 — 타겟 인사이트에서는 요약 탭부터 시작
+    // CEO 2026-06-12 15:37: 글로벌 비교 → 홈 → 타겟 인사이트 진입 시 명시적으로 모든 탭 숨김 + 빌더(overview) 탭을 첫 화면으로
     document.querySelectorAll('.ws-content').forEach(el => el.classList.add('hide'));
     document.querySelectorAll('.ws-tab').forEach(x => x.classList.remove('active'));
-    state.currentTab = 'summary';
-    const sumTab = document.querySelector('.ws-tab[data-tab="summary"]'); if(sumTab) sumTab.classList.add('active');
-    const sumContent = document.getElementById('tab-summary'); if(sumContent) sumContent.classList.remove('hide');
+    state.currentTab = 'overview';
+    const ovTab = document.querySelector('.ws-tab[data-tab="overview"]'); if(ovTab) ovTab.classList.add('active');
+    const ovContent = document.getElementById('tab-overview'); if(ovContent) ovContent.classList.remove('hide');
     goBuilder();
     history.pushState({ view: 'insight' }, '', '/insight');
   }
@@ -6076,9 +6076,9 @@ function renderDimCharts(dim, data){
         const socC = syn.socialConcerns || {};
         const scKeys = Object.keys(socC);
         if(scKeys.length){
-          renderChartSafe('chart-mind-culture', 'polarArea', scKeys, scKeys.map(k => +socC[k] || 0), ['#F59E0B','#EF4444','#06B6D4','#10B981','#8B5CF6']);
+          renderChartSafe('chart-mind-culture', 'doughnut', scKeys, scKeys.map(k => +socC[k] || 0), ['#F59E0B','#EF4444','#06B6D4','#10B981','#8B5CF6']);
         } else {
-          renderChartSafe('chart-mind-culture', 'polarArea', vals.slice(0, 3), valVals.slice(0, 3), ['#F59E0B','#EF4444','#06B6D4']);
+          renderChartSafe('chart-mind-culture', 'doughnut', vals.slice(0, 3), valVals.slice(0, 3), ['#F59E0B','#EF4444','#06B6D4']);
         }
         // 의사결정 스타일
         const ds = syn.decisionStyle || {};
@@ -6095,7 +6095,7 @@ function renderDimCharts(dim, data){
         const cul = d.culture || {};
         renderChartSafe('chart-mind-trust', 'radar', Object.keys(trust).map(k => trustLabel(k)), Object.values(trust), '#10B981');
         renderChartSafe('chart-mind-values', 'radar', Object.keys(vals).map(k => valLabel(k)), Object.values(vals), '#8B5CF6');
-        renderChartSafe('chart-mind-culture', 'polarArea', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
+        renderChartSafe('chart-mind-culture', 'doughnut', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
         // baseline만 있을 때 (syn 아직 도착 안함) — 심화 차트 3개는 플레이스홀더
         markChartPlaceholder('chart-mind-decision', 'AI 합성 중… (약 30–60초)');
         markChartPlaceholder('chart-mind-info', 'AI 합성 중…');
