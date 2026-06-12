@@ -1770,7 +1770,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <span class="aud-src" id="media-src">데이터 로딩 중…</span>
             </div>
           </div>
-          <div id="md-empty" class="sm-empty" style="display:none">
+          <div id="md-empty" class="sm-empty">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:14px"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
             <div class="sm-empty-t">아직 분석된 타겟이 없습니다</div>
             <div class="sm-empty-s">매체 환경·채널별 도달률·수용도를 보려면 먼저 타겟을 설정해주세요.<br>자연어로 "30대 워킹맘 매체 이용..." 같은 질문을 입력하거나, 빌더 탭에서 직접 만들어보세요.</div>
@@ -3093,6 +3093,8 @@ async function goWorkspace(opts){
       }
     }
   } catch(e) { console.warn('goWorkspace tab refresh failed:', e); }
+  // CEO 2026-06-12: 빌더 미설정 시 안내 강제 표시
+  try { setTimeout(forceBuilderEmptyDisplay, 100); } catch(e) {}
   // 기본 탭은 케이스별로 분기 (entry 함수가 추가 switchTab 호출함)
 
   // 워크스페이스 진입 history 기록 (뒤로가기 동작)
@@ -3121,6 +3123,28 @@ function renderJumpContextBanner(){
     + (personaBtn ? '<div class="jc-actions">'+personaBtn+'</div>' : '')
     + '<button class="jc-close" onclick="state.jumpContext=null;document.querySelectorAll(\'.jump-context-banner\').forEach(b=>b.remove())" title="컨텍스트 닫기">×</button>'
   + '</div>';
+}
+
+// CEO 2026-06-12: 빌더 미설정 시 모든 탭에서 안내를 강제 표시 (스타일 충돌·캐시 무관)
+function forceBuilderEmptyDisplay(){
+  if(!isBuilderEmpty()) return;
+  // 요약 탭
+  const sm = document.getElementById('sm-empty');
+  if(sm){ sm.style.display='flex'; sm.style.visibility='visible'; sm.style.opacity='1'; }
+  // 미디어 탭
+  const md = document.getElementById('md-empty');
+  if(md){ md.style.display='flex'; md.style.visibility='visible'; md.style.opacity='1'; }
+  const mdBody = document.getElementById('md-body'); if(mdBody) mdBody.classList.add('hide');
+  const mdLoad = document.getElementById('md-loading'); if(mdLoad) mdLoad.classList.add('hide');
+  // 페르소나 탭
+  const iv = document.getElementById('iv-empty');
+  if(iv){ iv.classList.remove('hide'); iv.style.display=''; iv.style.visibility='visible'; iv.style.opacity='1'; }
+  const ivBody = document.getElementById('iv-body'); if(ivBody) ivBody.classList.add('hide');
+  // 비어있어야 할 영역 비움 (혹시 잔여 data가 가리는 경우)
+  ['sm-banner','sm-answer-card','sm-ai-nav','sm-kpis','sm-dims','sm-insights-wrap','sm-macro-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = '';
+  });
 }
 
 // 빌더 필터 또는 분석 실행 여부 — CEO 정의 "빌더 미설정" = 필터가 사실상 비어있고 분석도 안 한 상태
@@ -3160,6 +3184,8 @@ function switchTab(tab, opts){
       if(ivBody && builderEmpty) ivBody.classList.add('hide');
     }
   }
+  // CEO 2026-06-12: 모든 탭 전환 후 빌더 미설정이면 안내 강제 표시
+  try { setTimeout(forceBuilderEmptyDisplay, 50); } catch(e) {}
   // history 적용
   if(!fromHistory){
     const url = new URL(window.location.href);
