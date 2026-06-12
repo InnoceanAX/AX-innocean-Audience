@@ -6,38 +6,11 @@
 
 import { Router } from "express";
 import { generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
+import { sanitizeAnswerObject, SAFETY_PROMPT_GUIDE } from "../lib/safety.js";
 import { COUNTRIES } from "../data/countries.js";
 import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
 import { getCountryAdSpend } from "../adapters/adspend-public.js";
 
-
-// 부정 트렌드 키워드 차단 — 선호도 답변에 인용 금지
-const NEGATIVE_KEYWORDS_RE = /(논란|논쟁|공격|비난|당혹|철회|명예훼손|안티팬|악플|악성댓글|마녀사냥|취소문화|취소 ?컬처|소문|구설|구설수|음주운전|마약|판결|소송|수사|구속|체포|범죄|기소|영장|혐의|법정|불기소|패소|승소|위법|위반|폭로|배신|파혼|이혼|불륜|불화|논란이|루머|가십|스캔들|디스|저격|손절|논란중|입장문|사과문|반박문|편파|왜곡|악재|하락세|부진|침체|폭락|적자|손실|실패작|혹평|혹평받|평점 낮|점수 낮|악평|혹평|망작|망함|시청률 ?저조|시청률 ?하락|악연|반대|기피|싫어|불호|비호감|비매너|민폐|진상|불쾌|불편|꼴불견|구설|먹튀|먹튀논란|논란 ?터|논란 ?확산|폭행|학폭|왕따|괴롭힘|사이버불링|성희롱|성추행|성폭력|미투|폭언|폭력)/;
-
-function sanitizeText(t) {
-  if (!t || typeof t !== "string") return t;
-  // 부정 키워드 발견 시 그 문장을 통째로 시점 둔감 문구로 대체
-  if (NEGATIVE_KEYWORDS_RE.test(t)) {
-    console.warn("[insight-sanitize] negative keyword detected:", t.slice(0, 80));
-    // 가장 부드러운 대체 — 보편적 긍정 표현
-    return t.replace(NEGATIVE_KEYWORDS_RE, "관심 있는 이슈");
-  }
-  return t;
-}
-
-function sanitizeAnswer(ans) {
-  if (!ans) return ans;
-  if (ans.headline) ans.headline = sanitizeText(ans.headline);
-  if (ans.narrative) ans.narrative = sanitizeText(ans.narrative);
-  if (Array.isArray(ans.personaSamples)) {
-    for (const p of ans.personaSamples) {
-      if (p.voice) p.voice = sanitizeText(p.voice);
-      if (p.tagline) p.tagline = sanitizeText(p.tagline);
-      if (Array.isArray(p.attributes)) p.attributes = p.attributes.map(a => sanitizeText(a));
-    }
-  }
-  return ans;
-}
 
 export const insightAnswerRouter = Router();
 
@@ -340,7 +313,8 @@ insightAnswerRouter.post("/", async (req, res) => {
 - outOfScopeMessage 필수 (빈 문자열 금지)
 
 [언어]
-- 모든 텍스트는 한국어. 이모지 금지.`;
+- 모든 텍스트는 한국어. 이모지 금지.
+${SAFETY_PROMPT_GUIDE}`;
 
     const filterStr = filters && Object.keys(filters).length
       ? Object.entries(filters).filter(([_, v]) => Array.isArray(v) && v.length).map(([k, v]) => `${k}: ${v.join(", ")}`).join(" / ")
@@ -430,8 +404,8 @@ ${panelStr}
     ans.kpis = panelKpis;
     ans.panelCharts = panelCharts;
 
-    // 부정 키워드 정화
-    sanitizeAnswer(ans);
+    // 세이프티 정화 (부정 트렌드/차별/혐오/정치/유해 콘텐츠/광고 추천)
+    sanitizeAnswerObject(ans, "insight");
 
     // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
     if (ans.sources.length === 0 || !/INNOCEAN.*패널/.test(ans.sources[0]?.label || "")) {
