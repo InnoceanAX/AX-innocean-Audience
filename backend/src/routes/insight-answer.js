@@ -243,6 +243,68 @@ insightAnswerRouter.post("/", async (req, res) => {
   } catch (e) { console.error("[insight-grounding] error:", e.message); }
 
   try {
+    // 사용자 의도: 명시적 부정 조회 — 다른 시스템 프롬프트(사실 요약) 사용
+    if (askingNegative) {
+      const factSystem = `당신은 사실 기반 정보 정리 도우미입니다.
+사용자가 명시적으로 특정 논란·이슈·스캔들에 대해 질문하면, 위 [실시간 웹 검색 요약]의 공개된 사실만 정리해서 답해주세요.
+
+[원칙]
+- 사실만, 의견·도덕적 판단·추측·과장 금지
+- "알려진 사실은…", "보도된 바에 따르면…" 등 객관 표현 사용
+- 미확인 루머·가십 인용 금지
+- 한국어, 이모지 금지
+
+[답변 구조]
+{
+  inScope: true,
+  headline: "한 줄 사실 요약 (40~80자)",
+  narrative: "공개 사실 위주 핵심 정리 4~6문장 (각각 한 문장씩)",
+  personaSamples: [],
+  sources: [],
+  relatedInsights: [],
+  outOfScopeMessage: null
+}
+
+[실시간 웹 검색 요약 활용]
+- 위 검색 요약의 사실을 narrative에 정리
+- 검색 결과 없으면 "현재 공개된 정보가 없습니다"라고 답하고 narrative만 짧게 작성`;
+      const factPrompt = `사용자 질문: "${question}"
+국가: ${country || "KR"}${realtimeBlock}
+
+위 실시간 검색 결과의 공개된 사실만 정리해주세요. 4~6문장.`;
+      try {
+        const factResult = await generateJSON({
+          prompt: factPrompt, system: factSystem,
+          schema: {
+            type: "object",
+            properties: {
+              inScope: { type: "boolean" },
+              headline: { type: "string" },
+              narrative: { type: "string" },
+            },
+            required: ["headline", "narrative"]
+          },
+          model: "gemini-2.5-flash",
+          temperature: 0.2,
+          maxOutputTokens: 2000,
+        });
+        if (factResult && factResult.json) {
+          const ans = {
+            inScope: true,
+            headline: factResult.json.headline || "",
+            narrative: factResult.json.narrative || "",
+            personaSamples: [],
+            sources: [],
+            relatedInsights: [],
+            outOfScopeMessage: null,
+            kpis: [],
+            panelCharts: [],
+          };
+          return res.json({ ok: true, answer: ans, meta: { method: "fact-grounding", grounding: groundingUsed } });
+        }
+      } catch (e) { console.error("[insight-fact] error:", e.message); }
+    }
+
     const system = `당신은 INNOCEAN의 AI 페르소나 리서치 데이터 분석가입니다.
 사용자 질문에 대해 INNOCEAN AI 페르소나 패널 데이터를 근거로 답변합니다.
 
