@@ -2227,22 +2227,25 @@ async function chatBoardDirectEnter(q){
   // 채팅 입력창 리셋
   const ci = document.getElementById('chat-input'); if(ci){ ci.value = ''; if(typeof autoResize === 'function') autoResize(ci); }
   if(!state.currentCountry) selectCountry('KR');
-  // 백그라운드 /ask (NLU) + 메인 답변
+  // CEO 피드백 #5: ask를 먼저 기다려서 필터 확보 후 답변 요청
+  let parsedFromAsk = null;
   try{
-    // ask는 메타용 — 필터 파싱, 국가 추출
-    fetch(API + '/ask', {
+    const askR = await fetch(API + '/ask', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ question: q }),
-    }).then(r => r.json()).then(data => {
-      if(data.ok){
-        state.filters = data.parsed?.filters || {};
-        state.lastAsk = data;
-        if(data.parsed?.country) selectCountry(data.parsed.country);
-        if(typeof saveChatSession === 'function'){ try{ saveChatSession(q, data.parsed); }catch(e){} }
-      }
-    }).catch(()=>{});
-    // 메인 답변
-    const ans = await fetchInsightAnswer(q, null);
+    });
+    const askData = await askR.json();
+    if(askData.ok){
+      state.filters = askData.parsed?.filters || {};
+      state.lastAsk = askData;
+      parsedFromAsk = askData.parsed;
+      if(askData.parsed?.country) selectCountry(askData.parsed.country);
+      if(typeof saveChatSession === 'function'){ try{ saveChatSession(q, askData.parsed); }catch(e){} }
+    }
+  }catch(e){ console.warn('ask failed', e); }
+  try{
+    // 메인 답변 — 필터가 포함된 상태로
+    const ans = await fetchInsightAnswer(q, parsedFromAsk);
     turn.a = ans;
     try{ if(typeof saveChatTurn === 'function') saveChatTurn(q, ans); }catch(e){}
   }catch(err){
