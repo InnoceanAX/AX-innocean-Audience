@@ -638,6 +638,88 @@ audienceRouter.post("/synthesize", async (req, res) => {
     if (!synthesized.mind.socialConcerns || Object.keys(synthesized.mind.socialConcerns).length === 0) {
       synthesized.mind.socialConcerns = { "교육·육아": 40, "주거·부동산": 35, "일자리·경제": 30, "건강·의료": 25, "환경·기후": 20 };
     }
+
+    // LOVE 차트 수단 해백
+    synthesized.love = synthesized.love || {};
+    if (!synthesized.love.topInterests || !synthesized.love.topInterests.length) {
+      synthesized.love.topInterests = ["육아·자녀 교육", "홈데코", "웰브·피트니스", "쇼핑", "드라마·예능", "여행", "재테크"];
+      synthesized.love.interestsScore = { "육아·자녀 교육": 85, "홈데코": 70, "웰브·피트니스": 65, "쇼핑": 75, "드라마·예능": 60, "여행": 55, "재테크": 50 };
+    }
+    if (!synthesized.love.musicGenreShares || !Object.keys(synthesized.love.musicGenreShares).length) {
+      synthesized.love.musicGenreShares = { "K-Pop": 35, "발라드": 25, "팔롬": 15, "클래식": 10, "재즈·R&B": 15 };
+    }
+    if (!synthesized.love.contentGenreShares || !Object.keys(synthesized.love.contentGenreShares).length) {
+      synthesized.love.contentGenreShares = { "드라마": 30, "예능·리얼리티": 25, "육아·세삼": 15, "뉴스·시사": 10, "다큐·교양": 10, "스포츠": 10 };
+    }
+    if (!synthesized.love.influencerTypes || !Object.keys(synthesized.love.influencerTypes).length) {
+      synthesized.love.influencerTypes = { "육아 인플루언서": 35, "라이프스타일": 30, "연예인": 20, "전문가·교수": 15 };
+    }
+    if (!synthesized.love.sportsAffinity || !Object.keys(synthesized.love.sportsAffinity).length) {
+      synthesized.love.sportsAffinity = { "요가·필라테스": 60, "걸키·러닝": 55, "수영": 35, "등산": 40, "탄니스": 25, "골프": 15, "자전거": 30 };
+    }
+
+    // BUY 차트 수단 해백
+    synthesized.buy = synthesized.buy || {};
+    if (!synthesized.buy.categoryShares || !Object.keys(synthesized.buy.categoryShares).length) {
+      synthesized.buy.categoryShares = { "식품·생활": 25, "육아용품": 18, "의류·패션": 12, "뉴트리·건강식품": 10, "교육·도서": 12, "외식·커피": 10, "화장품·뷰티": 8, "여행·여가": 5 };
+    }
+    if (!synthesized.buy.decisionFactors || !Object.keys(synthesized.buy.decisionFactors).length) {
+      synthesized.buy.decisionFactors = { "가격": 75, "품질": 85, "브랜드": 60, "리뷰": 80, "프로모션": 65, "추천": 55 };
+    }
+    if (!synthesized.buy.paymentDistribution || !Object.keys(synthesized.buy.paymentDistribution).length) {
+      synthesized.buy.paymentDistribution = { "신용카드": 45, "간편결제": 30, "계좌이체": 15, "현금": 10 };
+    }
+    if (!synthesized.buy.channelMix || !Object.keys(synthesized.buy.channelMix).length) {
+      synthesized.buy.channelMix = { "쿠팡·온라인종합": 35, "대형마트": 25, "편의점": 15, "소셜커머스": 10, "백화점·프리미엄": 8, "전문쇼핑몰": 4, "올라인마켓": 3 };
+    }
+    if (!synthesized.buy.purchaseFrequency || !Object.keys(synthesized.buy.purchaseFrequency).length) {
+      synthesized.buy.purchaseFrequency = { "주 수회": 40, "주 1회": 30, "월 2–3회": 20, "월 1회 이하": 10 };
+    }
+
+    // LIFE 차트 수단 해백
+    synthesized.life = synthesized.life || {};
+    if (!synthesized.life.digitalUsage || !Object.keys(synthesized.life.digitalUsage).length) {
+      synthesized.life.digitalUsage = { "소셜·메신저": 3.5, "동영상 OTT": 2.5, "뉴스·정보": 1.5, "쇼핑·이커머스": 1.5, "업무·생산성": 4.0 };
+    }
+    if (!synthesized.life.activityShares || !Object.keys(synthesized.life.activityShares).length) {
+      synthesized.life.activityShares = { "가쇄·육아": 25, "가족·친구": 20, "휴식·잠": 15, "운동·알시가": 12, "취미·학습": 13, "쇼핑·산책": 10, "종교·봉사": 5 };
+    }
+    if (!synthesized.life.dayparts || !Object.keys(synthesized.life.dayparts).length) {
+      synthesized.life.dayparts = { "이른 아침": 15, "아침·오전": 30, "점심·오후": 35, "저녁·회식": 25, "밤 9–12시": 40, "심야": 10 };
+    }
+    if (!synthesized.life.foodHabits || !Object.keys(synthesized.life.foodHabits).length) {
+      synthesized.life.foodHabits = { "집밥·직접 조리": 40, "배달·도식": 25, "외식": 15, "HMR·간편식": 15, "공동조리·외회워": 5 };
+    }
+    if (!synthesized.life.wellnessFreq || !Object.keys(synthesized.life.wellnessFreq).length) {
+      synthesized.life.wellnessFreq = { "매일": 25, "주 3–4회": 30, "주 1–2회": 25, "월 1–2회 이하": 20 };
+    }
+    if (!synthesized.life.travelFreq || !Object.keys(synthesized.life.travelFreq).length) {
+      synthesized.life.travelFreq = { "분기·1회": 40, "월 1회": 25, "반기 1회": 20, "연 1회": 15 };
+    }
+
+    // WHO 차트 수단 해백 (이미 ageDistribution 등은 올 가능성 높음 — 이처 안전망)
+    synthesized.who = synthesized.who || {};
+    if (!synthesized.who.occupationDistribution || !Object.keys(synthesized.who.occupationDistribution).length) {
+      synthesized.who.occupationDistribution = { "사무직": 35, "서비스·영업": 25, "전문직·교육": 15, "자영업·프리랜서": 15, "주부·교육중": 10 };
+    }
+    if (!synthesized.who.incomeDistribution || !Object.keys(synthesized.who.incomeDistribution).length) {
+      synthesized.who.incomeDistribution = { "~300만원": 20, "300–500만원": 30, "500–800만원": 30, "800–1,200만원": 15, "1,200만원+": 5 };
+    }
+    if (!synthesized.who.educationDistribution || !Object.keys(synthesized.who.educationDistribution).length) {
+      synthesized.who.educationDistribution = { "고졸 이하": 15, "전문대·대재": 25, "대졸": 50, "대학원 이상": 10 };
+    }
+    if (!synthesized.who.cityTierDistribution || !Object.keys(synthesized.who.cityTierDistribution).length) {
+      synthesized.who.cityTierDistribution = { "대도시": 55, "중소도시": 30, "군·읍면": 15 };
+    }
+
+    // MEDIA 차트 수단 해백
+    synthesized.media = synthesized.media || {};
+    if (!synthesized.media.adReceptivity || !Object.keys(synthesized.media.adReceptivity).length) {
+      synthesized.media.adReceptivity = { "영상 광고": 55, "검색 광고": 70, "디스플레이": 35, "소셜 피드": 60, "인플루언서": 50 };
+    }
+    if (!synthesized.media.dailyMediaHours || !Object.keys(synthesized.media.dailyMediaHours).length) {
+      synthesized.media.dailyMediaHours = { "소셜": 2.0, "OTT": 1.5, "유튜브": 1.5, "검색·뉴스": 1.0, "쇼핑 앱": 1.0 };
+    }
   }
 
   res.json({

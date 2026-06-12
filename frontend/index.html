@@ -5408,6 +5408,7 @@ const HELP_CONTENT = {
       { h: 'AI 타겟 자동 설정', p: '맨 위 입력창에 «30대 워킹맘 중 프리미엄 쇼퍼» 같이 자연어를 적으면 관련 차원이 자동 선택됩니다.' },
       { h: '6개 그룹 · 64개 차원', p: 'Who(인구)·Life(라이프)·Mind(가치관)·Love(관심사)·Media(미디어)·Buy(구매) 그룹으로 구성됩니다.' },
       { h: '분석 실행', p: '필터 조정 후 [분석 시작] 버튼을 누르면 워크스페이스 탭이 자동 갱신됩니다.' },
+      { h: '프리셋 저장', p: '자주 쓰는 필터 조합은 빌더 상단의 [+ 현재 필터 저장] 버튼으로 프리셋으로 보관해 다시 적용할 수 있습니다.' },
     ],
   },
 };
@@ -5995,28 +5996,28 @@ function renderDimCharts(dim, data){
         const genKeys = Object.keys(synGen);
         const genVals = genKeys.map(k => +synGen[k] || 0);
         renderChartSafe('chart-who-gender', 'doughnut', genKeys, genVals, ['#6366F1','#EC4899']);
-      }
+      } else { markChartPlaceholder('chart-who-gender', 'AI 합성 중…'); }
       // 세부 분포 (빌더 안 한 차원 — 심화 인사이트)
       const occ = syn && syn.occupationDistribution;
       if(occ && Object.keys(occ).length){
         const k = Object.keys(occ); const v = k.map(x => +occ[x] || 0);
         renderChartSafe('chart-who-occupation', 'bar', k, v, '#8B5CF6', { suffix: '%' });
-      }
+      } else { markChartPlaceholder('chart-who-occupation', 'AI 합성 중…'); }
       const inc = syn && syn.incomeDistribution;
       if(inc && Object.keys(inc).length){
         const k = Object.keys(inc); const v = k.map(x => +inc[x] || 0);
         renderChartSafe('chart-who-income', 'bar', k, v, '#10B981', { suffix: '%' });
-      }
+      } else { markChartPlaceholder('chart-who-income', 'AI 합성 중…'); }
       const edu = syn && syn.educationDistribution;
       if(edu && Object.keys(edu).length){
         const k = Object.keys(edu); const v = k.map(x => +edu[x] || 0);
         renderChartSafe('chart-who-education', 'doughnut', k, v, ['#F59E0B','#EF4444','#06B6D4','#10B981']);
-      }
+      } else { markChartPlaceholder('chart-who-education', 'AI 합성 중…'); }
       const city = syn && syn.cityTierDistribution;
       if(city && Object.keys(city).length){
         const k = Object.keys(city); const v = k.map(x => +city[x] || 0);
         renderChartSafe('chart-who-city', 'doughnut', k, v, ['#6366F1','#0EA5E9','#84CC16','#F97316']);
-      }
+      } else { markChartPlaceholder('chart-who-city', 'AI 합성 중…'); }
     } else if(dim === 'life'){
       // 합성 목롭이 있으면 이를 우선 (digitalUsage + topActivities)
       if(syn && (syn.digitalUsage || syn.topActivities)){
@@ -6033,21 +6034,29 @@ function renderDimCharts(dim, data){
         // 시간대별 활동
         const dp = syn.dayparts || {};
         if(Object.keys(dp).length) renderChartSafe('chart-life-dayparts', 'bar', Object.keys(dp), Object.values(dp).map(v=>+v||0), '#0EA5E9', { suffix: '' });
+        else markChartPlaceholder('chart-life-dayparts', 'AI 합성 중…');
         // 식생활
         const fh = syn.foodHabits || {};
         if(Object.keys(fh).length) renderChartSafe('chart-life-food', 'doughnut', Object.keys(fh), Object.values(fh).map(v=>+v||0), ['#F59E0B','#EF4444','#10B981','#06B6D4','#8B5CF6']);
+        else markChartPlaceholder('chart-life-food', 'AI 합성 중…');
         // 운동 빈도
         const wf = syn.wellnessFreq || {};
         if(Object.keys(wf).length) renderChartSafe('chart-life-wellness', 'doughnut', Object.keys(wf), Object.values(wf).map(v=>+v||0), ['#10B981','#84CC16','#F59E0B','#EF4444']);
+        else markChartPlaceholder('chart-life-wellness', 'AI 합성 중…');
         // 여행 빈도
         const tf = syn.travelFreq || {};
         if(Object.keys(tf).length) renderChartSafe('chart-life-travelfreq', 'doughnut', Object.keys(tf), Object.values(tf).map(v=>+v||0), ['#3B82F6','#6366F1','#8B5CF6','#A855F7']);
+        else markChartPlaceholder('chart-life-travelfreq', 'AI 합성 중…');
       } else {
         const act = d.activities || {};
         const t = d.travel || {};
         const actKeys = Object.keys(act);
         renderChartSafe('chart-life-radar', 'radar', actKeys.map(k => actLabel(k)), actKeys.map(k => act[k]), '#6366F1');
         renderChartSafe('chart-life-travel', 'doughnut', ['국내여행', '해외여행'], [t.domestic||0, t.international||0], ['#06B6D4', '#0EA5E9']);
+        markChartPlaceholder('chart-life-dayparts', 'AI 합성 중…');
+        markChartPlaceholder('chart-life-food', 'AI 합성 중…');
+        markChartPlaceholder('chart-life-wellness', 'AI 합성 중…');
+        markChartPlaceholder('chart-life-travelfreq', 'AI 합성 중…');
       }
     } else if(dim === 'mind'){
       // 합성 우선: coreValues + brandTrust/riskAttitude 등컴 수치화
@@ -6101,17 +6110,25 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-love-bar', 'bar', items, scores, '#EC4899', { suffix: '' });
         const mg = syn.musicGenreShares || {};
         if(Object.keys(mg).length) renderChartSafe('chart-love-music', 'doughnut', Object.keys(mg), Object.values(mg).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4']);
+        else markChartPlaceholder('chart-love-music', 'AI 합성 중…');
         const cg = syn.contentGenreShares || {};
         if(Object.keys(cg).length) renderChartSafe('chart-love-content', 'doughnut', Object.keys(cg), Object.values(cg).map(v=>+v||0), ['#EF4444','#F59E0B','#10B981','#06B6D4','#3B82F6','#A855F7']);
+        else markChartPlaceholder('chart-love-content', 'AI 합성 중…');
         const inf = syn.influencerTypes || {};
         if(Object.keys(inf).length) renderChartSafe('chart-love-influencer', 'doughnut', Object.keys(inf), Object.values(inf).map(v=>+v||0), ['#EC4899','#A855F7','#8B5CF6','#6366F1']);
+        else markChartPlaceholder('chart-love-influencer', 'AI 합성 중…');
         const sp = syn.sportsAffinity || {};
         if(Object.keys(sp).length) renderChartSafe('chart-love-sports', 'radar', Object.keys(sp), Object.values(sp).map(v=>+v||0), '#10B981', { rmax: 100 });
+        else markChartPlaceholder('chart-love-sports', 'AI 합성 중…');
       } else {
         const ranked = data.rankedInterests || [];
         const top8 = ranked.slice(0, 8);
         renderChartSafe('chart-love-radar', 'radar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
         renderChartSafe('chart-love-bar', 'bar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
+        markChartPlaceholder('chart-love-music', 'AI 합성 중…');
+        markChartPlaceholder('chart-love-content', 'AI 합성 중…');
+        markChartPlaceholder('chart-love-influencer', 'AI 합성 중…');
+        markChartPlaceholder('chart-love-sports', 'AI 합성 중…');
       }
     } else if(dim === 'buy'){
       if(syn && (syn.shoppingChannels || syn.topCategories)){
@@ -6145,9 +6162,11 @@ function renderDimCharts(dim, data){
         // 쇼핑 채널
         const cm = syn.channelMix || {};
         if(Object.keys(cm).length) renderChartSafe('chart-buy-channel', 'doughnut', Object.keys(cm), Object.values(cm).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#0EA5E9']);
+        else markChartPlaceholder('chart-buy-channel', 'AI 합성 중…');
         // 구매 주기
         const pf = syn.purchaseFrequency || {};
         if(Object.keys(pf).length) renderChartSafe('chart-buy-freq', 'doughnut', Object.keys(pf), Object.values(pf).map(v=>+v||0), ['#10B981','#84CC16','#F59E0B','#EF4444']);
+        else markChartPlaceholder('chart-buy-freq', 'AI 합성 중…');
         // 구매 속성 프로파일
         const ps2 = +syn.priceSensitivityScore || 55;
         const bl2 = +syn.brandLoyaltyScore || 55;
@@ -6165,6 +6184,9 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-buy-cat', 'doughnut', tcSorted.map(e => catLabel(e[0])), tcSorted.map(e => e[1]), ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899']);
         renderChartSafe('chart-buy-decision', 'radar', dfSorted.map(e => decLabel(e[0])), dfSorted.map(e => e[1]), '#0EA5E9');
         renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(pm).map(k => payLabel(k)), Object.values(pm), ['#84CC16','#22C55E','#10B981','#06B6D4']);
+        markChartPlaceholder('chart-buy-channel', 'AI 합성 중…');
+        markChartPlaceholder('chart-buy-freq', 'AI 합성 중…');
+        markChartPlaceholder('chart-buy-profile', 'AI 합성 중…');
       }
     }
   } catch(e){ console.warn('renderDimCharts error', e); }
