@@ -3685,7 +3685,7 @@ const AI_CHIPS_BY_TAB = {
   buy: ['이커머스 강국 Top 5', '가격 민감 시장', '브랜드 충성도 높은 국가'],
   media: ['광고비 큰 시장 정렬', '디지털 매체 점유율', '채널별 도달률 비교'],
   compare: ['신뢰도 기준 정렬', '인구구조 비슷한 국가 묶기', '5차원 종합 점수 매겨줘'],
-  interview: ['이 페르소나 광고 카피 추천', '하루 미디어 여정 보여줘', '이 페르소나 관심사 강점'],
+  interview: ['하루 미디어 여정 보여줘', '이 페르소나 관심사 강점', '패널 다양성 분석'],
 };
 
 const AI_COUNTRY_KO = {
@@ -3873,11 +3873,8 @@ function aiParse(q){
     return { kind: 'top-n', n: parseInt(topMatch[1] || topMatch[2]) };
   }
 
-  if(/페르소나|persona|만들|create|생성/i.test(text) && !/메시지|광고/.test(text)){
+  if(/페르소나|persona|만들|create|생성/i.test(text)){
     return { kind: 'create-persona' };
-  }
-  if(/광고\s*(메시지|카피|문구)|copy|message/i.test(text)){
-    return { kind: 'ad-message' };
   }
   if(/비슷한|유사한|similar|닮은|가까운/i.test(text)){
     return { kind: 'similar-countries' };
@@ -3915,7 +3912,6 @@ async function aiExecute(parsed, originalText){
     case 'sort-compare': return aiSortCompare(parsed);
     case 'top-n': return aiTopN(parsed.n);
     case 'create-persona': return aiCreatePersona();
-    case 'ad-message': return aiAdMessage();
     case 'similar-countries': return aiSimilarCountries();
     case 'summary': return aiSummary();
     case 'interpret': return aiInterpret();
@@ -4076,12 +4072,6 @@ async function aiTopN(n){
 function aiCreatePersona(){
   switchTab('interview');
   aiAddMsg('bot', '페르소나 생성 화면(인터뷰 탭)으로 이동했습니다. 우측 \'페르소나 생성\' 버튼을 누르세요.', false);
-  aiAddActionPill('인터뷰 탭 이동');
-}
-
-function aiAdMessage(){
-  switchTab('interview');
-  aiAddMsg('bot', '페르소나 인터뷰는 패널 모드에서 서론타일 대화 형태로 진행됩니다.', false);
   aiAddActionPill('인터뷰 탭 이동');
 }
 
@@ -6454,84 +6444,6 @@ function renderPersonaJourney(data){
   else card.insertAdjacentHTML('beforeend', html);
 }
 
-// 메시지 테스터 모달
-function openMessageTester(){
-  // history에 연동 — 뒤로가기로 모달 닫기
-  history.pushState({ view: 'modal', modal: 'mt' }, '', window.location.href);
-  let modal = document.getElementById('mt-modal');
-  if(!modal){
-    modal = document.createElement('div');
-    modal.id = 'mt-modal';
-    modal.className = 'mt-modal';
-    document.body.appendChild(modal);
-  }
-  modal.innerHTML = `<div class="mt-overlay" onclick="closeMessageTester()"></div>
-    <div class="mt-dialog">
-      <div class="mt-h"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:5px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>광고 메시지 A/B/C 테스트</div>
-      <div class="mt-sub">${state.ivPersona?.name || '페르소나'}이 각 메시지에 어떻게 반응하는지 시뮬레이션합니다.</div>
-      <textarea id="mt-msg-a" class="mt-ta" placeholder="메시지 A (예: 이제 더 스마트하게 쓰세요)"></textarea>
-      <textarea id="mt-msg-b" class="mt-ta" placeholder="메시지 B (선택)"></textarea>
-      <textarea id="mt-msg-c" class="mt-ta" placeholder="메시지 C (선택)"></textarea>
-      <div class="mt-actions">
-        <button class="mt-cancel" onclick="closeMessageTester()">취소</button>
-        <button class="mt-go" onclick="runMessageTest()">테스트 실행</button>
-      </div>
-      <div id="mt-result" class="mt-result hide"></div>
-    </div>`;
-  modal.classList.remove('hide');
-}
-function closeMessageTester(){ 
-  document.getElementById('mt-modal')?.classList.add('hide');
-  // history에 모달이 있으면 하나 복구
-  if(history.state && history.state.view === 'modal') history.back();
-}
-
-async function runMessageTest(){
-  const a = document.getElementById('mt-msg-a').value.trim();
-  const b = document.getElementById('mt-msg-b').value.trim();
-  const c = document.getElementById('mt-msg-c').value.trim();
-  const messages = [a, b, c].filter(Boolean);
-  if(!messages.length){ alert('최소 1개 메시지를 입력하세요'); return; }
-  const persona = state.ivPersona;
-  if(!persona){ alert('페르소나가 없습니다'); return; }
-  const result = document.getElementById('mt-result');
-  result.classList.remove('hide');
-  result.innerHTML = '<div class="mt-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>페르소나 반응 시뮬레이션 중… (10-15초)</div>';
-  try {
-    const res = await fetch(`${API}/interview/test-message`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ personas: [persona], messages, country: state.currentCountry }),
-    });
-    const data = await res.json();
-    if(!data.ok){ result.innerHTML = `<div class="mt-err">오류: ${data.error||'알 수 없는 오류'}</div>`; return; }
-    renderMessageTestResult(data);
-  } catch(e){
-    result.innerHTML = `<div class="mt-err">요청 실패: ${e.message}</div>`;
-  }
-}
-
-function renderMessageTestResult(data){
-  const result = document.getElementById('mt-result');
-  const r0 = data.results?.[0];
-  if(!r0){ result.innerHTML = '<div class="mt-err">결과 없음</div>'; return; }
-  let html = `<div class="mt-winner"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><b>우승 메시지:</b> ${data.winnerMessage}</div>`;
-  if(data.overallInsight) html += `<div class="mt-insight">${data.overallInsight}</div>`;
-  html += `<div class="mt-pname">${r0.personaName}의 반응</div>`;
-  for(const mr of r0.messageResponses){
-    html += `<div class="mt-mr">
-      <div class="mt-mr-h">메시지 ${mr.messageLabel}</div>
-      <div class="mt-mr-emotion">“${mr.emotionalReaction}”</div>
-      <div class="mt-mr-scores">
-        <span><b>이해도</b> ${mr.comprehensionScore}</span>
-        <span><b>관련성</b> ${mr.relevanceScore}</span>
-        <span><b>구매의도</b> ${mr.purchaseIntentScore}</span>
-      </div>
-      ${mr.concerns?.length ? `<div class="mt-mr-c"><b>우려:</b> ${mr.concerns.join(', ')}</div>` : ''}
-      ${mr.suggestion ? `<div class="mt-mr-s"><b>제안:</b> ${mr.suggestion}</div>` : ''}
-    </div>`;
-  }
-  result.innerHTML = html;
-}
 
 function backToPanelEmpty(){
   document.getElementById('iv-body').classList.add('hide');
