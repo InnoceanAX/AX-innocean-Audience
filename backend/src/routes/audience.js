@@ -631,6 +631,16 @@ audienceRouter.post("/synthesize", async (req, res) => {
   // CEO 2026-06-12: 심화 차트 필수 필드 폴백 (LLM이 누락하거나 baseline·시에도 적용)
   if (synthesized) {
     synthesized.mind = synthesized.mind || {};
+    if (!synthesized.mind.coreValues || !synthesized.mind.coreValues.length) {
+      synthesized.mind.coreValues = ["가족·안정", "자아실현", "세이브·미래", "관계·소속", "경험·여행", "성장·자기계발"];
+      synthesized.mind.coreValuesScore = { "가족·안정": 88, "자아실현": 70, "세이브·미래": 80, "관계·소속": 65, "경험·여행": 60, "성장·자기계발": 75 };
+    }
+    if (!synthesized.mind.brandTrust) synthesized.mind.brandTrust = "보통";
+    if (synthesized.mind.brandTrustScore == null) synthesized.mind.brandTrustScore = 60;
+    if (synthesized.mind.riskScore == null) synthesized.mind.riskScore = 45;
+    if (synthesized.mind.futureOutlookScore == null) synthesized.mind.futureOutlookScore = 55;
+    if (synthesized.mind.optimismScore == null) synthesized.mind.optimismScore = 60;
+    if (synthesized.mind.stressLevel == null) synthesized.mind.stressLevel = 50;
     if (!synthesized.mind.decisionStyle || Object.keys(synthesized.mind.decisionStyle).length === 0) {
       synthesized.mind.decisionStyle = { "이성·분석": 35, "감성·직관": 25, "추천 따르기": 20, "탐색 후 선택": 15, "단순 충동": 5 };
     }
@@ -665,6 +675,18 @@ audienceRouter.post("/synthesize", async (req, res) => {
 
     // BUY 차트 수단 해백
     synthesized.buy = synthesized.buy || {};
+    if (!synthesized.buy.topCategories || !synthesized.buy.topCategories.length) {
+      synthesized.buy.topCategories = ["식품·생활", "육아용품", "의류·패션", "뉴트리·건강식품", "교육·도서", "외식·커피", "화장품·뷰티"];
+    }
+    if (!synthesized.buy.shoppingChannels || !Object.keys(synthesized.buy.shoppingChannels).length) {
+      synthesized.buy.shoppingChannels = { "온라인": 60, "오프라인": 40 };
+    }
+    if (synthesized.buy.priceSensitivityScore == null) synthesized.buy.priceSensitivityScore = 60;
+    if (synthesized.buy.brandLoyaltyScore == null) synthesized.buy.brandLoyaltyScore = 55;
+    if (synthesized.buy.discountSensitivity == null) synthesized.buy.discountSensitivity = 65;
+    if (synthesized.buy.reviewInfluence == null) synthesized.buy.reviewInfluence = 70;
+    if (synthesized.buy.brandSwitching == null) synthesized.buy.brandSwitching = 50;
+    if (synthesized.buy.ethicalConsumerScore == null) synthesized.buy.ethicalConsumerScore = 55;
     if (!synthesized.buy.categoryShares || !Object.keys(synthesized.buy.categoryShares).length) {
       synthesized.buy.categoryShares = { "식품·생활": 25, "육아용품": 18, "의류·패션": 12, "뉴트리·건강식품": 10, "교육·도서": 12, "외식·커피": 10, "화장품·뷰티": 8, "여행·여가": 5 };
     }
@@ -683,6 +705,9 @@ audienceRouter.post("/synthesize", async (req, res) => {
 
     // LIFE 차트 수단 해백
     synthesized.life = synthesized.life || {};
+    if (!synthesized.life.topActivities || !synthesized.life.topActivities.length) {
+      synthesized.life.topActivities = ["가쇄·육아", "가족·친구", "휴식·잠", "운동", "취미·학습", "쇼핑", "종교"];
+    }
     if (!synthesized.life.digitalUsage || !Object.keys(synthesized.life.digitalUsage).length) {
       synthesized.life.digitalUsage = { "소셜·메신저": 3.5, "동영상 OTT": 2.5, "뉴스·정보": 1.5, "쇼핑·이커머스": 1.5, "업무·생산성": 4.0 };
     }
