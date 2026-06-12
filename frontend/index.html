@@ -1737,6 +1737,14 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <span class="aud-src" id="media-src">데이터 로딩 중…</span>
             </div>
           </div>
+          <div id="md-empty" class="sm-empty" style="display:none">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:14px"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+            <div class="sm-empty-t">아직 분석된 타겟이 없습니다</div>
+            <div class="sm-empty-s">매체 환경·채널별 도달률·수용도를 보려면 먼저 타겟을 설정해주세요.<br>자연어로 "30대 워킹맘 매체 이용..." 같은 질문을 입력하거나, 빌더 탭에서 직접 만들어보세요.</div>
+            <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
+              <button class="sm-cta-primary" onclick="switchTab('overview')">빌더로 가기 →</button>
+            </div>
+          </div>
           <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중…</div></div>
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
@@ -3055,7 +3063,15 @@ function switchTab(tab, opts){
   if(tab === 'media') refreshMediaTab();
   if(tab === 'compare') renderCompareMatrix();
   if(['who','life','mind','love','buy'].includes(tab)) refreshAudienceTab(tab);
-  // interview는 사용자 액션(generatePersona)으로만 시작
+  // interview는 사용자 액션(generatePersona)으로만 시작 — 빈 상태일 때 안내 보장
+  if(tab === 'interview'){
+    const ivBody = document.getElementById('iv-body');
+    const ivEmpty = document.getElementById('iv-empty');
+    // iv-body가 비어있거나 hide 상태면 iv-empty 보여줌
+    if(ivBody && ivBody.classList.contains('hide') && ivEmpty){
+      ivEmpty.classList.remove('hide');
+    }
+  }
   // history 적용
   if(!fromHistory){
     const url = new URL(window.location.href);
@@ -3110,15 +3126,17 @@ function updateBreadcrumb(){
 
 // ============ MEDIA TAB ============
 async function refreshMediaTab(){
-  // 분석 게이트
+  // 분석 게이트 — 빌더 미설정 시 sm-empty 스타일 안내 표시
+  const mdEmpty = document.getElementById('md-empty');
+  const mdLoad = document.getElementById('md-loading');
+  const mdBody = document.getElementById('md-body');
   if(!state.analysisRun){
-    const ins = document.getElementById('md-insights');
-    const tbl = document.getElementById('md-table');
-    const empty = `<div class="aud-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:#9CA3AF;margin-bottom:12px"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg><div class="aud-empty-t">분석 결과 대기 중</div><div class="aud-empty-s">빌더 탭에서 <b>[▶ 분석 시작]</b>을 눌러주세요.</div><button class="sm-cta-primary" style="margin-top:14px" onclick="switchTab('overview')">빌더로 이동 →</button></div>`;
-    if(ins) ins.innerHTML = empty;
-    if(tbl) tbl.innerHTML = '';
+    if(mdEmpty) mdEmpty.style.display = 'flex';
+    if(mdLoad) mdLoad.classList.add('hide');
+    if(mdBody) mdBody.classList.add('hide');
     return;
   }
+  if(mdEmpty) mdEmpty.style.display = 'none';
 
   try{
     document.getElementById('md-loading').classList.remove('hide');
