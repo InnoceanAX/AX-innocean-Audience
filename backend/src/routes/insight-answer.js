@@ -150,10 +150,15 @@ function autoChartsFromPanel(panel) {
 // 패널 데이터 → 자동 KPI 카드
 function autoKpisFromPanel(panel) {
   const kpis = [];
-  // KPI 1: 주력 연령대
+  // KPI 1: 주력 연령대 — 10단위면 "세" 안 붙임
   if (panel.who?.ageBuckets) {
     const top = Object.entries(panel.who.ageBuckets).sort((a, b) => +b[1] - +a[1])[0];
-    if (top) kpis.push({ label: "주력 연령대", value: top[0] + "세", sub: top[1] + "%" });
+    if (top) {
+      const label = top[0];
+      // "30대" "60대 이상" 같은 한글 레이블은 세 안붙임, 숫자 범위 "30-44"면 붙임
+      const value = /\d+-?\d*$/.test(label) ? label + "세" : label;
+      kpis.push({ label: "주력 연령대", value, sub: top[1] + "%" });
+    }
   }
   // KPI 2: 도시 거주 비율
   if (panel.who?.urbanRate != null) {
