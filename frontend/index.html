@@ -1120,9 +1120,11 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .ab-close:hover{background:#fff;color:#111}
 .ab-summary{font-size:12px;color:var(--ts);line-height:1.5;margin-bottom:8px}
 .ab-chips{display:flex;flex-wrap:wrap;gap:5px}
-.ab-chip{background:#fff;border:1px solid var(--ind);color:var(--ind);padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.ab-chip{background:#fff;border:1px solid var(--ind);color:var(--ind);padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.ab-chip-active{cursor:pointer;background:#FEF3C7;border-color:#F59E0B;color:#92400E}
+.ab-chip-all{opacity:.55;background:#F9FAFB;border-color:#E5E7EB;color:#6B7280;font-weight:500}
 .ab-chip-x{font-size:13px;opacity:.6;line-height:1}
-.ab-chip:hover .ab-chip-x{opacity:1}
+.ab-chip-active:hover .ab-chip-x{opacity:1}
 .ab-filters{margin-top:10px;border-top:1px dashed #C7D2FE;padding-top:8px}
 .ab-filters-sum{cursor:pointer;font-size:11.5px;color:var(--ind);font-weight:700;list-style:none;padding:4px 0}
 .ab-filters-sum::-webkit-details-marker{display:none}
@@ -2489,6 +2491,14 @@ async function chatBoardJumpToTab(tab){
       if(data && data.ok){
         state.lastAsk = data;
         state.filters = data.parsed?.filters || {};
+        // CEO 2026-06-12: 점프 진입 시 추출 안 된 차원은 자동으로 "전체"로 채움 (약속: 아무것도 안 누른 = 전체, 단 반드시 명시적 선택)
+        (state.dimensions || []).forEach(dim => {
+          if (!state.filters[dim.id] || !Array.isArray(state.filters[dim.id]) || state.filters[dim.id].length === 0) {
+            state.filters[dim.id] = ['전체'];
+          }
+        });
+        // 동일하게 lastAsk의 parsed.filters도 동기화
+        if(data.parsed) data.parsed.filters = state.filters;
         if(data.parsed?.country) selectCountry(data.parsed.country);
         if(typeof showAskBanner === 'function') showAskBanner(data);
         if(typeof renderBuilder === 'function') renderBuilder();
@@ -2732,10 +2742,19 @@ function isMeaningfulReasoning(reasoning, filters, question){
 function showAskBanner(data){
   const p = data.parsed;
   const country = state.countries.find(c => c.code === p.country);
-  // 적용된 필터 chips (구별 표시 + 제거 가능)
-  const filterParts = Object.entries(p.filters || {}).map(([k,v]) => {
-    const dim = state.dimensions.find(d => d.id === k);
-    return `<span class="ab-chip ab-chip-active" title="클릭해서 해제" onclick="abRemoveFilter('${k}')"><span>${dim?.label || k}: ${v.join(', ')}</span><span class="ab-chip-x">×</span></span>`;
+  // CEO 2026-06-12: 적용 세그먼트는 모든 차원을 표시 — 추출 안 된 차원은 "전체"로
+  // (이전 버전 동작 복원: 64개 필터 전부 가시화)
+  const allDims = state.dimensions || [];
+  const filterParts = allDims.map(dim => {
+    const v = (p.filters || {})[dim.id];
+    const isAllOnly = Array.isArray(v) && v.length === 1 && v[0] === '전체';
+    if (Array.isArray(v) && v.length > 0 && !isAllOnly) {
+      // 추출된 필터 (전체 알니) — 강조 (클릭으로 해제)
+      return `<span class="ab-chip ab-chip-active" title="클릭해서 전체로" onclick="abRemoveFilter('${dim.id}')"><span>${dim.label}: ${v.join(', ')}</span><span class="ab-chip-x">×</span></span>`;
+    } else {
+      // 전체 — 약한 표시
+      return `<span class="ab-chip ab-chip-all"><span>${dim.label}: 전체</span></span>`;
+    }
   }).join('');
   const summary = p.summary || `${country?.name || p.country} 세그먼트 분석`;
   const methodBadge = data.meta?.method?.startsWith('gemini') ? '<span class="ab-ai">AI</span>' : '<span class="ab-rule">RULE</span>';
@@ -2807,13 +2826,16 @@ function abToggleOption(dimId, opt){
   if(state.lastAsk) showAskBanner(state.lastAsk);
 }
 
-// ask-banner의 적용된 필터 chip에서 제거
+// ask-banner의 적용된 필터 chip에서 제거 (= "전체"로 되돌림)
 function abRemoveFilter(dimId){
-  if(state.filters) delete state.filters[dimId];
-  if(state.lastAsk && state.lastAsk.parsed && state.lastAsk.parsed.filters){
-    delete state.lastAsk.parsed.filters[dimId];
+  state.filters = state.filters || {};
+  state.filters[dimId] = ['전체'];
+  if(state.lastAsk && state.lastAsk.parsed){
+    state.lastAsk.parsed.filters = state.lastAsk.parsed.filters || {};
+    state.lastAsk.parsed.filters[dimId] = ['전체'];
   }
   if(state.lastAsk) showAskBanner(state.lastAsk);
+  if(typeof renderBuilder === 'function') renderBuilder();
 }
 
 // ask-banner에서 필터 조정 후 다시 분석

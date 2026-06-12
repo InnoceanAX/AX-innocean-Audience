@@ -31,23 +31,30 @@ function buildPanelData(country, synthesized, filters) {
   return out;
 }
 
-// 필터를 연령대에 반영 — 30대 이면 30대 100% 등
+// 필터를 연령대에 반영 — 빌더 옵션(10단위)과 일치시킨 ageBuckets 생성
+// CEO 2026-06-12: 30대 이면 30대 100% (15-29나 30-44의 일부로 어설프게 나타나지 않도록)
+// API 상의 고정 버킷(국통장)이 아닌, 세그먼트 필터에서 추출된 10단위 버킷을 그대로 사용
 function reshapeWhoByFilters(who, filters) {
   if (!filters || !filters.age || !Array.isArray(filters.age) || filters.age.length === 0) return who;
-  const ageMap = { "10\ub300": "0-14", "20\ub300": "15-29", "30\ub300": "30-44", "40\ub300": "30-44", "50\ub300": "45-59", "60\ub300": "60+", "60\ub300 \uc774\uc0c1": "60+" };
-  const buckets = ["0-14", "15-29", "30-44", "45-59", "60+"];
-  const targetBuckets = new Set();
+  // 빌더 10단위 옵션
+  const tenUnits = ["10\ub300", "20\ub300", "30\ub300", "40\ub300", "50\ub300", "60\ub300 \uc774\uc0c1"];
+  const targetUnits = new Set();
   filters.age.forEach(a => {
     const norm = String(a).trim();
-    const mapped = ageMap[norm] || (norm.includes("30") ? "30-44" : norm.includes("40") ? "30-44" : norm.includes("50") ? "45-59" : norm.includes("60") ? "60+" : norm.includes("20") ? "15-29" : norm.includes("10") ? "0-14" : null);
-    if (mapped) targetBuckets.add(mapped);
+    if (tenUnits.includes(norm)) targetUnits.add(norm);
+    else if (norm.includes("60")) targetUnits.add("60\ub300 \uc774\uc0c1");
+    else if (norm.includes("50")) targetUnits.add("50\ub300");
+    else if (norm.includes("40")) targetUnits.add("40\ub300");
+    else if (norm.includes("30")) targetUnits.add("30\ub300");
+    else if (norm.includes("20")) targetUnits.add("20\ub300");
+    else if (norm.includes("10")) targetUnits.add("10\ub300");
   });
-  if (targetBuckets.size === 0) return who;
-  // 타겟 연령대 100% 등분, 다른 대 0%
-  const newBuckets = {};
-  const share = 100 / targetBuckets.size;
-  buckets.forEach(b => { newBuckets[b] = targetBuckets.has(b) ? +share.toFixed(1) : 0; });
-  return { ...who, ageBuckets: newBuckets };
+  if (targetUnits.size === 0) return who;
+  // 선택된 10단위에 100% 등분
+  const newAgeBuckets = {};
+  const share = +(100 / targetUnits.size).toFixed(1);
+  tenUnits.forEach(b => { newAgeBuckets[b] = targetUnits.has(b) ? share : 0; });
+  return { ...who, ageBuckets: newAgeBuckets };
 }
 
 // 한글 라벨 매핑
