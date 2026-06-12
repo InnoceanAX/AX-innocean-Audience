@@ -6377,6 +6377,7 @@ function renderInfluencerMatch(data){ /* CEO 요청으로 제거 — 인플루�
 async function fetchPersonaJourney(persona){
   try {
     const wrap = document.getElementById('iv-card');
+    if(!wrap) return;
     // 로딩 표시
     if(!wrap.querySelector('.iv-journey-card')){
       wrap.insertAdjacentHTML('beforeend', '<div class="iv-journey-card iv-journey-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>이 사람의 하루 미디어 여정을 그리는 중…</div>');
@@ -6388,6 +6389,17 @@ async function fetchPersonaJourney(persona){
     const data = await res.json();
     if(!data.ok) return;
     renderPersonaJourney(data);
+    // CEO 2026-06-12: journey 자동 캐시 — 다음번 패널 진입 시 즉시 복원
+    if(persona){
+      state.ivPersonaChats = state.ivPersonaChats || {};
+      const key = personaCacheKey(persona);
+      const prev = state.ivPersonaChats[key] || {};
+      state.ivPersonaChats[key] = Object.assign({}, prev, {
+        persona: state.ivPersona || persona,
+        journey: data.journey,
+        updatedAt: Date.now()
+      });
+    }
   } catch(e){ /* silent */ }
 }
 
@@ -6540,29 +6552,44 @@ async function generatePersona(persona){
     document.getElementById('iv-single-wrap').classList.remove('hide');
     // 패널에서 넘어온 경우 persona 객체 제공
     if(persona){
-      state.ivPersona = persona;
-      // CEO 2026-06-12: 패널별 대화 기록 보존 — 이전 대화 복원
+      // CEO 2026-06-12: 패널별 대화 기록 + 상세 프로필 전체 보존 — 이전 상태 즉시 복원
       state.ivPersonaChats = state.ivPersonaChats || {};
       const personaKey = personaCacheKey(persona);
-      const savedChat = state.ivPersonaChats[personaKey];
-      if(savedChat && Array.isArray(savedChat.history) && savedChat.history.length > 0){
-        state.ivHistory = savedChat.history.slice();
-        const msgs = document.getElementById('iv-msgs');
-        if(msgs){
-          // 이전 대화 재생성
+      const savedSnap = state.ivPersonaChats[personaKey];
+      // (1) enriched persona가 캐시에 있으면 이걸 우선
+      let activePersona = (savedSnap && savedSnap.persona) ? savedSnap.persona : persona;
+      state.ivPersona = activePersona;
+      // (2) 대화 기록 복원
+      state.ivHistory = (savedSnap && Array.isArray(savedSnap.history)) ? savedSnap.history.slice() : [];
+      const msgs = document.getElementById('iv-msgs');
+      if(msgs){
+        if(state.ivHistory.length > 0){
           msgs.innerHTML = state.ivHistory.map(m => {
             const cls = m.role === 'user' ? 'iv-msg-u' : 'iv-msg-a';
             return `<div class="iv-msg ${cls}">${escapeHtml(m.content)}</div>`;
           }).join('');
           setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 50);
+        } else {
+          msgs.innerHTML = '';
         }
-      } else {
-        state.ivHistory = [];
-        document.getElementById('iv-msgs').innerHTML = '';
       }
-      // 이미 narratives 있으면 그대로 렌더 + 여정 호출
+      // (3) 캐시된 enriched persona가 있으면 즉시 카드/여정 렌더 — API 재호출 없음
+      if(savedSnap && savedSnap.persona && savedSnap.persona.narratives && savedSnap.persona.narratives.who){
+        renderPersonaCard(activePersona, savedSnap.meta || { method: 'cached' });
+        if(savedSnap.journey){
+          renderPersonaJourney({ journey: savedSnap.journey });
+        } else {
+          fetchPersonaJourney(activePersona);
+        }
+        return;
+      }
+      // (4) 캐시 없지만 넘경온 persona에 narratives 있으면 그대로 렌더
       if(persona.narratives && persona.narratives.who){
         renderPersonaCard(persona, { method: 'gemini-2.5-flash (panel)' });
+        // 캐시에 저장
+        state.ivPersonaChats[personaKey] = state.ivPersonaChats[personaKey] || { history: [] };
+        state.ivPersonaChats[personaKey].persona = persona;
+        state.ivPersonaChats[personaKey].meta = { method: 'gemini-2.5-flash (panel)' };
         fetchPersonaJourney(persona);
         return;
       }
@@ -6577,6 +6604,15 @@ async function generatePersona(persona){
         if(enriched.ok && enriched.persona){
           state.ivPersona = enriched.persona;
           renderPersonaCard(enriched.persona, enriched.meta);
+          // CEO 2026-06-12: enriched persona 캐시 — 다음 패널 진입 시 즉시 복원
+          state.ivPersonaChats = state.ivPersonaChats || {};
+          const ekey = personaCacheKey(enriched.persona);
+          const eprev = state.ivPersonaChats[ekey] || { history: [] };
+          state.ivPersonaChats[ekey] = Object.assign({}, eprev, {
+            persona: enriched.persona,
+            meta: enriched.meta,
+            updatedAt: Date.now()
+          });
           fetchPersonaJourney(enriched.persona);
           return;
         }
@@ -6742,17 +6778,22 @@ async function sendInterview(){
       }),
     });
     const data = await res.json();
-    document.getElementById('iv-typing').remove();
+    document.getElementById('iv-typing')?.remove();
     if(!data.ok) throw new Error(data.error);
     msgs.innerHTML += `<div class="iv-msg iv-msg-a">${data.reply}</div>`;
     state.ivHistory.push({role:'user',content:msg});
     state.ivHistory.push({role:'assistant',content:data.reply});
     msgs.scrollTop = msgs.scrollHeight;
-    // CEO 2026-06-12: 패널별 대화 자동 저장
+    // CEO 2026-06-12: 패널별 대화 자동 저장 (포함: persona + history)
     if(state.ivPersona){
       state.ivPersonaChats = state.ivPersonaChats || {};
       const key = personaCacheKey(state.ivPersona);
-      state.ivPersonaChats[key] = { history: state.ivHistory.slice(), updatedAt: Date.now() };
+      const prev = state.ivPersonaChats[key] || {};
+      state.ivPersonaChats[key] = Object.assign({}, prev, {
+        persona: state.ivPersona,
+        history: state.ivHistory.slice(),
+        updatedAt: Date.now()
+      });
     }
   } catch(e){
     document.getElementById('iv-typing')?.remove();
@@ -6763,6 +6804,8 @@ async function sendInterview(){
 // CEO 2026-06-12: 패널별 대화 기록 저장 키 생성
 function personaCacheKey(persona){
   if(!persona) return 'unknown';
+  // 백엔드가 부여한 id가 있으면 최우선 (패널 멤버간 표쇼 구별)
+  if(persona.id) return 'id:' + persona.id;
   // name + age + occupation + country으로 고유 키 생성
   const parts = [
     persona.name || '',
