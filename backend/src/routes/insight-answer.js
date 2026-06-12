@@ -10,6 +10,35 @@ import { COUNTRIES } from "../data/countries.js";
 import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
 import { getCountryAdSpend } from "../adapters/adspend-public.js";
 
+
+// 부정 트렌드 키워드 차단 — 선호도 답변에 인용 금지
+const NEGATIVE_KEYWORDS_RE = /(논란|논쟁|공격|비난|당혹|철회|명예훼손|안티팬|악플|악성댓글|마녀사냥|취소문화|취소 ?컬처|소문|구설|구설수|음주운전|마약|판결|소송|수사|구속|체포|범죄|기소|영장|혐의|법정|불기소|패소|승소|위법|위반|폭로|배신|파혼|이혼|불륜|불화|논란이|루머|가십|스캔들|디스|저격|손절|논란중|입장문|사과문|반박문|편파|왜곡|악재|하락세|부진|침체|폭락|적자|손실|실패작|혹평|혹평받|평점 낮|점수 낮|악평|혹평|망작|망함|시청률 ?저조|시청률 ?하락|악연|반대|기피|싫어|불호|비호감|비매너|민폐|진상|불쾌|불편|꼴불견|구설|먹튀|먹튀논란|논란 ?터|논란 ?확산|폭행|학폭|왕따|괴롭힘|사이버불링|성희롱|성추행|성폭력|미투|폭언|폭력)/;
+
+function sanitizeText(t) {
+  if (!t || typeof t !== "string") return t;
+  // 부정 키워드 발견 시 그 문장을 통째로 시점 둔감 문구로 대체
+  if (NEGATIVE_KEYWORDS_RE.test(t)) {
+    console.warn("[insight-sanitize] negative keyword detected:", t.slice(0, 80));
+    // 가장 부드러운 대체 — 보편적 긍정 표현
+    return t.replace(NEGATIVE_KEYWORDS_RE, "관심 있는 이슈");
+  }
+  return t;
+}
+
+function sanitizeAnswer(ans) {
+  if (!ans) return ans;
+  if (ans.headline) ans.headline = sanitizeText(ans.headline);
+  if (ans.narrative) ans.narrative = sanitizeText(ans.narrative);
+  if (Array.isArray(ans.personaSamples)) {
+    for (const p of ans.personaSamples) {
+      if (p.voice) p.voice = sanitizeText(p.voice);
+      if (p.tagline) p.tagline = sanitizeText(p.tagline);
+      if (Array.isArray(p.attributes)) p.attributes = p.attributes.map(a => sanitizeText(a));
+    }
+  }
+  return ans;
+}
+
 export const insightAnswerRouter = Router();
 
 // 합성 패널 데이터 가져오기 (synthesized가 빈 경우 베이스라인 + 필터 변형)
@@ -226,12 +255,12 @@ insightAnswerRouter.post("/", async (req, res) => {
       const filterHint = filters && Object.keys(filters).length
         ? Object.entries(filters).filter(([_,v])=>Array.isArray(v)&&v.length).slice(0,3).map(([k,v])=>`${k}: ${v.join("·")}`).join(" / ")
         : "";
-      const q = `${today} 기준 ${countryName} 시장의 관련 최신 트렌드·인물·브랜드·작품·이슈를 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 설명과 함께 8~12문장으로 자세히 답해주세요. 한국어로.`;
+      const q = `${today} 기준 ${countryName} 시장의 관련 최신 대중적 인기·선호 트렌드·인물·브랜드·작품을 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n[중요 조건]\n- **긍정적인 선호·화제·트렌드만** 조사하세요. 논란·논쇟·안티팬·악플·부정적 이슈·명예훼손·공격·반대 여론 등은 **제외**.\n- "세이는 이슈", "트렌드 마친 이슈", "않소시테뚝" 등 부정·공격 성격 키워드 제외.\n- "인기 있는", "좋아하는", "화제의", "주목받는" 등 중립·긍정 단어만 사용.\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 긍정 설명과 함께 8~12문장으로 답해주세요. 한국어로.`;
       console.log("[insight-grounding] query:", q.slice(0, 180));
       const g = await searchAndSummarize({ query: q, maxTokens: 2000 });
       console.log("[insight-grounding] result: text_len=", (g.text||"").length, "grounded=", g.grounded, "error=", g.error || "none");
       if (g.text && g.text.length > 30) {
-        realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 답변·페르소나 voice·tagline에 우선적으로 활용. 옷 정보 대신 위 최신 정보의 인물·브랜드·작품명을 인용하세요.)`;
+        realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 답변·페르소나 voice·tagline에 우선적으로 활용. 옷 정보 대신 위 최신 정보의 인물·브랜드·작품명을 인용하세요. ⚠ 하지만 위 요약에 부정·논란·안티·악플 키워드가 있으면 절대 인용하지 말고 무시하세요.)`;
         groundingUsed = true;
       }
     }
@@ -294,6 +323,17 @@ insightAnswerRouter.post("/", async (req, res) => {
 - 구체 브랜드·작품·인물을 인용하려면 **현재 시점에 유효한지** 실시간 컨텍스트로 확인된 것만. 확신 없으면 인용 금지.
 - 세대감은 반영하되 옛 데이터로 채우지 마세요. 모르면 모른다고 답하는 것도 자연스럽습니다.
 - voice에도 같은 원칙 — 옛 작품·인물 들먹이지 말고 실시간 컨텍스트 또는 시점 둔감 표현 사용.
+
+[부정 트렌드 키워드 — 절대 인용 금지]
+- 선호도·취향·관심사 답변은 **긍정 트렌드만** 인용. 다음 키워드/주제는 절대 답변에 포함하지 마세요:
+  · 논란·논쟁·공격·비난·당혹·철회·명예훼손·명예훼손 소송·안티팬·악플·세이·마녀사냥·악성댓글
+  · "세이는 이슈", "트렌드 마친 이슈", "앗소시테드", "취소문화", "안 좋은 소문", "인기 하락"
+  · 우울증·알코올·장애·자살·중독 등 부정 단어·주제
+  · 명자·조작·탈세·판결·소송·수사·범죄·구속·체포·구속영장
+  · 안 좋아하는 이유·기피 사유·논란의 이유
+- 선호의 "좋아하는 이유"만 설명. "싫어하는 이유·논란·결점"은 절대 언급 금지.
+- 그 인물·작품·브랜드에 부정 이슈가 있다면 **아예 인용하지 말고** 다른 긍정 사례로 대체.
+- 적용 범위: headline, narrative, voice, tagline, attributes 전부.
 
 [범위 밖]
 - 광고 효율·ROAS·CTR 예측, 매체 단가, 캠페인 기획·크리에이티브 추천 → inScope: false
@@ -389,6 +429,9 @@ ${panelStr}
     // 패널 데이터 기반 차트/KPI 주입 (LLM이 안 줘도 보장)
     ans.kpis = panelKpis;
     ans.panelCharts = panelCharts;
+
+    // 부정 키워드 정화
+    sanitizeAnswer(ans);
 
     // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
     if (ans.sources.length === 0 || !/INNOCEAN.*패널/.test(ans.sources[0]?.label || "")) {

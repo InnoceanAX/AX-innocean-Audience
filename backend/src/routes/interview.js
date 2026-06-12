@@ -13,6 +13,19 @@ import {
 } from "../adapters/adspend-public.js";
 import { CHANNELS, flattenMedia } from "../data/media-taxonomy.js";
 
+
+// 부정 트렌드 키워드 차단 — 페르소나가 선호 답변에 인용 금지
+const NEGATIVE_KEYWORDS_RE = /(논란|논쟁|공격|비난|당혹|철회|명예훼손|안티팬|악플|악성댓글|마녀사냥|취소문화|취소 ?컬처|음주운전|마약|판결|소송|수사|구속|체포|범죄|기소|영장|혐의|법정|불기소|패소|승소|위법|위반|폭로|배신|파혼|이혼|불륜|루머|가십|스캔들|디스|저격|손절|입장문|사과문|반박문|편파|왜곡|악재|하락세|폭락|적자|혹평|혹평받|망작|망함|시청률 ?저조|악연|반대|기피|싫어|불호|비호감|비매너|민폐|진상|꼴불견|구설|먹튀|폭행|학폭|왕따|괴롭힘|사이버불링|성희롱|성추행|성폭력|미투|폭언|폭력)/;
+
+function sanitizeReply(t) {
+  if (!t || typeof t !== "string") return t;
+  if (NEGATIVE_KEYWORDS_RE.test(t)) {
+    console.warn("[interview-sanitize] negative keyword detected:", t.slice(0, 100));
+    return t.replace(NEGATIVE_KEYWORDS_RE, "관심 있는 이슈");
+  }
+  return t;
+}
+
 export const interviewRouter = Router();
 
 // POST /api/interview/persona  — 페르소나 카드 생성
@@ -775,9 +788,10 @@ interviewRouter.post("/chat", async (req, res) => {
       { role: "user", content: userMessage },
     ];
     const result = await chat({ messages, system, temperature: 0.8 });
+    const sanitized = sanitizeReply(result.text);
     res.json({
       ok: true,
-      reply: result.text,
+      reply: sanitized,
       meta: { method: result.model, grounding: groundingUsed, ts: new Date().toISOString() },
     });
   } catch (e) {
