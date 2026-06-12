@@ -221,11 +221,13 @@ insightAnswerRouter.post("/", async (req, res) => {
   // 시의성 grounding — Google Search로 최근 1~3개월 트렌드/이슈/인물/작품/브랜드 컨텍스트 보강
   let realtimeBlock = "";
   let groundingUsed = false;
+  // 사용자가 명시적으로 부정 이슈를 묻는지 검사 (스코프: 전체 함수)
+  const askingNegative = isUserAskingAboutNegative(question);
+
   try {
     if (process.env.PERSONA_USE_GROUNDING !== "0") {
       const today = new Date().toISOString().slice(0, 10);
       const countryName = country ? `(${country})` : "(KR)";
-      const askingNegative = isUserAskingAboutNegative(question);
       const filterHint = filters && Object.keys(filters).length
         ? Object.entries(filters).filter(([_,v])=>Array.isArray(v)&&v.length).slice(0,3).map(([k,v])=>`${k}: ${v.join("·")}`).join(" / ")
         : "";
@@ -471,9 +473,8 @@ ${panelStr}
     ans.panelCharts = panelCharts;
 
     // 세이프티 정화 — 사용자가 명시적으로 부정 이슈를 물으면 negative_trend 허용
-    const allowNeg = isUserAskingAboutNegative(question);
-    sanitizeAnswerObject(ans, "insight", { allowNegativeTrend: allowNeg });
-    if (allowNeg) console.log("[insight] explicit negative inquiry — allowing fact-based answer:", question.slice(0,80));
+    sanitizeAnswerObject(ans, "insight", { allowNegativeTrend: askingNegative });
+    if (askingNegative) console.log("[insight] explicit negative inquiry — allowing fact-based answer:", question.slice(0,80));
 
     // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
     // CEO 정책: 출처 표시 금지 — sources 강제로 빈 배열 유지
