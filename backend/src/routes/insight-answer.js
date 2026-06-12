@@ -6,7 +6,7 @@
 
 import { Router } from "express";
 import { generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
-import { sanitizeAnswerObject, SAFETY_PROMPT_GUIDE } from "../lib/safety.js";
+import { sanitizeAnswerObject, isUserAskingAboutNegative, SAFETY_PROMPT_GUIDE } from "../lib/safety.js";
 import { COUNTRIES } from "../data/countries.js";
 import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
 import { getCountryAdSpend } from "../adapters/adspend-public.js";
@@ -225,10 +225,13 @@ insightAnswerRouter.post("/", async (req, res) => {
     if (process.env.PERSONA_USE_GROUNDING !== "0") {
       const today = new Date().toISOString().slice(0, 10);
       const countryName = country ? `(${country})` : "(KR)";
+      const askingNegative = isUserAskingAboutNegative(question);
       const filterHint = filters && Object.keys(filters).length
         ? Object.entries(filters).filter(([_,v])=>Array.isArray(v)&&v.length).slice(0,3).map(([k,v])=>`${k}: ${v.join("·")}`).join(" / ")
         : "";
-      const q = `${today} 기준 ${countryName} 시장의 관련 최신 대중적 인기·선호 트렌드·인물·브랜드·작품을 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n[중요 조건]\n- **긍정적인 선호·화제·트렌드만** 조사하세요. 논란·논쇟·안티팬·악플·부정적 이슈·명예훼손·공격·반대 여론 등은 **제외**.\n- "세이는 이슈", "트렌드 마친 이슈", "않소시테뚝" 등 부정·공격 성격 키워드 제외.\n- "인기 있는", "좋아하는", "화제의", "주목받는" 등 중립·긍정 단어만 사용.\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 긍정 설명과 함께 8~12문장으로 답해주세요. 한국어로.`;
+      const q = askingNegative
+        ? `${today} 기준 ${countryName} "${question}"에 대한 공개된 사실·보도·이슈를 6~10문장으로 정리해주세요. 사실만, 추측·확대 해석 금지, 한국어로.`
+        : `${today} 기준 ${countryName} 시장의 관련 최신 대중적 인기·선호 트렌드·인물·브랜드·작품을 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n[중요 조건]\n- **긍정적인 선호·화제·트렌드만** 조사하세요. 논란·논쇟·안티팬·악플·부정적 이슈·명예훼손·공격·반대 여론 등은 **제외**.\n- "세이는 이슈", "트렌드 마친 이슈", "않소시테뚝" 등 부정·공격 성격 키워드 제외.\n- "인기 있는", "좋아하는", "화제의", "주목받는" 등 중립·긍정 단어만 사용.\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 긍정 설명과 함께 8~12문장으로 답해주세요. 한국어로.`;
       console.log("[insight-grounding] query:", q.slice(0, 180));
       const g = await searchAndSummarize({ query: q, maxTokens: 2000 });
       console.log("[insight-grounding] result: text_len=", (g.text||"").length, "grounded=", g.grounded, "error=", g.error || "none");
@@ -405,8 +408,10 @@ ${panelStr}
     ans.kpis = panelKpis;
     ans.panelCharts = panelCharts;
 
-    // 세이프티 정화 (부정 트렌드/차별/혐오/정치/유해 콘텐츠/광고 추천)
-    sanitizeAnswerObject(ans, "insight");
+    // 세이프티 정화 — 사용자가 명시적으로 부정 이슈를 물으면 negative_trend 허용
+    const allowNeg = isUserAskingAboutNegative(question);
+    sanitizeAnswerObject(ans, "insight", { allowNegativeTrend: allowNeg });
+    if (allowNeg) console.log("[insight] explicit negative inquiry — allowing fact-based answer:", question.slice(0,80));
 
     // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
     // CEO 정책: 출처 표시 금지 — sources 강제로 빈 배열 유지

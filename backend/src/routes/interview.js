@@ -6,7 +6,7 @@ import { Router } from "express";
 import { COUNTRIES } from "../data/countries.js";
 import { DIMENSIONS } from "../data/dimensions.js";
 import { chat, generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
-import { sanitizeText as safetyClean, SAFETY_PROMPT_GUIDE } from "../lib/safety.js";
+import { sanitizeText as safetyClean, isUserAskingAboutNegative, SAFETY_PROMPT_GUIDE } from "../lib/safety.js";
 import { getCountryStats } from "../adapters/worldbank.js";
 import {
   getCountryAdSpend, getKoreaMediaAdSpend,
@@ -777,7 +777,8 @@ interviewRouter.post("/chat", async (req, res) => {
       { role: "user", content: userMessage },
     ];
     const result = await chat({ messages, system, temperature: 0.8 });
-    const sanitized = safetyClean(result.text, "interview.chat");
+    const allowNeg = isUserAskingAboutNegative(userMessage);
+    const sanitized = safetyClean(result.text, "interview.chat", { allowNegativeTrend: allowNeg });
     res.json({
       ok: true,
       reply: sanitized,

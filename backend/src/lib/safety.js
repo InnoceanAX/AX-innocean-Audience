@@ -45,6 +45,26 @@ const SAFETY_CATEGORIES = [
 ];
 
 /* ──────────────────────────────────────────────────────────────────
+   사용자 의도 검사 (명시적 부정 이슈 조회)
+   ──────────────────────────────────────────────────────────────────
+   사용자가 명시적으로 부정 이슈를 물으면 답변 허용 (sanitize 우회).
+   자동 추천·권유에서만 부정 이슈 차단.
+*/
+export function isUserAskingAboutNegative(userQuestion) {
+  if (!userQuestion || typeof userQuestion !== "string") return false;
+  // 명시적 부정 이슈 문의 패턴
+  const explicitAskPatterns = [
+    /논란/, /이슈/, /논쟁/, /스캔들/, /소송/, /프로세스/, /재판/,
+    /혹평/, /문제/, /구설/, /루머/, /가십/, /폭로/, /배신/,
+    /안티팬/, /악플/, /마녀사냥/, /입장문/, /사과문/, /문제점/,
+    /알아\?/, /알고/, /들어봤/, /볼 수 있/, /어떻게 생각/, /의견/, /평가/,
+    /시킴/, /머일/, /죄/, /범죄/, /수사/, /판결/, /구속/, /체포/,
+    /학폭/, /폭행/, /의혹/, /혐의/, /기소/, /영장/, /왕따/, /괴롭/
+  ];
+  return explicitAskPatterns.some(re => re.test(userQuestion));
+}
+
+/* ──────────────────────────────────────────────────────────────────
    부적절 텍스트 감지·치환
    ────────────────────────────────────────────────────────────────── */
 export function detectViolations(text) {
@@ -59,11 +79,14 @@ export function detectViolations(text) {
   return hits;
 }
 
-export function sanitizeText(text, context = "") {
+export function sanitizeText(text, context = "", options = {}) {
   if (!text || typeof text !== "string") return text;
+  const { allowNegativeTrend = false } = options;
   let out = text;
   let logged = false;
   for (const cat of SAFETY_CATEGORIES) {
+    // 사용자가 명시적으로 부정 이슈를 물으면 negative_trend는 허용
+    if (allowNegativeTrend && cat.name === "negative_trend") continue;
     const re = new RegExp(cat.re.source, cat.re.flags);
     if (re.test(out)) {
       if (!logged) {
@@ -79,22 +102,22 @@ export function sanitizeText(text, context = "") {
 /* ──────────────────────────────────────────────────────────────────
    답변 객체(persona/voice/headline 등) 일괄 정화
    ────────────────────────────────────────────────────────────────── */
-export function sanitizeAnswerObject(ans, context = "answer") {
+export function sanitizeAnswerObject(ans, context = "answer", options = {}) {
   if (!ans || typeof ans !== "object") return ans;
-  if (typeof ans.headline === "string") ans.headline = sanitizeText(ans.headline, `${context}.headline`);
-  if (typeof ans.narrative === "string") ans.narrative = sanitizeText(ans.narrative, `${context}.narrative`);
-  if (typeof ans.outOfScopeMessage === "string") ans.outOfScopeMessage = sanitizeText(ans.outOfScopeMessage, `${context}.oos`);
+  if (typeof ans.headline === "string") ans.headline = sanitizeText(ans.headline, `${context}.headline`, options);
+  if (typeof ans.narrative === "string") ans.narrative = sanitizeText(ans.narrative, `${context}.narrative`, options);
+  if (typeof ans.outOfScopeMessage === "string") ans.outOfScopeMessage = sanitizeText(ans.outOfScopeMessage, `${context}.oos`, options);
   if (Array.isArray(ans.personaSamples)) {
     for (const p of ans.personaSamples) {
-      if (typeof p.voice === "string") p.voice = sanitizeText(p.voice, `${context}.voice`);
-      if (typeof p.tagline === "string") p.tagline = sanitizeText(p.tagline, `${context}.tagline`);
-      if (Array.isArray(p.attributes)) p.attributes = p.attributes.map(a => typeof a === "string" ? sanitizeText(a, `${context}.attr`) : a);
+      if (typeof p.voice === "string") p.voice = sanitizeText(p.voice, `${context}.voice`, options);
+      if (typeof p.tagline === "string") p.tagline = sanitizeText(p.tagline, `${context}.tagline`, options);
+      if (Array.isArray(p.attributes)) p.attributes = p.attributes.map(a => typeof a === "string" ? sanitizeText(a, `${context}.attr`, options) : a);
     }
   }
   if (Array.isArray(ans.kpis)) {
     for (const k of ans.kpis) {
-      if (typeof k.label === "string") k.label = sanitizeText(k.label, `${context}.kpi.label`);
-      if (typeof k.sub === "string") k.sub = sanitizeText(k.sub, `${context}.kpi.sub`);
+      if (typeof k.label === "string") k.label = sanitizeText(k.label, `${context}.kpi.label`, options);
+      if (typeof k.sub === "string") k.sub = sanitizeText(k.sub, `${context}.kpi.sub`, options);
     }
   }
   return ans;
@@ -106,7 +129,9 @@ export function sanitizeAnswerObject(ans, context = "answer") {
 export const SAFETY_PROMPT_GUIDE = `
 [INNOCEAN 답변 세이프티 가이드 — 반드시 지킬 것]
 
-1. **부정 트렌드 금지**: 선호·취향 답변은 긍정 트렌드만 인용. 논란·안티팬·소송·혹평·이혼·마약·악플·스캔들·싫어·구설·폭로·음주운전·학폭·미투 등 금지. 부정 이슈가 있는 인물·작품은 아예 인용하지 말고 다른 긍정 사례로 대체.
+1. **부정 트렌드 (조건부)**: 
+   - **자동 추천·권유 시**: 선호·취향을 자동으로 추천할 때는 긍정 트렌드만 인용. 논란·안티팬·소송·혹평·이혼·마약·악플·스캔들 등을 먼저 꺼내지 말 것.
+   - **사용자가 명시적으로 물을 때** (예: "OO 논란에 대해 알아?", "OO 스캔들 알려줘", "OO 이슈 어떻게 생각해?"): **사실 기반으로 답변**. 알려진 공개 사실만 제공, 과장·가십·추측 금지. 의견·도덕적 판단보다 사실 위주.
 
 2. **차별·혐오 금지**: 특정 인종·민족·성별·종교·지역·연령·장애인·성소수자에 대한 차별·혐오·비하 표현 절대 금지. 객관·중립 묘사만.
 
