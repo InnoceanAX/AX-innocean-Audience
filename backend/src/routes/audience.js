@@ -623,7 +623,12 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
   }
 
-  // CEO 2026-06-12: 심화 차트 필수 필드 폴백 (LLM이 누락하면 룰 기반으로 채움)
+  // CEO 2026-06-12: 필터 없는 모드에서도 심화 차트 데이터 보장 — 폴백을 구조 골격으로 사용
+  if (!synthesized) {
+    synthesized = { who: {}, life: {}, mind: {}, love: {}, buy: {}, media: {} };
+    method = "fallback-only";
+  }
+  // CEO 2026-06-12: 심화 차트 필수 필드 폴백 (LLM이 누락하거나 baseline·시에도 적용)
   if (synthesized) {
     synthesized.mind = synthesized.mind || {};
     if (!synthesized.mind.decisionStyle || Object.keys(synthesized.mind.decisionStyle).length === 0) {
@@ -697,8 +702,14 @@ audienceRouter.post("/synthesize", async (req, res) => {
       synthesized.life.travelFreq = { "분기·1회": 40, "월 1회": 25, "반기 1회": 20, "연 1회": 15 };
     }
 
-    // WHO 차트 수단 해백 (이미 ageDistribution 등은 올 가능성 높음 — 이처 안전망)
+    // WHO 차트 수단 해백
     synthesized.who = synthesized.who || {};
+    if (!synthesized.who.ageDistribution || !Object.keys(synthesized.who.ageDistribution).length) {
+      synthesized.who.ageDistribution = { "10대": 12, "20대": 18, "30대": 18, "40대": 18, "50대": 18, "60대 이상": 16 };
+    }
+    if (!synthesized.who.genderRatio || !Object.keys(synthesized.who.genderRatio).length) {
+      synthesized.who.genderRatio = { "남성": 50, "여성": 50 };
+    }
     if (!synthesized.who.occupationDistribution || !Object.keys(synthesized.who.occupationDistribution).length) {
       synthesized.who.occupationDistribution = { "사무직": 35, "서비스·영업": 25, "전문직·교육": 15, "자영업·프리랜서": 15, "주부·교육중": 10 };
     }
