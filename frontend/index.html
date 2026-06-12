@@ -2475,18 +2475,28 @@ async function chatBoardJumpToTab(tab){
 }
 
 function showJumpLoading(tab, q){
-  // 해당 탭과 summary에 즉시 로딩 화면 주입 — CEO 피드백 #2
+  // CEO 피드백 #2: 해당 탭의 {tab}-body에만 로딩 주입 (원래 탭 구조 보존)
   const tabLabels = { who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', summary:'요약', overview:'빌더' };
   const safeQ = (q || '질문').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
-  const html = '<div class="aud-jump-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:14px;margin:24px">'
-    + '<div style="width:48px;height:48px;border:4px solid #E0E7FF;border-top:4px solid #6366F1;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:18px"></div>'
-    + '<div style="font-size:17px;font-weight:700;color:#4338CA;margin-bottom:8px">AI 페르소나 패널 합성 중…</div>'
-    + '<div style="font-size:13.5px;color:#4B5563;line-height:1.65;max-width:520px">"' + safeQ + '"<br/>→ <b>' + (tabLabels[tab] || tab) + '</b> 표준 분석 데이터를 생성하고 있습니다</div>'
-    + '<div style="font-size:11.5px;color:#9CA3AF;margin-top:14px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
+  const html = '<div class="aud-jump-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:14px;margin:14px 0">'
+    + '<div style="width:42px;height:42px;border:4px solid #E0E7FF;border-top:4px solid #6366F1;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px"></div>'
+    + '<div style="font-size:16px;font-weight:700;color:#4338CA;margin-bottom:6px">AI 페르소나 패널 합성 중…</div>'
+    + '<div style="font-size:13px;color:#4B5563;line-height:1.6;max-width:520px">"' + safeQ + '"<br/>→ <b>' + (tabLabels[tab] || tab) + '</b> 표준 분석 데이터를 생성하고 있습니다</div>'
+    + '<div style="font-size:11px;color:#9CA3AF;margin-top:12px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
     + '</div>';
+  // {tab}-body에만 주입 — 분석 완료 후 refreshAudienceTab이 다시 채워줌
   [tab, 'summary'].forEach(t => {
-    const el = document.getElementById('tab-' + t); if(!el) return;
-    el.innerHTML = html;
+    const body = document.getElementById(t + '-body');
+    if(body){ body.innerHTML = html; return; }
+    // body 없으면 탭 전체 폴백
+    const el = document.getElementById('tab-' + t);
+    if(el){
+      const existing = el.querySelector('.aud-jump-loading');
+      if(existing) existing.remove();
+      const wrap = document.createElement('div');
+      wrap.innerHTML = html;
+      el.appendChild(wrap.firstChild);
+    }
   });
 }
 
