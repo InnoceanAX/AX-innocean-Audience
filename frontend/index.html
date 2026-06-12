@@ -2894,13 +2894,29 @@ function switchMode(mode){
     }
     const askBanner = document.getElementById('ask-banner');
     if(askBanner){ askBanner.classList.add('hide'); askBanner.innerHTML = ''; }
-    // CEO 2026-06-12 15:37: 글로벌 비교 → 홈 → 타겟 인사이트 진입 시 명시적으로 모든 탭 숨김 + 빌더(overview) 탭을 첫 화면으로
+    // CEO 2026-06-12 15:46: 타겟 인사이트 진입 시 무조건 빌더(overview) 첫 화면 + 모든 탭 내용 초기화
+    // 다른 탭들 innerHTML도 완전 비움 — 윈조존 잔덽 남을 가능성 0으로
+    ['summary','insights','interview','compare','media'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if(el){ el.classList.add('hide'); el.innerHTML = ''; }
+    });
     document.querySelectorAll('.ws-content').forEach(el => el.classList.add('hide'));
     document.querySelectorAll('.ws-tab').forEach(x => x.classList.remove('active'));
     state.currentTab = 'overview';
     const ovTab = document.querySelector('.ws-tab[data-tab="overview"]'); if(ovTab) ovTab.classList.add('active');
     const ovContent = document.getElementById('tab-overview'); if(ovContent) ovContent.classList.remove('hide');
     goBuilder();
+    // 1초 후에도 한 번 더 강제 — 비동기 렌더링으로 요약/인사이트 다시 떠오는 경우 차단
+    setTimeout(() => {
+      if(state.currentMode === 'insight' && state.currentTab === 'overview'){
+        ['summary','insights','interview','compare','media','who','life','mind','love','buy'].forEach(t => {
+          const el = document.getElementById('tab-' + t);
+          if(el && t !== 'overview') el.classList.add('hide');
+        });
+        const ov = document.getElementById('tab-overview');
+        if(ov) ov.classList.remove('hide');
+      }
+    }, 800);
     history.pushState({ view: 'insight' }, '', '/insight');
   }
 }
