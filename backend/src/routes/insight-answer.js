@@ -6,7 +6,6 @@
 
 import { Router } from "express";
 import { generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
-import { sanitizeAnswerObject, isUserAskingAboutNegative, SAFETY_PROMPT_GUIDE } from "../lib/safety.js";
 import { COUNTRIES } from "../data/countries.js";
 import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
 import { getCountryAdSpend } from "../adapters/adspend-public.js";
@@ -221,9 +220,6 @@ insightAnswerRouter.post("/", async (req, res) => {
   // 시의성 grounding — Google Search로 최근 1~3개월 트렌드/이슈/인물/작품/브랜드 컨텍스트 보강
   let realtimeBlock = "";
   let groundingUsed = false;
-  // 사용자가 명시적으로 부정 이슈를 묻는지 검사 (스코프: 전체 함수)
-  const askingNegative = isUserAskingAboutNegative(question);
-
   try {
     if (process.env.PERSONA_USE_GROUNDING !== "0") {
       const today = new Date().toISOString().slice(0, 10);
@@ -231,82 +227,18 @@ insightAnswerRouter.post("/", async (req, res) => {
       const filterHint = filters && Object.keys(filters).length
         ? Object.entries(filters).filter(([_,v])=>Array.isArray(v)&&v.length).slice(0,3).map(([k,v])=>`${k}: ${v.join("·")}`).join(" / ")
         : "";
-      const q = askingNegative
-        ? `${today} 기준 ${countryName} "${question}"에 대한 공개된 사실·보도·이슈를 6~10문장으로 정리해주세요. 사실만, 추측·확대 해석 금지, 한국어로.`
-        : `${today} 기준 ${countryName} 시장의 관련 최신 대중적 인기·선호 트렌드·인물·브랜드·작품을 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n[필수 안전 조건 — 반드시 지킬 것]\n- **최근 2~3년 내 학교폭력·논란·소송·스캔들·음주운전·마약·갈등·구설수·미투·폭로 등 부정 이슈가 없는** 인물·작품·브랜드만 추천.\n- 사회적 이슈 있는 후보는 **명단에서 완전히 제외**. (예: 학폭 의혹 받은 가수·배우, 음주운전 적발 인물, 소송 진행 중인 브랜드 등)\n- 안전한 인물 = 최근 활발 활동 중 + 부정 이슈 없음 + 대중 호감도 안정.\n- 의심스러우면 추천하지 말고 다른 안전한 후보 선택.\n\n[긍정 톤 조건]\n- "인기 있는", "좋아하는", "화제의", "주목받는" 등 중립·긍정 단어만 사용.\n- 부정·공격·이슈 성격 키워드 제외.\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 긍정 설명과 함께 8~12문장으로 답해주세요. 한국어로.`;
+      const q = `${today} 기준 ${countryName} 시장의 관련 최신 대중적 인기·선호 트렌드·인물·브랜드·작품을 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 설명과 함께 8~12문장으로 답해주세요. 한국어로.`;
       console.log("[insight-grounding] query:", q.slice(0, 180));
       const g = await searchAndSummarize({ query: q, maxTokens: 2000 });
       console.log("[insight-grounding] result: text_len=", (g.text||"").length, "grounded=", g.grounded, "error=", g.error || "none");
       if (g.text && g.text.length > 30) {
-        realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n\n[후보 안전 재확인 — 매우 중요]\n- 위 요약에 등장한 인물·작품·브랜드를 인용하기 전에, 본인의 사전 지식으로 그 후보가 최근 2~3년 내 학폭/논란/소송/스캔들/음주운전/마약/갈등/구설/미투/폭로 등 부정 이슈가 있는지 확인하세요.\n- 부정 이슈가 조금이라도 있는 후보는 **절대 답변에 포함 금지**. 다른 안전한 후보로 대체하거나 아예 그 자리에서 제외.\n- 의심스러우면 인용하지 말 것. 안전한 인물만 선택.\n- 위 요약에 부정·논란·안티·악플 키워드가 있으면 그 후보 자체를 답변에서 제외.`;
+        realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 답변·페르소나 voice·tagline에 우선적으로 활용. 옛 정보 대신 위 최신 정보의 인물·브랜드·작품명을 인용하세요.)`;
         groundingUsed = true;
       }
     }
   } catch (e) { console.error("[insight-grounding] error:", e.message); }
 
   try {
-    // 사용자 의도: 명시적 부정 조회 — 다른 시스템 프롬프트(사실 요약) 사용
-    if (askingNegative) {
-      const factSystem = `당신은 사실 기반 정보 정리 도우미입니다.
-사용자가 명시적으로 특정 논란·이슈·스캔들에 대해 질문하면, 위 [실시간 웹 검색 요약]의 공개된 사실만 정리해서 답해주세요.
-
-[원칙]
-- 사실만, 의견·도덕적 판단·추측·과장 금지
-- "알려진 사실은…", "보도된 바에 따르면…" 등 객관 표현 사용
-- 미확인 루머·가십 인용 금지
-- 한국어, 이모지 금지
-
-[답변 구조]
-{
-  inScope: true,
-  headline: "한 줄 사실 요약 (40~80자)",
-  narrative: "공개 사실 위주 핵심 정리 4~6문장 (각각 한 문장씩)",
-  personaSamples: [],
-  sources: [],
-  relatedInsights: [],
-  outOfScopeMessage: null
-}
-
-[실시간 웹 검색 요약 활용]
-- 위 검색 요약의 사실을 narrative에 정리
-- 검색 결과 없으면 "현재 공개된 정보가 없습니다"라고 답하고 narrative만 짧게 작성`;
-      const factPrompt = `사용자 질문: "${question}"
-국가: ${country || "KR"}${realtimeBlock}
-
-위 실시간 검색 결과의 공개된 사실만 정리해주세요. 4~6문장.`;
-      try {
-        const factResult = await generateJSON({
-          prompt: factPrompt, system: factSystem,
-          schema: {
-            type: "object",
-            properties: {
-              inScope: { type: "boolean" },
-              headline: { type: "string" },
-              narrative: { type: "string" },
-            },
-            required: ["headline", "narrative"]
-          },
-          model: "gemini-2.5-flash",
-          temperature: 0.2,
-          maxOutputTokens: 2000,
-        });
-        if (factResult && factResult.json) {
-          const ans = {
-            inScope: true,
-            headline: factResult.json.headline || "",
-            narrative: factResult.json.narrative || "",
-            personaSamples: [],
-            sources: [],
-            relatedInsights: [],
-            outOfScopeMessage: null,
-            kpis: [],
-            panelCharts: [],
-          };
-          return res.json({ ok: true, answer: ans, meta: { method: "fact-grounding", grounding: groundingUsed } });
-        }
-      } catch (e) { console.error("[insight-fact] error:", e.message); }
-    }
-
     const system = `당신은 INNOCEAN의 AI 페르소나 리서치 데이터 분석가입니다.
 사용자 질문에 대해 INNOCEAN AI 페르소나 패널 데이터를 근거로 답변합니다.
 
@@ -380,8 +312,7 @@ insightAnswerRouter.post("/", async (req, res) => {
 - outOfScopeMessage 필수 (빈 문자열 금지)
 
 [언어]
-- 모든 텍스트는 한국어. 이모지 금지.
-${SAFETY_PROMPT_GUIDE}`;
+- 모든 텍스트는 한국어. 이모지 금지.`;
 
     const filterStr = filters && Object.keys(filters).length
       ? Object.entries(filters).filter(([_, v]) => Array.isArray(v) && v.length).map(([k, v]) => `${k}: ${v.join(", ")}`).join(" / ")
@@ -470,10 +401,6 @@ ${panelStr}
     // 패널 데이터 기반 차트/KPI 주입 (LLM이 안 줘도 보장)
     ans.kpis = panelKpis;
     ans.panelCharts = panelCharts;
-
-    // 세이프티 정화 — 사용자가 명시적으로 부정 이슈를 물으면 negative_trend 허용
-    sanitizeAnswerObject(ans, "insight", { allowNegativeTrend: askingNegative });
-    if (askingNegative) console.log("[insight] explicit negative inquiry — allowing fact-based answer:", question.slice(0,80));
 
     // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
     if (ans.sources.length === 0 || !/INNOCEAN.*패널/.test(ans.sources[0]?.label || "")) {
