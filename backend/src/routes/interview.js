@@ -15,6 +15,18 @@ import {
 import { CHANNELS, flattenMedia } from "../data/media-taxonomy.js";
 
 
+
+// 출처·근거 표시 제거 — 페르소나 인터뷰는 출처 노출 금지
+function stripSourceCitations(text) {
+  if (!text || typeof text !== "string") return text;
+  let out = text;
+  // [출처], (출처: …), 출처: …, 근거: …, 참고: … 등 패턴 제거
+  out = out.replace(/\s*\[\s*(출처|근거|참고|데이터|자료)[^\]]*\]\s*/g, " ");
+  out = out.replace(/\s*\(\s*(출처|근거|참고|데이터|자료)\s*[:：][^)]*\)\s*/g, " ");
+  out = out.replace(/(^|[\n.!?])\s*(출처|근거|참고|데이터|자료)\s*[:：][^\n.!?]*([\n.!?]|$)/g, "$1$3");
+  return out.replace(/\s{2,}/g, " ").trim();
+}
+
 export const interviewRouter = Router();
 
 // POST /api/interview/persona  — 페르소나 카드 생성
@@ -769,7 +781,12 @@ interviewRouter.post("/chat", async (req, res) => {
 
 · **한국어 잘못 쓰지 마세요.** "따라 하기 싫을" / "너무 귀엽잖아요" 식의 어색한 표현은 금지. 한국어 원어민 수준의 자연스러운 말투만 쓰세요.
 
-한국어로 자연스럽게, 1–3문장으로 답변. 답변 끝에 답변자 이름을 표시하지 마세요.${realtimeBlock}`;
+한국어로 자연스럽게, 1–3문장으로 답변. 답변 끝에 답변자 이름을 표시하지 마세요.
+
+[출처·근거 표시 금지 — CEO 정책]
+- 답변에 "[출처]", "출처:", "(출처: ...)", "근거:", "참고:", "데이터:", "[참고]", "(참고: ...)" 같은 표시 절대 사용 금지.
+- 페르소나는 자연인의 대화처럼 말합니다. 출처를 인용하는 어체("자료에 따르면", "통계에 따르면", "INNOCEAN 패널에 의하면") 등도 금지.
+- 위 [실시간 웹 검색 요약]을 참고하더라도 일상 표현으로만 녹여 말하고 출처는 언급하지 마세요.${realtimeBlock}`;
 
   try {
     const messages = [
@@ -778,7 +795,8 @@ interviewRouter.post("/chat", async (req, res) => {
     ];
     const result = await chat({ messages, system, temperature: 0.8 });
     const allowNeg = isUserAskingAboutNegative(userMessage);
-    const sanitized = safetyClean(result.text, "interview.chat", { allowNegativeTrend: allowNeg });
+    let sanitized = safetyClean(result.text, "interview.chat", { allowNegativeTrend: allowNeg });
+    sanitized = stripSourceCitations(sanitized);
     res.json({
       ok: true,
       reply: sanitized,

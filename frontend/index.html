@@ -2410,8 +2410,13 @@ function renderAnswerBoard(a, idx){
         + '</div>';
     }).join('') + '</div></div>' : '';
 
-  // 출처 — CEO 정책 (2026-06-12 16:57): 답변 프테서 출처 표시 숨김
-  const sourcesHtml = '';
+  // 출처
+  const sourcesHtml = (a.sources || []).length ? '<div class="cb-sources">'
+    + '<div class="cb-sources-t">데이터 근거</div>'
+    + '<div class="cb-sources-list">' + (a.sources || []).map(s => {
+      const lbl = escapeHtml(s.label || '');
+      return s.url ? '<span class="cb-sources-item"><a href="' + escapeHtml(s.url) + '" target="_blank">' + lbl + '</a></span>' : '<span class="cb-sources-item">' + lbl + '</span>';
+    }).join('') + '</div></div>' : '';
 
   // 관련 표준 분석 링크
   const relatedHtml = (a.relatedInsights || []).length ? '<div class="cb-related">'

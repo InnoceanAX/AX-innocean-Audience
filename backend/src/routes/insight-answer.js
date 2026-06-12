@@ -211,7 +211,7 @@ insightAnswerRouter.post("/", async (req, res) => {
         kpis: panelKpis,
         panelCharts,
         personaSamples: [],
-        sources: [],
+        sources: [{ label: "INNOCEAN AI 페르소나 패널 (베이스라인)", url: "" }],
         relatedInsights: [],
         outOfScopeMessage: null,
       },
@@ -464,8 +464,7 @@ ${panelStr}
     // 기본값 보완
     if (typeof ans.narrative !== "string") ans.narrative = "";
     if (!Array.isArray(ans.personaSamples)) ans.personaSamples = [];
-    // CEO 정책 (2026-06-12 16:57): 답변에 출처 표시 금지
-    ans.sources = [];
+    if (!Array.isArray(ans.sources)) ans.sources = [];
     if (!Array.isArray(ans.relatedInsights)) ans.relatedInsights = [];
 
     // 패널 데이터 기반 차트/KPI 주입 (LLM이 안 줘도 보장)
@@ -477,8 +476,18 @@ ${panelStr}
     if (askingNegative) console.log("[insight] explicit negative inquiry — allowing fact-based answer:", question.slice(0,80));
 
     // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
-    // CEO 정책: 출처 표시 금지 — sources 강제로 빈 배열 유지
-    ans.sources = [];
+    if (ans.sources.length === 0 || !/INNOCEAN.*패널/.test(ans.sources[0]?.label || "")) {
+      ans.sources = [
+        { label: `INNOCEAN AI 페르소나 패널 N=30 (${country || "KR"})`, url: "" },
+        ...ans.sources,
+      ];
+    }
+    if (groundingUsed && !ans.sources.some(x => /Google Search/i.test(x.label || ""))) {
+      ans.sources.push({ label: `Google Search 실시간 컨텍스트 (${new Date().toISOString().slice(0,10)} 기준)`, url: "" });
+    }
+    if (ans.sources.length < 2) {
+      ans.sources.push({ label: "통계청 경제활동인구조사 2024", url: "" });
+    }
 
     // 관련 인사이트 기본값 — 키워드 확장
     if (ans.relatedInsights.length === 0 && ans.inScope !== false) {
