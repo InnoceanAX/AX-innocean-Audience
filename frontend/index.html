@@ -2007,16 +2007,15 @@ async function boot(){
     refreshLibCount();
     // 초기 history state 설정
     history.replaceState({ view: 'home' }, '', window.location.href);
-    // 모드 초기화 (URL > localStorage > 기본: chat)
+    // 모드 초기화 (CEO 정책: 새 진입 시 무조건 홈, URL로 명시 지정만 예외)
     const url = new URL(window.location.href);
     const tab = url.searchParams.get('tab');
     const country = url.searchParams.get('country');
     const path = url.pathname || '/';
+    // localStorage 자동복원 금지 — 새로 열면 항상 홈
+    // 이전 세션이 저장해둔 mode 키도 완전 제거 (CEO 2026-06-12)
+    try{ localStorage.removeItem('innocean.audience.mode'); }catch(e){}
     let initialMode = 'chat';
-    try{
-      const savedMode = localStorage.getItem('innocean.audience.mode');
-      if(savedMode === 'insight' || savedMode === 'chat') initialMode = savedMode;
-    }catch(e){}
     if(path.startsWith('/insight') || (tab && country)) initialMode = 'insight';
     else if(path.startsWith('/chat')) initialMode = 'chat';
     state.currentMode = initialMode;
@@ -2027,17 +2026,15 @@ async function boot(){
     const sbIns = document.getElementById('sb-mode-insight');
     if(sbChat) sbChat.classList.toggle('active', initialMode === 'chat');
     if(sbIns) sbIns.classList.toggle('active', initialMode === 'insight');
-    // 첫 진입 정책 (CEO): URL 명시 지정이 있으면 그 화면, 아니면 리셋된 첫 화면
+    // 첫 진입 정책 (CEO 2026-06-12): URL에 tab+country가 명시된 경우만 워크스페이스 진입
+    // 그 외(/insight 포함)는 모두 홈 화면 유지 — 빌더 자동 진입 금지
     if(tab && country){
       state.currentCountry = country;
-      state.userPickedCountry = true;  // URL로 명시 지정된 상태
+      state.userPickedCountry = true;
       await goWorkspace();
       switchTab(tab, { fromHistory: true });
-    } else if(initialMode === 'insight'){
-      // 타겟 인사이트: 자동 복원 안 함, 빌더 첫 화면
-      goBuilder();
     }
-    // initialMode === 'chat' 은 이미 기본 홈 화면 — 추가 복원 없음
+    // 그 외 케이스는 home-mode 그대로 유지 — goBuilder() 호출하지 않음
   } catch(e){
     toast('백엔드 연결 실패: ' + e.message);
     console.error(e);
