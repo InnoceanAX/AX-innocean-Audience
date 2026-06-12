@@ -1120,7 +1120,27 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .ab-close:hover{background:#fff;color:#111}
 .ab-summary{font-size:12px;color:var(--ts);line-height:1.5;margin-bottom:8px}
 .ab-chips{display:flex;flex-wrap:wrap;gap:5px}
-.ab-chip{background:#fff;border:1px solid var(--ind);color:var(--ind);padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.ab-chip{background:#fff;border:1px solid var(--ind);color:var(--ind);padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.ab-chip-x{font-size:13px;opacity:.6;line-height:1}
+.ab-chip:hover .ab-chip-x{opacity:1}
+.ab-filters{margin-top:10px;border-top:1px dashed #C7D2FE;padding-top:8px}
+.ab-filters-sum{cursor:pointer;font-size:11.5px;color:var(--ind);font-weight:700;list-style:none;padding:4px 0}
+.ab-filters-sum::-webkit-details-marker{display:none}
+.ab-filters-sum::before{content:'▶';display:inline-block;margin-right:6px;font-size:9px;transition:transform .15s}
+.ab-filters[open] .ab-filters-sum::before{transform:rotate(90deg)}
+.ab-filters-body{margin-top:8px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;max-height:280px;overflow-y:auto}
+.ab-grp{margin-bottom:10px}
+.ab-grp:last-child{margin-bottom:0}
+.ab-grp-t{font-size:10.5px;color:#6B7280;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.ab-dim{margin-bottom:6px}
+.ab-dim-l{font-size:11.5px;color:var(--ts);margin-bottom:3px}
+.ab-dim-chips{display:flex;flex-wrap:wrap;gap:4px}
+.ab-opt{background:#fff;border:1px solid var(--bdr);color:var(--ts);padding:3px 9px;border-radius:12px;font-size:11px;font-family:inherit;cursor:pointer;transition:all .15s}
+.ab-opt:hover{border-color:var(--ind);color:var(--ind)}
+.ab-opt.active{background:var(--ind);border-color:var(--ind);color:#fff;font-weight:600}
+.ab-filters-act{margin-top:8px;display:flex;justify-content:flex-end}
+.ab-apply{background:var(--ind);color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer}
+.ab-apply:hover{background:var(--ind2)}
 .ab-empty{font-size:11px;color:var(--tm);font-style:italic}
 .ab-rsn{margin-top:8px;font-size:11px;color:var(--tm)}
 .ab-rsn summary{cursor:pointer;font-weight:600;outline:none}
@@ -1478,7 +1498,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span>라이프스타일</span>
       </div>
       <div class="ws-tab" data-tab="mind" onclick="switchTab('mind')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg></span><span>가치관</span>
+        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span><span>가치관</span>
       </div>
       <div class="ws-tab" data-tab="love" onclick="switchTab('love')">
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span>관심사</span>
@@ -2712,12 +2732,16 @@ function isMeaningfulReasoning(reasoning, filters, question){
 function showAskBanner(data){
   const p = data.parsed;
   const country = state.countries.find(c => c.code === p.country);
+  // 적용된 필터 chips (구별 표시 + 제거 가능)
   const filterParts = Object.entries(p.filters || {}).map(([k,v]) => {
     const dim = state.dimensions.find(d => d.id === k);
-    return `<span class="ab-chip">${dim?.label || k}: ${v.join(', ')}</span>`;
+    return `<span class="ab-chip ab-chip-active" title="클릭해서 해제" onclick="abRemoveFilter('${k}')"><span>${dim?.label || k}: ${v.join(', ')}</span><span class="ab-chip-x">×</span></span>`;
   }).join('');
   const summary = p.summary || `${country?.name || p.country} 세그먼트 분석`;
   const methodBadge = data.meta?.method?.startsWith('gemini') ? '<span class="ab-ai">AI</span>' : '<span class="ab-rule">RULE</span>';
+  // CEO 2026-06-12: 점프 진입 시에도 빌더와 동일한 전체 필터 옵션을 펼쳐볼 수 있게 표시
+  // 주요 차원별 옵션을 다수 구성 (세그먼트 조정 가능)
+  const dimOptionsHtml = renderAbFilterOptions(p.filters || {});
   const banner = document.getElementById('ask-banner');
   banner.innerHTML = `
     <div class="ab-hd">
@@ -2727,8 +2751,77 @@ function showAskBanner(data){
     </div>
     <div class="ab-summary">${summary}</div>
     ${filterParts ? `<div class="ab-chips">${filterParts}</div>` : '<div class="ab-empty">추출된 필터 없음 — 전체 세그먼트</div>'}
+    <details class="ab-filters" open>
+      <summary class="ab-filters-sum">세그먼트 조정 — 필터 옵션 펼치기/접기</summary>
+      <div class="ab-filters-body">${dimOptionsHtml}</div>
+      <div class="ab-filters-act">
+        <button class="ab-apply" onclick="applyAbFiltersAndRerun()">필터 적용 후 다시 분석</button>
+      </div>
+    </details>
     ${isMeaningfulReasoning(p.reasoning, p.filters, data.question) ? `<details class="ab-rsn"><summary>추론 근거</summary><div class="ab-rsn-x">${p.reasoning}</div></details>` : ''}`;
   banner.classList.remove('hide');
+}
+
+// CEO 2026-06-12: ask-banner의 필터 옵션 팬널 렌더링 (빌더와 동일한 디멘션 chip)
+function renderAbFilterOptions(currentFilters){
+  if(!state.dimensions || state.dimensions.length === 0) return '';
+  const groupedDims = {};
+  for(const d of state.dimensions){
+    (groupedDims[d.group] = groupedDims[d.group] || []).push(d);
+  }
+  const groupOrder = Object.keys(state.groups || {}).sort((a,b)=>(state.groups[a].order||0)-(state.groups[b].order||0));
+  let html = '';
+  for(const g of groupOrder){
+    const dims = groupedDims[g] || [];
+    if(dims.length === 0) continue;
+    html += `<div class="ab-grp"><div class="ab-grp-t">${state.groups[g].label}</div>`;
+    for(const d of dims){
+      const selected = currentFilters[d.id] || [];
+      html += `<div class="ab-dim"><div class="ab-dim-l">${d.label}</div><div class="ab-dim-chips">`;
+      for(const opt of d.options){
+        const active = selected.includes(opt);
+        html += `<button class="ab-opt ${active?'active':''}" onclick="abToggleOption('${d.id}','${opt.replace(/'/g,"\\'")}')">${opt}</button>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
+// ask-banner에서 필터 옵션 토글
+function abToggleOption(dimId, opt){
+  state.filters = state.filters || {};
+  state.filters[dimId] = state.filters[dimId] || [];
+  const idx = state.filters[dimId].indexOf(opt);
+  if(idx >= 0) state.filters[dimId].splice(idx, 1);
+  else state.filters[dimId].push(opt);
+  if(state.filters[dimId].length === 0) delete state.filters[dimId];
+  // state.lastAsk 동기화
+  if(state.lastAsk && state.lastAsk.parsed){
+    state.lastAsk.parsed.filters = state.lastAsk.parsed.filters || {};
+    if(state.filters[dimId]) state.lastAsk.parsed.filters[dimId] = state.filters[dimId].slice();
+    else delete state.lastAsk.parsed.filters[dimId];
+  }
+  // 배너 재렌더링
+  if(state.lastAsk) showAskBanner(state.lastAsk);
+}
+
+// ask-banner의 적용된 필터 chip에서 제거
+function abRemoveFilter(dimId){
+  if(state.filters) delete state.filters[dimId];
+  if(state.lastAsk && state.lastAsk.parsed && state.lastAsk.parsed.filters){
+    delete state.lastAsk.parsed.filters[dimId];
+  }
+  if(state.lastAsk) showAskBanner(state.lastAsk);
+}
+
+// ask-banner에서 필터 조정 후 다시 분석
+async function applyAbFiltersAndRerun(){
+  if(typeof runAnalysis === 'function'){
+    await runAnalysis();
+    toast('조정된 필터로 분석 완료');
+  }
 }
 
 // ============ NAVIGATION ============
@@ -5776,30 +5869,44 @@ function renderChartSafe(canvasId, type, labels, data, color, opts){
         },
       };
     } else if(type === 'radar'){
+      // CEO 2026-06-12: 레이더 가시성 개선 — 실제 데이터 범위에 맞는 동적 max 계산
+      const numericData = data.map(v => +v || 0);
+      const dataMax = Math.max.apply(null, numericData.concat([0]));
+      let rMax = (opts && opts.rmax) ? opts.rmax : 100;
+      // 데이터 최대가 rMax의 30% 미만이면 자동으로 축소 (넘터 + 20% 여백, 최소 5)
+      if(dataMax > 0 && dataMax < rMax * 0.3){
+        rMax = Math.max(Math.ceil(dataMax * 1.25), 5);
+      }
       config = {
         type: 'radar',
         data: {
           labels: labels,
           datasets: [{
-            data: data,
-            backgroundColor: color + '33',
+            data: numericData,
+            backgroundColor: color + '55',
             borderColor: color,
-            borderWidth: 2,
+            borderWidth: 2.5,
             pointBackgroundColor: color,
-            pointRadius: 3,
-            pointHoverRadius: 5,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1,
+            pointRadius: 4,
+            pointHoverRadius: 6,
           }],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (ctx) => ctx.label + ': ' + ctx.parsed.r + suffix } },
+          },
           scales: {
             r: {
               beginAtZero: true,
-              suggestedMax: 100,
-              ticks: { font: { size: 9, family: 'Pretendard' }, color: '#9CA3AF', backdropColor: 'transparent' },
-              pointLabels: { font: { size: 10.5, family: 'Pretendard' }, color: '#374151' },
+              suggestedMax: rMax,
+              min: 0,
+              ticks: { font: { size: 9, family: 'Pretendard' }, color: '#9CA3AF', backdropColor: 'transparent', stepSize: rMax > 50 ? 20 : (rMax > 10 ? 5 : 2) },
+              pointLabels: { font: { size: 10.5, family: 'Pretendard', weight: '600' }, color: '#374151' },
               grid: { color: '#E5E7EB' },
               angleLines: { color: '#E5E7EB' },
             },
@@ -6434,8 +6541,25 @@ async function generatePersona(persona){
     // 패널에서 넘어온 경우 persona 객체 제공
     if(persona){
       state.ivPersona = persona;
-      state.ivHistory = [];
-      document.getElementById('iv-msgs').innerHTML = '';
+      // CEO 2026-06-12: 패널별 대화 기록 보존 — 이전 대화 복원
+      state.ivPersonaChats = state.ivPersonaChats || {};
+      const personaKey = personaCacheKey(persona);
+      const savedChat = state.ivPersonaChats[personaKey];
+      if(savedChat && Array.isArray(savedChat.history) && savedChat.history.length > 0){
+        state.ivHistory = savedChat.history.slice();
+        const msgs = document.getElementById('iv-msgs');
+        if(msgs){
+          // 이전 대화 재생성
+          msgs.innerHTML = state.ivHistory.map(m => {
+            const cls = m.role === 'user' ? 'iv-msg-u' : 'iv-msg-a';
+            return `<div class="iv-msg ${cls}">${escapeHtml(m.content)}</div>`;
+          }).join('');
+          setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 50);
+        }
+      } else {
+        state.ivHistory = [];
+        document.getElementById('iv-msgs').innerHTML = '';
+      }
       // 이미 narratives 있으면 그대로 렌더 + 여정 호출
       if(persona.narratives && persona.narratives.who){
         renderPersonaCard(persona, { method: 'gemini-2.5-flash (panel)' });
@@ -6624,10 +6748,29 @@ async function sendInterview(){
     state.ivHistory.push({role:'user',content:msg});
     state.ivHistory.push({role:'assistant',content:data.reply});
     msgs.scrollTop = msgs.scrollHeight;
+    // CEO 2026-06-12: 패널별 대화 자동 저장
+    if(state.ivPersona){
+      state.ivPersonaChats = state.ivPersonaChats || {};
+      const key = personaCacheKey(state.ivPersona);
+      state.ivPersonaChats[key] = { history: state.ivHistory.slice(), updatedAt: Date.now() };
+    }
   } catch(e){
     document.getElementById('iv-typing')?.remove();
     msgs.innerHTML += `<div class="iv-msg iv-msg-a iv-err">대화 실패: ${e.message}</div>`;
   }
+}
+
+// CEO 2026-06-12: 패널별 대화 기록 저장 키 생성
+function personaCacheKey(persona){
+  if(!persona) return 'unknown';
+  // name + age + occupation + country으로 고유 키 생성
+  const parts = [
+    persona.name || '',
+    persona.age || '',
+    persona.occupation || persona.job || '',
+    state.currentCountry || ''
+  ];
+  return parts.join('|');
 }
 
 // ============ INSIGHTS TAB ============
