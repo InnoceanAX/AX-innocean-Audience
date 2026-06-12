@@ -361,7 +361,7 @@ function synthesizeNarratives(p, meta) {
 }
 
 interviewRouter.post("/panel", async (req, res) => {
-  const { country = "KR", filters = {}, count = 4 } = req.body || {};
+  const { country = "KR", filters = {}, count = 4, seedPersonas = [], seedQuestion = "", anchorPersona = null } = req.body || {};
   const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
   const n = Math.min(5, Math.max(2, Number(count) || 4));
@@ -390,11 +390,25 @@ interviewRouter.post("/panel", async (req, res) => {
 각 패널은 같은 세그먼트에 속하지만, 가치관·라이프스타일·구매동기에서 서로 다른 관점을 제공해야 합니다.
 JSON 스키마에 정확히 따르세요.`;
 
+  // seed 페르소나 + 질문 컨텍스트 추가
+  let seedBlock = "";
+  if (seedPersonas && seedPersonas.length > 0) {
+    seedBlock = `\n\n[원본 AI 채팅 답변의 페르소나 — 패널 1~${Math.min(seedPersonas.length, n)}명에 그대로 시드로 사용]\n`
+      + seedPersonas.slice(0, n).map((sp, i) => `${i+1}. 이름:${sp.name || '미정'} / 한 줄:${sp.voice || sp.tagline || ''} ${sp.tagline ? '/ 슬로건:'+sp.tagline : ''}`).join("\n")
+      + "\n→ 이 시드 페르소나의 voice/tagline/관심사를 유지하면서 나이·직업·라이프스타일·미디어습관 등 디테일을 보강해 주세요. 원본 voice의 어투/관심 영역을 유지하세요.";
+  }
+  if (anchorPersona) {
+    seedBlock += `\n\n[패널 1번 앵커 페르소나 — 단일 인터뷰에서 carry-over]\n` 
+      + JSON.stringify({ name: anchorPersona.name, age: anchorPersona.age, gender: anchorPersona.gender, occupation: anchorPersona.occupation, archetype: anchorPersona.archetype, quote: anchorPersona.quote })
+      + "\n→ 패널의 1번 슬롯에 이 페르소나를 그대로 포함하세요. (다른 슬롯은 같은 세그먼트의 다양성 표현)";
+  }
+  const questionBlock = seedQuestion ? `\n\n[원본 질문 컨텍스트 — 이 질문에 답하는 패널]\n"${seedQuestion}"\n→ 각 페르소나의 voice/quote가 이 질문 맥락(좋아하는 가수·관심사·미디어 등)을 자연스럽게 반영해야 합니다.` : "";
+
   const prompt = `[국가] ${meta.name} (${meta.nameEn})
 [광고 시장] ${adSpendCtx}
 [주요 채널 점유율] ${topChannels}
 [세그먼트 필터]
-${filterDesc || "(필터 없음)"}
+${filterDesc || "(필터 없음)"}${seedBlock}${questionBlock}
 
 위 세그먼트의 다양성을 보여주는 합성 패널 ${n}명을 생성하세요.
 각 패널은 서로 다른 아키타입(예: 얼리 어답터·실용주의·고소득·면천혈·회의주의·장기적)을 가져야 합니다.

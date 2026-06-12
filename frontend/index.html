@@ -361,8 +361,22 @@ body.chat-board-active #screen-workspace{display:none !important}
 }
 .cb-persona-voice{
   font-size:12px;font-style:italic;color:#6366F1;
-  line-height:1.5;padding-top:8px;border-top:1px dashed #E5E7EB;
+  line-height:1.5;padding:8px 0;border-top:1px dashed #E5E7EB;
 }
+.cb-persona-cta{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11.5px;font-weight:600;color:#fff;background:#6366F1;
+  border:none;border-radius:8px;padding:7px 12px;cursor:pointer;
+  margin-top:6px;transition:background .15s,transform .15s;
+}
+.cb-persona-cta:hover{background:#4338CA;transform:translateY(-1px)}
+.cb-personas-actions{margin-top:14px;display:flex;justify-content:flex-end}
+.cb-personas-panel{
+  font-size:12px;font-weight:700;color:#4338CA;background:#EEF2FF;
+  border:1px solid #C7D2FE;border-radius:8px;padding:9px 16px;cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s,transform .15s;
+}
+.cb-personas-panel:hover{background:#6366F1;color:#fff;border-color:#6366F1;transform:translateY(-1px)}
 .cb-a-oos-msg{
   font-size:13px;color:#9A3412;line-height:1.65;
   padding:14px 18px;background:#FFFBEB;border:1px solid #FCD34D;
@@ -912,6 +926,25 @@ body.home-fade-out #screen-home{
 .lib-card-btn.fav.active{background:#FEF3C7;border-color:#F59E0B;color:#D97706}
 @media (max-width:760px){.lib-cards{grid-template-columns:1fr}}
 /* 분석 전 empty state */
+/* CEO 2026-06-12: AI 채팅에서 점프 시 표준 탭 상단 컨텍스트 배너 */
+.jump-context-banner{position:relative;margin:0 0 18px;padding:14px 18px;background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border:1px solid #C7D2FE;border-radius:12px}
+.jc-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;font-size:12.5px;line-height:1.55}
+.jc-tag{flex-shrink:0;font-size:10.5px;font-weight:700;color:#4338CA;background:#fff;border:1px solid #C7D2FE;padding:2px 9px;border-radius:6px;letter-spacing:.04em}
+.jc-tag-h{color:#6B21A8;border-color:#DDD6FE;background:#FAF5FF}
+.jc-q{color:#1E1B4B;font-weight:600}
+.jc-h{color:#3730A3}
+.jc-persona{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px dashed #C7D2FE}
+.jc-persona-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.jc-persona-name{font-size:12px;font-weight:700;color:#1E1B4B;line-height:1.2}
+.jc-persona-tagline{font-size:11px;color:#6B7280;margin-top:1px}
+.jc-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.jc-action{font-size:11px;font-weight:700;color:#fff;background:#6366F1;border:none;border-radius:7px;padding:6px 12px;cursor:pointer;transition:background .15s,transform .15s}
+.jc-action:hover{background:#4338CA;transform:translateY(-1px)}
+.jc-action-panel{background:#fff;color:#4338CA;border:1px solid #C7D2FE}
+.jc-action-panel:hover{background:#6366F1;color:#fff;border-color:#6366F1}
+.jc-close{position:absolute;top:8px;right:10px;font-size:18px;line-height:1;color:#6B7280;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px}
+.jc-close:hover{color:#1E1B4B;background:rgba(255,255,255,.6)}
+
 .aud-empty, .ov-empty{padding:50px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:10px;display:flex;flex-direction:column;align-items:center}
 .aud-empty-t, .ov-empty-t{font-size:14px;font-weight:700;color:#111;margin-bottom:6px}
 .aud-empty-s, .ov-empty-s{font-size:12px;color:var(--ts);line-height:1.5}
@@ -2415,8 +2448,12 @@ function renderAnswerBoard(a, idx){
         + '</div>'
         + '<div class="cb-persona-attrs">' + attrs + '</div>'
         + voice
+        + '<button class="cb-persona-cta" onclick=\'startInterviewFromChat(' + JSON.stringify(p).replace(/"/g, "&quot;") + ', ' + (state.chatTurns && state.chatTurns[0] ? JSON.stringify(state.chatTurns[0].q).replace(/"/g, "&quot;") : '""') + ')\'>👤 이 페르소나로 인터뷰 →</button>'
         + '</div>';
-    }).join('') + '</div></div>' : '';
+    }).join('') + '</div>'
+    + '<div class="cb-personas-actions">'
+      + '<button class="cb-personas-panel" onclick=\'startPanelFromChat(' + JSON.stringify(a.personaSamples).replace(/"/g, "&quot;") + ', ' + (state.chatTurns && state.chatTurns[0] ? JSON.stringify(state.chatTurns[0].q).replace(/"/g, "&quot;") : '""') + ')\'>👥 4인 패널 인터뷰 (이 페르소나 시드)</button>'
+    + '</div></div>' : '';
 
   // 출처
   const sourcesHtml = (a.sources || []).length ? '<div class="cb-sources">'
@@ -2478,6 +2515,13 @@ async function chatBoardJumpToTab(tab){
   // chat-board 종료 + workspace 이동 + 로딩 표시 + 조건부 분석 자동 실행
   const firstTurn = (state.chatTurns || [])[0];
   const q = firstTurn && firstTurn.q;
+  // CEO 2026-06-12: 점프 컨텍스트 저장 (표준 탭 상단 배너용)
+  state.jumpContext = {
+    question: q || '',
+    headline: state.answerCard?.headline || '',
+    personaSamples: state.answerCard?.personaSamples || [],
+    timestamp: Date.now(),
+  };
   // Insight 모드 전환
   state.currentMode = 'insight';
   try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
@@ -3034,6 +3078,21 @@ async function goWorkspace(opts){
   if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
   renderBuilder();
   await refreshSegment();
+  // CEO 2026-06-12: URL 직접 진입 시에도 현재 탭의 안내가 즉시 보이도록 강제 refresh
+  try {
+    const t = state.currentTab || 'summary';
+    if(t === 'summary' && typeof refreshSummaryTab === 'function') await refreshSummaryTab();
+    else if(t === 'media' && typeof refreshMediaTab === 'function') await refreshMediaTab();
+    else if(t === 'interview'){
+      const ivBody = document.getElementById('iv-body');
+      const ivEmpty = document.getElementById('iv-empty');
+      const builderEmpty = (typeof isBuilderEmpty === 'function' && isBuilderEmpty());
+      if(ivEmpty && builderEmpty){
+        ivEmpty.classList.remove('hide');
+        if(ivBody) ivBody.classList.add('hide');
+      }
+    }
+  } catch(e) { console.warn('goWorkspace tab refresh failed:', e); }
   // 기본 탭은 케이스별로 분기 (entry 함수가 추가 switchTab 호출함)
 
   // 워크스페이스 진입 history 기록 (뒤로가기 동작)
@@ -3044,6 +3103,24 @@ async function goWorkspace(opts){
     if(state.currentCountry) url.searchParams.set('country', state.currentCountry);
     history.pushState({ view: 'workspace', tab: state.currentTab || 'summary', country: state.currentCountry }, '', url.toString());
   }
+}
+
+// CEO 2026-06-12: AI 채팅에서 점프한 경우 표준 탭 상단에 컨텍스트 배너
+function renderJumpContextBanner(){
+  const ctx = state.jumpContext;
+  if(!ctx || !ctx.question) return '';
+  // 30분 지난 컨텍스트는 만료
+  if(Date.now() - (ctx.timestamp||0) > 30*60*1000) return '';
+  const persona = (ctx.personaSamples || [])[0];
+  const personaHtml = persona ? '<div class="jc-persona"><span class="jc-persona-avatar" style="background:#6366F1">'+escapeHtml((persona.name||'?').slice(0,1))+'</span><div><div class="jc-persona-name">'+escapeHtml(persona.name||'')+'</div><div class="jc-persona-tagline">'+escapeHtml(persona.tagline||persona.voice||'')+'</div></div></div>' : '';
+  const personaBtn = (ctx.personaSamples||[]).length ? '<button class="jc-action" onclick=\'startInterviewFromChat('+JSON.stringify(persona).replace(/"/g,'&quot;')+', '+JSON.stringify(ctx.question).replace(/"/g,'&quot;')+')\'>👤 이 페르소나로 인터뷰</button><button class="jc-action jc-action-panel" onclick=\'startPanelFromChat('+JSON.stringify(ctx.personaSamples).replace(/"/g,'&quot;')+', '+JSON.stringify(ctx.question).replace(/"/g,'&quot;')+')\'>👥 4인 패널 인터뷰</button>' : '';
+  return '<div class="jump-context-banner">'
+    + '<div class="jc-row jc-q-row"><span class="jc-tag">원본 질문</span><span class="jc-q">'+escapeHtml(ctx.question)+'</span></div>'
+    + (ctx.headline ? '<div class="jc-row jc-h-row"><span class="jc-tag jc-tag-h">AI 답변</span><span class="jc-h">'+escapeHtml(ctx.headline)+'</span></div>' : '')
+    + personaHtml
+    + (personaBtn ? '<div class="jc-actions">'+personaBtn+'</div>' : '')
+    + '<button class="jc-close" onclick="state.jumpContext=null;document.querySelectorAll(\'.jump-context-banner\').forEach(b=>b.remove())" title="컨텍스트 닫기">×</button>'
+  + '</div>';
 }
 
 // 빌더 필터 또는 분석 실행 여부 — CEO 정의 "빌더 미설정" = 필터가 사실상 비어있고 분석도 안 한 상태
@@ -3164,6 +3241,16 @@ async function refreshMediaTab(){
     renderMediaTree(tree);
     document.getElementById('md-loading').classList.add('hide');
     document.getElementById('md-body').classList.remove('hide');
+    // 점프 컨텍스트 배너 prepend
+    try {
+      const jumpBanner = (typeof renderJumpContextBanner === 'function') ? renderJumpContextBanner() : '';
+      const mdBody = document.getElementById('md-body');
+      if(jumpBanner && mdBody && !mdBody.querySelector('.jump-context-banner')){
+        const banner = document.createElement('div');
+        banner.innerHTML = jumpBanner;
+        mdBody.insertBefore(banner.firstChild, mdBody.firstChild);
+      }
+    } catch(e) {}
   } catch(e){
     toast('미디어 데이터 실패: ' + e.message);
   }
@@ -5791,7 +5878,8 @@ async function refreshAudienceTab(dim){
         body.dataset.country = code;
         const panelHtml = renderPanelSample(dim);
         const synthHtml = renderSynthSegment(dim);
-        body.innerHTML = panelHtml + synthHtml + renderAudienceDim(dim, data);
+        const jumpBanner = (typeof renderJumpContextBanner === 'function') ? renderJumpContextBanner() : '';
+        body.innerHTML = jumpBanner + panelHtml + synthHtml + renderAudienceDim(dim, data);
         setTimeout(() => renderDimCharts(dim, data), 50);
       }
       // 출처 배지도 갱신
@@ -6549,11 +6637,84 @@ function switchToPanel(count){
     return;
   }
   if(typeof toast==='function') toast('다양성 패널 ' + (count||4) + '명을 생성합니다…');
-  generatePanel(count || 4);
+  // CEO 2026-06-12: 현재 인터뷰 페르소나를 앵커로, chat 시드 페르소나를 시드로 전달
+  const anchor = state.currentPersona || null;
+  const seedPersonas = state.seedPersonas || [];
+  const seedQuestion = state.seedQuestion || (state.lastAsk?.question || '');
+  generatePanel(count || 4, { anchorPersona: anchor, seedPersonas, seedQuestion });
 }
 function switchToSinglePersona(){
   if(typeof toast==='function') toast('단일 페르소나를 생성합니다…');
   generatePersona();
+}
+
+// CEO 2026-06-12: AI 채팅 답변 페르소나 → 인터뷰 단일 모드 자동 시작
+async function startInterviewFromChat(seedPersona, seedQuestion){
+  try {
+    // chat-board 닫고 워크스페이스 진입
+    state.currentMode = 'insight';
+    try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
+    document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
+    if(typeof chatBoardClose === 'function') chatBoardClose(true);
+    if(typeof goWorkspace === 'function') await goWorkspace();
+    // 빌더 필터 + 국가 적용 (chat 답변의 lastAsk에서)
+    if(state.lastAsk && state.lastAsk.parsed){
+      if(state.lastAsk.parsed.filters) state.filters = state.lastAsk.parsed.filters;
+      if(state.lastAsk.parsed.country && typeof selectCountry === 'function') selectCountry(state.lastAsk.parsed.country);
+    }
+    if(typeof renderBuilder === 'function') renderBuilder();
+    // seedPersona를 state에 저장 (인터뷰 모듈이 활용)
+    state.seedPersona = seedPersona;
+    state.seedQuestion = seedQuestion;
+    // 인터뷰 탭으로 전환
+    if(typeof switchTab === 'function') switchTab('interview');
+    // 분석 미실행이면 먼저 실행
+    if(!state.analysisRun && typeof runAnalysis === 'function'){
+      try { await runAnalysis(); } catch(e) { console.warn('runAnalysis failed:', e); }
+    }
+    // 단일 페르소나 인터뷰 시작 (seedPersona를 generatePersona에 전달)
+    if(typeof generatePersona === 'function') await generatePersona(seedPersona);
+  } catch(e) {
+    if(typeof toast === 'function') toast('인터뷰 시작 실패: ' + e.message);
+  }
+}
+
+// CEO 2026-06-12: AI 채팅 답변 페르소나 묶음 → 4인 패널 자동 시작 (seedPersonas 사용)
+async function startPanelFromChat(seedPersonas, seedQuestion){
+  try {
+    state.currentMode = 'insight';
+    try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
+    document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
+    if(typeof chatBoardClose === 'function') chatBoardClose(true);
+    if(typeof goWorkspace === 'function') await goWorkspace();
+    if(state.lastAsk && state.lastAsk.parsed){
+      if(state.lastAsk.parsed.filters) state.filters = state.lastAsk.parsed.filters;
+      if(state.lastAsk.parsed.country && typeof selectCountry === 'function') selectCountry(state.lastAsk.parsed.country);
+    }
+    if(typeof renderBuilder === 'function') renderBuilder();
+    state.seedPersonas = seedPersonas || [];
+    state.seedQuestion = seedQuestion;
+    if(typeof switchTab === 'function') switchTab('interview');
+    if(!state.analysisRun && typeof runAnalysis === 'function'){
+      try { await runAnalysis(); } catch(e) { console.warn('runAnalysis failed:', e); }
+    }
+    // 패널 생성 (seedPersonas 포함)
+    if(typeof generatePanel === 'function') await generatePanel(4, { seedPersonas, seedQuestion });
+  } catch(e) {
+    if(typeof toast === 'function') toast('패널 인터뷰 시작 실패: ' + e.message);
+  }
+}
+
+// CEO 2026-06-12: 단일 페르소나 → 4인 패널 확장 (현재 인터뷰 중인 페르소나를 1번 슬롯에 앵커)
+async function expandToPanelFromSingle(){
+  try {
+    const anchor = state.currentPersona || null;
+    const seedPersonas = state.seedPersonas || [];
+    const seedQuestion = state.seedQuestion || (state.lastAsk?.question || '');
+    if(typeof generatePanel === 'function') await generatePanel(4, { seedPersonas, seedQuestion, anchorPersona: anchor });
+  } catch(e) {
+    if(typeof toast === 'function') toast('패널 확장 실패: ' + e.message);
+  }
 }
 
 async function generatePersona(persona){
@@ -6665,7 +6826,7 @@ async function generatePersona(persona){
   }
 }
 
-async function generatePanel(count = 4){
+async function generatePanel(count = 4, opts){
   try{
     // 국가 미선택 가드
     if(!state.currentCountry){
@@ -6679,9 +6840,12 @@ async function generatePanel(count = 4){
     document.getElementById('iv-panel-wrap').classList.remove('hide');
     document.getElementById('iv-panel-grid').innerHTML = '<div class="iv-loading">패널을 준비하고 있어요… (수 초 소요)</div>';
     document.getElementById('iv-panel-contrast').innerHTML = '';
+    const seedPersonas = (opts && opts.seedPersonas) || state.seedPersonas || [];
+    const seedQuestion = (opts && opts.seedQuestion) || state.seedQuestion || (state.lastAsk?.question || '');
+    const anchorPersona = (opts && opts.anchorPersona) || null;
     const res = await fetch(`${API}/interview/panel`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ country: state.currentCountry, filters: state.filters, count }),
+      body: JSON.stringify({ country: state.currentCountry, filters: state.filters, count, seedPersonas, seedQuestion, anchorPersona }),
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error);
