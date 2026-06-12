@@ -87,14 +87,19 @@ a{color:inherit;text-decoration:none}
 .sb-item-meta{margin-left:auto;font-size:11px;color:var(--tm)}
 
 .sb-foot{
-  margin-top:auto;padding:14px 16px 18px;border-top:1px solid var(--bdr);
-  font-size:10.5px;color:var(--tm);line-height:1.55;
-  word-break:keep-all;overflow-wrap:anywhere;
+  margin-top:auto;padding:12px 14px 16px;border-top:1px solid var(--bdr);
+  font-size:10.5px;color:var(--tm);line-height:1.5;
+  word-break:keep-all;overflow-wrap:break-word;
 }
-.sb-foot div{font-size:10.5px;line-height:1.55}
+.sb-foot .sb-foot-line{
+  font-size:10.5px;line-height:1.45;color:#374151;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;display:block;
+}
+.sb-foot .sb-foot-sub{font-weight:400;color:var(--tm);font-size:10px;margin-top:2px}
 .sb-foot-badge{
   display:inline-block;padding:2px 7px;border-radius:10px;
-  background:#FEF3C7;color:#92400E;font-size:10px;font-weight:700;margin-bottom:5px;
+  background:#FEF3C7;color:#92400E;font-size:9.5px;font-weight:700;margin-bottom:5px;
   letter-spacing:.04em;
 }
 
@@ -1410,8 +1415,9 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <span id="lib-count" style="display:none">0</span>
 
     <div class="sb-foot">
-      <span class="sb-foot-badge">BETA</span>
-      <div>v0.1 · INNOCEAN Audience<br>실데이터: World Bank · BigQuery Trends</div>
+      <span class="sb-foot-badge">BETA v0.1</span>
+      <div class="sb-foot-line">INNOCEAN Audience</div>
+      <div class="sb-foot-line sb-foot-sub">데이터 · World Bank · BigQuery</div>
     </div>
   </aside>
 
@@ -2753,12 +2759,30 @@ function switchMode(mode){
     goHome();  // 기존 리셋 정책 적용 (lastAsk/filters/country 초기화)
     history.pushState({ view: 'chat' }, '', '/chat');
   } else {
-    // 타겟 인사이트 메인: 빌더부터 새로 시작 (리셋)
+    // 타겟 인사이트 메인: 빌더부터 새로 시작 (완전 리셋)
     state.lastAsk = null;
     state.filters = {};
     state.currentCountry = null;
     state.userPickedCountry = false;
     state.analysisRun = false;
+    state.audienceCache = {};
+    state.mediaCache = null;
+    state.synthCache = null;
+    state.currentTab = 'overview';
+    // CEO 피드백: 이전 탭 DOM 완전 초기화 (가치관 등 잔존 제거)
+    ['who','life','mind','love','buy'].forEach(t => {
+      const body = document.getElementById(t + '-body');
+      if(body) body.innerHTML = '';
+      const src = document.getElementById(t + '-src');
+      if(src) src.textContent = '데이터 로딩 중…';
+    });
+    const summaryEl = document.getElementById('tab-summary');
+    if(summaryEl){
+      // summary 내부는 refreshSummaryTab이 재생성 — 여기서는 탭 자체 숨김
+      summaryEl.classList.add('hide');
+    }
+    const askBanner = document.getElementById('ask-banner');
+    if(askBanner){ askBanner.classList.add('hide'); askBanner.innerHTML = ''; }
     goBuilder();
     history.pushState({ view: 'insight' }, '', '/insight');
   }
