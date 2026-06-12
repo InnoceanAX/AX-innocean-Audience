@@ -623,6 +623,23 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
   }
 
+  // CEO 2026-06-12: 심화 차트 필수 필드 폴백 (LLM이 누락하면 룰 기반으로 채움)
+  if (synthesized) {
+    synthesized.mind = synthesized.mind || {};
+    if (!synthesized.mind.decisionStyle || Object.keys(synthesized.mind.decisionStyle).length === 0) {
+      synthesized.mind.decisionStyle = { "이성·분석": 35, "감성·직관": 25, "추천 따르기": 20, "탐색 후 선택": 15, "단순 충동": 5 };
+    }
+    if (!synthesized.mind.infoConsumption || Object.keys(synthesized.mind.infoConsumption).length === 0) {
+      synthesized.mind.infoConsumption = { "심층 읽기": 22, "스키밍·요약": 38, "추천 알고리즘": 25, "능동적 탐색": 15 };
+    }
+    if (!synthesized.mind.personalityTrait || Object.keys(synthesized.mind.personalityTrait).length === 0) {
+      synthesized.mind.personalityTrait = { "외향성": 55, "개방성": 65, "성실성": 70, "신경성": 50, "친화성": 65 };
+    }
+    if (!synthesized.mind.socialConcerns || Object.keys(synthesized.mind.socialConcerns).length === 0) {
+      synthesized.mind.socialConcerns = { "교육·육아": 40, "주거·부동산": 35, "일자리·경제": 30, "건강·의료": 25, "환경·기후": 20 };
+    }
+  }
+
   res.json({
     ok: true,
     country: meta,

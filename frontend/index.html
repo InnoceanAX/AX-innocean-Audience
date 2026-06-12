@@ -1845,7 +1845,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <button class="iv-mode-card" onclick="generatePersona()">
                 <div class="iv-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></div>
                 <div class="iv-mode-t">단일 페르소나</div>
-                <div class="iv-mode-s">1명의 가상 인물과 자유롭게 대화. 광고 메시지 A/B/C 테스트 가능.</div>
+                <div class="iv-mode-s">1명의 가상 인물과 자유롭게 대화하며 라이프스타일·가치관·구매 결정 이유를 탐색합니다.</div>
               </button>
               <button class="iv-mode-card" onclick="generatePanel(4)">
                 <div class="iv-mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
@@ -2770,13 +2770,6 @@ function showAskBanner(data){
     </div>
     <div class="ab-summary">${summary}</div>
     ${filterParts ? `<div class="ab-chips">${filterParts}</div>` : '<div class="ab-empty">추출된 필터 없음 — 전체 세그먼트</div>'}
-    <details class="ab-filters" open>
-      <summary class="ab-filters-sum">세그먼트 조정 — 필터 옵션 펼치기/접기</summary>
-      <div class="ab-filters-body">${dimOptionsHtml}</div>
-      <div class="ab-filters-act">
-        <button class="ab-apply" onclick="applyAbFiltersAndRerun()">필터 적용 후 다시 분석</button>
-      </div>
-    </details>
     ${isMeaningfulReasoning(p.reasoning, p.filters, data.question) ? `<details class="ab-rsn"><summary>추론 근거</summary><div class="ab-rsn-x">${p.reasoning}</div></details>` : ''}`;
   banner.classList.remove('hide');
 }
@@ -3692,7 +3685,7 @@ const AI_CHIPS_BY_TAB = {
   buy: ['이커머스 강국 Top 5', '가격 민감 시장', '브랜드 충성도 높은 국가'],
   media: ['광고비 큰 시장 정렬', '디지털 매체 점유율', '채널별 도달률 비교'],
   compare: ['신뢰도 기준 정렬', '인구구조 비슷한 국가 묶기', '5차원 종합 점수 매겨줘'],
-  interview: ['이 페르소나 광고 카피 추천', '하루 미디어 여정 보여줘', '메시지 A/B 테스트 시작'],
+  interview: ['이 페르소나 광고 카피 추천', '하루 미디어 여정 보여줘', '이 페르소나 관심사 강점'],
 };
 
 const AI_COUNTRY_KO = {
@@ -3936,7 +3929,7 @@ function aiShowHelp(){
     '<b>국가 이동</b><br>"미국으로 이동", "JP 국가로 변경", "한국 보여줘"<br><br>' +
     '<b>탭 이동</b><br>"라이프스타일 탭", "가치관 탭 열어", "글로벌 비교 보여줘"<br><br>' +
     '<b>데이터 액션</b><br>"이 데이터 PNG로", "표를 CSV로 다운로드", "신뢰도 높은 순 정렬"<br><br>' +
-    '<b>분석</b><br>"비슷한 국가 찾아줘", "페르소나 만들기", "광고 메시지 추천", "이 화면 요약", "데이터 해석해줘"<br><br>' +
+    '<b>분석</b><br>"비슷한 국가 찾아줘", "페르소나 만들기", "관심사 강점 추출", "이 화면 요약", "데이터 해석해줘"<br><br>' +
     '<b>기타</b><br>"초기화"로 대화 리셋. 그 외 자유 질문은 AI가 답변합니다.';
   aiAddMsg('bot', html, true);
 }
@@ -4088,7 +4081,7 @@ function aiCreatePersona(){
 
 function aiAdMessage(){
   switchTab('interview');
-  aiAddMsg('bot', '광고 메시지 A/B/C 테스트는 페르소나 인터뷰 탭에서 가능합니다.', false);
+  aiAddMsg('bot', '페르소나 인터뷰는 패널 모드에서 서론타일 대화 형태로 진행됩니다.', false);
   aiAddActionPill('인터뷰 탭 이동');
 }
 
@@ -6449,9 +6442,7 @@ function renderPersonaJourney(data){
     <div class="iv-jt-wrap">${timelineHTML}</div>
     ${j.peakAdMoment ? `<div class="iv-jt-peak"><b><svg style="width:13px;height:13px;vertical-align:-2px;margin-right:3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.91 5.84L19.5 11l-5.59 2.16L12 19l-1.91-5.84L4.5 11l5.59-2.16L12 3z"/></svg>최적 광고 시간대:</b> ${j.peakAdMoment}</div>` : ''}
     ${j.avoidMoment ? `<div class="iv-jt-avoid"><b><svg style="width:14px;height:14px;vertical-align:-2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> 피해야 할 시간대:</b> ${j.avoidMoment}</div>` : ''}
-    <div class="iv-jt-actions">
-      <button class="iv-jt-btn" onclick="openMessageTester()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>광고 메시지 A/B 테스트</button>
-    </div>
+
   </div>`;
   if(existing) existing.outerHTML = html;
   else card.insertAdjacentHTML('beforeend', html);
