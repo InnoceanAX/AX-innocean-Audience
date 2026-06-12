@@ -7115,7 +7115,8 @@ async function runAnalysis(){
     const hasAnyFilter = Object.values(state.filters||{}).some(v => Array.isArray(v) && v.length > 0 && !(v.length===1 && v[0]==='전체'));
     // 자연어 질문이 있으면 필터가 없어도 합성 호출 (답변 카드 생성용)
     const hasQuestion = !!(state.lastAsk && state.lastAsk.question);
-    if(hasAnyFilter || hasQuestion){
+    // CEO 2026-06-12: 필터/질문 없어도 항상 synthesize 호출 — 모든 심화 차트 데이터 보장
+    if(true){
       try{
         const synR = await fetch(API + '/audience/synthesize', {
           method:'POST', headers:{'Content-Type':'application/json'},
