@@ -87,12 +87,15 @@ a{color:inherit;text-decoration:none}
 .sb-item-meta{margin-left:auto;font-size:11px;color:var(--tm)}
 
 .sb-foot{
-  margin-top:auto;padding:14px 20px;border-top:1px solid var(--bdr);
-  font-size:11px;color:var(--tm);line-height:1.5;
+  margin-top:auto;padding:14px 16px 18px;border-top:1px solid var(--bdr);
+  font-size:10.5px;color:var(--tm);line-height:1.55;
+  word-break:keep-all;overflow-wrap:anywhere;
 }
+.sb-foot div{font-size:10.5px;line-height:1.55}
 .sb-foot-badge{
-  display:inline-block;padding:2px 8px;border-radius:10px;
-  background:#FEF3C7;color:#92400E;font-size:10.5px;font-weight:600;margin-bottom:4px;
+  display:inline-block;padding:2px 7px;border-radius:10px;
+  background:#FEF3C7;color:#92400E;font-size:10px;font-weight:700;margin-bottom:5px;
+  letter-spacing:.04em;
 }
 
 /* ========== Topbar ========== */
@@ -2241,6 +2244,7 @@ async function chatBoardDirectEnter(q){
     // 메인 답변
     const ans = await fetchInsightAnswer(q, null);
     turn.a = ans;
+    try{ if(typeof saveChatTurn === 'function') saveChatTurn(q, ans); }catch(e){}
   }catch(err){
     console.error('chat board answer failed', err);
     turn.a = { error: err.message || 'fetch failed' };
@@ -2429,11 +2433,10 @@ function renderTurnCharts(t, idx){
 }
 
 async function chatBoardJumpToTab(tab){
-  // chat-board 종료 + workspace 이동 + 조건부 분석 자동 실행
-  // 현재 대화의 첫 질문과 필터를 복구 — 빌더에 주입 후 분석 시작
+  // chat-board 종료 + workspace 이동 + 로딩 표시 + 조건부 분석 자동 실행
   const firstTurn = (state.chatTurns || [])[0];
   const q = firstTurn && firstTurn.q;
-  // Insight 모드로 전환 (사이드바 표시 자동 갱신)
+  // Insight 모드 전환
   state.currentMode = 'insight';
   try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
   document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
@@ -2444,7 +2447,9 @@ async function chatBoardJumpToTab(tab){
   if(typeof goWorkspace === 'function') await goWorkspace();
   if(typeof renderBuilder === 'function') renderBuilder();
   if(typeof switchTab === 'function') switchTab(tab);
-  // 질문이 있으면 NLU 다시 돌려서 필터/국가 추출 → synthesize → 도메인 분석
+  // CEO 피드백 #2: 즉시 로딩 표시 — 빈 화면 방지
+  if(typeof showJumpLoading === 'function') showJumpLoading(tab, q);
+  // 질문이 있으면 ask → 필터/국가 복구 → runAnalysis
   if(q){
     try{
       const r = await fetch(API + '/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: q }) });
@@ -2458,13 +2463,28 @@ async function chatBoardJumpToTab(tab){
       }
     }catch(e){ console.warn('jump ask failed', e); }
     if(!state.currentCountry) selectCountry('KR');
-    state.autoRouteToSummary = false; // 이미 해당 탭을 선택했으므로
+    state.autoRouteToSummary = false;
     if(typeof runAnalysis === 'function'){
       try{ await runAnalysis(); }catch(e){ console.warn('runAnalysis failed', e); }
-      // 다시 해당 탭으로 이동 (runAnalysis가 탭을 바꿈 수 있음)
       if(typeof switchTab === 'function') switchTab(tab);
     }
   }
+}
+
+function showJumpLoading(tab, q){
+  // 해당 탭과 summary에 즉시 로딩 화면 주입 — CEO 피드백 #2
+  const tabLabels = { who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', summary:'요약', overview:'빌더' };
+  const safeQ = (q || '질문').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+  const html = '<div class="aud-jump-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:14px;margin:24px">'
+    + '<div style="width:48px;height:48px;border:4px solid #E0E7FF;border-top:4px solid #6366F1;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:18px"></div>'
+    + '<div style="font-size:17px;font-weight:700;color:#4338CA;margin-bottom:8px">AI 페르소나 패널 합성 중…</div>'
+    + '<div style="font-size:13.5px;color:#4B5563;line-height:1.65;max-width:520px">"' + safeQ + '"<br/>→ <b>' + (tabLabels[tab] || tab) + '</b> 표준 분석 데이터를 생성하고 있습니다</div>'
+    + '<div style="font-size:11.5px;color:#9CA3AF;margin-top:14px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
+    + '</div>';
+  [tab, 'summary'].forEach(t => {
+    const el = document.getElementById('tab-' + t); if(!el) return;
+    el.innerHTML = html;
+  });
 }
 
 function chatBoardClose(skipHome){
@@ -2506,6 +2526,7 @@ async function cbSendChat(){
     // 추가 질문은 ask 공동 변환을 건너뛰고 바로 /insight 호출 (이전 맥락 유지)
     const ans = await fetchInsightAnswer(q, state.lastAsk && state.lastAsk.parsed);
     turn.a = ans;
+    try{ saveChatTurn(q, ans); }catch(e){}
   }catch(err){
     console.error('cb send failed', err);
     turn.a = { error: err.message || 'fetch failed' };
@@ -2558,6 +2579,32 @@ function saveChatSession(question, parsed){
     sess.lastIntent = parsed.intent;
     sess.country = state.currentCountry;
   }
+  saveChatSessions();
+}
+
+
+
+// CEO 피드백 #4: 답변까지 저장하는 turn-savers
+function saveChatTurn(q, ans){
+  state.chatSessions = state.chatSessions || [];
+  if(!state.currentChatId) state.currentChatId = 'chat_' + Date.now();
+  let sess = state.chatSessions.find(s => s.id === state.currentChatId);
+  if(!sess){
+    sess = {
+      id: state.currentChatId,
+      createdAt: Date.now(),
+      country: state.currentCountry,
+      title: (q || '').length > 36 ? q.slice(0, 36) + '…' : (q || ''),
+      messages: [],
+      turns: [],
+    };
+    state.chatSessions.unshift(sess);
+  }
+  sess.updatedAt = Date.now();
+  sess.lastQuestion = q;
+  sess.turns = sess.turns || [];
+  sess.turns.push({ q: q, a: ans, ts: Date.now() });
+  if(sess.turns.length > 30) sess.turns = sess.turns.slice(-30);
   saveChatSessions();
 }
 
@@ -2738,6 +2785,9 @@ function goHome(opts){
   document.getElementById('ws-tabs').classList.add('hide');
   document.getElementById('ws-tools')?.classList.add('hide');
   document.getElementById('breadcrumb-wrap').classList.add('hide');
+  // ask-banner 잔존 제거 (CEO 피드백)
+  const _ab = document.getElementById('ask-banner');
+  if(_ab){ _ab.classList.add('hide'); _ab.innerHTML = ''; }
   // tb-target-cc 제거됨
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   // 'sb-mode-chat' active 표기
@@ -4803,17 +4853,29 @@ function openChatSession(id){
   const sess = (state.chatSessions||[]).find(s => s.id === id);
   if(!sess) return;
   state.currentChatId = id;
-  // 국가 복원
   if(sess.country) selectCountry(sess.country);
-  // 마지막 질문으로 재분석
+  closeLibrary();
+  switchMode('chat');
+  // CEO 피드백 #4: 저장된 turns(질문 + 답변)이 있으면 채팅 보드에 그대로 복원
+  if(sess.turns && sess.turns.length){
+    setTimeout(() => {
+      state.chatTurns = sess.turns.slice();
+      // chat-board 화면 표시
+      document.body.classList.add('chat-board-active');
+      const home = document.getElementById('screen-home'); if(home) home.classList.add('hide');
+      const board = document.getElementById('screen-chat-board'); if(board) board.classList.remove('hide');
+      if(typeof renderChatBoardTurns === 'function') renderChatBoardTurns();
+      if(typeof toast === 'function') toast('채팅 세션 복원 — ' + sess.turns.length + '개 대화');
+    }, 100);
+    return;
+  }
+  // 구버전 세션 (turns 없이 messages만) — 마지막 질문을 입력창에 채움
   const lastUser = (sess.messages||[]).slice().reverse().find(m => m.role === 'user');
   if(lastUser){
-    closeLibrary();
-    switchMode('chat');
     setTimeout(() => {
       const inp = document.getElementById('chat-input');
       if(inp){ inp.value = lastUser.content; if(typeof toggleSend === 'function') toggleSend(); }
-      if(typeof toast === 'function') toast('채팅 불러온 — 질문을 수정하거나 전송해 재분석하세요');
+      if(typeof toast === 'function') toast('이전 세션 — 질문을 다시 전송하세요');
     }, 200);
   }
 }

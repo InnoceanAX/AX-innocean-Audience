@@ -12,11 +12,11 @@ import { getCountryAdSpend } from "../adapters/adspend-public.js";
 
 export const insightAnswerRouter = Router();
 
-// 합성 패널 데이터 가져오기 (synthesized가 빈 경우 베이스라인 사용)
-function buildPanelData(country, synthesized) {
+// 합성 패널 데이터 가져오기 (synthesized가 빈 경우 베이스라인 + 필터 변형)
+function buildPanelData(country, synthesized, filters) {
   const code = String(country || "KR").toUpperCase();
   const out = {
-    who: synthesized?.who || getDemographics(code) || {},
+    who: synthesized?.who ? { ...synthesized.who } : (getDemographics(code) ? { ...getDemographics(code) } : {}),
     life: synthesized?.life || getLifestyle(code) || {},
     mind: synthesized?.mind || getMindset(code) || {},
     love: synthesized?.love || getInterests(code) || {},
@@ -26,7 +26,28 @@ function buildPanelData(country, synthesized) {
     const adSpend = getCountryAdSpend(code);
     if (adSpend && adSpend.channels) out.media = adSpend.channels;
   } catch (e) {}
+  // CEO 피드백 #5: 필터 기반 패널 변형 — 30대 워킹맘 → 30대 연령대 집중
+  out.who = reshapeWhoByFilters(out.who, filters);
   return out;
+}
+
+// 필터를 연령대에 반영 — 30대 이면 30대 100% 등
+function reshapeWhoByFilters(who, filters) {
+  if (!filters || !filters.age || !Array.isArray(filters.age) || filters.age.length === 0) return who;
+  const ageMap = { "10\ub300": "0-14", "20\ub300": "15-29", "30\ub300": "30-44", "40\ub300": "30-44", "50\ub300": "45-59", "60\ub300": "60+", "60\ub300 \uc774\uc0c1": "60+" };
+  const buckets = ["0-14", "15-29", "30-44", "45-59", "60+"];
+  const targetBuckets = new Set();
+  filters.age.forEach(a => {
+    const norm = String(a).trim();
+    const mapped = ageMap[norm] || (norm.includes("30") ? "30-44" : norm.includes("40") ? "30-44" : norm.includes("50") ? "45-59" : norm.includes("60") ? "60+" : norm.includes("20") ? "15-29" : norm.includes("10") ? "0-14" : null);
+    if (mapped) targetBuckets.add(mapped);
+  });
+  if (targetBuckets.size === 0) return who;
+  // 타겟 연령대 100% 등분, 다른 대 0%
+  const newBuckets = {};
+  const share = 100 / targetBuckets.size;
+  buckets.forEach(b => { newBuckets[b] = targetBuckets.has(b) ? +share.toFixed(1) : 0; });
+  return { ...who, ageBuckets: newBuckets };
 }
 
 // 한글 라벨 매핑
@@ -161,8 +182,8 @@ insightAnswerRouter.post("/", async (req, res) => {
     return res.status(400).json({ ok: false, error: "question required" });
   }
 
-  // 1. 패널 데이터 구축 (synthesize 캐시 또는 베이스라인)
-  const panel = buildPanelData(country || "KR", synthesized);
+  // 1. 패널 데이터 구축 (synthesize 캐시 또는 베이스라인 + 필터 변형)
+  const panel = buildPanelData(country || "KR", synthesized, filters);
   const panelKpis = autoKpisFromPanel(panel);
   const panelCharts = autoChartsFromPanel(panel);
 
