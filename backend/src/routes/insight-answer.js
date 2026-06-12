@@ -226,9 +226,9 @@ insightAnswerRouter.post("/", async (req, res) => {
       const filterHint = filters && Object.keys(filters).length
         ? Object.entries(filters).filter(([_,v])=>Array.isArray(v)&&v.length).slice(0,3).map(([k,v])=>`${k}: ${v.join("·")}`).join(" / ")
         : "";
-      const q = `오늘 날짜: ${today}. ${countryName} 시점에서 "${question}" 관련 최근 1~3개월의 구체적 트렌드·인물·브랜드·작품·이슈를 6~8문장으로 요약해주세요. ${filterHint ? `타겟 세그먼트 힌트: ${filterHint}.` : ""} 추상적 "트렌디한" 표현 금지, 실제 이름·작품·브랜드·인물명을 인용. 한국어로.`;
-      console.log("[insight-grounding] query:", q.slice(0, 120));
-      const g = await searchAndSummarize({ query: q, maxTokens: 700 });
+      const q = `${today} 기준 ${countryName} 시장의 관련 최신 트렌드·인물·브랜드·작품·이슈를 조사해서 알려주세요.\n\n주제: ${question}${filterHint ? `\n타겟: ${filterHint}` : ""}\n\n구체적인 이름(인물명·작품명·브랜드명·곡명)을 최소 5개 이상 포함해서, 각각 1~2줄 설명과 함께 8~12문장으로 자세히 답해주세요. 한국어로.`;
+      console.log("[insight-grounding] query:", q.slice(0, 180));
+      const g = await searchAndSummarize({ query: q, maxTokens: 2000 });
       console.log("[insight-grounding] result: text_len=", (g.text||"").length, "grounded=", g.grounded, "error=", g.error || "none");
       if (g.text && g.text.length > 30) {
         realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 답변·페르소나 voice·tagline에 우선적으로 활용. 옷 정보 대신 위 최신 정보의 인물·브랜드·작품명을 인용하세요.)`;

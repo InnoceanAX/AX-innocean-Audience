@@ -709,8 +709,10 @@ interviewRouter.post("/chat", async (req, res) => {
       const today = new Date().toISOString().slice(0, 10);
       const countryName = country ? `(${country})` : "";
       const interestsHint = (persona.values || persona.purchaseDrivers || []).slice(0, 3).join(", ");
-      const q = `오늘 날짜: ${today}. ${countryName} ${persona.age || ""}세 ${persona.occupation || ""} 입장에서 관심있을 만한 "${userMessage}" 관련 최근(최근 1–3개월) 이슈/트렌드/인물/제품/행사를 4–6문장으로 요약해주세요. ${interestsHint ? `관심사 실마리: ${interestsHint}.` : ""} 설명은 한국어로.`;
-      const g = await searchAndSummarize({ query: q, maxTokens: 500 });
+      const q = `${today} 기준 ${countryName} 시장의 최신 트렌드·인물·브랜드·작품·이슈를 조사해 알려주세요.\n\n주제: ${userMessage}\n페르소나: ${persona.age || ""}세 ${persona.occupation || ""}${interestsHint ? `, 관심사: ${interestsHint}` : ""}\n\n구체적 이름(인물명·작품명·브랜드명·곡명)을 최소 3개 이상 포함해서 각각 1줄 설명과 함께 6–9문장으로 답해주세요. 한국어로.`;
+      console.log("[interview-grounding] query:", q.slice(0, 150));
+      const g = await searchAndSummarize({ query: q, maxTokens: 1500 });
+      console.log("[interview-grounding] result: text_len=", (g.text||"").length, "grounded=", g.grounded);
       if (g.text && g.text.length > 20) {
         realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 참고해 "요즘 … 따르면", "최근엔 … 으으" 같은 자연스러운 말투로 녹여서 이야기하세요. 출처·링크 말하지 말고 일상 표현으로.)`;
         groundingUsed = true;
