@@ -2420,7 +2420,7 @@ function renderAnswerBoard(a, idx){
 
   // 관련 표준 분석 링크
   const relatedHtml = (a.relatedInsights || []).length ? '<div class="cb-related">'
-    + '<div class="cb-related-t">◆ 관련 표준 분석 — 이 타겟의 9차원 상세 데이터</div>'
+    + '<div class="cb-related-t">◆ 관련 타겟 인사이트 — 이 타겟의 상세 데이터</div>'
     + '<div class="cb-related-list">' + (a.relatedInsights || []).map(ri => {
       const lbl = tabLabels[ri.tab] || ri.tab;
       return '<button class="cb-related-btn" onclick="chatBoardJumpToTab(\'' + ri.tab + '\')">' + escapeHtml(ri.label || lbl + ' 표준 분석 보기') + ' →</button>';

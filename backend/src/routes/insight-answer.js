@@ -287,7 +287,7 @@ insightAnswerRouter.post("/", async (req, res) => {
   · attributes: 4~6개 구체 속성 (나이/직업/소득/거주/가족 등)
   · voice: 1인칭 한 마디 (예: '시간이 모자라요, 짧고 효율적인 선택을 합니다')
 - sources: 첫 번째는 반드시 'INNOCEAN AI 페르소나 패널 N=30' 형태.
-- relatedInsights: 반드시 1~3개 (빈 배열 금지). 9차원 표준 탭(who/life/mind/love/buy/media) 중에서 이 답변과 가장 관련있는 탭.
+- relatedInsights: 반드시 1~3개 (빈 배열 금지). 타겟 인사이트 표준 분석 탭(who/life/mind/love/buy/media) 중에서 이 답변과 가장 관련있는 탭.
 
 [답변 다양성·시의성 가이드 — 매우 중요]
 - 위 [실시간 웹 검색 요약]이 있으면 그 내용의 인물·작품·브랜드·이슈를 **우선적으로** 인용. 옛 학습 데이터에 의존하지 마세요.
@@ -332,7 +332,7 @@ ${panelStr}
 - narrative (1~2문장 해설)
 - personaSamples (1~3개 페르소나 카드)
 - sources (첫 번째는 'INNOCEAN AI 페르소나 패널 N=30')
-- relatedInsights (1~3개 9차원 탭)
+- relatedInsights (1~3개 표준 분석 탭)
 
 긴 글 금지. 데이터 카드처럼 작성.${realtimeBlock}`;
 
