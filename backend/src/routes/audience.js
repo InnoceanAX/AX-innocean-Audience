@@ -742,13 +742,29 @@ audienceRouter.post("/synthesize", async (req, res) => {
       synthesized.life.travelFreq = { "분기·1회": 40, "월 1회": 25, "반기 1회": 20, "연 1회": 15 };
     }
 
-    // WHO 차트 수단 해백
+    // WHO 차트 수단 해백 — 필터가 있으면 필터 기반 분포 사용
     synthesized.who = synthesized.who || {};
+    const _selAges = ((filters && filters.age) || []).filter(v => v && v !== "전체");
+    const _selGens = ((filters && filters.gender) || []).filter(v => v && v !== "전체");
     if (!synthesized.who.ageDistribution || !Object.keys(synthesized.who.ageDistribution).length) {
-      synthesized.who.ageDistribution = { "10대": 12, "20대": 18, "30대": 18, "40대": 18, "50대": 18, "60대 이상": 16 };
+      if (_selAges.length > 0) {
+        const all = ["10대", "20대", "30대", "40대", "50대", "60대 이상"];
+        const sh = +(100 / _selAges.length).toFixed(1);
+        synthesized.who.ageDistribution = {};
+        for (const k of all) synthesized.who.ageDistribution[k] = _selAges.includes(k) ? sh : 0;
+      } else {
+        synthesized.who.ageDistribution = { "10대": 12, "20대": 18, "30대": 18, "40대": 18, "50대": 18, "60대 이상": 16 };
+      }
     }
     if (!synthesized.who.genderRatio || !Object.keys(synthesized.who.genderRatio).length) {
-      synthesized.who.genderRatio = { "남성": 50, "여성": 50 };
+      if (_selGens.length > 0) {
+        const all = ["남성", "여성"];
+        const sh = +(100 / _selGens.length).toFixed(1);
+        synthesized.who.genderRatio = {};
+        for (const k of all) synthesized.who.genderRatio[k] = _selGens.includes(k) ? sh : 0;
+      } else {
+        synthesized.who.genderRatio = { "남성": 50, "여성": 50 };
+      }
     }
     if (!synthesized.who.occupationDistribution || !Object.keys(synthesized.who.occupationDistribution).length) {
       synthesized.who.occupationDistribution = { "사무직": 35, "서비스·영업": 25, "전문직·교육": 15, "자영업·프리랜서": 15, "주부·교육중": 10 };
@@ -772,6 +788,28 @@ audienceRouter.post("/synthesize", async (req, res) => {
       synthesized.media.dailyMediaHours = { "소셜": 2.0, "OTT": 1.5, "유튜브": 1.5, "검색·뉴스": 1.0, "쇼핑 앱": 1.0 };
     }
   }
+
+  // CEO 2026-06-12 (최종): 필터 강제 — 폴백 적용 후에도 빌더 명시 필터가 차트에 무조건 반영되도록 다시 클램프
+  try {
+    if (synthesized && synthesized.who && hasFilters) {
+      const selAges2 = (filters.age || []).filter(v => v && v !== "전체");
+      const selGens2 = (filters.gender || []).filter(v => v && v !== "전체");
+      if (selAges2.length > 0) {
+        const all = ["10대", "20대", "30대", "40대", "50대", "60대 이상"];
+        const sh = +(100 / selAges2.length).toFixed(1);
+        const ad = {};
+        for (const k of all) ad[k] = selAges2.includes(k) ? sh : 0;
+        synthesized.who.ageDistribution = ad;
+      }
+      if (selGens2.length > 0) {
+        const all = ["남성", "여성"];
+        const sh = +(100 / selGens2.length).toFixed(1);
+        const gr = {};
+        for (const k of all) gr[k] = selGens2.includes(k) ? sh : 0;
+        synthesized.who.genderRatio = gr;
+      }
+    }
+  } catch (e) { console.warn("[synthesize] final clamp failed:", e.message); }
 
   res.json({
     ok: true,
