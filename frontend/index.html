@@ -5825,6 +5825,8 @@ async function _refreshAudienceTabFetch(dim){
 // ============ Chart.js 헬퍼 ============
 window._chartInstances = window._chartInstances || {};
 function renderChartSafe(canvasId, type, labels, data, color, opts){
+  // 데이터 도착 시 플레이스홀더 해제 (CEO 2026-06-12)
+  if (typeof clearChartPlaceholder === 'function') clearChartPlaceholder(canvasId);
   try {
     const canvas = document.getElementById(canvasId);
     if(!canvas || typeof Chart === 'undefined') return;
@@ -6092,6 +6094,10 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-mind-trust', 'radar', Object.keys(trust).map(k => trustLabel(k)), Object.values(trust), '#10B981');
         renderChartSafe('chart-mind-values', 'radar', Object.keys(vals).map(k => valLabel(k)), Object.values(vals), '#8B5CF6');
         renderChartSafe('chart-mind-culture', 'polarArea', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4']);
+        // baseline만 있을 때 (syn 아직 도착 안함) — 심화 차트 3개는 플레이스홀더
+        markChartPlaceholder('chart-mind-decision', 'AI 합성 중… (약 30–60초)');
+        markChartPlaceholder('chart-mind-info', 'AI 합성 중…');
+        markChartPlaceholder('chart-mind-personality', 'AI 합성 중…');
       }
     } else if(dim === 'love'){
       if(syn && (syn.topInterests || []).length){
@@ -7179,7 +7185,13 @@ async function runAnalysis(){
           body: JSON.stringify({ country: code, filters: state.filters }),
         });
         const synD = await synR.json();
-        if(synD.ok && synD.segments) state.synthCache = synD;
+        if(synD.ok && synD.segments) {
+          state.synthCache = synD;
+          // CEO 2026-06-12: synthesize 도착 시 현재 다이멘션 탭 자동 갱신 — 빈 차트 박스 즉시 재렌더
+          if(['who','life','mind','love','buy'].includes(state.currentTab) && typeof refreshAudienceTab === 'function'){
+            try { refreshAudienceTab(state.currentTab); } catch(e){}
+          }
+        }
       }catch(e){ console.warn('synthesize failed', e); }
 
       // 한국 단독: 30명 페르소나 패널 조회 (백그라운드, 도착 시 현재 탭만 조용히 갱신)
