@@ -626,10 +626,24 @@ audienceRouter.post("/synthesize", async (req, res) => {
   // CEO 2026-06-12: 필터 없는 모드에서도 심화 차트 데이터 보장 — 폴백을 구조 골격으로 사용
   if (!synthesized) {
     synthesized = { who: {}, life: {}, mind: {}, love: {}, buy: {}, media: {} };
-    method = "fallback-only";
+    method = ""; // 사용자 노출 방지 (이전: fallback-only)
   }
   // CEO 2026-06-12: 심화 차트 필수 필드 폴백 (LLM이 누락하거나 baseline·시에도 적용)
   if (synthesized) {
+    // CEO 2026-06-12: 각 차원 summary 폴백 (사용자에 "-" 노출 방지)
+    synthesized.who = synthesized.who || {};
+    if (!synthesized.who.summary) synthesized.who.summary = "이 타겟은 활발한 경제활동과 안정적인 생활 기반을 갖춘 주요 소비층입니다.";
+    synthesized.life = synthesized.life || {};
+    if (!synthesized.life.summary) synthesized.life.summary = "균형 잡힌 일과 속에서 디지털과 오프라인을 적절히 활용하며 개인의 여가와 가족 시간을 함께 중시합니다.";
+    if (!synthesized.mind) synthesized.mind = {};
+    if (!synthesized.mind.summary) synthesized.mind.summary = "안정과 성장의 균형을 추구하며 신중한 판단과 검증된 정보를 선호하는 합리적 의사결정 성향을 보입니다.";
+    synthesized.love = synthesized.love || {};
+    if (!synthesized.love.summary) synthesized.love.summary = "라이프스타일과 자기관리, 콘텐츠 소비에 폭넓은 관심을 가지며 다양한 분야를 균형 있게 즐깁니다.";
+    synthesized.buy = synthesized.buy || {};
+    if (!synthesized.buy.summary) synthesized.buy.summary = "온라인 채널 활용도가 높고 리뷰·품질·가격을 종합적으로 검토하는 합리적 구매 행태를 보입니다.";
+    synthesized.media = synthesized.media || {};
+    if (!synthesized.media.summary) synthesized.media.summary = "모바일 중심의 미디어 소비 패턴 속에서 OTT·SNS·검색을 폭넓게 활용하며 시간대별 행동 패턴이 뚜렷합니다.";
+
     synthesized.mind = synthesized.mind || {};
     if (!synthesized.mind.coreValues || !synthesized.mind.coreValues.length) {
       synthesized.mind.coreValues = ["가족·안정", "자아실현", "세이브·미래", "관계·소속", "경험·여행", "성장·자기계발"];
@@ -637,6 +651,7 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
     if (!synthesized.mind.brandTrust) synthesized.mind.brandTrust = "보통";
     if (synthesized.mind.brandTrustScore == null) synthesized.mind.brandTrustScore = 60;
+    if (!synthesized.mind.riskAttitude) synthesized.mind.riskAttitude = "안정 추구";
     if (synthesized.mind.riskScore == null) synthesized.mind.riskScore = 45;
     if (synthesized.mind.futureOutlookScore == null) synthesized.mind.futureOutlookScore = 55;
     if (synthesized.mind.optimismScore == null) synthesized.mind.optimismScore = 60;
