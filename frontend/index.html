@@ -3046,6 +3046,14 @@ async function goWorkspace(opts){
   }
 }
 
+// 빌더 필터 또는 분석 실행 여부 — CEO 정의 "빌더 미설정" = 필터가 사실상 비어있고 분석도 안 한 상태
+function isBuilderEmpty(){
+  if(state.analysisRun) return false;  // 한 번이라도 분석을 실행했으면 빈 상태 아님
+  const f = state.filters || {};
+  const hasReal = Object.values(f).some(v => Array.isArray(v) && v.length > 0 && v.some(x => x && x !== '전체'));
+  return !hasReal;
+}
+
 function switchTab(tab, opts){
   const fromHistory = opts && opts.fromHistory;
   state.currentTab = tab;
@@ -3067,9 +3075,12 @@ function switchTab(tab, opts){
   if(tab === 'interview'){
     const ivBody = document.getElementById('iv-body');
     const ivEmpty = document.getElementById('iv-empty');
-    // iv-body가 비어있거나 hide 상태면 iv-empty 보여줌
-    if(ivBody && ivBody.classList.contains('hide') && ivEmpty){
+    const builderEmpty = (typeof isBuilderEmpty === 'function' && isBuilderEmpty());
+    const bodyHidden = ivBody && ivBody.classList.contains('hide');
+    if(ivEmpty && (builderEmpty || bodyHidden)){
       ivEmpty.classList.remove('hide');
+      // iv-body 강제 숨김 (잔여 상태 정리)
+      if(ivBody && builderEmpty) ivBody.classList.add('hide');
     }
   }
   // history 적용
@@ -3126,11 +3137,12 @@ function updateBreadcrumb(){
 
 // ============ MEDIA TAB ============
 async function refreshMediaTab(){
-  // 분석 게이트 — 빌더 미설정 시 sm-empty 스타일 안내 표시
+  // 분석 게이트 — 빌더 미설정 또는 분석 미실행 시 안내 표시
   const mdEmpty = document.getElementById('md-empty');
   const mdLoad = document.getElementById('md-loading');
   const mdBody = document.getElementById('md-body');
-  if(!state.analysisRun){
+  const empty = (typeof isBuilderEmpty === 'function' && isBuilderEmpty()) || !state.analysisRun;
+  if(empty){
     if(mdEmpty) mdEmpty.style.display = 'flex';
     if(mdLoad) mdLoad.classList.add('hide');
     if(mdBody) mdBody.classList.add('hide');
@@ -5544,6 +5556,18 @@ async function refreshSummaryTab(){
   const macroWrap = document.getElementById('sm-macro-wrap');
   renderSummaryActionBar();
   renderAnswerCard();
+  // CEO 2026-06-12: 빌더 미설정(필터 비어있고 분석 안 한 상태)일 때도 sm-empty 강제 표시
+  if(typeof isBuilderEmpty === 'function' && isBuilderEmpty()){
+    if(empty) empty.style.display = 'flex';
+    if(insWrap) insWrap.innerHTML='';
+    if(macroWrap) macroWrap.innerHTML='';
+    if(kpis) kpis.innerHTML = '';
+    if(dims) dims.innerHTML = '';
+    if(navBox) navBox.innerHTML = '';
+    if(banner) banner.innerHTML = '';
+    const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
+    return;
+  }
   if(!state.analysisRun){
     if(insWrap) insWrap.innerHTML='';
     if(macroWrap) macroWrap.innerHTML='';
