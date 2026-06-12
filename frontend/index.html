@@ -3664,18 +3664,16 @@ function showCoverageInfo(){
     <div class="md-mask" onclick="closeCoverageInfo(event)" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center">\
       <div onclick="event.stopPropagation()" style="background:#fff;border-radius:10px;width:min(560px,92vw);max-height:80vh;overflow:auto;padding:24px 26px;box-shadow:0 20px 60px rgba(0,0,0,.3)">\
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">\
-          <h3 style="margin:0;font-size:17px;font-weight:700;color:#111">데이터 컬버리지 설명</h3>\
+          <h3 style="margin:0;font-size:17px;font-weight:700;color:#111">데이터 커버리지 안내</h3>\
           <button onclick="closeCoverageInfo()" style="background:transparent;border:none;cursor:pointer;font-size:20px;color:#666;padding:0;line-height:1">×</button>\
         </div>\
         <div style="font-size:13px;line-height:1.7;color:#374151">\
           <p><b style="color:var(--ind)">' + cov + '개국</b>은 5차원(인물상·라이프·가치관·관심사·구매)이 <b>모두 실데이터로 확보</b>된 국가입니다.</p>\
-          <p style="margin-top:10px">전체 <b>77개 국가</b>가 시스템에 등록되어 있으나, 나머지 ' + (77 - cov) + '개 국가는 인구·지리 등 일부 데이터만 확보된 상태라 매트릭스에 넣으면 빈 칸이 많아집니다.</p>\
+          <p style="margin-top:10px">전체 <b>77개 국가</b>가 등록되어 있으며, 나머지 ' + (77 - cov) + '개 국가는 일부 차원 데이터만 제공되어 매트릭스 에는 표시되지 않습니다.</p>\
           <div style="margin-top:14px;padding:12px 14px;background:#F3F4F6;border-radius:6px;font-size:12px">\
-            <b style="color:#111">・ 단일 국가 분석</b>는 77국 모두 지원합니다 (인물상 탭 등)<br>\
-            <b style="color:#111">・ 글로벌 비교 매트릭스</b>는 실데이터 완전 확보국 한정<br>\
-            <b style="color:#111">・ 추후 확장</b>: 더 많은 국가의 5차원 데이터를 단계적으로 수집해 매트릭스 컬버리지를 늘릴 예정입니다.\
+            <b style="color:#111">・ 단일 국가 분석</b>은 77국 모두 지원합니다 (타겟 인사이트 > 인물상 탭)<br>\
+            <b style="color:#111">・ 글로벌 비교 매트릭스</b>는 5차원 실데이터가 완전히 확보된 국가만 표시됩니다.\
           </div>\
-          <p style="margin-top:14px;font-size:12px;color:#6B7280">특정 국가의 데이터 우선순위가 필요하시면 알려주세요.</p>\
         </div>\
       </div>\
     </div>';
@@ -5404,7 +5402,7 @@ const HELP_CONTENT = {
       { h: '1. AI 채팅으로 시작', p: '홈에서 «30대 한국 워킹맘» 같이 타겟을 자연어로 적으면 AI가 답변 카드를 만들고 6개 차원 데이터를 구성합니다.' },
       { h: '2. 상세 탭으로 점프', p: '답변 카드에서 «Who/Life/Mind/Love/Buy/Media» 칩을 눌러 워크스페이스로 이동·차트와 세부 수치를 확인합니다.' },
       { h: '3. 빌더에서 필터 미세 조정', p: '워크스페이스 좌측 빌더에서 원하는 차원 칩을 직접 선택·해제하면 분석이 재실행됩니다.' },
-      { h: '4. 페르소나 인터뷰', p: '세그먼트를 30명 합성 패널·1명 단일·4명 다양성 패널 형태의 가상 인물로 대화합니다.' },
+      { h: '4. 페르소나 인터뷰', p: '설정한 세그먼트를 가상 인물로 구현해 대화해볼 수 있습니다. 워크스페이스 상단 [페르소나 인터뷰] 탭을 이용하세요.' },
       { h: '5. 라이브러리에서 다시 열기', p: '좌측 사이드바의 라이브러리에서 과거 AI 채팅 세션을 제목·날짜로 다시 열 수 있습니다.' },
     ],
   },
@@ -5422,7 +5420,7 @@ const HELP_CONTENT = {
     blocks: [
       { h: '« 전체 » 칩 의미', p: '차원 맨 앞의 «전체» 칩은 해당 차원을 필터링 없이 모두 포함한다는 뜻입니다.' },
       { h: 'AI 타겟 자동 설정', p: '맨 위 입력창에 «30대 워킹맘 중 프리미엄 쇼퍼» 같이 자연어를 적으면 관련 차원이 자동 선택됩니다.' },
-      { h: '6개 그룹 · 64개 차원', p: 'Who(인구)·Life(라이프)·Mind(가치관)·Love(관심사)·Media(미디어)·Buy(구매) 그룹으로 구성됩니다.' },
+      { h: '6개 그룹 · 64개 차원', p: '인물상·라이프·가치관·관심사·미디어·구매 6개 그룹으로 구성됩니다.' },
       { h: '분석 실행', p: '필터 조정 후 [분석 시작] 버튼을 누르면 워크스페이스 탭이 자동 갱신됩니다.' },
       { h: '프리셋 저장', p: '자주 쓰는 필터 조합은 빌더 상단의 [+ 현재 필터 저장] 버튼으로 프리셋으로 보관해 다시 적용할 수 있습니다.' },
     ],
@@ -5798,8 +5796,8 @@ async function _refreshAudienceTabFetch(dim){
       const cName = (state.countries.find(c => c.code === code) || {}).name || code;
       body.innerHTML = `<div class="aud-missing-full">
         <div class="aud-missing-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-        <div class="aud-missing-t">${cName} 데이터 준비 중</div>
-        <div class="aud-missing-s">현재 5차원 정밀 데이터는 실데이터가 확보된 국가에만 제공됩니다. ${cName}는 추후 단계적으로 확장 예정입니다.</div>
+        <div class="aud-missing-t">${cName} 5차원 데이터 미제공</div>
+        <div class="aud-missing-s">${cName}는 5차원 실데이터가 확보되지 않아 세부 탭이 표시되지 않습니다. 아래 버튼으로 지원 국가를 확인하거나 비슷한 국가로 분석하세요.</div>
         <div class="aud-missing-actions">
           <button class="aud-missing-btn" onclick="aiQuickChip('지원 국가 목록 보여줘')">지원 국가 보기</button>
           <button class="aud-missing-btn aud-missing-btn-p" onclick="aiQuickChip('${cName}과 비슷한 지원 국가 추천')">비슷한 국가 추천</button>
@@ -5858,7 +5856,7 @@ function renderChartSafe(canvasId, type, labels, data, color, opts){
           ph = document.createElement('div');
           ph.className = 'chart-empty-ph';
           ph.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:160px;color:#9CA3AF;font-size:12px;gap:6px';
-          ph.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>데이터 준비 중</span>';
+          ph.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>데이터 없음</span>';
           parent.appendChild(ph);
         }
       }
