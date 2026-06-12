@@ -2469,7 +2469,17 @@ async function chatBoardJumpToTab(tab){
     state.autoRouteToSummary = false;
     if(typeof runAnalysis === 'function'){
       try{ await runAnalysis(); }catch(e){ console.warn('runAnalysis failed', e); }
+      // 분석 완료 후 해당 탭 재렌더링 강제 — 점프 로딩 제거
       if(typeof switchTab === 'function') switchTab(tab);
+      if(['who','life','mind','love','buy'].includes(tab) && typeof refreshAudienceTab === 'function'){
+        try{ await refreshAudienceTab(tab); }catch(e){}
+      }
+      if(tab === 'summary' && typeof refreshSummaryTab === 'function'){
+        try{ refreshSummaryTab(); }catch(e){}
+      }
+      if(tab === 'media' && typeof refreshMediaTab === 'function'){
+        try{ refreshMediaTab(); }catch(e){}
+      }
     }
   }
 }
