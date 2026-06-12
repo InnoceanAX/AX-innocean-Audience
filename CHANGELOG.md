@@ -1,5 +1,16 @@
 # CHANGELOG — INNOCEAN Audience
 
+## 2026-06-12
+
+### v1.38 — CEO 빌더 진입 정책 재확정 (15:46)
+- 글로벌 비교 → 홈 → 타겟 인사이트 진입 시 빌더(overview)가 첫 화면
+- summary/insights/compare/interview/media 탭 innerHTML 완전 청소
+- setTimeout(800ms)로 한 번 더 강제 — 비동기 렌더링으로 인한 잔존 차단
+- 전 다이멘션 차트 폴백 (BE 룰 기반 데이터 보장 + FE 플레이스홀더)
+- mind-culture polarArea → doughnut (차트 종류 일관성)
+- 사용법에 프리셋 저장 안내 복원
+
+
 ## 2026-06-08
 
 ### v0.5 — 룰/기능 명세 문서화 (18:45)
