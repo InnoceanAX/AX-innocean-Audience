@@ -5,7 +5,7 @@
 // - 실제 합성 데이터 (who/life/mind/love/buy/media) → 차트로 직접 변환
 
 import { Router } from "express";
-import { generateJSON, isGeminiAvailable } from "../adapters/gemini.js";
+import { generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
 import { COUNTRIES } from "../data/countries.js";
 import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
 import { getCountryAdSpend } from "../adapters/adspend-public.js";
@@ -216,6 +216,27 @@ insightAnswerRouter.post("/", async (req, res) => {
     });
   }
 
+  // 시의성 grounding — Google Search로 최근 1~3개월 트렌드/이슈/인물/작품/브랜드 컨텍스트 보강
+  let realtimeBlock = "";
+  let groundingUsed = false;
+  try {
+    if (process.env.PERSONA_USE_GROUNDING !== "0") {
+      const today = new Date().toISOString().slice(0, 10);
+      const countryName = country ? `(${country})` : "(KR)";
+      const filterHint = filters && Object.keys(filters).length
+        ? Object.entries(filters).filter(([_,v])=>Array.isArray(v)&&v.length).slice(0,3).map(([k,v])=>`${k}: ${v.join("·")}`).join(" / ")
+        : "";
+      const q = `오늘 날짜: ${today}. ${countryName} 시점에서 "${question}" 관련 최근 1~3개월의 구체적 트렌드·인물·브랜드·작품·이슈를 6~8문장으로 요약해주세요. ${filterHint ? `타겟 세그먼트 힌트: ${filterHint}.` : ""} 추상적 "트렌디한" 표현 금지, 실제 이름·작품·브랜드·인물명을 인용. 한국어로.`;
+      console.log("[insight-grounding] query:", q.slice(0, 120));
+      const g = await searchAndSummarize({ query: q, maxTokens: 700 });
+      console.log("[insight-grounding] result: text_len=", (g.text||"").length, "grounded=", g.grounded, "error=", g.error || "none");
+      if (g.text && g.text.length > 30) {
+        realtimeBlock = `\n\n[실시간 웹 검색 요약 — 오늘 ${today} 기준]\n${g.text}\n(이 내용을 답변·페르소나 voice·tagline에 우선적으로 활용. 옷 정보 대신 위 최신 정보의 인물·브랜드·작품명을 인용하세요.)`;
+        groundingUsed = true;
+      }
+    }
+  } catch (e) { console.error("[insight-grounding] error:", e.message); }
+
   try {
     const system = `당신은 INNOCEAN의 AI 페르소나 리서치 데이터 분석가입니다.
 사용자 질문에 대해 INNOCEAN AI 페르소나 패널 데이터를 근거로 답변합니다.
@@ -301,7 +322,7 @@ ${panelStr}
 - sources (첫 번째는 'INNOCEAN AI 페르소나 패널 N=30')
 - relatedInsights (1~3개 9차원 탭)
 
-긴 글 금지. 데이터 카드처럼 작성.`;
+긴 글 금지. 데이터 카드처럼 작성.${realtimeBlock}`;
 
     const schema = {
       type: "object",
@@ -369,12 +390,15 @@ ${panelStr}
     ans.kpis = panelKpis;
     ans.panelCharts = panelCharts;
 
-    // 출처 기본값 — 첫 번째 무조건 패널 출처
+    // 출처 기본값 — 첫 번째 무조건 패널 출처, grounding 사용 시 Google Search 추가
     if (ans.sources.length === 0 || !/INNOCEAN.*패널/.test(ans.sources[0]?.label || "")) {
       ans.sources = [
         { label: `INNOCEAN AI 페르소나 패널 N=30 (${country || "KR"})`, url: "" },
         ...ans.sources,
       ];
+    }
+    if (groundingUsed && !ans.sources.some(x => /Google Search/i.test(x.label || ""))) {
+      ans.sources.push({ label: `Google Search 실시간 컨텍스트 (${new Date().toISOString().slice(0,10)} 기준)`, url: "" });
     }
     if (ans.sources.length < 2) {
       ans.sources.push({ label: "통계청 경제활동인구조사 2024", url: "" });
