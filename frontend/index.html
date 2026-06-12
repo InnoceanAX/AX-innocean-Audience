@@ -2942,18 +2942,38 @@ function switchMode(mode){
     const summaryEl = document.getElementById('tab-summary');
     if(summaryEl){
       summaryEl.classList.add('hide');
-      summaryEl.innerHTML = ''; // CEO 2026-06-12 15:37: 요약 잔존 DOM 완전 제거
+      // CEO 2026-06-12 18:48: tab-summary 전체를 비우지 말고 동적 자식만 비움 (sm-empty 보존)
+      ['sm-action-bar','sm-banner','sm-answer-card','sm-ai-nav','sm-kpis','sm-dims','sm-insights-wrap','sm-macro-wrap','ov-compare','ov-kpis','ov-insights','ov-wb'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = '';
+      });
+      // sm-empty 강제 표시
+      const smE = document.getElementById('sm-empty');
+      if(smE){ smE.style.display = 'flex'; smE.style.visibility='visible'; smE.style.opacity='1'; }
     }
     const askBanner = document.getElementById('ask-banner');
     if(askBanner){ askBanner.classList.add('hide'); askBanner.innerHTML = ''; }
     // CEO 2026-06-12 15:46: 타겟 인사이트 진입 시 무조건 빌더(overview) 첫 화면 + 모든 탭 내용 초기화
     // 다른 탭들 innerHTML도 완전 비움 — 윈조존 잔덽 남을 가능성 0으로
-    ['summary','insights','interview','compare','media'].forEach(t => {
+    // CEO 2026-06-12 18:48: summary/media/interview는 innerHTML 비우지 않음 (안내 카드 보존)
+    ['summary','media','interview'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if(el){ el.classList.add('hide'); }
+    });
+    ['insights','compare'].forEach(t => {
       const el = document.getElementById('tab-' + t);
       if(el){ el.classList.add('hide'); el.innerHTML = ''; }
     });
     document.querySelectorAll('.ws-content').forEach(el => el.classList.add('hide'));
     document.querySelectorAll('.ws-tab').forEach(x => x.classList.remove('active'));
+    // CEO 2026-06-12 18:48: 안내 카드 강제 표시 (다음 탭 진입시 즉시 보이도록)
+    const mdE = document.getElementById('md-empty');
+    if(mdE){ mdE.style.display = 'flex'; mdE.style.visibility='visible'; mdE.style.opacity='1'; }
+    const mdBd = document.getElementById('md-body'); if(mdBd) mdBd.classList.add('hide');
+    const mdLd = document.getElementById('md-loading'); if(mdLd) mdLd.classList.add('hide');
+    const ivE = document.getElementById('iv-empty');
+    if(ivE){ ivE.classList.remove('hide'); ivE.style.display=''; ivE.style.visibility='visible'; ivE.style.opacity='1'; }
+    const ivBd = document.getElementById('iv-body'); if(ivBd) ivBd.classList.add('hide');
     state.currentTab = 'overview';
     const ovTab = document.querySelector('.ws-tab[data-tab="overview"]'); if(ovTab) ovTab.classList.add('active');
     const ovContent = document.getElementById('tab-overview'); if(ovContent) ovContent.classList.remove('hide');
