@@ -5805,6 +5805,24 @@ async function refreshSummaryTab(){
     const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
     return;
   }
+  // CEO 2026-06-15: 분석 진행 중이면 loading UI (가짜/부분 데이터 표시 방지)
+  if(state.analyzing){
+    if(empty) empty.style.display = 'none';
+    if(insWrap) insWrap.innerHTML='';
+    if(macroWrap) macroWrap.innerHTML='';
+    if(navBox) navBox.innerHTML = '';
+    if(banner) banner.innerHTML = '';
+    if(kpis) kpis.innerHTML = '';
+    if(dims){
+      dims.innerHTML = `<div style="padding:60px 20px;text-align:center;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:12px;grid-column:1/-1">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:6px">분석 진행 중</div>
+        <div style="font-size:12.5px;color:var(--ts);line-height:1.5">5차원 데이터 + AI 합성 세그먼트를 분석하고 있습니다.<br>완료 후 실데이터로 표시됩니다.</div>
+      </div>`;
+    }
+    const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
+    return;
+  }
   if(empty) empty.style.display = 'none';
   // 1) ask-banner clone — 제거
   if(banner) banner.innerHTML = '';
@@ -6007,6 +6025,18 @@ function renderSynthSegment(dim){
 
 async function refreshAudienceTab(dim){
   if(!state.analysisRun) return _refreshAudienceTabFetch(dim);
+  // CEO 2026-06-15: 분석 진행 중이면 loading UI
+  if(state.analyzing){
+    const body = document.getElementById(dim + '-body');
+    if(body){
+      body.innerHTML = `<div style="padding:60px 20px;text-align:center;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:12px">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:6px">분석 진행 중</div>
+        <div style="font-size:12.5px;color:var(--ts);line-height:1.5">실데이터 + AI 합성 세그먼트 분석 중입니다.<br>완료 후 자동으로 표시됩니다.</div>
+      </div>`;
+    }
+    return;
+  }
   // 캐시가 있으면 우선 사용
   if(state.audienceCache && state.audienceCache[dim]){
     const data = state.audienceCache[dim];
@@ -7594,11 +7624,19 @@ async function runAnalysis(){
   }
   if(btn){ btn.disabled = true; btn.innerHTML = '<span class="loader"></span> 분석 중...'; }
   state.analysisRun = true;
+  // CEO 2026-06-15: 분석 진행 중 플래그 — 가짜/부분 데이터 표시 방지
+  state.analyzing = true;
   state.analyzedCountry = state.currentCountry;
   state.analyzedFilters = JSON.parse(JSON.stringify(state.filters || {}));
   // 5차원 + 미디어 캐시 무효화
   state.audienceCache = {};
   state.mediaCache = null;
+  // 현재 탭 즉시 갱신 → loading UI 표시
+  try {
+    const cur = state.currentTab;
+    if(cur === 'summary' && typeof refreshSummaryTab === 'function') refreshSummaryTab();
+    if(['who','life','mind','love','buy'].includes(cur) && typeof refreshAudienceTab === 'function') refreshAudienceTab(cur);
+  } catch(e){}
   // 페르소나/인터뷰/심층 대화 리셋 — 이전 타겟 잔존 방지
   state.ivPersona = null;
   state.ivHistory = [];
@@ -7667,6 +7705,13 @@ async function runAnalysis(){
         }).catch(e => console.warn('panel research failed', e));
       }
     }
+    // CEO 2026-06-15: 분석 완료 — analyzing 해제 + 현재 탭 재갱신
+    state.analyzing = false;
+    try {
+      const cur = state.currentTab;
+      if(cur === 'summary' && typeof refreshSummaryTab === 'function') refreshSummaryTab();
+      if(['who','life','mind','love','buy'].includes(cur) && typeof refreshAudienceTab === 'function') refreshAudienceTab(cur);
+    } catch(e){}
     // 분석 완료 메시지
     if(status){
       status.innerHTML = `<div class="bld-analyze-ok">
