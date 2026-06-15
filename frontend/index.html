@@ -2603,7 +2603,8 @@ async function chatBoardJumpToTab(tab){
     if(!state.currentCountry) selectCountry('KR');
     state.autoRouteToSummary = false;
     if(typeof runAnalysis === 'function'){
-      try{ await runAnalysis(); }catch(e){ console.warn('runAnalysis failed', e); }
+      // CEO 2026-06-15: 채팅에서 점프 시 기존 synthCache 재사용 — 차트 데이터 일관성
+      try{ await runAnalysis({ keepSynth: true }); }catch(e){ console.warn('runAnalysis failed', e); }
       // 분석 완료 후 해당 탭 재렌더링 강제 — 점프 로딩 제거
       if(typeof switchTab === 'function') switchTab(tab);
       if(['who','life','mind','love','buy'].includes(tab) && typeof refreshAudienceTab === 'function'){
@@ -7622,7 +7623,8 @@ function newTarget(){
 }
 
 // ============ 분석 실행 (빌더 → 모든 탭 데이터 로드) ============
-async function runAnalysis(){
+async function runAnalysis(opts){
+  opts = opts || {};
   const btn = document.getElementById('bld-analyze-btn');
   const status = document.getElementById('bld-analyze-status');
   const nav = document.getElementById('bld-ai-nav');
@@ -7670,13 +7672,19 @@ async function runAnalysis(){
     dims.forEach((d, i) => { if(results[i]?.ok) state.audienceCache[d] = results[i]; });
     if(results[results.length-1]?.ok) state.mediaCache = results[results.length-1];
     // AI 합성 소비자: 필터가 있을 때만 호출
-    state.synthCache = null;
-    state.panelCache = null; // 한국 30명 패널 결과
+    // CEO 2026-06-15: keepSynth=true이고 기존 synthCache가 동일 country+filters면 재사용 (채팅↔인사이트 차트 일관성)
+    const existingSyn = state.synthCache;
+    const synKey = JSON.stringify({ country: code, filters: state.filters || {} });
+    const canReuseSyn = opts.keepSynth && existingSyn && existingSyn.cacheKey === synKey && existingSyn.segments;
+    if(!canReuseSyn){
+      state.synthCache = null;
+      state.panelCache = null; // 한국 30명 패널 결과
+    }
     const hasAnyFilter = Object.values(state.filters||{}).some(v => Array.isArray(v) && v.length > 0 && !(v.length===1 && v[0]==='전체'));
     // 자연어 질문이 있으면 필터가 없어도 합성 호출 (답변 카드 생성용)
     const hasQuestion = !!(state.lastAsk && state.lastAsk.question);
     // CEO 2026-06-12: 필터/질문 없어도 항상 synthesize 호출 — 모든 심화 차트 데이터 보장
-    if(true){
+    if(!canReuseSyn){
       try{
         const synR = await fetch(API + '/audience/synthesize', {
           method:'POST', headers:{'Content-Type':'application/json'},
@@ -7684,6 +7692,7 @@ async function runAnalysis(){
         });
         const synD = await synR.json();
         if(synD.ok && synD.segments) {
+          synD.cacheKey = synKey;
           state.synthCache = synD;
           // CEO 2026-06-12: synthesize 도착 시 현재 다이멘션 탭 자동 갱신 — 빈 차트 박스 즉시 재렌더
           if(['who','life','mind','love','buy'].includes(state.currentTab) && typeof refreshAudienceTab === 'function'){
