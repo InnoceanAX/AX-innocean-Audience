@@ -3259,6 +3259,24 @@ function switchTab(tab, opts){
       // 인터뷰 진행 중이면 iv-empty 무조건 hide
       ivEmpty.classList.add('hide');
       if(ivBody) ivBody.classList.remove('hide');
+      // CEO 2026-06-15: 페르소나 카드 사라졌으면 ivPersona로 재렌더링
+      const ivC = document.getElementById('iv-card');
+      const hasCard = ivC && ivC.querySelector('.iv-card-h');
+      if(!hasCard && state.ivPersona && typeof renderPersonaCard === 'function'){
+        try {
+          renderPersonaCard(state.ivPersona, { method: 'restored' });
+          // journey 캐시가 있으면 즉시 복원
+          const key = (typeof personaCacheKey === 'function') ? personaCacheKey(state.ivPersona) : null;
+          const cached = key && state.ivPersonaChats && state.ivPersonaChats[key];
+          if(cached && cached.journey && typeof renderPersonaJourney === 'function'){
+            renderPersonaJourney({ journey: cached.journey });
+          }
+        } catch(e){ console.warn('renderPersonaCard restore failed:', e); }
+      }
+      // 패널 모드 페르소나 재렌더링
+      if(!hasCard && state.ivPanelCache && state.ivPanelCache.panel && typeof renderPanel === 'function'){
+        try { renderPanel(state.ivPanelCache); } catch(e){}
+      }
     }
   }
   // CEO 2026-06-12: 모든 탭 전환 후 빌더 미설정이면 안내 강제 표시
