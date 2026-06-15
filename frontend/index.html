@@ -3292,7 +3292,17 @@ function switchTab(tab, opts){
     const bodyHidden = ivBody && ivBody.classList.contains('hide');
     // CEO 2026-06-15: chat에서 온 시드 페르소나 있거나 활성 페르소나 있으면 iv-empty 표시 금지
     const inInterview = !!(state.seedPersona || state.ivPersona || (state.seedPersonas && state.seedPersonas.length > 0) || state.currentPersona);
-    if(!inInterview && ivEmpty && (builderEmpty || bodyHidden)){
+    // CEO 2026-06-15: 분석 완료됐고 빌더 비어있지 않고 페르소나 없으면 → 자동 페르소나 생성 (점프 후 빈 페이지 방지)
+    if(!inInterview && state.analysisRun && !state.analyzing && !builderEmpty){
+      try{
+        if(ivEmpty) ivEmpty.classList.add('hide');
+        if(ivBody) ivBody.classList.remove('hide');
+        if(typeof generatePersona === 'function'){
+          // 비동기 — 페르소나 생성 트리거 (내부에서 loading UI 처리)
+          generatePersona().catch(e => console.warn('auto generatePersona failed', e));
+        }
+      }catch(e){ console.warn('auto persona trigger failed', e); }
+    } else if(!inInterview && ivEmpty && (builderEmpty || bodyHidden)){
       ivEmpty.classList.remove('hide');
       // iv-body 강제 숨김 (잔여 상태 정리)
       if(ivBody && builderEmpty) ivBody.classList.add('hide');
