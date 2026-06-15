@@ -6787,10 +6787,17 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
       if(ivE){ ivE.classList.add('hide'); ivE.style.display='none'; }
       if(ivB){ ivB.classList.remove('hide'); ivB.style.display=''; }
       if(ivS){ ivS.classList.remove('hide'); ivS.style.display=''; }
-      // iv-card가 비어있고 페르소나 카드(iv-card-h)가 없으면 로딩 UI 재주입
+      // CEO 2026-06-15: 페르소나 카드/journey/로딩이 이미 있으면 절대 건드리지 않음
       const ivC = document.getElementById('iv-card');
-      if(ivC && _loadingHTML && !ivC.querySelector('.iv-card-h') && ivC.innerHTML.length < 100){
-        ivC.innerHTML = _loadingHTML;
+      if(ivC && _loadingHTML){
+        const hasCard = !!ivC.querySelector('.iv-card-h');
+        const hasLoading = !!ivC.querySelector('.iv-loading');
+        const hasJourney = !!ivC.querySelector('.iv-journey-card');
+        const isEmpty = ivC.innerHTML.length < 20;
+        // 비어있을 때만 로딩 UI 주입 — 페르소나/journey/generatePersona 내부 로딩은 보존
+        if(isEmpty && !hasCard && !hasLoading && !hasJourney){
+          ivC.innerHTML = _loadingHTML;
+        }
       }
     }, 100);
   };
@@ -6845,14 +6852,14 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
     }
     // 단일 페르소나 인터뷰 시작 (seedPersona를 generatePersona에 전달)
     if(typeof generatePersona === 'function') await generatePersona(seedPersona);
-    // CEO 2026-06-15: runAnalysis가 끝나면 switchTab('summary') 자동 호출됨 — 최후 단계에 다시 인터뷰 탭으로 강제
+    // CEO 2026-06-15: generatePersona 완료 → 즉시 가드 해제 (페르소나 카드 보호)
+    stopGuard();
+    // 인터뷰 탭 유지 + 다운로드 버튼 갱신
     if(typeof switchTab === 'function') switchTab('interview');
     const ivE1 = document.getElementById('iv-empty');
     if(ivE1) ivE1.classList.add('hide');
     const ivB1 = document.getElementById('iv-body');
     if(ivB1) ivB1.classList.remove('hide');
-    stopGuard();
-    // CEO 2026-06-15: AI 채팅→페르소나 경로에서도 헤더 다운로드 버튼 보이도록 강제 갱신
     if(typeof updatePDFButtonsVisibility === 'function') updatePDFButtonsVisibility();
   } catch(e) {
     stopGuard();
@@ -6917,13 +6924,12 @@ async function startPanelFromChat(seedPersonas, seedQuestion){
     }
     // 패널 생성 (seedPersonas 포함)
     if(typeof generatePanel === 'function') await generatePanel(4, { seedPersonas, seedQuestion });
-    // CEO 2026-06-15: runAnalysis 후 자동 switchTab('summary') 보완 — 인터뷰 탭 재강제
+    stopGuard2();
     if(typeof switchTab === 'function') switchTab('interview');
     const ivE2 = document.getElementById('iv-empty');
     if(ivE2) ivE2.classList.add('hide');
     const ivB2 = document.getElementById('iv-body');
     if(ivB2) ivB2.classList.remove('hide');
-    stopGuard2();
     if(typeof updatePDFButtonsVisibility === 'function') updatePDFButtonsVisibility();
   } catch(e) {
     stopGuard2();
