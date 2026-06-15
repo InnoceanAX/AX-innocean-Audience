@@ -2630,6 +2630,14 @@ function showJumpLoading(tab, q){
     + '<div style="font-size:11px;color:#9CA3AF;margin-top:12px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
     + '</div>';
   // {tab}-body에만 주입 — 분석 완료 후 refreshAudienceTab이 다시 채워줌
+  // CEO 2026-06-15: 점프 로딩 시 모든 빈 안내(empty state) 강제 숨김 — 모순 화면 방지
+  ['sm-empty','md-empty','iv-empty'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el){ el.style.display = 'none'; el.classList.add('hide'); }
+  });
+  // md-loading / md-body는 적절히 처리
+  const mdL = document.getElementById('md-loading'); if(mdL) mdL.classList.add('hide');
+  const mdB = document.getElementById('md-body'); if(mdB) mdB.classList.remove('hide');
   [tab, 'summary'].forEach(t => {
     const body = document.getElementById(t + '-body');
     if(body){ body.innerHTML = html; return; }
