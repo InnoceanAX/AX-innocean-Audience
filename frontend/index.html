@@ -8234,7 +8234,51 @@ async function _capturePDFFromElement(el, filename, title){
   const { jsPDF } = window.jspdf;
   try {
     if(document.fonts && document.fonts.ready) { await document.fonts.ready; }
-    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false, allowTaint: false });
+    // CEO 2026-06-15: 스크롤 위치 의존 캡처 방지 — 전체 영역 강제 캡처
+    // 1) 모든 overflow 컨테이너 임시 해제
+    const origScrollY = window.scrollY;
+    const origScrollX = window.scrollX;
+    window.scrollTo(0, 0);
+    const restoreOverflow = [];
+    const overflowEls = el.querySelectorAll('*');
+    overflowEls.forEach(child => {
+      const cs = getComputedStyle(child);
+      if(['auto','scroll','hidden'].includes(cs.overflow) || ['auto','scroll','hidden'].includes(cs.overflowY) || ['auto','scroll','hidden'].includes(cs.overflowX)){
+        restoreOverflow.push({ el: child, overflow: child.style.overflow, overflowY: child.style.overflowY, overflowX: child.style.overflowX });
+        child.style.overflow = 'visible';
+        child.style.overflowY = 'visible';
+        child.style.overflowX = 'visible';
+      }
+      if(child.scrollTop > 0 || child.scrollLeft > 0){
+        restoreOverflow.push({ el: child, scrollTop: child.scrollTop, scrollLeft: child.scrollLeft, restoreScroll: true });
+        child.scrollTop = 0; child.scrollLeft = 0;
+      }
+    });
+    // el 본인 overflow도
+    const origElOverflow = { overflow: el.style.overflow, overflowY: el.style.overflowY, overflowX: el.style.overflowX };
+    el.style.overflow = 'visible';
+    el.style.overflowY = 'visible';
+    el.style.overflowX = 'visible';
+    await new Promise(r => setTimeout(r, 100));
+    
+    const fullW = Math.max(el.scrollWidth, el.offsetWidth, el.clientWidth);
+    const fullH = Math.max(el.scrollHeight, el.offsetHeight, el.clientHeight);
+    const canvas = await html2canvas(el, { 
+      scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false, allowTaint: false,
+      width: fullW, height: fullH,
+      windowWidth: fullW, windowHeight: fullH,
+      scrollX: 0, scrollY: 0,
+      x: 0, y: 0
+    });
+    // overflow 복원
+    el.style.overflow = origElOverflow.overflow;
+    el.style.overflowY = origElOverflow.overflowY;
+    el.style.overflowX = origElOverflow.overflowX;
+    restoreOverflow.forEach(r => {
+      if(r.restoreScroll){ r.el.scrollTop = r.scrollTop; r.el.scrollLeft = r.scrollLeft; }
+      else { r.el.style.overflow = r.overflow; r.el.style.overflowY = r.overflowY; r.el.style.overflowX = r.overflowX; }
+    });
+    window.scrollTo(origScrollX, origScrollY);
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'p' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
@@ -8363,7 +8407,35 @@ async function downloadReportPDF(){
         // PDF 행은 캡처 직전 임시 hidden
         const tabBtnRow = tabEl.querySelector('.tab-pdf-row');
         if(tabBtnRow) tabBtnRow.style.visibility = 'hidden';
-        const canvas = await html2canvas(tabEl, { scale: 1.5, backgroundColor: '#ffffff', useCORS: true, logging: false });
+        // CEO 2026-06-15: 스크롤 위치 의존 방지 — 전체 영역 강제 캡처
+        const origScrollY2 = window.scrollY;
+        window.scrollTo(0, 0);
+        const _restoreOv = [];
+        tabEl.querySelectorAll('*').forEach(c => {
+          const cs = getComputedStyle(c);
+          if(['auto','scroll','hidden'].includes(cs.overflow) || ['auto','scroll','hidden'].includes(cs.overflowY) || ['auto','scroll','hidden'].includes(cs.overflowX)){
+            _restoreOv.push({ el:c, o:c.style.overflow, oy:c.style.overflowY, ox:c.style.overflowX });
+            c.style.overflow='visible'; c.style.overflowY='visible'; c.style.overflowX='visible';
+          }
+          if(c.scrollTop>0 || c.scrollLeft>0){ _restoreOv.push({ el:c, st:c.scrollTop, sl:c.scrollLeft, rs:true }); c.scrollTop=0; c.scrollLeft=0; }
+        });
+        const _origEl = { o:tabEl.style.overflow, oy:tabEl.style.overflowY, ox:tabEl.style.overflowX };
+        tabEl.style.overflow='visible'; tabEl.style.overflowY='visible'; tabEl.style.overflowX='visible';
+        await new Promise(r=>setTimeout(r,100));
+        const _fullW = Math.max(tabEl.scrollWidth, tabEl.offsetWidth);
+        const _fullH = Math.max(tabEl.scrollHeight, tabEl.offsetHeight);
+        const canvas = await html2canvas(tabEl, { 
+          scale: 1.5, backgroundColor: '#ffffff', useCORS: true, logging: false,
+          width: _fullW, height: _fullH,
+          windowWidth: _fullW, windowHeight: _fullH,
+          scrollX: 0, scrollY: 0, x: 0, y: 0
+        });
+        tabEl.style.overflow=_origEl.o; tabEl.style.overflowY=_origEl.oy; tabEl.style.overflowX=_origEl.ox;
+        _restoreOv.forEach(r => {
+          if(r.rs){ r.el.scrollTop=r.st; r.el.scrollLeft=r.sl; }
+          else { r.el.style.overflow=r.o; r.el.style.overflowY=r.oy; r.el.style.overflowX=r.ox; }
+        });
+        window.scrollTo(0, origScrollY2);
         if(tabBtnRow) tabBtnRow.style.visibility = '';
 
         // 캔버스 너비를 usableW에 맞추고, 캔버스 높이를 그 비율로 변환
