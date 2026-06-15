@@ -3171,6 +3171,8 @@ function renderJumpContextBanner(){
 // CEO 2026-06-12: 빌더 미설정 시 모든 탭에서 안내를 강제 표시 (스타일 충돌·캐시 무관)
 function forceBuilderEmptyDisplay(){
   if(!isBuilderEmpty()) return;
+  // CEO 2026-06-15: 인터뷰 진행 중(시드 페르소나 또는 활성 페르소나 있음)이면 iv-empty 강제 표시 금지
+  const inInterview = !!(state.seedPersona || state.ivPersona || state.seedPersonas && state.seedPersonas.length > 0 || state.currentPersona);
   // 요약 탭
   const sm = document.getElementById('sm-empty');
   if(sm){ sm.style.display='flex'; sm.style.visibility='visible'; sm.style.opacity='1'; }
@@ -3179,10 +3181,12 @@ function forceBuilderEmptyDisplay(){
   if(md){ md.style.display='flex'; md.style.visibility='visible'; md.style.opacity='1'; }
   const mdBody = document.getElementById('md-body'); if(mdBody) mdBody.classList.add('hide');
   const mdLoad = document.getElementById('md-loading'); if(mdLoad) mdLoad.classList.add('hide');
-  // 페르소나 탭
-  const iv = document.getElementById('iv-empty');
-  if(iv){ iv.classList.remove('hide'); iv.style.display=''; iv.style.visibility='visible'; iv.style.opacity='1'; }
-  const ivBody = document.getElementById('iv-body'); if(ivBody) ivBody.classList.add('hide');
+  // 페르소나 탭 — 인터뷰 진행 중이면 건드리지 않음
+  if(!inInterview){
+    const iv = document.getElementById('iv-empty');
+    if(iv){ iv.classList.remove('hide'); iv.style.display=''; iv.style.visibility='visible'; iv.style.opacity='1'; }
+    const ivBody = document.getElementById('iv-body'); if(ivBody) ivBody.classList.add('hide');
+  }
   // 비어있어야 할 영역 비움 (혹시 잔여 data가 가리는 경우)
   ['sm-banner','sm-answer-card','sm-ai-nav','sm-kpis','sm-dims','sm-insights-wrap','sm-macro-wrap'].forEach(id => {
     const el = document.getElementById(id);
@@ -6735,10 +6739,18 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
     }
     if(typeof renderBuilder === 'function') renderBuilder();
     // seedPersona를 state에 저장 (인터뷰 모듈이 활용)
+    // CEO 2026-06-15: seedPersona를 switchTab 호출 전에 저장 — forceBuilderEmptyDisplay 가드 발동
     state.seedPersona = seedPersona;
     state.seedQuestion = seedQuestion;
     // 인터뷰 탭으로 전환
     if(typeof switchTab === 'function') switchTab('interview');
+    // 즉시 빈 화면 숨김 (forceBuilderEmptyDisplay setTimeout 경합 대비)
+    const ivE0 = document.getElementById('iv-empty');
+    if(ivE0) ivE0.classList.add('hide');
+    const ivB0 = document.getElementById('iv-body');
+    if(ivB0) ivB0.classList.remove('hide');
+    const ivS0 = document.getElementById('iv-single-wrap');
+    if(ivS0) ivS0.classList.remove('hide');
     // 분석 미실행이면 먼저 실행
     if(!state.analysisRun && typeof runAnalysis === 'function'){
       try { await runAnalysis(); } catch(e) { console.warn('runAnalysis failed:', e); }
