@@ -290,9 +290,15 @@ interviewRouter.post("/persona/enrich", async (req, res) => {
       if (gH) simple.gender = /여성|female/i.test(gH) ? '여성' : '남성';
     }
     if (!simple.occupation) {
-      // 나이/성별/위치 외의 첫 attribute를 직업/태그로
-      const occCand = simple.attributes.find(a => !/\d+\s*세|\d+\s*살|여성|남성|female|male|거주|지역|소득/i.test(a));
+      // 직업 키워드 우선
+      const occKw = /(과장|차장|부장|팀장|대리|사원|매니저|디렉터|이사|대표|CEO|CTO|마케터|개발자|디자이너|기획자|MD|PM|컨설턴트|연구원|교사|의사|간호사|회계사|변호사|프리랜서|자영업|주부|학생|인턴|연구|영업|엔지니어|총무|회사원|직장인)/;
+      const occCand = simple.attributes.find(a => occKw.test(a));
       if (occCand) simple.occupation = occCand;
+      // 안 잡히면 나이/성별/위치/소득/자녀 제외 첫 attribute
+      if (!simple.occupation) {
+        const fallback = simple.attributes.find(a => !/\d+\s*세|\d+\s*살|여성|남성|female|male|거주|지역|소득|자녀|기혼|미혼/i.test(a));
+        if (fallback) simple.occupation = fallback;
+      }
     }
     if (!simple.lifestyle) {
       simple.lifestyle = simple.attributes.join(' · ');
