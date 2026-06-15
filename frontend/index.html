@@ -2369,6 +2369,23 @@ async function chatBoardEnter(q, parsedAsk){
   const turn = { q: q, a: { loading: true }, askMeta: parsedAsk };
   state.chatTurns.push(turn);
   renderChatBoardTurns();
+  // CEO 2026-06-15: 답변 전 synthesize 먼저 호출 → state.synthCache 채움 → /insight에 전달 → 점프 후 인사이트 탭도 같은 데이터 사용
+  try{
+    const code = state.currentCountry || 'KR';
+    const filters = (parsedAsk && parsedAsk.filters) || state.filters || {};
+    const synKey = JSON.stringify({ country: code, filters });
+    if(!(state.synthCache && state.synthCache.cacheKey === synKey)){
+      const synR = await fetch(API + '/audience/synthesize', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ country: code, filters }),
+      });
+      const synD = await synR.json();
+      if(synD && synD.ok && synD.segments){
+        synD.cacheKey = synKey;
+        state.synthCache = synD;
+      }
+    }
+  }catch(e){ console.warn('chat synthesize failed', e); }
   // 답변 fetch
   try{
     const ans = await fetchInsightAnswer(q, parsedAsk);
