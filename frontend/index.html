@@ -8013,34 +8013,36 @@ async function _capturePDFFromElement(el, filename, title){
   }
   const { jsPDF } = window.jspdf;
   try {
+    if(document.fonts && document.fonts.ready) { await document.fonts.ready; }
     const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false, allowTaint: false });
-    const imgData = canvas.toDataURL('image/png', 0.95);
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'p' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 10;
     const usableW = pageW - margin*2;
+    const usableH = pageH - margin*2;
     const ratio = canvas.width / canvas.height;
-    const imgH = usableW / ratio;
-    // 페이지 자동 분할
-    if(imgH <= pageH - margin*2){
-      pdf.addImage(imgData, 'PNG', margin, margin, usableW, imgH);
+    const fullImgH = usableW / ratio;
+    if(fullImgH <= usableH){
+      pdf.addImage(canvas.toDataURL('image/png', 0.92), 'PNG', margin, margin, usableW, fullImgH);
     } else {
-      // 큰 이미지를 페이지별로 잘라 추가
-      const pageContentH = pageH - margin*2;
-      const totalPages = Math.ceil(imgH / pageContentH);
-      const srcPageH = canvas.height / totalPages;
-      for(let i = 0; i < totalPages; i++){
-        if(i > 0) pdf.addPage();
-        const tmpCanvas = document.createElement('canvas');
-        tmpCanvas.width = canvas.width;
-        tmpCanvas.height = srcPageH;
-        const ctx = tmpCanvas.getContext('2d');
+      // 비율 유지 페이지 분할
+      const pxPerMM = canvas.height / fullImgH;
+      let consumedPx = 0; let pageIdx = 0;
+      while(consumedPx < canvas.height - 0.5){
+        const pageContentPx = Math.min(usableH * pxPerMM, canvas.height - consumedPx);
+        const tmp = document.createElement('canvas');
+        tmp.width = canvas.width;
+        tmp.height = pageContentPx;
+        const ctx = tmp.getContext('2d');
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
-        ctx.drawImage(canvas, 0, -i*srcPageH);
-        const pageImg = tmpCanvas.toDataURL('image/png', 0.95);
-        pdf.addImage(pageImg, 'PNG', margin, margin, usableW, pageContentH);
+        ctx.fillRect(0, 0, tmp.width, tmp.height);
+        ctx.drawImage(canvas, 0, -consumedPx);
+        const sliceMM = pageContentPx / pxPerMM;
+        if(pageIdx > 0) pdf.addPage();
+        pdf.addImage(tmp.toDataURL('image/png', 0.92), 'PNG', margin, margin, usableW, sliceMM);
+        consumedPx += pageContentPx;
+        pageIdx++;
       }
     }
     pdf.save(filename);
@@ -8052,9 +8054,43 @@ async function _capturePDFFromElement(el, filename, title){
 }
 
 // [보고서] 전체 보고서 — 모든 탭 순회 캡처
+// 임시 표지 DOM 생성 (한글 폰트 정상 표시 위해 html2canvas로 캡처)
+function _createCoverDOM(tabs){
+  const country = (state.currentCountry || 'KR');
+  const filtersText = (state.filters && Object.keys(state.filters).length)
+    ? Object.entries(state.filters).map(([k,v]) => k + ': ' + (Array.isArray(v) ? v.join(',') : v)).join(' · ')
+    : '필터 없음';
+  const cover = document.createElement('div');
+  cover.style.cssText = 'position:absolute;left:-9999px;top:0;width:790px;padding:90px 60px;background:#fff;font-family:Pretendard,system-ui,-apple-system,sans-serif;box-sizing:border-box';
+  cover.innerHTML = `
+    <div style="border-left:4px solid #4F46E5;padding-left:18px;margin-bottom:60px">
+      <div style="font-size:14px;font-weight:600;color:#6366F1;letter-spacing:.05em;margin-bottom:8px">INNOCEAN AUDIENCE</div>
+      <div style="font-size:36px;font-weight:800;color:#111;letter-spacing:-.01em;line-height:1.2;margin-bottom:6px">타겟 인사이트 분석 보고서</div>
+      <div style="font-size:14px;color:#6B7280;margin-top:14px">Target Insight Analysis Report</div>
+    </div>
+    <div style="margin-bottom:50px">
+      <div style="display:grid;grid-template-columns:120px 1fr;row-gap:14px;font-size:14px">
+        <div style="color:#9CA3AF;font-weight:600">대상 국가</div><div style="color:#111;font-weight:600">${country}</div>
+        <div style="color:#9CA3AF;font-weight:600">빌더 조건</div><div style="color:#374151">${filtersText}</div>
+        <div style="color:#9CA3AF;font-weight:600">생성일시</div><div style="color:#374151">${new Date().toLocaleString('ko-KR')}</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E5E7EB">수록 섹션</div>
+      ${tabs.map(t => `<div style="font-size:14px;color:#374151;padding:6px 0">${t.name}</div>`).join('')}
+    </div>
+    <div style="position:absolute;bottom:60px;left:60px;right:60px;padding-top:20px;border-top:1px solid #E5E7EB;font-size:11px;color:#9CA3AF">
+      © INNOCEAN Worldwide · 본 보고서는 합성/공개 데이터 기반의 분석 결과입니다.
+    </div>
+  `;
+  document.body.appendChild(cover);
+  return cover;
+}
+
 async function downloadReportPDF(){
   const btn = document.getElementById('tb-pdf-report');
-  if(btn){ btn.disabled = true; const orig = btn.innerHTML; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>생성 중…'; setTimeout(()=>{ btn.disabled=false; btn.innerHTML=orig; }, 30000); }
+  let origHTML = '';
+  if(btn){ btn.disabled = true; origHTML = btn.innerHTML; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>생성 중…'; }
   try {
     if(!window.html2canvas || !window.jspdf){ toast('PDF 라이브러리 로딩 중'); return; }
     const { jsPDF } = window.jspdf;
@@ -8063,21 +8099,9 @@ async function downloadReportPDF(){
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const usableW = pageW - margin*2;
+    const usableH = pageH - margin*2;
 
-    // 표지
-    pdf.setFontSize(20); pdf.setTextColor(50, 30, 130);
-    pdf.text('INNOCEAN Audience', margin, 30);
-    pdf.text('타겟 인사이트 분석 보고서', margin, 42);
-    pdf.setFontSize(11); pdf.setTextColor(80, 80, 80);
     const country = (state.currentCountry || 'KR');
-    const filtersText = (state.filters && Object.keys(state.filters).length) ? Object.entries(state.filters).map(([k,v]) => k + ': ' + (Array.isArray(v) ? v.join(',') : v)).join(' / ') : '필터 없음';
-    pdf.text('대상 국가: ' + country, margin, 60);
-    pdf.text('빌더 조건: ' + filtersText, margin, 68);
-    pdf.text('생성일시: ' + new Date().toLocaleString('ko-KR'), margin, 76);
-    // 목차
-    pdf.setFontSize(13); pdf.setTextColor(30, 27, 75);
-    pdf.text('수록 섹션', margin, 100);
-    pdf.setFontSize(11); pdf.setTextColor(60, 60, 60);
     const tabs = [
       { id: 'summary', name: '1. 요약' },
       { id: 'who', name: '2. 인물상' },
@@ -8087,53 +8111,81 @@ async function downloadReportPDF(){
       { id: 'buy', name: '6. 구매' },
       { id: 'media', name: '7. 미디어' },
     ];
-    // 페르소나 미생성 시 표지에서 제외 (CEO 옵션 B)
     const hasPersona = state.currentPersona || (state.ivPanelCache && state.ivPanelCache.panel);
     if(hasPersona) tabs.push({ id: 'interview', name: '8. 페르소나' });
-    tabs.forEach((t, i) => { pdf.text(t.name, margin + 4, 110 + i*7); });
 
-    // 각 탭 캡처
+    // 표지 (html2canvas로 캡처해 한글 폰트 보존)
+    const cover = _createCoverDOM(tabs);
+    try {
+      // Pretendard 폰트 로딩 대기
+      if(document.fonts && document.fonts.ready) { await document.fonts.ready; }
+      const coverCanvas = await html2canvas(cover, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+      const coverRatio = coverCanvas.width / coverCanvas.height;
+      const coverH = Math.min(usableW / coverRatio, usableH);
+      const coverW = coverH * coverRatio;
+      pdf.addImage(coverCanvas.toDataURL('image/png', 0.95), 'PNG', (pageW - coverW)/2, (pageH - coverH)/2, coverW, coverH);
+    } finally {
+      cover.remove();
+    }
+
+    // 각 탭 — 비율 유지 페이지 분할
     const originalTab = state.currentTab;
     for(const tab of tabs){
       try {
         await switchTab(tab.id);
-        await new Promise(r => setTimeout(r, 800)); // 렌더 대기
+        await new Promise(r => setTimeout(r, 900));
         const tabEl = document.getElementById('tab-' + tab.id);
         if(!tabEl) continue;
-        const canvas = await html2canvas(tabEl, { scale: 1.5, backgroundColor: '#ffffff', useCORS: true, logging: false, allowTaint: false });
-        const imgData = canvas.toDataURL('image/png', 0.92);
+        // PDF 행은 캡처 직전 임시 hidden
+        const tabBtnRow = tabEl.querySelector('.tab-pdf-row');
+        if(tabBtnRow) tabBtnRow.style.visibility = 'hidden';
+        const canvas = await html2canvas(tabEl, { scale: 1.5, backgroundColor: '#ffffff', useCORS: true, logging: false });
+        if(tabBtnRow) tabBtnRow.style.visibility = '';
+
+        // 캔버스 너비를 usableW에 맞추고, 캔버스 높이를 그 비율로 변환
         const ratio = canvas.width / canvas.height;
-        const imgH = usableW / ratio;
+        const fullImgH = usableW / ratio;  // mm
+        const sectionTopMM = margin + 14;
+        const firstPageContentH = usableH - 14; // 섹션 헤더 자리 제외
+        const otherPageContentH = usableH;
+
         pdf.addPage();
-        // 섹션 헤더
-        pdf.setFontSize(14); pdf.setTextColor(50, 30, 130);
-        pdf.text(tab.name, margin, margin + 6);
-        if(imgH <= pageH - margin*2 - 12){
-          pdf.addImage(imgData, 'PNG', margin, margin + 10, usableW, imgH);
+        // 섹션 헤더 (영문) — 한글 깨짐 회피 위해 탭 위에 영문 라벨만 작게
+        pdf.setFontSize(9); pdf.setTextColor(150, 150, 150);
+        pdf.text('SECTION ' + tab.name.split('.')[0], margin, margin + 6);
+
+        if(fullImgH <= firstPageContentH){
+          // 1페이지 안에 다 들어감
+          pdf.addImage(canvas.toDataURL('image/png', 0.92), 'PNG', margin, sectionTopMM, usableW, fullImgH);
         } else {
-          // 큰 콘텐츠 페이지 분할
-          const sectionTop = margin + 10;
-          const pageContentH = pageH - sectionTop - margin;
-          const totalPages = Math.ceil(imgH / pageContentH);
-          const srcPageH = canvas.height / totalPages;
-          for(let i = 0; i < totalPages; i++){
-            if(i > 0) { pdf.addPage(); }
-            const tmpCanvas = document.createElement('canvas');
-            tmpCanvas.width = canvas.width;
-            tmpCanvas.height = srcPageH;
-            const ctx = tmpCanvas.getContext('2d');
+          // 비율 유지하며 페이지 분할
+          // 첫 페이지: firstPageContentH mm 까지 → 해당하는 캔버스 픽셀 = (firstPageContentH / fullImgH) * canvas.height
+          const pxPerMM = canvas.height / fullImgH;
+          let consumedPx = 0;
+          let pageIdx = 0;
+          while(consumedPx < canvas.height - 0.5){
+            const pageContentH = (pageIdx === 0) ? firstPageContentH : otherPageContentH;
+            const pageContentPx = Math.min(pageContentH * pxPerMM, canvas.height - consumedPx);
+            const tmp = document.createElement('canvas');
+            tmp.width = canvas.width;
+            tmp.height = pageContentPx;
+            const ctx = tmp.getContext('2d');
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
-            ctx.drawImage(canvas, 0, -i*srcPageH);
-            const pageImg = tmpCanvas.toDataURL('image/png', 0.92);
-            pdf.addImage(pageImg, 'PNG', margin, i === 0 ? sectionTop : margin, usableW, pageContentH);
+            ctx.fillRect(0, 0, tmp.width, tmp.height);
+            ctx.drawImage(canvas, 0, -consumedPx);
+            const sliceMM = pageContentPx / pxPerMM;
+            if(pageIdx > 0) pdf.addPage();
+            pdf.addImage(tmp.toDataURL('image/png', 0.92), 'PNG', margin,
+              pageIdx === 0 ? sectionTopMM : margin,
+              usableW, sliceMM);
+            consumedPx += pageContentPx;
+            pageIdx++;
           }
         }
       } catch(e){
         console.warn('탭 ' + tab.id + ' 캡처 실패:', e);
       }
     }
-    // 원래 탭으로 복귀
     if(originalTab) await switchTab(originalTab);
 
     const fname = 'innocean-audience-report-' + country + '-' + Date.now() + '.pdf';
@@ -8143,7 +8195,7 @@ async function downloadReportPDF(){
     console.error(e);
     toast('보고서 PDF 생성 실패: ' + e.message);
   } finally {
-    if(btn){ btn.disabled = false; updatePDFButtonsVisibility(); }
+    if(btn){ btn.disabled = false; btn.innerHTML = origHTML; updatePDFButtonsVisibility(); }
   }
 }
 
