@@ -6838,6 +6838,8 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
     const ivB1 = document.getElementById('iv-body');
     if(ivB1) ivB1.classList.remove('hide');
     stopGuard();
+    // CEO 2026-06-15: AI 채팅→페르소나 경로에서도 헤더 다운로드 버튼 보이도록 강제 갱신
+    if(typeof updatePDFButtonsVisibility === 'function') updatePDFButtonsVisibility();
   } catch(e) {
     stopGuard();
     if(typeof toast === 'function') toast('인터뷰 시작 실패: ' + e.message);
@@ -6907,6 +6909,7 @@ async function startPanelFromChat(seedPersonas, seedQuestion){
     const ivB2 = document.getElementById('iv-body');
     if(ivB2) ivB2.classList.remove('hide');
     stopGuard2();
+    if(typeof updatePDFButtonsVisibility === 'function') updatePDFButtonsVisibility();
   } catch(e) {
     stopGuard2();
     if(typeof toast === 'function') toast('패널 인터뷰 시작 실패: ' + e.message);
