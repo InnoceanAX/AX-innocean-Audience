@@ -6838,8 +6838,9 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
     if(ivS0) ivS0.classList.remove('hide');
     // 로딩 UI 재주입 (switchTab 후 iv-card 비워졌을 가능성)
     injectLoadingUI();
-    // 분석 미실행이면 먼저 실행
-    if(!state.analysisRun && typeof runAnalysis === 'function'){
+    // 분석 미실행 또는 캐시 비어있으면 실행 (라이브러리 복원 케이스 포함)
+    const needAnalysis = !state.analysisRun || !state.audienceCache || Object.keys(state.audienceCache).length === 0;
+    if(needAnalysis && typeof runAnalysis === 'function'){
       try { await runAnalysis(); } catch(e) { console.warn('runAnalysis failed:', e); }
     }
     // 단일 페르소나 인터뷰 시작 (seedPersona를 generatePersona에 전달)
@@ -6910,7 +6911,8 @@ async function startPanelFromChat(seedPersonas, seedQuestion){
     state.seedPersonas = seedPersonas || [];
     state.seedQuestion = seedQuestion;
     if(typeof switchTab === 'function') switchTab('interview');
-    if(!state.analysisRun && typeof runAnalysis === 'function'){
+    const needAnalysis2 = !state.analysisRun || !state.audienceCache || Object.keys(state.audienceCache).length === 0;
+    if(needAnalysis2 && typeof runAnalysis === 'function'){
       try { await runAnalysis(); } catch(e) { console.warn('runAnalysis failed:', e); }
     }
     // 패널 생성 (seedPersonas 포함)
@@ -8302,7 +8304,8 @@ async function downloadReportPDF(){
       { id: 'buy', name: '6. 구매' },
       { id: 'media', name: '7. 미디어' },
     ];
-    const hasPersona = state.currentPersona || (state.ivPanelCache && state.ivPanelCache.panel);
+    // CEO 2026-06-15: ivPersona(단일 페르소나)도 포함 — AI 채팅 경로 보강
+    const hasPersona = state.currentPersona || state.ivPersona || (state.ivPanelCache && state.ivPanelCache.panel);
     if(hasPersona) tabs.push({ id: 'interview', name: '8. 페르소나' });
 
     // 표지 (html2canvas로 캡처해 한글 폰트 보존)
@@ -8327,6 +8330,9 @@ async function downloadReportPDF(){
         await new Promise(r => setTimeout(r, 900));
         const tabEl = document.getElementById('tab-' + tab.id);
         if(!tabEl) continue;
+        if(tab.id === 'interview'){
+          try { await _waitForInterviewCompleteContent(); await new Promise(r=>setTimeout(r, 500)); } catch(e){}
+        }
         // PDF 행은 캡처 직전 임시 hidden
         const tabBtnRow = tabEl.querySelector('.tab-pdf-row');
         if(tabBtnRow) tabBtnRow.style.visibility = 'hidden';
@@ -8391,11 +8397,33 @@ async function downloadReportPDF(){
 }
 
 // [이 탭] 현재 탭만 PDF
+// CEO 2026-06-15: 페르소나 탭은 일일 미디어 여정이 비동기 — 캡처 전 대기 헬퍼
+async function _waitForInterviewCompleteContent(){
+  const card = document.getElementById('iv-card');
+  if(!card) return;
+  // journey card 없으면 fetchPersonaJourney 강제 호출
+  if(!card.querySelector('.iv-journey-card')){
+    if(state.ivPersona && typeof fetchPersonaJourney === 'function'){
+      try { await fetchPersonaJourney(state.ivPersona); } catch(e){}
+    }
+  }
+  // journey-loading 완료 대기 (최대 25초)
+  const startT = Date.now();
+  while(Date.now() - startT < 25000){
+    const loading = card.querySelector('.iv-journey-loading');
+    if(!loading) return;
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
+
 async function downloadTabPDF(tabId){
   const tabNames = { summary:'요약', who:'인물상', life:'라이프스타일', mind:'가치관', love:'관심사', buy:'구매', media:'미디어', interview:'페르소나', compare:'글로벌 비교' };
   const tabEl = document.getElementById('tab-' + tabId);
   if(!tabEl){ toast('탭을 찾을 수 없습니다'); return; }
-  // 다운로드 버튼 자체는 캡처에서 임시 숨김
+  // 페르소나 탭: 일일 미디어 여정 비동기 완료 대기
+  if(tabId === 'interview'){
+    try { await _waitForInterviewCompleteContent(); } catch(e){}
+  }
   const pdfRow = tabEl.querySelector('.tab-pdf-row');
   if(pdfRow) pdfRow.style.visibility = 'hidden';
   try {
