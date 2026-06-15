@@ -2818,8 +2818,20 @@ async function sendChat(){
     // 채팅 세션 저장
     saveChatSession(q, data.parsed);
 
+    // CEO 2026-06-15: 첫 화면(홈) 입력 = 항상 AI 채팅 답변 카드로 라우팅
+    // 사이드바에서 [타겟 인사이트] 모드여도 홈 입력창에서 친 자연어는 채팅으로 보냄
+    const homeEl = document.getElementById('screen-home');
+    const fromHome = homeEl && !homeEl.classList.contains('hide');
     // AI 채팅 모드 — Option C: home 포구조일 페이드 전환 + chat-board
-    if(state.currentMode === 'chat'){
+    if(state.currentMode === 'chat' || fromHome){
+      if(fromHome && state.currentMode !== 'chat'){
+        // 모드 전환 (사이드바 상태 동기화)
+        state.currentMode = 'chat';
+        document.body.classList.add('mode-chat');
+        document.body.classList.remove('mode-insight');
+        const sbC = document.getElementById('sb-mode-chat'); if(sbC) sbC.classList.add('active');
+        const sbI = document.getElementById('sb-mode-insight'); if(sbI) sbI.classList.remove('active');
+      }
       input.value = '';
       if(typeof autoResize === 'function') autoResize(input);
       if(!state.currentCountry) selectCountry('KR');
