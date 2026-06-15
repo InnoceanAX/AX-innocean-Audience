@@ -1510,7 +1510,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <div class="topbar">
       <div class="tb-spacer"></div>
       <button id="tb-pdf-report" class="tb-btn-pdf" onclick="downloadReportPDF()" style="display:none" title="전체 보고서 PDF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>보고서</button>
-      <button class="tb-btn" onclick="saveTarget()">저장</button>
+      <button id="tb-new-project" class="tb-btn" onclick="saveTarget()" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M12 5v14M5 12h14"/></svg>새 프로젝트</button>
     </div>
 
     <!-- BREADCRUMB -->
@@ -7982,10 +7982,10 @@ const PDF_DOWNLOAD_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill=
 // 보고서 버튼 노출 — 분석된 컨텍스트 있을 때만
 function updatePDFButtonsVisibility(){
   const tbBtn = document.getElementById('tb-pdf-report');
-  if(tbBtn){
-    const show = state.analysisRun || state.audienceCache && Object.keys(state.audienceCache).length > 0;
-    tbBtn.style.display = show ? 'inline-flex' : 'none';
-  }
+  const showHdr = state.analysisRun || (state.audienceCache && Object.keys(state.audienceCache).length > 0);
+  if(tbBtn){ tbBtn.style.display = showHdr ? 'inline-flex' : 'none'; }
+  const tbNewProj = document.getElementById('tb-new-project');
+  if(tbNewProj){ tbNewProj.style.display = showHdr ? 'inline-flex' : 'none'; }
   // 탭별 [이 탭] 버튼 동적 주입 (분석 후만)
   const showTabBtn = state.analysisRun || (state.audienceCache && Object.keys(state.audienceCache).length > 0);
   ['summary','who','life','mind','love','buy','media','interview','compare'].forEach(t => {
