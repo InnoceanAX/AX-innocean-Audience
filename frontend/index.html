@@ -3130,9 +3130,14 @@ async function goWorkspace(opts){
       const ivBody = document.getElementById('iv-body');
       const ivEmpty = document.getElementById('iv-empty');
       const builderEmpty = (typeof isBuilderEmpty === 'function' && isBuilderEmpty());
-      if(ivEmpty && builderEmpty){
+      // CEO 2026-06-15: 인터뷰 진행 중(시드 페르소나 등)이면 iv-empty 표시 금지
+      const inInterview = !!(state.seedPersona || state.ivPersona || (state.seedPersonas && state.seedPersonas.length > 0) || state.currentPersona);
+      if(!inInterview && ivEmpty && builderEmpty){
         ivEmpty.classList.remove('hide');
         if(ivBody) ivBody.classList.add('hide');
+      } else if(inInterview && ivEmpty){
+        ivEmpty.classList.add('hide');
+        if(ivBody) ivBody.classList.remove('hide');
       }
     }
   } catch(e) { console.warn('goWorkspace tab refresh failed:', e); }
@@ -6732,10 +6737,19 @@ function switchToSinglePersona(){
 // CEO 2026-06-12: AI 채팅 답변 페르소나 → 인터뷰 단일 모드 자동 시작
 async function startInterviewFromChat(seedPersona, seedQuestion){
   try {
+    // CEO 2026-06-15: seedPersona를 모든 다른 호출 이전에 설정 — 모든 가드 발동시킴
+    state.seedPersona = seedPersona;
+    state.seedQuestion = seedQuestion;
+    state.currentTab = 'interview';  // goWorkspace의 currentTab 분기에서 인식
     // chat-board 닫고 워크스페이스 진입
     state.currentMode = 'insight';
     try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
     document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
+    // 사이드바 즉시 갱신 — CEO 사이드바 활성 표시 일치
+    const sbChat = document.getElementById('sb-mode-chat');
+    const sbIns = document.getElementById('sb-mode-insight');
+    if(sbChat) sbChat.classList.remove('active');
+    if(sbIns) sbIns.classList.add('active');
     if(typeof chatBoardClose === 'function') chatBoardClose(true);
     if(typeof goWorkspace === 'function') await goWorkspace();
     // 빌더 필터 + 국가 적용 (chat 답변의 lastAsk에서)
@@ -6744,10 +6758,6 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
       if(state.lastAsk.parsed.country && typeof selectCountry === 'function') selectCountry(state.lastAsk.parsed.country);
     }
     if(typeof renderBuilder === 'function') renderBuilder();
-    // seedPersona를 state에 저장 (인터뷰 모듈이 활용)
-    // CEO 2026-06-15: seedPersona를 switchTab 호출 전에 저장 — forceBuilderEmptyDisplay 가드 발동
-    state.seedPersona = seedPersona;
-    state.seedQuestion = seedQuestion;
     // 인터뷰 탭으로 전환
     if(typeof switchTab === 'function') switchTab('interview');
     // 즉시 빈 화면 숨김 (forceBuilderEmptyDisplay setTimeout 경합 대비)
@@ -6771,8 +6781,16 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
 // CEO 2026-06-12: AI 채팅 답변 페르소나 묶음 → 4인 패널 자동 시작 (seedPersonas 사용)
 async function startPanelFromChat(seedPersonas, seedQuestion){
   try {
+    // CEO 2026-06-15: seedPersonas를 다른 호출 이전에 설정 — 가드 발동
+    state.seedPersonas = seedPersonas || [];
+    state.seedQuestion = seedQuestion;
+    state.currentTab = 'interview';
     state.currentMode = 'insight';
     try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
+    const sbC1 = document.getElementById('sb-mode-chat');
+    const sbI1 = document.getElementById('sb-mode-insight');
+    if(sbC1) sbC1.classList.remove('active');
+    if(sbI1) sbI1.classList.add('active');
     document.body.classList.add('mode-insight'); document.body.classList.remove('mode-chat');
     if(typeof chatBoardClose === 'function') chatBoardClose(true);
     if(typeof goWorkspace === 'function') await goWorkspace();
