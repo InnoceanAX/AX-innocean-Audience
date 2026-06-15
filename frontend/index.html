@@ -2487,11 +2487,11 @@ function renderAnswerBoard(a, idx){
         + '</div>'
         + '<div class="cb-persona-attrs">' + attrs + '</div>'
         + voice
-        + '<button class="cb-persona-cta" onclick=\'startInterviewFromChat(' + JSON.stringify(p).replace(/"/g, "&quot;") + ', ' + (state.chatTurns && state.chatTurns[0] ? JSON.stringify(state.chatTurns[0].q).replace(/"/g, "&quot;") : '""') + ')\'>👤 이 페르소나로 인터뷰 →</button>'
+        + '<button class="cb-persona-cta" onclick="cbStartInterviewSafe(\'' + _encodePersonaForBtn(p) + '\',\'' + (state.chatTurns && state.chatTurns[0] ? _encodePersonaForBtn(state.chatTurns[0].q) : '') + '\')">👤 이 페르소나로 인터뷰 →</button>'
         + '</div>';
     }).join('') + '</div>'
     + '<div class="cb-personas-actions">'
-      + '<button class="cb-personas-panel" onclick=\'startPanelFromChat(' + JSON.stringify(a.personaSamples).replace(/"/g, "&quot;") + ', ' + (state.chatTurns && state.chatTurns[0] ? JSON.stringify(state.chatTurns[0].q).replace(/"/g, "&quot;") : '""') + ')\'>👥 4인 패널 인터뷰 (이 페르소나 시드)</button>'
+      + '<button class="cb-personas-panel" onclick="cbStartPanelSafe(\'' + _encodePersonaForBtn(a.personaSamples) + '\',\'' + (state.chatTurns && state.chatTurns[0] ? _encodePersonaForBtn(state.chatTurns[0].q) : '') + '\')">👥 4인 패널 인터뷰 (이 페르소나 시드)</button>'
     + '</div></div>' : '';
 
   // 출처
@@ -6991,6 +6991,26 @@ async function generatePanel(count = 4, opts){
   }
 }
 
+// CEO 2026-06-15: 안전한 페르소나 데이터 전달 — base64로 직렬화, 인라인 onclick 따옴표 충돌 방지
+function _encodePersonaForBtn(obj){
+  try{ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }catch(e){ return ''; }
+}
+function _decodePersonaFromBtn(b64){
+  try{ return JSON.parse(decodeURIComponent(escape(atob(b64)))); }catch(e){ return null; }
+}
+window.cbStartInterviewSafe = function(b64, qB64){
+  const p = _decodePersonaFromBtn(b64);
+  const q = qB64 ? _decodePersonaFromBtn(qB64) : '';
+  if(!p) { toast('페르소나 데이터 손상'); return; }
+  return startInterviewFromChat(p, q);
+};
+window.cbStartPanelSafe = function(b64, qB64){
+  const arr = _decodePersonaFromBtn(b64);
+  const q = qB64 ? _decodePersonaFromBtn(qB64) : '';
+  if(!Array.isArray(arr)) { toast('페르소나 패널 데이터 손상'); return; }
+  return startPanelFromChat(arr, q);
+};
+
 function renderPanel(data){
   if(data.contrastInsight){
     document.getElementById('iv-panel-contrast').innerHTML = `
@@ -7000,20 +7020,27 @@ function renderPanel(data){
   const COLORS = ['#4F46E5', '#7C3AED', '#10B981', '#F59E0B', '#EF4444'];
   const html = data.panel.map((p, i) => {
     const color = COLORS[i % COLORS.length];
+    // CEO 2026-06-15: undefined 방어 폴백
+    const attrs = Array.isArray(p.attributes) ? p.attributes : [];
+    const ageStr = p.age != null ? `${p.age}세` : '';
+    const genderStr = p.gender || '';
+    const ageHeader = (ageStr || genderStr) ? `<span class="iv-age">${[ageStr, genderStr].filter(Boolean).join(' · ')}</span>` : (attrs[0] ? `<span class="iv-age">${escapeHtml(attrs[0])}</span>` : '');
+    const occStr = p.occupation || p.tagline || (attrs.length > 1 ? attrs.slice(1, 3).join(' · ') : '');
+    const quoteStr = p.voice || p.quote || p.tagline || '';
     return `<div class="iv-panel-card" style="border-top:3px solid ${color}">
       <div class="iv-panel-card-h">
-        <div class="iv-avatar" style="background:linear-gradient(135deg,${color},${color}cc)">${(p.name||'?').slice(0,1)}</div>
+        <div class="iv-avatar" style="background:linear-gradient(135deg,${color},${color}cc)">${escapeHtml((p.name||'?').slice(0,1))}</div>
         <div class="iv-panel-meta">
-          <div class="iv-name">${p.name}<span class="iv-age">${p.age}세${p.gender?' · '+p.gender:''}</span></div>
-          ${p.archetype ? `<div class="iv-archetype" style="color:${color}">${p.archetype}</div>` : ''}
-          <div class="iv-occ">${p.occupation||''}</div>
+          <div class="iv-name">${escapeHtml(p.name||'')}${ageHeader}</div>
+          ${p.archetype ? `<div class="iv-archetype" style="color:${color}">${escapeHtml(p.archetype)}</div>` : ''}
+          ${occStr ? `<div class="iv-occ">${escapeHtml(occStr)}</div>` : ''}
         </div>
       </div>
-      <div class="iv-quote" style="border-left-color:${color};color:${color};background:${color}11">"${p.quote}"</div>
-      ${p.lifestyle ? `<div class="iv-panel-mini"><strong>라이프스타일</strong> ${p.lifestyle}</div>` : ''}
-      ${(p.values||[]).length ? `<div class="iv-panel-mini"><strong>가치관</strong> ${p.values.join(', ')}</div>` : ''}
-      ${(p.mediaHabits||[]).length ? `<div class="iv-panel-mini"><strong>미디어</strong> ${p.mediaHabits.join(', ')}</div>` : ''}
-      ${(p.painPoints||[]).length ? `<div class="iv-panel-mini"><strong>페인</strong> ${p.painPoints.join(', ')}</div>` : ''}
+      ${quoteStr ? `<div class="iv-quote" style="border-left-color:${color};color:${color};background:${color}11">"${escapeHtml(quoteStr)}"</div>` : ''}
+      ${p.lifestyle ? `<div class="iv-panel-mini"><strong>라이프스타일</strong> ${escapeHtml(p.lifestyle)}</div>` : ''}
+      ${(p.values||[]).length ? `<div class="iv-panel-mini"><strong>가치관</strong> ${escapeHtml(p.values.join(', '))}</div>` : ''}
+      ${(p.mediaHabits||[]).length ? `<div class="iv-panel-mini"><strong>미디어</strong> ${escapeHtml(p.mediaHabits.join(', '))}</div>` : ''}
+      ${(p.painPoints||[]).length ? `<div class="iv-panel-mini"><strong>페인</strong> ${escapeHtml(p.painPoints.join(', '))}</div>` : ''}
       <button class="iv-panel-chat" onclick='generatePersona(${JSON.stringify(p).replace(/'/g, "&apos;")})'>이 페르소나와 대화 →</button>
     </div>`;
   }).join('');
