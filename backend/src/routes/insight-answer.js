@@ -13,6 +13,32 @@ import { getCountryAdSpend } from "../adapters/adspend-public.js";
 
 export const insightAnswerRouter = Router();
 
+// CEO 2026-06-15: 메모리 캐시 — 같은 질문+국가+필터에 대한 LLM 호출 30분간 재사용
+const _answerCache = new Map();  // key -> { ts, answer }
+const ANSWER_CACHE_TTL_MS = 30 * 60 * 1000;  // 30분
+function _cacheKey(question, country, filters){
+  try{
+    const fk = filters && Object.keys(filters).sort().map(k => k + '=' + (Array.isArray(filters[k]) ? filters[k].slice().sort().join(',') : filters[k])).join('|');
+    return (country || 'KR') + '|' + (question || '').trim().toLowerCase() + '|' + (fk || '');
+  }catch(e){ return null; }
+}
+function _cacheGet(key){
+  if(!key) return null;
+  const e = _answerCache.get(key);
+  if(!e) return null;
+  if(Date.now() - e.ts > ANSWER_CACHE_TTL_MS){ _answerCache.delete(key); return null; }
+  return e.answer;
+}
+function _cacheSet(key, answer){
+  if(!key) return;
+  // 1000개 초과 시 가장 오래된 200개 정리
+  if(_answerCache.size > 1000){
+    const sorted = [..._answerCache.entries()].sort((a,b) => a[1].ts - b[1].ts);
+    for(let i=0; i<200; i++) _answerCache.delete(sorted[i][0]);
+  }
+  _answerCache.set(key, { ts: Date.now(), answer });
+}
+
 // 합성 패널 데이터 가져오기 (synthesized가 빈 경우 베이스라인 + 필터 변형)
 function buildPanelData(country, synthesized, filters) {
   const code = String(country || "KR").toUpperCase();
@@ -380,6 +406,14 @@ ${panelStr}
       required: ["inScope", "headline"],
     };
 
+    // CEO 2026-06-15: 캐시 체크
+    const cacheKey = _cacheKey(question, country, filters);
+    const cached = _cacheGet(cacheKey);
+    if(cached){
+      console.log('[insight-answer] cache HIT', cacheKey.slice(0, 80));
+      return res.json({ ok: true, answer: cached, meta: { model: 'cache', ts: new Date().toISOString() } });
+    }
+
     const result = await generateJSON({
       prompt, system, schema,
       model: "gemini-2.5-flash",
@@ -468,6 +502,7 @@ ${panelStr}
       ans.outOfScopeMessage = "이 솔루션은 타겟 인사이트 분석 도구입니다. 광고 효율(ROAS) 등은 별도 솔루션을 이용해 주세요. 다만 타겟의 미디어 소비/구매 행태는 아래 데이터를 참고해 주세요.";
     }
 
+    _cacheSet(cacheKey, ans);
     res.json({
       ok: true,
       answer: ans,
