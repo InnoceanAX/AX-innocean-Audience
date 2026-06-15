@@ -1510,7 +1510,6 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <div class="topbar">
       <div class="tb-spacer"></div>
       <button id="tb-pdf-report" class="tb-btn-pdf" onclick="downloadReportPDF()" style="display:none" title="전체 보고서 PDF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>보고서</button>
-      <button class="tb-btn-ghost" onclick="exportTarget()">내보내기</button>
       <button class="tb-btn" onclick="saveTarget()">저장</button>
     </div>
 
@@ -8174,8 +8173,25 @@ async function downloadComparePDF(){
 
 // [답변] AI 채팅 답변 카드 PDF
 async function downloadChatAnswerPDF(){
-  const card = document.getElementById('sm-answer-card') || document.querySelector('.cb-answer');
-  if(!card || !card.innerHTML.trim()){ toast('답변 카드가 없습니다'); return; }
+  // chat-board 내 답변 영역 우선 — cb-turns(채팅 보드), sm-answer-card(타겟 인사이트 요약 내 점프 답변)
+  let card = document.getElementById('cb-turns');
+  if(!card || !card.innerHTML.trim() || card.querySelectorAll('.cb-turn').length === 0){
+    card = document.getElementById('sm-answer-card');
+    if(!card || !card.innerHTML.trim()){
+      // chat-board 전체 fallback
+      const board = document.getElementById('screen-chat-board');
+      if(board && !board.classList.contains('hide')){
+        const wrap = board.querySelector('.cb-wrap');
+        if(wrap){
+          const fname = 'innocean-chat-answer-' + Date.now() + '.pdf';
+          await _capturePDFFromElement(wrap, fname, 'AI 채팅 답변');
+          return;
+        }
+      }
+      toast('답변 카드가 없습니다. 먼저 질문에 답변이 표시된 후 시도해주세요.');
+      return;
+    }
+  }
   const fname = 'innocean-chat-answer-' + Date.now() + '.pdf';
   await _capturePDFFromElement(card, fname, 'AI 채팅 답변');
 }
