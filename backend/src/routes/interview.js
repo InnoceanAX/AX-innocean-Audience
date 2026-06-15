@@ -269,10 +269,37 @@ interviewRouter.post("/influencer-match", async (req, res) => {
 // POST /api/interview/persona/enrich — 간이 페르소나(패널 멤버)를 손용한 단일 프로필로 확장
 // → narratives 5차원 서술 추가
 interviewRouter.post("/persona/enrich", async (req, res) => {
-  const { persona: simple, country = "KR", filters = {} } = req.body || {};
-  if (!simple || !simple.name) return res.status(400).json({ ok: false, error: "persona required" });
+  const { persona: rawPersona, country = "KR", filters = {} } = req.body || {};
+  if (!rawPersona || !rawPersona.name) return res.status(400).json({ ok: false, error: "persona required" });
   const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
+
+  // CEO 2026-06-15: AI 채팅의 personaSamples는 {name, attributes[], tagline, voice} 구조
+  // attributes에서 age/occupation 추출하여 표준 필드로 정규화
+  const simple = { ...rawPersona };
+  if (Array.isArray(simple.attributes) && simple.attributes.length > 0) {
+    if (simple.age == null) {
+      const ageHit = simple.attributes.find(a => /\d+\s*세|\d+\s*살/.test(a));
+      if (ageHit) {
+        const m = ageHit.match(/(\d{2,3})/);
+        if (m) simple.age = parseInt(m[1], 10);
+      }
+    }
+    if (!simple.gender) {
+      const gH = simple.attributes.find(a => /여성|남성|female|male/i.test(a));
+      if (gH) simple.gender = /여성|female/i.test(gH) ? '여성' : '남성';
+    }
+    if (!simple.occupation) {
+      // 나이/성별/위치 외의 첫 attribute를 직업/태그로
+      const occCand = simple.attributes.find(a => !/\d+\s*세|\d+\s*살|여성|남성|female|male|거주|지역|소득/i.test(a));
+      if (occCand) simple.occupation = occCand;
+    }
+    if (!simple.lifestyle) {
+      simple.lifestyle = simple.attributes.join(' · ');
+    }
+  }
+  if (!simple.quote && simple.voice) simple.quote = simple.voice;
+  if (!simple.archetype && simple.tagline) simple.archetype = simple.tagline;
 
   // narratives 이미 있으면 그대로 반환
   if (simple.narratives && simple.narratives.who) {
