@@ -6757,7 +6757,17 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
   let _loadingHTML = '';
   const startGuard = () => {
     if(guardInterval) return;
+    // CEO 2026-06-15: runAnalysis 끝나면 자동 switchTab('summary')되는 것 차단
+    state.autoRouteToSummary = false;
     guardInterval = setInterval(() => {
+      // 탭이 interview가 아니면 강제 전환 (runAnalysis 자동 summary 차단)
+      if(state.currentTab !== 'interview'){
+        state.currentTab = 'interview';
+        if(typeof switchTab === 'function'){
+          try { switchTab('interview'); } catch(e){}
+        }
+      }
+      state.autoRouteToSummary = false;
       const ivE = document.getElementById('iv-empty');
       const ivB = document.getElementById('iv-body');
       const ivS = document.getElementById('iv-single-wrap');
@@ -6839,7 +6849,15 @@ async function startPanelFromChat(seedPersonas, seedQuestion){
   let guardInterval2 = null;
   const startGuard2 = () => {
     if(guardInterval2) return;
+    state.autoRouteToSummary = false;
     guardInterval2 = setInterval(() => {
+      if(state.currentTab !== 'interview'){
+        state.currentTab = 'interview';
+        if(typeof switchTab === 'function'){
+          try { switchTab('interview'); } catch(e){}
+        }
+      }
+      state.autoRouteToSummary = false;
       const ivE = document.getElementById('iv-empty');
       const ivB = document.getElementById('iv-body');
       const ivPW = document.getElementById('iv-panel-wrap');
