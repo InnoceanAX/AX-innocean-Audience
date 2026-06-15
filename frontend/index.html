@@ -3265,11 +3265,14 @@ function switchTab(tab, opts){
       if(!hasCard && state.ivPersona && typeof renderPersonaCard === 'function'){
         try {
           renderPersonaCard(state.ivPersona, { method: 'restored' });
-          // journey 캐시가 있으면 즉시 복원
+          // journey 캐시가 있으면 즉시 복원, 없으면 fetch
           const key = (typeof personaCacheKey === 'function') ? personaCacheKey(state.ivPersona) : null;
           const cached = key && state.ivPersonaChats && state.ivPersonaChats[key];
           if(cached && cached.journey && typeof renderPersonaJourney === 'function'){
             renderPersonaJourney({ journey: cached.journey });
+          } else if(typeof fetchPersonaJourney === 'function'){
+            // 비동기 — 백그라운드에서 가져와 추가
+            fetchPersonaJourney(state.ivPersona).catch(()=>{});
           }
         } catch(e){ console.warn('renderPersonaCard restore failed:', e); }
       }
