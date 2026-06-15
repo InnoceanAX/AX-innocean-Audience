@@ -6771,12 +6771,15 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
     state.seedPersona = seedPersona;
     state.seedQuestion = seedQuestion;
     state.currentTab = 'interview';  // goWorkspace의 currentTab 분기에서 인식
-    // 즉시 로딩 UI를 iv-card에 inject
-    const ivCardPre = document.getElementById('iv-card');
-    if(ivCardPre){
-      ivCardPre.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#6366F1;font-size:14px;gap:16px"><svg style="width:48px;height:48px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><div style="font-weight:700;font-size:16px;color:#111">' + (seedPersona?.name || '페르소나') + ' 인터뷰 준비 중</div><div style="color:#6B7280;font-size:13px;text-align:center;line-height:1.6">실시간 데이터 분석 후 페르소나 카드를 생성합니다.<br/>약 20~40초 소요됩니다.</div></div>';
-    }
     startGuard();
+    // 로딩 UI inject 헬퍼 — 여러 시점에 호출 가능
+    const injectLoadingUI = () => {
+      const c = document.getElementById('iv-card');
+      if(c){
+        c.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#6366F1;font-size:14px;gap:16px"><svg style="width:48px;height:48px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><div style="font-weight:700;font-size:16px;color:#111">' + (seedPersona?.name || '페르소나') + ' 인터뷰 준비 중</div><div style="color:#6B7280;font-size:13px;text-align:center;line-height:1.6">실시간 데이터 분석 후 페르소나 카드를 생성합니다.<br/>약 20~40초 소요됩니다.</div></div>';
+      }
+    };
+    injectLoadingUI();
     // chat-board 닫고 워크스페이스 진입
     state.currentMode = 'insight';
     try{ localStorage.setItem('innocean.audience.mode', 'insight'); }catch(e){}
@@ -6803,6 +6806,8 @@ async function startInterviewFromChat(seedPersona, seedQuestion){
     if(ivB0) ivB0.classList.remove('hide');
     const ivS0 = document.getElementById('iv-single-wrap');
     if(ivS0) ivS0.classList.remove('hide');
+    // 로딩 UI 재주입 (switchTab 후 iv-card 비워졌을 가능성)
+    injectLoadingUI();
     // 분석 미실행이면 먼저 실행
     if(!state.analysisRun && typeof runAnalysis === 'function'){
       try { await runAnalysis(); } catch(e) { console.warn('runAnalysis failed:', e); }
