@@ -5239,21 +5239,32 @@ async function loadLibChats(){
 function openChatSession(id){
   const sess = (state.chatSessions||[]).find(s => s.id === id);
   if(!sess) return;
+  closeLibrary();
+  // CEO 2026-06-15: switchMode('chat')은 chatTurns를 비우므로 호출하지 않고 mode만 직접 설정
+  state.currentMode = 'chat';
+  try{ localStorage.setItem('innocean.audience.mode', 'chat'); }catch(e){}
+  const sbChat = document.getElementById('sb-mode-chat'); if(sbChat) sbChat.classList.add('active');
+  const sbIns = document.getElementById('sb-mode-insight'); if(sbIns) sbIns.classList.remove('active');
+  document.body.classList.add('mode-chat'); document.body.classList.remove('mode-insight');
+  // 현재 채팅 ID 보존
   state.currentChatId = id;
   if(sess.country) selectCountry(sess.country);
-  closeLibrary();
-  switchMode('chat');
-  // CEO 피드백 #4: 저장된 turns(질문 + 답변)이 있으면 채팅 보드에 그대로 복원
+  // 저장된 turns(질문 + 답변) 즉시 복원
   if(sess.turns && sess.turns.length){
-    setTimeout(() => {
-      state.chatTurns = sess.turns.slice();
-      // chat-board 화면 표시
-      document.body.classList.add('chat-board-active');
-      const home = document.getElementById('screen-home'); if(home) home.classList.add('hide');
-      const board = document.getElementById('screen-chat-board'); if(board) board.classList.remove('hide');
-      if(typeof renderChatBoardTurns === 'function') renderChatBoardTurns();
-      if(typeof toast === 'function') toast('채팅 세션 복원 — ' + sess.turns.length + '개 대화');
-    }, 100);
+    state.chatTurns = sess.turns.slice();
+    // 첫 turn에서 lastAsk 복원 (페르소나로 인터뷰 진입 시 필터 적용용)
+    if(sess.turns[0]){
+      state.lastAsk = {
+        question: sess.turns[0].q,
+        parsed: sess.turns[0].parsed || null,
+      };
+    }
+    // chat-board 화면 표시
+    document.body.classList.add('chat-board-active');
+    const home = document.getElementById('screen-home'); if(home) home.classList.add('hide');
+    const board = document.getElementById('screen-chat-board'); if(board) board.classList.remove('hide');
+    if(typeof renderChatBoardTurns === 'function') renderChatBoardTurns();
+    if(typeof toast === 'function') toast('채팅 세션 복원 — ' + sess.turns.length + '개 대화');
     return;
   }
   // 구버전 세션 (turns 없이 messages만) — 마지막 질문을 입력창에 채움
