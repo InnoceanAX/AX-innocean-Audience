@@ -2370,6 +2370,8 @@ async function chatBoardEnter(q, parsedAsk){
   try{
     const ans = await fetchInsightAnswer(q, parsedAsk);
     turn.a = ans;
+    // CEO 2026-06-15: 답변 후 세션에 turn 저장 (라이브러리 복원용)
+    try{ if(typeof saveChatTurn === 'function') saveChatTurn(q, ans); }catch(e){ console.warn('saveChatTurn failed', e); }
   }catch(err){
     console.error('chat board answer failed', err);
     turn.a = { error: err.message || 'fetch failed' };
