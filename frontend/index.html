@@ -1523,25 +1523,6 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     </div>
 
     <!-- WORKSPACE TABS (visible only when target exists) -->
-    <!-- 1단: 도구(빌더) — 입력 도구 영역 -->
-    <div class="ws-tools hide" id="ws-tools">
-      <div class="ws-tool-label">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg>
-        도구
-      </div>
-      <div class="ws-tab ws-tool-tab" data-tab="overview" onclick="switchTab('overview')">
-        <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span>빌더</span>
-      </div>
-      <button class="ws-tool-new" onclick="newTarget()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        새 분석
-      </button>
-      <button class="ws-tool-new" onclick="showHelp()" style="margin-left:auto;background:#fff;color:var(--ind);border-color:var(--ind)" title="사용법">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        사용법
-      </button>
-    </div>
-
     <!-- 2단: 결과(분석 탭) — 분석 결과 영역 -->
     <div class="ws-tabs hide" id="ws-tabs">
       <div class="ws-tabs-label">
@@ -1573,9 +1554,21 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <span class="ws-tab-ico ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>페르소나</span>
       </div>
       <div class="ws-tab-spacer"></div>
+      <button class="ws-tool-btn" onclick="switchTab('overview')" title="필터 빌더로 이동" style="background:#fff;color:#374151;border:1.5px solid #E5E7EB">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span>빌더</span>
+      </button>
+      <button class="ws-tool-btn" onclick="newTarget()" title="필터 초기화 후 새 분석" style="background:#fff;color:var(--ind);border:1.5px solid var(--ind)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>+ 새 분석</span>
+      </button>
       <button class="ws-tool-btn" onclick="switchTab('compare')" title="글로벌 비교 매트릭스 (실데이터 확보국 × 5차원)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span>글로벌 비교</span>
+      </button>
+      <button class="ws-tool-btn" onclick="showHelp()" title="사용법" style="background:#fff;color:#374151;border:1.5px solid #E5E7EB">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>사용법</span>
       </button>
     </div>
 
@@ -1999,10 +1992,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 
   <!-- ============ AI ASSISTANT SIDE PANEL ============ -->
   <aside id="ai-panel" class="ai-panel collapsed">
-    <button class="ai-toggle" onclick="toggleAIPanel()" title="AI 비서">
-      <svg class="ai-toggle-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="ai-toggle-l"><span>AI</span><span>비</span><span>서</span></span>
-    </button>
+<!-- ai-toggle 제거됨 (사용 안 됨) -->
     <div class="ai-panel-inner">
       <div class="ai-panel-h">
         <div class="ai-panel-t">
