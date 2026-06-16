@@ -2393,14 +2393,17 @@ async function chatBoardEnter(q, parsedAsk){
 async function fetchInsightAnswer(q, parsedAsk){
   const code = state.currentCountry || 'KR';
   const filters = (parsedAsk && parsedAsk.filters) || state.filters || {};
-  // CEO 2026-06-16: 멀티턴 컨텍스트 — 현재 세션의 이전 turns를 전달 (최근 6개)
-  const priorTurns = (state.chatTurns || []).slice(-6).map(t => ({
-    q: t.q,
-    answer: {
-      headline: (t.a && t.a.headline) || '',
-      narrative: (t.a && t.a.narrative) || '',
-    }
-  }));
+  // CEO 2026-06-16: 멀티턴 컨텍스트 — 현재 진행 중인 질문(loading) 제외하고 이전 답변 turn들만
+  const priorTurns = (state.chatTurns || [])
+    .filter(t => t && t.q && t.a && !t.a.loading && !t.a.error && t.q !== q)
+    .slice(-6)
+    .map(t => ({
+      q: t.q,
+      answer: {
+        headline: (t.a.headline) || '',
+        narrative: (t.a.narrative) || '',
+      }
+    }));
   // CEO 2026-06-15: Gemini 응답 30~60초까지 — AbortController 타임아웃 150초로 늘림 + 1회 재시도
   const callOnce = async () => {
     const ctrl = new AbortController();
