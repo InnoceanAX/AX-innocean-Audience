@@ -1457,6 +1457,13 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .aud-src-info{color:#9CA3AF;margin-left:2px}
 .aud-src-clickable:hover .aud-src-info{color:var(--ind)}
 /* ============ End AI Panel Ultra CSS ============ */
+
+/* CEO 2026-06-16: 후속 질문 답변 버블 (가벼운 채팅 형태) */
+.cb-a-bubble{ background:#F9FAFB; border:1px solid var(--bdr); border-radius:14px 14px 14px 4px; padding:14px 18px; margin:0 0 14px 0; max-width:78%; line-height:1.6 }
+.cb-a-bubble-h{ font-size:14.5px; font-weight:600; color:#111; margin-bottom:6px }
+.cb-a-bubble-n{ font-size:13.5px; color:#374151 }
+.cb-a-bubble-loading{ display:flex; align-items:center; gap:10px; font-size:13px }
+.cb-a-bubble-oos{ background:#FEF3C7; border-color:#FCD34D; color:#92400E; font-size:13px }
 </style>
 </head>
 <body class="home-mode">
@@ -2433,7 +2440,8 @@ function renderChatBoardTurns(){
   const wrap = document.getElementById('cb-turns'); if(!wrap) return;
   wrap.innerHTML = state.chatTurns.map((t, idx) => renderChatTurn(t, idx)).join('');
   // 차트 렌더링
-  setTimeout(() => state.chatTurns.forEach((t, idx) => renderTurnCharts(t, idx)), 60);
+  // CEO 2026-06-16: 첫 turn(전체 보고서)에만 차트 렌더 — 후속 buble은 차트 없음
+  setTimeout(() => state.chatTurns.forEach((t, idx) => { if(idx === 0) renderTurnCharts(t, idx); }), 60);
   // 메타 업데이트
   const meta = document.getElementById('cb-meta');
   if(meta){
@@ -2451,19 +2459,32 @@ function renderChatTurn(t, idx){
   const qHtml = '<div class="cb-q-bubble">' + escapeHtml(t.q) + '</div>';
   let aHtml = '';
   if(t.a.loading){
-    aHtml = '<div class="cb-a-loading">'
-      + '<span class="loader"></span>'
-      + '<div><div class="cb-a-loading-txt">AI가 정밀 분석 중입니다…</div>'
-      + '<div class="cb-a-loading-sub">데이터 해석 · 서술 · 차트 · 인용 적용</div></div>'
-      + '</div>';
+    aHtml = idx === 0
+      ? '<div class="cb-a-loading">'
+        + '<span class="loader"></span>'
+        + '<div><div class="cb-a-loading-txt">AI가 정밀 분석 중입니다…</div>'
+        + '<div class="cb-a-loading-sub">데이터 해석 · 서술 · 차트 · 인용 적용</div></div>'
+        + '</div>'
+      : '<div class="cb-a-bubble cb-a-bubble-loading"><span class="loader"></span><span style="color:var(--tm)">답변 작성 중…</span></div>';
   } else if(t.a.error){
     aHtml = '<div class="cb-a-board" style="border-color:#FCA5A5;background:#FEF2F2">'
       + '<div style="color:#991B1B;font-weight:600">답변 생성 실패: ' + escapeHtml(t.a.error) + '</div>'
       + '</div>';
   } else {
-    aHtml = renderAnswerBoard(t.a, idx);
+    // CEO 2026-06-16: 후속 질문(idx>=1)은 채팅 버블만 (전체 보고서 X)
+    aHtml = idx === 0 ? renderAnswerBoard(t.a, idx) : renderAnswerBubble(t.a, idx);
   }
   return '<div class="cb-turn" data-idx="' + idx + '">' + qHtml + aHtml + '</div>';
+}
+
+// 후속 질문 답변 — 간단한 채팅 버블 (헤드라인 + 해설만)
+function renderAnswerBubble(a, idx){
+  if(a.inScope === false){
+    return '<div class="cb-a-bubble cb-a-bubble-oos">' + escapeHtml(a.outOfScopeMessage || '이 질문은 INNOCEAN AI 페르소나 패널 범위 밖입니다.') + '</div>';
+  }
+  const headline = a.headline ? '<div class="cb-a-bubble-h">' + escapeHtml(a.headline) + '</div>' : '';
+  const narrative = a.narrative ? '<div class="cb-a-bubble-n">' + escapeHtml(a.narrative) + '</div>' : '';
+  return '<div class="cb-a-bubble">' + headline + narrative + '</div>';
 }
 
 function renderAnswerBoard(a, idx){
