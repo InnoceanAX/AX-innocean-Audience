@@ -369,7 +369,7 @@ ${panelStr}
 - sources (첫 번째는 'INNOCEAN AI 페르소나 패널 N=30')
 - relatedInsights (1~3개 표준 분석 탭)
 
-긴 글 금지. 데이터 카드처럼 작성.${realtimeBlock}`;
+긴 글 금지. 데이터 카드처럼 작성.${realtimeBlock}${priorBlock}`;
 
     const schema = {
       type: "object",

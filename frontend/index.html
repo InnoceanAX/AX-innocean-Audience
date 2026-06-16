@@ -2393,6 +2393,14 @@ async function chatBoardEnter(q, parsedAsk){
 async function fetchInsightAnswer(q, parsedAsk){
   const code = state.currentCountry || 'KR';
   const filters = (parsedAsk && parsedAsk.filters) || state.filters || {};
+  // CEO 2026-06-16: 멀티턴 컨텍스트 — 현재 세션의 이전 turns를 전달 (최근 6개)
+  const priorTurns = (state.chatTurns || []).slice(-6).map(t => ({
+    q: t.q,
+    answer: {
+      headline: (t.a && t.a.headline) || '',
+      narrative: (t.a && t.a.narrative) || '',
+    }
+  }));
   // CEO 2026-06-15: Gemini 응답 30~60초까지 — AbortController 타임아웃 150초로 늘림 + 1회 재시도
   const callOnce = async () => {
     const ctrl = new AbortController();
@@ -2400,7 +2408,7 @@ async function fetchInsightAnswer(q, parsedAsk){
     try{
       const r = await fetch(API + '/insight', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ question: q, country: code, filters, synthesized: state.synthCache || {} }),
+        body: JSON.stringify({ question: q, country: code, filters, synthesized: state.synthCache || {}, priorTurns }),
         signal: ctrl.signal,
       });
       const d = await r.json();
@@ -2747,8 +2755,7 @@ function saveChatSession(question, parsed){
   }
   sess.updatedAt = Date.now();
   sess.lastQuestion = question;
-  // CEO 2026-06-16: 라이브러리 라벨은 마지막 질문으로 갱신
-  sess.title = question.length > 36 ? question.slice(0, 36) + '…' : question;
+  // CEO 2026-06-16 11:23: 라벨은 첫 질문 고정 (ChatGPT/Claude 방식)
   sess.messages.push({
     role: 'user', content: question, ts: Date.now(),
   });
@@ -2779,8 +2786,7 @@ function saveChatTurn(q, ans){
   }
   sess.updatedAt = Date.now();
   sess.lastQuestion = q;
-  // CEO 2026-06-16: 라이브러리 라벨은 마지막 질문으로 갱신 (첫 질문 고정 X)
-  sess.title = (q || '').length > 36 ? q.slice(0, 36) + '…' : (q || '');
+  // CEO 2026-06-16 11:23: 라벨은 첫 질문 고정 (ChatGPT/Claude 방식 — 세션 주제)
   sess.turns = sess.turns || [];
   sess.turns.push({ q: q, a: ans, ts: Date.now() });
   if(sess.turns.length > 30) sess.turns = sess.turns.slice(-30);
@@ -5318,21 +5324,22 @@ function openChatSession(id){
   // 현재 채팅 ID 보존
   state.currentChatId = id;
   if(sess.country) selectCountry(sess.country);
-  // 저장된 turns(질문 + 답변) 즉시 복원
+  // 저장된 turns(질문 + 답변) 즉시 복원 — 전체 히스토리 표시 (CEO 2026-06-16 11:23)
   if(sess.turns && sess.turns.length){
-    // CEO 2026-06-16: 라이브러리 복원 시 마지막 질문/답변 한 개만 표시 (누적 스크롤 방지)
-    const lastTurn = sess.turns[sess.turns.length - 1];
-    state.chatTurns = [lastTurn];
-    state.lastAsk = {
-      question: lastTurn.q,
-      parsed: lastTurn.parsed || null,
-    };
+    state.chatTurns = sess.turns.slice();
+    // 첫 turn에서 lastAsk 복원 (페르소나로 인터뷰 진입 시 필터 적용용)
+    if(sess.turns[0]){
+      state.lastAsk = {
+        question: sess.turns[0].q,
+        parsed: sess.turns[0].parsed || null,
+      };
+    }
     // chat-board 화면 표시
     document.body.classList.add('chat-board-active');
     const home = document.getElementById('screen-home'); if(home) home.classList.add('hide');
     const board = document.getElementById('screen-chat-board'); if(board) board.classList.remove('hide');
     if(typeof renderChatBoardTurns === 'function') renderChatBoardTurns();
-    if(typeof toast === 'function') toast('채팅 세션 복원 — 마지막 질문 표시');
+    if(typeof toast === 'function') toast('채팅 세션 복원 — ' + sess.turns.length + '개 대화');
     return;
   }
   // 구버전 세션 (turns 없이 messages만) — 마지막 질문을 입력창에 채움
