@@ -1519,11 +1519,13 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
     <!-- BREADCRUMB -->
     <div class="breadcrumb hide" id="breadcrumb-wrap">
       <div class="bread" id="bread-crumb"></div>
-      <button class="back-btn" onclick="history.back()" title="뒤로가기">← 뒤로</button>
-      <button class="back-btn" onclick="showHelp()" title="사용법" style="margin-left:6px;display:inline-flex;align-items:center;gap:5px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        사용법
-      </button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="back-btn" onclick="history.back()" title="뒤로가기">← 뒤로</button>
+        <button class="back-btn" onclick="showHelp()" title="사용법" style="display:inline-flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          사용법
+        </button>
+      </div>
     </div>
 
     <!-- WORKSPACE TABS (visible only when target exists) -->
@@ -1563,7 +1565,6 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
         <span>빌더</span>
       </button>
       <button class="ws-tool-btn" onclick="newTarget()" title="필터 초기화 후 새 분석" style="background:#fff;color:var(--ind);border:1.5px solid var(--ind);margin-right:6px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span>+ 새 분석</span>
       </button>
       <button class="ws-tool-btn" onclick="switchTab('compare')" title="글로벌 비교 매트릭스 (실데이터 확보국 × 5차원)" style="margin-right:0">
