@@ -216,10 +216,21 @@ function autoKpisFromPanel(panel) {
 
 // POST /api/insight
 insightAnswerRouter.post("/", async (req, res) => {
-  const { question, country, filters, synthesized } = req.body || {};
+  const { question, country, filters, synthesized, priorTurns } = req.body || {};
   if (!question) {
     return res.status(400).json({ ok: false, error: "question required" });
   }
+  // CEO 2026-06-16: 멀티턴 컨텍스트 블록
+  const priorBlock = (Array.isArray(priorTurns) && priorTurns.length)
+    ? "\n\n[이전 대화 컨텍스트 — 이 세션의 직전 질문/답변]\n" +
+      priorTurns.map((t, i) => {
+        const q2 = (t.q || "").slice(0, 200);
+        const h = (t.answer && t.answer.headline) || "";
+        const n = (t.answer && t.answer.narrative) || "";
+        return `(${i+1}) Q: ${q2}\n   A: ${h}${n ? ' / ' + n : ''}`;
+      }).join("\n") +
+      "\n\n위 이전 대화의 주제·국가·세그먼트·관심사를 이어받아 답변합니다. 사용자가 '이건', '저', '그건', '어느 국가', '왜', '추가로' 같은 지시 대명사·후속 질문을 하면 이전 대화의 맥락으로 해석합니다."
+    : "";
 
   // 1. 패널 데이터 구축 (synthesize 캐시 또는 베이스라인 + 필터 변형)
   const panel = buildPanelData(country || "KR", synthesized, filters);
