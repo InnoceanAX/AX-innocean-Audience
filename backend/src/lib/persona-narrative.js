@@ -122,46 +122,63 @@ function fallbackNarrative(p) {
   };
 }
 
+// M-7 fix (Chaeyeon 2026-06-17 21:43 → CTO 22:08):
+//   Gemini 키 부재 시 100명이 국가당 동일 분포가 되던 변동 0 문제.
+//   persona_id 해시 기반 시드로 ±0.3h 노이즈 추가 → 100명 변동 확보.
+//   최소 0.1h 클램프로 음수 노출 방지.
+function _seededNoise(personaId, channelIdx, range = 0.3) {
+  const h = Math.abs(hashStr(`${personaId}:${channelIdx}`));
+  // 0~1 구간 해시 정규화 → -range ~ +range
+  return ((h % 1000) / 1000 - 0.5) * 2 * range;
+}
+function _withNoise(personaId, channels) {
+  return channels.map((c, i) => ({
+    channel: c.channel,
+    hoursPerDay: Math.max(0.1, Number((c.hoursPerDay + _seededNoise(personaId, i)).toFixed(2))),
+  }));
+}
+
 function defaultMediaDiet(p) {
+  const pid = p.persona_id || `${p.country}:0`;
   if (p.country === "CN") {
-    return [
+    return _withNoise(pid, [
       { channel: "Xiaohongshu", hoursPerDay: 1.5 },
       { channel: "WeChat",      hoursPerDay: 1.2 },
       { channel: "Douyin",      hoursPerDay: 1.0 },
       { channel: "Weibo",       hoursPerDay: 0.6 },
-    ];
+    ]);
   }
   if (p.country === "JP") {
-    return [
+    return _withNoise(pid, [
       { channel: "LINE",      hoursPerDay: 1.2 },
       { channel: "Twitter/X", hoursPerDay: 1.0 },
       { channel: "Instagram", hoursPerDay: 1.0 },
       { channel: "YouTube",   hoursPerDay: 0.8 },
-    ];
+    ]);
   }
   if (p.country === "TH" || p.country === "PH") {
-    return [
+    return _withNoise(pid, [
       { channel: "Facebook",  hoursPerDay: 1.3 },
       { channel: "TikTok",    hoursPerDay: 1.2 },
       { channel: "Instagram", hoursPerDay: 1.0 },
       { channel: "YouTube",   hoursPerDay: 1.0 },
-    ];
+    ]);
   }
   if (p.country === "TW") {
-    return [
+    return _withNoise(pid, [
       { channel: "Instagram", hoursPerDay: 1.2 },
       { channel: "YouTube",   hoursPerDay: 1.2 },
       { channel: "Facebook",  hoursPerDay: 0.8 },
       { channel: "TikTok",    hoursPerDay: 0.6 },
-    ];
+    ]);
   }
   // KR default
-  return [
+  return _withNoise(pid, [
     { channel: "Instagram",  hoursPerDay: 1.4 },
     { channel: "YouTube",    hoursPerDay: 1.5 },
     { channel: "KakaoTalk",  hoursPerDay: 1.0 },
     { channel: "Naver",      hoursPerDay: 0.6 },
-  ];
+  ]);
 }
 
 function defaultBrandAffinity(p) {

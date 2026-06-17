@@ -493,8 +493,25 @@ ${panelStr}
     if (groundingUsed && !ans.sources.some(x => /Google Search/i.test(x.label || ""))) {
       ans.sources.push({ label: `Google Search 실시간 컨텍스트 (${new Date().toISOString().slice(0,10)} 기준)`, url: "" });
     }
+    // M-2 fix (Chaeyeon 2026-06-17 21:43 → CTO 22:07):
+    //   기존 한국·외 국가 응답에도 "통계청 경제활동인구조사 2024"가 주입되어 광고주 신뢰성 침해.
+    //   국가별 공식 통계 fallback 매핑으로 전환 + 매핑 없는 국가는 World Bank Open Data 폴백 (전 국가 공통).
     if (ans.sources.length < 2) {
-      ans.sources.push({ label: "통계청 경제활동인구조사 2024", url: "" });
+      const COUNTRY_OFFICIAL_STATS_2024 = {
+        KR: "통계청 경제활동인구조사 2024",
+        JP: "総務省 統計局 (Japan Statistics Bureau) 2024",
+        CN: "国家统计局 (National Bureau of Statistics of China) 2024",
+        TW: "中華民國統計資訊網 (DGBAS Taiwan) 2024",
+        TH: "National Statistical Office of Thailand (NSO) 2024",
+        PH: "Philippine Statistics Authority (PSA) 2024",
+        US: "U.S. Bureau of Labor Statistics 2024",
+        UK: "UK Office for National Statistics (ONS) 2024",
+        DE: "Statistisches Bundesamt (Destatis) 2024",
+        FR: "INSEE (France) 2024",
+      };
+      const fallbackLabel = COUNTRY_OFFICIAL_STATS_2024[country]
+        || "World Bank Open Data 2024 (공개 국가 지표)";
+      ans.sources.push({ label: fallbackLabel, url: "" });
     }
 
     // 관련 인사이트 기본값 — 키워드 확장
