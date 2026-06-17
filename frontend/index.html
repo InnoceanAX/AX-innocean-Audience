@@ -872,6 +872,10 @@ body.home-fade-out #screen-home{
 .in-chart-card.filtered{border-color:var(--ind);background:#FAFAFF}
 .in-chart-t{font-size:12px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
 .in-filter-badge{font-size:9px;background:var(--ind);color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;letter-spacing:.3px}
+/* M-5 fix (CEO 22:02): 공개 패널 데이터 미수집 디멘션 명시 */
+.in-uniform-badge{display:inline-block;margin-left:6px;font-size:9px;background:#F3F4F6;color:#6B7280;padding:1px 6px;border-radius:3px;font-weight:600;letter-spacing:.3px;border:1px solid #E5E7EB}
+.in-chart-card.uniform-fallback{position:relative;background:#FAFAFA}
+.in-chart-card.uniform-fallback::after{content:'공개 데이터 미수집 — 균등 표시';position:absolute;bottom:6px;right:8px;font-size:9px;color:#9CA3AF;font-weight:500;letter-spacing:.2px;pointer-events:none}
 .in-chart-wrap{height:180px}
 .in-cross-hint{font-size:11px;color:var(--tm);font-weight:400;margin-left:8px}
 .in-cross-ctrl{display:flex;align-items:center;gap:12px;margin-bottom:12px}
@@ -8123,8 +8127,13 @@ function renderDimInsights(data){
       <div class="in-group-h">${groupNames[g] || g}</div>
       <div class="in-charts">`;
     for(const d of dims){
-      html += `<div class="in-chart-card${d.filtered?' filtered':''}">
-        <div class="in-chart-t">${d.label}${d.filtered?'<span class="in-filter-badge">필터됨</span>':''}</div>
+      // M-5 fix (CEO 2026-06-17 22:02): baselineSource="uniform-fallback"일 때 광고주 가시 UI에
+      // "공개 데이터 미수집 (추후 갱신)" 부제 배지 표시. seeded는 미표시.
+      const phBadge = (d.baselineSource === 'uniform-fallback')
+        ? '<span class="in-uniform-badge" title="공개 패널 데이터 미수집 — 곧 갱신 예정">데이터 미수집</span>'
+        : '';
+      html += `<div class="in-chart-card${d.filtered?' filtered':''}${d.baselineSource==='uniform-fallback'?' uniform-fallback':''}">
+        <div class="in-chart-t">${d.label}${d.filtered?'<span class="in-filter-badge">필터됨</span>':''}${phBadge}</div>
         <div class="in-chart-wrap"><canvas id="in-c-${d.dimensionId}"></canvas></div>
       </div>`;
     }

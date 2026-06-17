@@ -85,13 +85,17 @@ dimInsightsRouter.post("/distribution", async (req, res) => {
   const distributions = DIMENSIONS.map(dim => {
     const baseline = BASELINE_DIST[dim.id];
     let dist;
+    let baselineSource;  // M-5 fix (Chaeyeon 2026-06-17 22:00 → CTO 22:02): fake-uniform 메타 명시
     if (baseline) {
       dist = adjustDistByCountry(dim.id, baseline, ind);
+      baselineSource = "seeded";  // 공개 통계 시드 + World Bank 조정
     } else {
-      // 베이스라인 없는 디멘션 → 옵션 균등 분포
+      // 베이스라인 없는 디멘션 → 옵션 균등 분포 (placeholder)
+      // M-5: 64개 디멘션 중 59개가 이 경로. 광고주 가시 UI에서 "공개 데이터 미수집" 라벨 필수.
       const opts = dim.options.map(o => typeof o === 'string' ? o : o.label);
       const pct = Number((100 / opts.length).toFixed(1));
       dist = Object.fromEntries(opts.map(o => [o, pct]));
+      baselineSource = "uniform-fallback";  // 공개 데이터 미수집 — 추후 GCS 페르소나 영속성 완료 후 cohort 집계로 전환
     }
     // 필터 영향: 선택된 옵션은 100%, 미선택은 0% (해당 디멘션이 필터에 있는 경우)
     const filterValues = filters[dim.id];
@@ -128,6 +132,7 @@ dimInsightsRouter.post("/distribution", async (req, res) => {
       group: dim.group,
       filtered,
       baseline: dist,
+      baselineSource,  // "seeded" | "uniform-fallback" (M-5 fix)
       segment: segmentDist,
       options: Object.keys(dist),
     };
