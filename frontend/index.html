@@ -4812,50 +4812,75 @@ document.addEventListener('keydown', function(e){
 });
 
 // ============ DATA SOURCE TRANSPARENCY ============
+// M-15 fix (CEO 2026-06-17 21:35 해석 B 확정):
+//   광고주 가시 출처 모달은 "학습된 공개 데이터 4개 + AI 합성 소비자 모델 3 Stage + 탭별 사용 데이터"
+//   단일 구조만 노출. GWI/Hofstede/WVS/Edelman/Google Trends/eMarketer/We Are Social 은
+//   backend 코드·응답·LLM 입력에는 그대로 유지 (CEO 21:09 "내부용 OK" 결정) —
+//   가시 모달에서만 노출 제거. 광고비(adspend) 별도 카테고리.
+const LEARNED_PUBLIC_DATA_BLOCKS = [
+  { l: 'PUBLIC DATA #1', t: 'World Bank Open Data', d: '인구·GDP·인터넷·도시화 표준·공개 광경 통계. 공식 라이선스 자유.' },
+  { l: 'PUBLIC DATA #2', t: 'Statista 공개 통계', d: 'AMO 9세그먼트 분류 체계 + 시장 개요. 매체 분류 체계·시장 규모 지표.' },
+  { l: 'PUBLIC DATA #3', t: 'DataReportal Digital 2025', d: 'We Are Social × Meltwater 공개 협업 보고서. 매체별 사용률·일일 사용 시간 베이스라인.' },
+  { l: 'PUBLIC DATA #4', t: 'Reuters Digital News Report', d: '로이터 저널리즘 연구소 공개 연도보. 매체별 신뢰도 지표.' },
+];
+const AI_SYNTHETIC_MODEL_BLOCKS = [
+  { l: 'STAGE 1', t: '통계 시드 100명', d: '공개 통계 기반 결정적 PRNG로 인구통계 시드 100명 생성.' },
+  { l: 'STAGE 2', t: 'Gemini 2.5 Flash narrative', d: '가치관·구매·미디어·언어 따온 내러티브를 LLM으로 생성. enum/clamp 검증.' },
+  { l: 'STAGE 3', t: '탭별 집계 통계', d: '소비자 단위 내러티브를 탭별(분포·비율·평균)로 집계.' },
+];
+function _tabUsage(stageLabel) {
+  return [
+    { l: 'TAB USAGE', t: stageLabel, d: stageLabel + ' 데이터를 근거로 탭별 합성 소비자 프로필을 구성.' },
+  ];
+}
 const DATA_SOURCES = {
   who: {
     title: '인물상 (Who) — 인구통계',
     blocks: [
-      { l: 'PRIMARY SOURCE', t: 'UN Population Division 2024', d: '유엔 경제사회국 인구부 공식 연간 추정. 중위연령, 부양비, 도시화율, 5단계 연령 분포.' },
-      { l: 'METHODOLOGY', t: '연도별 추정 + 인구센서스 조정', d: '국가별 센서스 데이터를 기반으로 UN이 표준화한 추정치. 5년 주기 갱신.' },
-      { l: 'COVERAGE', t: '200+ 국가', d: '현 솔루션에서는 28개 우선 지원국 데이터를 정리 후 표시. 그 외 국가는 GDP 기반 추정.' },
-      { l: 'LIMITATIONS', t: '연령 분포는 5세 단위 추정', d: '단일 연령(예: 32세) 단위 데이터는 제공하지 않으며, 추정 오차 ±1-2%p.' },
+      ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...AI_SYNTHETIC_MODEL_BLOCKS,
+      ..._tabUsage('Stage 1 인구통계 시드'),
     ],
   },
   life: {
     title: '라이프스타일 (Life) — 디지털·일상',
     blocks: [
-      { l: 'PRIMARY SOURCE', t: 'DataReportal Global Digital Reports 2024', d: 'Kepios + Meltwater + We Are Social 협업. 인터넷/소셜미디어 침투율 및 일일 사용 시간.' },
-      { l: 'SECONDARY', t: '디지털 활동 7종 패널 조사', d: '소셜네트워킹·영상스트리밍·게임·쇼핑·뱅킹·뉴스·피트니스 비율은 GWI/We Are Social 조사 기반.' },
-      { l: 'COVERAGE', t: '47개국 라이브 + 자체 정리 28국', d: '여행 성향과 외식 빈도는 ITB/Booking.com 보고서 기반 보완.' },
-      { l: 'LIMITATIONS', t: '연간 1회 갱신', d: '월별 변동을 반영하지 않으며, 코로나 이후 회복 추세 반영은 2024 보고서 시점 기준.' },
+      ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...AI_SYNTHETIC_MODEL_BLOCKS,
+      ..._tabUsage('Stage 2 라이프스타일·일상 활동 태그'),
     ],
   },
   mind: {
     title: '가치관 (Mind) — 신뢰·문화',
     blocks: [
-      { l: 'PRIMARY SOURCE', t: 'World Values Survey Wave 7 (2017-2022)', d: '환경·평등·전통·혁신·물질·쾌락·야망 등 7대 가치관 점수.' },
-      { l: 'SECONDARY', t: 'Edelman Trust Barometer 2024', d: '기업·미디어·정부·NGO 4대 기관 신뢰도. 매년 1월 발표.' },
-      { l: 'CULTURAL', t: 'Hofstede Insights', d: '개인주의·위험회피·장기지향 등 3대 문화 스코어. 1980년대 이후 누적 갱신.' },
-      { l: 'LIMITATIONS', t: '국가 수준 평균값', d: '세대·소득 등 하위 세그먼트별 차이는 별도 분석 필요.' },
+      ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...AI_SYNTHETIC_MODEL_BLOCKS,
+      ..._tabUsage('Stage 2 가치관·의사결정 스타일 태그'),
     ],
   },
   love: {
     title: '관심사 (Love) — 흥미·열정',
     blocks: [
-      { l: 'PRIMARY SOURCE', t: 'Google Trends 12-month aggregates', d: '국가별 검색 빈도 기반 18가지 관심사 카테고리 점수 (0-100 정규화).' },
-      { l: 'SECONDARY', t: 'DataReportal 2024 관심사 패널', d: '실 사용자 자기 보고 기반 관심사 분포.' },
-      { l: 'COUNTRY-SPECIFIC', t: 'K-Pop / 볼리우드 / 애니메 / 와인 등', d: '국가별 특화 관심사는 별도 키워드로 추가 측정.' },
-      { l: 'LIMITATIONS', t: '검색 행동 기반', d: '실제 소비/지출과 직접 매핑되지 않음. 인기도 신호로 활용.' },
+      ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...AI_SYNTHETIC_MODEL_BLOCKS,
+      ..._tabUsage('Stage 2 관심사·브랜드 친화도 태그'),
     ],
   },
   buy: {
     title: '구매 (Buy) — 이커머스·결정',
     blocks: [
-      { l: 'PRIMARY SOURCE', t: 'DataReportal Global Digital Shopping 2024', d: '이커머스 비중·모바일 비중·월평균 지출 추정.' },
-      { l: 'SECONDARY', t: 'eMarketer Public Reports + Statista Free Insights', d: '카테고리별 점유율·결제 수단 분포.' },
-      { l: 'DECISION FACTORS', t: '6가지 의사결정 요인', d: '가격·리뷰·브랜드·품질·배송·추천을 100점 만점 점수화.' },
-      { l: 'LIMITATIONS', t: '온라인 위주', d: '오프라인-온라인 통합 행태는 별도 모델링 필요. 카테고리별 세부 SKU 수준 데이터는 미포함.' },
+      ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...AI_SYNTHETIC_MODEL_BLOCKS,
+      ..._tabUsage('Stage 2 쇼핑 스타일·가격 민감도 태그'),
+    ],
+  },
+  media: {
+    title: '미디어 (Media) — 매체·광고비',
+    blocks: [
+      ...LEARNED_PUBLIC_DATA_BLOCKS,
+      { l: 'AD-SPEND DATA', t: '공개 광고비 보고서 (별도 카테고리)', d: 'WPP Media TYNY / MAGNA / Dentsu / IAB+PwC / KOBACO. 2024·2025 actuals + 2026 forecast (AR(1) 가중치 0.6 + GDP×elasticity 0.4, clamp [-5%,+20%], 95% CI).' },
+      ...AI_SYNTHETIC_MODEL_BLOCKS,
+      ..._tabUsage('Stage 2 미디어 트렌드 태그'),
     ],
   },
 };
