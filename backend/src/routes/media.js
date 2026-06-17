@@ -5,15 +5,64 @@
 import { Router } from "express";
 import { COUNTRIES } from "../data/countries.js";
 import { getCountryStats } from "../adapters/worldbank.js";
-import { SOURCE_META } from "../adapters/media-supplementary.js";
+import { SOURCE_META, getActiveSources } from "../adapters/media-supplementary.js";
 import {
-  getCountryAdSpend, getKoreaMediaAdSpend,
-  CHANNEL_SPEND_SHARE_2024, COUNTRY_ADSPEND_2024,
+  getCountryAdSpend, getKoreaMediaAdSpend, getMediaCategory,
+  CHANNEL_SPEND_SHARE_2024, CHANNEL_SPEND_SHARE_2025, CHANNEL_SPEND_SHARE_2026,
+  COUNTRY_ADSPEND_2024, COUNTRY_ADSPEND_2025, COUNTRY_ADSPEND_2026,
+  ADSPEND_CONFIDENCE,
+  calculateYoY,
   listAdspendSources,
 } from "../adapters/adspend-public.js";
 import { CHANNELS, COUNTRY_MEDIA_OVERRIDES, flattenMedia } from "../data/media-taxonomy.js";
+import { getBrief, getPersonas } from "../lib/persona-store.js";
+import { aggregateMedia } from "../lib/persona-aggregator.js";
+import { buildPersonaPoolBadge, buildPublicDataBadge } from "../lib/persona-badge.js";
 
 export const mediaRouter = Router();
+
+// briefId + 페르소나 풀 존재 여부를 한 번에 판정
+// 리턴: { briefId, personas, count } | null
+function loadPersonaPool(req, code) {
+  const briefId = req.query.briefId ? String(req.query.briefId) : null;
+  if (!briefId) return null;
+  try {
+    const brief = getBrief(briefId);
+    if (!brief) return null;
+    const personas = getPersonas(briefId, { country: code });
+    if (!personas || personas.length === 0) return null;
+    return { briefId, personas, count: personas.length };
+  } catch (_e) {
+    return null;
+  }
+}
+
+// Case 1/2 배지
+function buildMediaBadge(pool, code) {
+  if (pool) {
+    return buildPersonaPoolBadge(
+      [{ code, count: pool.count }],
+      { tab: "media", briefId: pool.briefId },
+    );
+  }
+  return buildPublicDataBadge(code, { tab: "media" });
+}
+
+// persona-pool media_diet 집계 → personaChannels 배열
+function buildPersonaChannels(pool) {
+  if (!pool || !pool.personas) return null;
+  const agg = aggregateMedia(pool.personas); // { total, channels:[{channel,mentions,reach,totalHoursPerDay,avgHoursPerDay}] }
+  const total = agg.total || pool.count || 0;
+  const channels = (agg.channels || []).map(c => ({
+    channel: c.channel,
+    mentions: c.mentions,
+    share: total > 0 ? Number((c.mentions / total).toFixed(4)) : 0,
+    avgHoursPerDay: Number((c.avgHoursPerDay || 0).toFixed(2)),
+    totalHoursPerDay: Number((c.totalHoursPerDay || 0).toFixed(2)),
+    reach: Number((c.reach || 0).toFixed(4)),
+  }));
+  return { total, channels };
+}
 
 // 매체별 도달률 계산
 function computeReach(m, country, ind) {
@@ -57,18 +106,132 @@ const CHANNEL_SPEND_SHARE = Object.fromEntries(
   Object.entries(CHANNEL_SPEND_SHARE_2024).map(([k, v]) => [k, v.share])
 );
 
-function estimateCountryAdSpend(ind, countryCode) {
+const YEAR_SHARE_TABLE = {
+  2024: CHANNEL_SPEND_SHARE_2024,
+  2025: CHANNEL_SPEND_SHARE_2025,
+  2026: CHANNEL_SPEND_SHARE_2026,
+};
+const YEAR_COUNTRY_TABLE = {
+  2024: COUNTRY_ADSPEND_2024,
+  2025: COUNTRY_ADSPEND_2025,
+  2026: COUNTRY_ADSPEND_2026,
+};
+
+function estimateCountryAdSpend(ind, countryCode, year = 2024) {
   // 1순위: 공식 보고서 (MAGNA/GroupM/Dentsu/KOBACO)
-  const official = getCountryAdSpend(countryCode);
+  const official = getCountryAdSpend(countryCode, year);
   if (official) {
-    return { total: official.totalUSD, source: official.source, method: "public-report" };
+    return {
+      total: official.totalUSD,
+      source: official.source,
+      method: "public-report",
+      isActuals: official.isActuals,
+      isForecast: official.isForecast,
+    };
   }
   // 2순위: GDP 기반 추정 (공개 데이터 없는 국가)
   const gdpPerCap = ind.gdpPerCapita || 15000;
   const ratio = 0.005 + (gdpPerCap > 30000 ? 0.005 : (gdpPerCap > 15000 ? 0.003 : 0));
   const popB = (ind.population || 50_000_000);
   const gdpUSD = gdpPerCap * popB;
-  return { total: gdpUSD * ratio, source: "GDP 기반 추정 (공개 데이터 없음)", method: "gdp-estimate" };
+  return {
+    total: gdpUSD * ratio,
+    source: "GDP 기반 추정 (공개 데이터 없음)",
+    method: "gdp-estimate",
+    isActuals: false,
+    isForecast: year === 2026,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 연도별 spend payload 빌더 (TASK G 최종 광고비 모델)
+//   - reach/trust/cpm 기반 채널내 매체 점유 = items 계산 결과 재사용
+//   - byCategory(ATL/BTL/Digital) = MEDIA_CATEGORY 매핑 기준 재집계
+// ---------------------------------------------------------------------------
+function buildYearSpendPayload({ year, items, ind, code }) {
+  const adSpend = estimateCountryAdSpend(ind, code, year);
+  const totalAdSpend = adSpend.total;
+  const shareTable = YEAR_SHARE_TABLE[year] || YEAR_SHARE_TABLE[2024];
+
+  // 매체별 spend
+  const itemSpends = items.map(m => {
+    let mSpend = 0;
+    let mSpendShare = 0;
+    let mSource = adSpend.source;
+    if (code === "KR") {
+      const krOfficial = getKoreaMediaAdSpend(m.id, year);
+      if (krOfficial) {
+        mSpend = krOfficial.usd * 1_000_000;
+        mSpendShare = totalAdSpend > 0 ? Number((mSpend / totalAdSpend * 100).toFixed(2)) : 0;
+        mSource = krOfficial.source;
+      }
+    }
+    if (mSpend === 0) {
+      const chShare = shareTable[m.channelId]?.share ?? 0.02;
+      const channelSpend = totalAdSpend * chShare;
+      const sameChannel = items.filter(x => x.channelId === m.channelId);
+      const myShare = spendShareForMedia(m, sameChannel);
+      mSpend = Math.round(channelSpend * myShare);
+      mSpendShare = Number((chShare * myShare * 100).toFixed(2));
+    }
+    return {
+      id: m.id, label: m.label,
+      channel: m.channel, channelId: m.channelId,
+      subchannel: m.subchannel, subchannelId: m.subchannelId,
+      category: getMediaCategory(m.id, m.channelId),
+      spend: mSpend,
+      spendShare: mSpendShare,
+      spendSource: mSource,
+    };
+  });
+
+  // 채널별 요약
+  const channelSummary = Object.entries(shareTable).map(([id, v]) => ({
+    channelId: id,
+    label: CHANNELS.find(c => c.id === id)?.label || id,
+    share: Number((v.share * 100).toFixed(1)),
+    spend: Math.round(totalAdSpend * v.share),
+  })).sort((a, b) => b.spend - a.spend);
+
+  // byCategory 재집계 (ATL/BTL/Digital)
+  const categoryBuckets = { ATL: [], BTL: [], Digital: [] };
+  for (const it of itemSpends) {
+    const cat = categoryBuckets[it.category] ? it.category : "Digital";
+    categoryBuckets[cat].push(it);
+  }
+  const grandSum = itemSpends.reduce((s, x) => s + (x.spend || 0), 0) || 1;
+  const byCategory = Object.fromEntries(
+    Object.entries(categoryBuckets).map(([cat, arr]) => {
+      const totalB = arr.reduce((s, x) => s + (x.spend || 0), 0);
+      return [cat, {
+        totalB: Number((totalB / 1_000_000_000).toFixed(2)),
+        totalUSD: totalB,
+        share: Number((totalB / grandSum).toFixed(4)),
+        items: arr.sort((a, b) => b.spend - a.spend).map(x => ({
+          label: x.label, channelId: x.channelId,
+          spend: x.spend, share: x.spendShare,
+        })),
+      }];
+    })
+  );
+
+  return {
+    year,
+    totalEstimated: Math.round(totalAdSpend),
+    totalEstimatedB: Number((totalAdSpend / 1_000_000_000).toFixed(2)),
+    currency: "USD",
+    source: adSpend.source,
+    method: adSpend.method,
+    isActuals: !!adSpend.isActuals,
+    isForecast: !!adSpend.isForecast,
+    confidence: ADSPEND_CONFIDENCE[year] || null,
+    channels: channelSummary,
+    methodology: adSpend.method === "public-report"
+      ? `공개 보고서 (${adSpend.source}) + WPP/MAGNA 채널 점유율${code === "KR" ? " + KOBACO/제일기획 매체별" : ""}`
+      : `GDP × 광고비 비율 추정 (공개 데이터 없음, 정밀도 ±15%)`,
+    items: itemSpends,
+    byCategory,
+  };
 }
 
 function spendShareForMedia(m, allMediaInChannel) {
@@ -94,9 +257,9 @@ mediaRouter.get("/landscape", async (req, res) => {
     mobileSubs: ind.mobileSubs?.value,
   };
 
-  // 국가 총 광고비 추정 + Pop 보완
+  // 국가 총 광고비 추정 + Pop 보완 (default = 2025 actuals)
   const indFlatWithPop = { ...indFlat, population: ind.population?.value };
-  const adSpendData = estimateCountryAdSpend(indFlatWithPop, code);
+  const adSpendData = estimateCountryAdSpend(indFlatWithPop, code, 2025);
   const totalAdSpend = adSpendData.total;
 
   const allMedia = flattenMedia();
@@ -113,25 +276,17 @@ mediaRouter.get("/landscape", async (req, res) => {
       effIndex: cpm > 0 ? Number((reach * trust / cpm).toFixed(1)) : 0,
     };
   });
-  // 2차: 채널별 광고비 분배 → 매체별 광고비
+  // 2차: 기본 연도(2025 actuals) spend 주입 — backward compat·표용
+  const spend2025Payload = buildYearSpendPayload({ year: 2025, items, ind: indFlatWithPop, code });
+  const spendById2025 = new Map(spend2025Payload.items.map(x => [x.id, x]));
   for (const m of items) {
-    // KR: KOBACO/제일기획 실결과 우선
-    if (code === "KR") {
-      const krOfficial = getKoreaMediaAdSpend(m.id);
-      if (krOfficial) {
-        m.spend = krOfficial.usd * 1_000_000;
-        m.spendShare = Number((m.spend / totalAdSpend * 100).toFixed(2));
-        m.spendSource = krOfficial.source;
-        continue;
-      }
+    const s = spendById2025.get(m.id);
+    if (s) {
+      m.spend = s.spend;
+      m.spendShare = s.spendShare;
+      m.spendSource = s.spendSource;
+      m.category = s.category;
     }
-    const chShare = CHANNEL_SPEND_SHARE[m.channelId] || 0.02;
-    const channelSpend = totalAdSpend * chShare;
-    const sameChannel = items.filter(x => x.channelId === m.channelId);
-    const myShare = spendShareForMedia(m, sameChannel);
-    m.spend = Math.round(channelSpend * myShare);
-    m.spendShare = Number((chShare * myShare * 100).toFixed(2));
-    m.spendSource = adSpendData.source;
   }
   items.sort((a, b) => b.reach - a.reach);
 
@@ -158,38 +313,58 @@ mediaRouter.get("/landscape", async (req, res) => {
     });
   }
 
-  // 광고비 인사이트
+  // 광고비 인사이트 (2025 기준)
   const topSpend = [...items].sort((a, b) => b.spend - a.spend)[0];
   insights.push({
     type: "top-spend",
-    title: "광고비 1위 매체",
+    title: "광고비 1위 매체 (2025)",
     text: `${topSpend.label} (${topSpend.channel}) — 연 추정 $${(topSpend.spend / 1_000_000).toFixed(1)}M (전체 광고시장의 ${topSpend.spendShare}%)`,
   });
 
-  // 채널별 광고비 요약
-  const channelSpendSummary = Object.entries(CHANNEL_SPEND_SHARE).map(([id, share]) => ({
-    channelId: id,
-    label: CHANNELS.find(c => c.id === id)?.label || id,
-    share: Number((share * 100).toFixed(1)),
-    spend: Math.round(totalAdSpend * share),
-  })).sort((a, b) => b.spend - a.spend);
+  // 3년 spend payload — 동일 items 재사용·연도별 재계산
+  const spend2024 = buildYearSpendPayload({ year: 2024, items, ind: indFlatWithPop, code });
+  const spend2025 = spend2025Payload;
+  const spend2026 = buildYearSpendPayload({ year: 2026, items, ind: indFlatWithPop, code });
+  const yoy = {
+    y24_25: { pct: calculateYoY(2024, 2025, code), from: 2024, to: 2025 },
+    y25_26: { pct: calculateYoY(2025, 2026, code), from: 2025, to: 2026, isForecast: true },
+  };
+
+  // CEO 2026-06-17 TASK D: briefId 없으면 공개통계 원래 응답, 있으면 personaChannels 추가
+  const pool = loadPersonaPool(req, code);
+  const personaChannelsPayload = buildPersonaChannels(pool);
 
   res.json({
     ok: true,
+    source: pool ? "persona-pool" : "public-data",
+    badge: buildMediaBadge(pool, code),
+    briefId: pool ? pool.briefId : undefined,
+    personaChannels: personaChannelsPayload || undefined,
     country: meta,
     items,
     insights,
+    baseline: {
+      reach: items.slice(0, 15).map(i => ({ id: i.id, label: i.label, reach: i.reach, trust: i.trust, cpm: i.cpm, spend: i.spend })),
+      note: "공개통계 기반 도달·신뢰·광고비 베이스라인 (World Bank + Statista AMO + DataReportal 2025 + Reuters)",
+    },
     spend: {
-      totalEstimated: Math.round(totalAdSpend),
-      totalEstimatedB: Number((totalAdSpend / 1_000_000_000).toFixed(2)),
+      // backward compat — 기존 프론트 레더러는 이 키들을 계속 읽음 (default = 2025 actuals)
+      totalEstimated: spend2025.totalEstimated,
+      totalEstimatedB: spend2025.totalEstimatedB,
       currency: "USD",
-      year: 2024,
-      source: adSpendData.source,
-      method: adSpendData.method,
-      channels: channelSpendSummary,
-      methodology: adSpendData.method === "public-report"
-        ? `공개 보고서 (${adSpendData.source}) + GroupM/MAGNA 채널 점유율${code === "KR" ? " + KOBACO/제일기획 매체별" : ""}`
-        : `GDP × 광고비 비율 추정 (공개 데이터 없음, 정밀도 ±15%)`,
+      year: 2025,
+      source: spend2025.source,
+      method: spend2025.method,
+      channels: spend2025.channels,
+      methodology: spend2025.methodology,
+      // 신규: 3년 + byCategory
+      year2024: { ...spend2024 },
+      year2025: { ...spend2025 },
+      year2026: { ...spend2026 },
+      yoy,
+      default: 2025,
+      countryCode: code,
+      confidence: ADSPEND_CONFIDENCE,
     },
     chart: {
       labels: items.slice(0, 15).map(i => i.label),
@@ -199,8 +374,8 @@ mediaRouter.get("/landscape", async (req, res) => {
       spend: items.slice(0, 15).map(i => i.spend),
     },
     sources: {
-      active: [SOURCE_META.worldBank],
-      planned: [SOURCE_META.dataReportal, SOURCE_META.statista, SOURCE_META.innoceanInternal, SOURCE_META.talkwalker],
+      // CEO 2026-06-17: 적용 중인 공개 출처만 노출 (planned —> 제거)
+      active: getActiveSources(),
     },
     meta: {
       method: "Statista AMO 9 세그먼트 + GWI 미디어 행동 매핑",
@@ -269,8 +444,15 @@ mediaRouter.get("/taxonomy", async (req, res) => {
     };
   });
 
+  const poolTax = loadPersonaPool(req, code);
+  const personaChannelsTax = buildPersonaChannels(poolTax);
+
   res.json({
     ok: true,
+    source: poolTax ? "persona-pool" : "public-data",
+    badge: buildMediaBadge(poolTax, code),
+    briefId: poolTax ? poolTax.briefId : undefined,
+    personaChannels: personaChannelsTax || undefined,
     country: meta,
     tree,
     meta: {
@@ -303,7 +485,7 @@ mediaRouter.get("/sources", (req, res) => {
   res.json({
     ok: true,
     sources: SOURCE_META,
-    activeCount: Object.values(SOURCE_META).filter(s => s.integrated !== false).length,
-    plannedCount: Object.values(SOURCE_META).filter(s => s.integrated === false).length,
+    activeCount: Object.values(SOURCE_META).filter(s => s && s.integrated !== false).length,
+    plannedCount: 0,
   });
 });

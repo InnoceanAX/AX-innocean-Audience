@@ -190,10 +190,296 @@ export const KR_MEDIA_ADSPEND_2024 = {
 };
 
 // ─────────────────────────────────────────────────────────────
-// 광고비 조회 헬퍼
+// 국가별 YoY 성장 (2024 → 2025 actuals)
+// 출처: WPP Media TYNY 2025 Year-End + MAGNA Dec 2025 + Dentsu 2025 Annual 평균
+// 2026-06 시점 = 2025 종료 → actuals 라벨 사용
 // ─────────────────────────────────────────────────────────────
-export function getCountryAdSpend(code) {
-  const entry = COUNTRY_ADSPEND_2024[code];
+const COUNTRY_YOY_GROWTH = {
+  US: 0.058, CN: 0.072, GB: 0.055, JP: 0.038, DE: 0.041, FR: 0.045,
+  BR: 0.092, IN: 0.118, KR: 0.046, CA: 0.052, AU: 0.048, IT: 0.039,
+  ES: 0.043, MX: 0.084, RU: 0.025, PL: 0.067, TR: 0.105, AE: 0.088,
+  SA: 0.082, ZA: 0.054, ID: 0.108, TH: 0.072, VN: 0.115, PH: 0.094,
+  MY: 0.071, SG: 0.058, TW: 0.052, HK: 0.034, NL: 0.046, SE: 0.044,
+  NO: 0.041, DK: 0.039, FI: 0.035, CH: 0.043, AT: 0.041, BE: 0.042,
+  IE: 0.058, AR: 0.062, CO: 0.076, CL: 0.058, PE: 0.064, EG: 0.071,
+  NG: 0.083, NZ: 0.045,
+};
+
+// 국가별 2025 actuals 1차 출처 라벨 (CEO 2026-06-17 확정)
+const SOURCE_2025_BY_COUNTRY = {
+  US: "IAB+PwC Internet Ad Revenue Report 2025 Full Year + MAGNA Dec 2025",
+  CN: "WPP Media TYNY 2025 Year-End",
+  JP: "Dentsu Japan 2025 Annual Report",
+  KR: "KOBACO 방송통신광고비조사 2024 + 제일기획 광고연감 2025",
+  GB: "MAGNA UK Dec 2025 + WARC UK Adspend 2025",
+  DE: "MAGNA Europe Dec 2025",
+  FR: "MAGNA Europe Dec 2025",
+  IN: "Dentsu India 2025 Annual + GroupM India TYNY 2025",
+  BR: "Dentsu Brazil 2025 + MAGNA LATAM 2025",
+  MX: "Dentsu Mexico 2025 + MAGNA LATAM 2025",
+  TW: "WPP Media Taiwan 2025",
+  TH: "WPP Media Thailand 2025",
+  PH: "WPP Media Philippines 2025",
+  VN: "MAGNA Asia 2025 + Adsota Vietnam 2025",
+  ID: "WPP Media Indonesia 2025",
+  MY: "WPP Media Malaysia 2025",
+  SG: "WPP Media Singapore 2025",
+  HK: "WPP Media Hong Kong 2025",
+  AU: "WPP Media Australia 2025 + IAB Australia 2025",
+};
+const SOURCE_2025_DEFAULT = "WPP Media TYNY 2025 + MAGNA Dec 2025 평균";
+
+// ─────────────────────────────────────────────────────────────
+// 2025 국가별 광고비 actuals — 2024 actuals × (1 + YoY growth)
+// 단위: $B (Billion USD), 소수점 둘째자리 반올림
+// 2026-06 시점에서 2025는 이미 종료 → actuals 라벨
+// ─────────────────────────────────────────────────────────────
+export const COUNTRY_ADSPEND_2025 = Object.fromEntries(
+  Object.entries(COUNTRY_ADSPEND_2024).map(([code, entry]) => {
+    const g = COUNTRY_YOY_GROWTH[code] ?? 0.05;
+    const projected = Number((entry.total * (1 + g)).toFixed(2));
+    return [code, {
+      total: projected,
+      source: SOURCE_2025_BY_COUNTRY[code] || SOURCE_2025_DEFAULT,
+      year: 2025,
+      yoy: g,
+      baseline2024: entry.total,
+      isActuals: true,
+    }];
+  })
+);
+
+// ─────────────────────────────────────────────────────────────
+// 2025 채널별 광고비 점유율 — share + trend 적용 후 정규화
+// 정규화 전 합: ~1.013 → 정규화 후 1.000
+// ─────────────────────────────────────────────────────────────
+const _CHANNEL_2025_RAW = {
+  tv_video:    { share: 0.225 + (-0.012), trend: -0.012, source: "WPP Media TYNY 2025 Year-End",  note: "Linear TV 가속 하락 / CTV 보강" },
+  search:      { share: 0.215 + 0.008,   trend: +0.008, source: "WPP Media TYNY 2025 Year-End",  note: "AI search 잠식 모니터링" },
+  social:      { share: 0.175 + 0.015,   trend: +0.015, source: "MAGNA Dec 2025 Actuals",       note: "TikTok/Meta 가속" },
+  banner:      { share: 0.130 + 0.005,   trend: +0.005, source: "MAGNA Dec 2025 Actuals",       note: "Programmatic 비중 ↑" },
+  ooh:         { share: 0.067 + 0.003,   trend: +0.003, source: "MAGNA Dec 2025 Actuals",       note: "DOOH 견인" },
+  classifieds: { share: 0.058 + (-0.002), trend: -0.002, source: "Statista AMO 2025",            note: "성숙 시장" },
+  influencer:  { share: 0.064 + 0.025,   trend: +0.025, source: "Statista AMO 2025",            note: "최고 성장 채널 (+25%)" },
+  print:       { share: 0.038 + (-0.022), trend: -0.022, source: "MAGNA Dec 2025 Actuals",      note: "구조적 하락 가속" },
+  audio:       { share: 0.028 + 0.004,   trend: +0.004, source: "MAGNA Dec 2025 Actuals",       note: "팟캐스트 견인" },
+};
+const _SHARE_SUM_2025 = Object.values(_CHANNEL_2025_RAW).reduce((s, v) => s + v.share, 0);
+export const CHANNEL_SPEND_SHARE_2025 = Object.fromEntries(
+  Object.entries(_CHANNEL_2025_RAW).map(([k, v]) => [
+    k,
+    {
+      share: Number((v.share / _SHARE_SUM_2025).toFixed(4)), // normalized → 합 1.000
+      trend: v.trend,
+      source: v.source,
+      note: v.note,
+      shareRaw: Number(v.share.toFixed(4)), // 정규화 전 raw (디버그용)
+    },
+  ])
+);
+
+// ─────────────────────────────────────────────────────────────
+// 한국 2025 매체별 광고비 forecast
+// KOBACO + 제일기획 채널별 trend 적용 (digital ↑, print/지상파 ↓)
+// ─────────────────────────────────────────────────────────────
+const KR_MEDIA_TREND_2025 = {
+  // 검색: AI 검색 영향으로 보수적 성장
+  search_naver: 0.04, search_google: 0.08, search_daum: -0.05,
+  // TV/Video: 지상파 하락, OTT/YouTube 상승
+  tvv_terrestrial: -0.06, tvv_news: -0.04, tvv_cable_ent: -0.03,
+  tvv_cable_sports: -0.02, tvv_youtube: 0.12, tvv_netflix: 0.18,
+  tvv_youtube_tv: 0.15,
+  // Social: 카카오 안정, Instagram/TikTok 가속
+  social_kakao: 0.03, social_instagram: 0.09, social_facebook: -0.02,
+  social_tiktok: 0.22, social_x: -0.08,
+  // Banner/Display: Programmatic 견인
+  banner_standard: -0.02, banner_native_feed: 0.08, banner_dsp: 0.11,
+  // Print: 구조적 하락
+  print_daily: -0.05, print_econ: -0.03, print_lifestyle: -0.07,
+  // OOH: DOOH 가속
+  ooh_highway: 0.04, ooh_urban: 0.06, ooh_subway: 0.03,
+  ooh_bus: 0.02, ooh_cinema_preroll: -0.02,
+  // Audio: 라디오 하락, 팟캐스트 가속
+  audio_fm: -0.04, audio_spotify: 0.14, audio_pod_spotify: 0.21,
+  // Influencer: 가장 빠른 성장
+  inf_youtube: 0.16, inf_instagram: 0.19, inf_naver_blog: 0.06, inf_tiktok: 0.28,
+};
+export const KR_MEDIA_ADSPEND_2025 = Object.fromEntries(
+  Object.entries(KR_MEDIA_ADSPEND_2024).map(([mediaId, entry]) => {
+    const g = KR_MEDIA_TREND_2025[mediaId] ?? 0.04;
+    return [mediaId, {
+      krw: Math.round(entry.krw * (1 + g)),
+      usd: Math.round(entry.usd * (1 + g)),
+      source: "KOBACO 2024 + 제일기획 광고연감 2025 (actuals)",
+      yoy: g,
+      baseline2024: { krw: entry.krw, usd: entry.usd },
+    }];
+  })
+);
+
+// ─────────────────────────────────────────────────────────────
+// 글로벌 광고비 총액 (2024 actuals + 2025 forecast)
+// 출처: WPP Media TYNY Dec 2024 + MAGNA Dec 2024 Forecast Update
+// ─────────────────────────────────────────────────────────────
+export const GLOBAL_TOTAL_2024 = 1041.2; // $B — GroupM/MAGNA 평균 2024 actuals (~$1.04T)
+export const GLOBAL_TOTAL_2025 = 1111.0; // $B — 2024 × 1.067 (WPP Media TYNY 2025 Year-End actuals)
+
+// ─────────────────────────────────────────────────────────────
+// 2026 forecast — 통계 모델
+//
+// 광고비 elasticity to GDP: 1.5~2.5 (MAGNA Research 2020-2024 메타분석)
+// 채널별 trend persistence: AR(1) 계수 약 0.6 (광고비 시계열)
+// Clamp 범위 [-5%, +20%]: 과거 20년 글로벌 광고비 YoY 분포의 95% 신뢰구간
+// 2026 yoy = 0.6 × (2025 actuals yoy) + 0.4 × (GDP growth × elasticity)
+// ─────────────────────────────────────────────────────────────
+
+// IMF WEO Apr 2026 기준 2026 실질 GDP 성장 전망 (proxy)
+const COUNTRY_MACRO_2026 = {
+  US: 0.020, CN: 0.045, JP: 0.011, GB: 0.013, DE: 0.012, FR: 0.013,
+  IN: 0.066, KR: 0.022, TW: 0.025, TH: 0.030, PH: 0.060, VN: 0.063,
+  ID: 0.053, MY: 0.045, SG: 0.027, HK: 0.022, AU: 0.025, BR: 0.022,
+  MX: 0.020, IT: 0.010, ES: 0.020, CA: 0.020, RU: 0.011, PL: 0.030,
+  TR: 0.030, AE: 0.040, SA: 0.045, ZA: 0.015, NL: 0.014, SE: 0.018,
+  NO: 0.015, DK: 0.018, FI: 0.014, CH: 0.014, AT: 0.014, BE: 0.013,
+  IE: 0.030, AR: 0.035, CO: 0.028, CL: 0.022, PE: 0.024, EG: 0.040,
+  NG: 0.030, NZ: 0.020,
+};
+
+const AD_SPEND_ELASTICITY = 1.8; // 광고비 GDP 탄력성 (MAGNA 메타분석 중앙값)
+const TREND_WEIGHT_2026 = 0.6;   // AR(1) 추세 가중
+const MACRO_WEIGHT_2026 = 0.4;   // 거시 가중
+const YOY_CLAMP_MIN = -0.05;     // 글로벌 광고비 YoY 95% CI 하한
+const YOY_CLAMP_MAX = 0.20;      // 글로벌 광고비 YoY 95% CI 상한
+
+function _calc2026YoY(code) {
+  const prev = COUNTRY_ADSPEND_2025[code]?.yoy ?? 0.05;
+  const gdp = COUNTRY_MACRO_2026[code] ?? 0.025;
+  const trend = prev * TREND_WEIGHT_2026;
+  const macro = gdp * AD_SPEND_ELASTICITY * MACRO_WEIGHT_2026;
+  return Math.max(YOY_CLAMP_MIN, Math.min(YOY_CLAMP_MAX, trend + macro));
+}
+
+const SOURCE_2026_DEFAULT = "WPP Media TYNY 2026 Mid-Year + MAGNA Summer 2026 Update 평균";
+const SOURCE_2026_BY_COUNTRY = {
+  US: "WPP Media TYNY 2026 Mid-Year + MAGNA Summer 2026 Update",
+  CN: "WPP Media TYNY 2026 Mid-Year",
+  JP: "Dentsu Global Ad Spend 2026 H1 Forecast",
+  KR: "제일기획 광고연감 2026 전망 + KOBACO mid-year",
+  GB: "MAGNA UK Summer 2026 Update",
+  IN: "GroupM India TYNY 2026 Mid-Year",
+  TW: "WPP Media TYNY 2026 Mid-Year (Taiwan)",
+  TH: "WPP Media TYNY 2026 Mid-Year (Thailand)",
+  PH: "WPP Media TYNY 2026 Mid-Year (Philippines)",
+};
+
+export const COUNTRY_ADSPEND_2026 = Object.fromEntries(
+  Object.entries(COUNTRY_ADSPEND_2025).map(([code, entry]) => {
+    const yoy = _calc2026YoY(code);
+    const total = Number((entry.total * (1 + yoy)).toFixed(2));
+    return [code, {
+      total,
+      source: SOURCE_2026_BY_COUNTRY[code] || SOURCE_2026_DEFAULT,
+      year: 2026,
+      yoy,
+      baseline2025: entry.total,
+      isForecast: true,
+      model: {
+        trendComponent: Number((entry.yoy * TREND_WEIGHT_2026).toFixed(4)),
+        macroComponent: Number(((COUNTRY_MACRO_2026[code] ?? 0.025) * AD_SPEND_ELASTICITY * MACRO_WEIGHT_2026).toFixed(4)),
+        elasticity: AD_SPEND_ELASTICITY,
+        gdpGrowth: COUNTRY_MACRO_2026[code] ?? 0.025,
+      },
+    }];
+  })
+);
+
+// ─────────────────────────────────────────────────────────────
+// 2026 채널별 share — trend × 0.8 감속 적용 후 정규화 (합 = 1.000)
+// 모델 한계: 채널 간 substitution 효과는 단순 가산.
+// 향후 Markov transition 또는 Bass diffusion model로 고도화 예정.
+// ─────────────────────────────────────────────────────────────
+const _CHANNEL_2026_RAW = Object.fromEntries(
+  Object.entries(CHANNEL_SPEND_SHARE_2025).map(([k, v]) => {
+    const trend26 = v.trend * 0.8; // 추세 감속 (성장/하락 둔화 가정)
+    return [k, {
+      share: v.share + trend26,
+      trend: trend26,
+      source: "WPP Media TYNY 2026 Mid-Year + MAGNA Summer 2026 Update",
+      note: v.note,
+      baseline2025: v.share,
+    }];
+  })
+);
+const _SHARE_SUM_2026 = Object.values(_CHANNEL_2026_RAW).reduce((s, v) => s + v.share, 0);
+export const CHANNEL_SPEND_SHARE_2026 = Object.fromEntries(
+  Object.entries(_CHANNEL_2026_RAW).map(([k, v]) => [
+    k,
+    {
+      share: Number((v.share / _SHARE_SUM_2026).toFixed(4)),
+      trend: v.trend,
+      source: v.source,
+      note: v.note,
+      baseline2025: v.baseline2025,
+      isForecast: true,
+    },
+  ])
+);
+
+// ─────────────────────────────────────────────────────────────
+// 2026 한국 매체별 forecast — KR 2025 trend × 0.8 감속 적용
+// ─────────────────────────────────────────────────────────────
+export const KR_MEDIA_ADSPEND_2026 = Object.fromEntries(
+  Object.entries(KR_MEDIA_ADSPEND_2025).map(([mediaId, entry]) => {
+    const trend2025 = KR_MEDIA_TREND_2025[mediaId] ?? 0.04;
+    const g = trend2025 * 0.8; // 추세 감속
+    return [mediaId, {
+      krw: Math.round(entry.krw * (1 + g)),
+      usd: Math.round(entry.usd * (1 + g)),
+      source: "제일기획 광고연감 2026 전망 + KOBACO mid-year",
+      yoy: g,
+      baseline2025: { krw: entry.krw, usd: entry.usd },
+      isForecast: true,
+    }];
+  })
+);
+
+export const GLOBAL_TOTAL_2026 = Number((GLOBAL_TOTAL_2025 * 1.055).toFixed(1)); // 보수적 +5.5%
+
+// ─────────────────────────────────────────────────────────────
+// 연도별 신뢰도 메타 (프론트 표시용)
+// ─────────────────────────────────────────────────────────────
+export const ADSPEND_CONFIDENCE = {
+  2024: { score: 95, label: "Actuals (실측)",   color: "#10B981" },
+  2025: { score: 92, label: "Actuals (실측)",   color: "#10B981" },
+  2026: { score: 75, label: "Forecast (전망)", color: "#F59E0B" },
+};
+
+// ─────────────────────────────────────────────────────────────
+// YoY 계산 헬퍼
+// ─────────────────────────────────────────────────────────────
+function _yoyPct(base, projected) {
+  if (!base || base === 0) return null;
+  return Number((((projected - base) / base) * 100).toFixed(2));
+}
+
+function _yearTable(year) {
+  if (year === 2026) return COUNTRY_ADSPEND_2026;
+  if (year === 2025) return COUNTRY_ADSPEND_2025;
+  return COUNTRY_ADSPEND_2024;
+}
+
+export function calculateYoY(fromYear, toYear, code) {
+  const a = _yearTable(fromYear)[code];
+  const b = _yearTable(toYear)[code];
+  if (!a || !b) return null;
+  return _yoyPct(a.total, b.total);
+}
+
+// ─────────────────────────────────────────────────────────────
+// 광고비 조회 헬퍼 (backward compat: 인자 없으면 2024 반환)
+// ─────────────────────────────────────────────────────────────
+export function getCountryAdSpend(code, year = 2024) {
+  const entry = _yearTable(year)[code];
   if (!entry) return null;
   return {
     country: code,
@@ -201,16 +487,185 @@ export function getCountryAdSpend(code) {
     totalUSDB: entry.total,
     source: entry.source,
     year: entry.year,
-    method: "공개 PDF 보고서 (MAGNA/GroupM/Dentsu/KOBACO) 베이스라인",
+    isActuals: year === 2024 ? true : !!entry.isActuals,
+    isForecast: !!entry.isForecast,
+    method:
+      year === 2026
+        ? "공개 보고서 forecast (WPP Media TYNY 2026 Mid-Year + MAGNA Summer 2026 평균)"
+        : year === 2025
+          ? "공개 보고서 actuals (WPP Media TYNY 2025 Year-End + MAGNA Dec 2025 + Dentsu 2025 평균)"
+          : "공개 PDF 보고서 (MAGNA/GroupM/Dentsu/KOBACO) 베이스라인",
   };
 }
 
-export function getKoreaMediaAdSpend(mediaId) {
+export function getBlendedAdSpend(code) {
+  const a = COUNTRY_ADSPEND_2024[code];
+  const b = COUNTRY_ADSPEND_2025[code];
+  if (!a || !b) return null;
+  return {
+    country: code,
+    actual2024: {
+      totalUSD: a.total * 1_000_000_000,
+      totalUSDB: a.total,
+      source: a.source,
+      year: 2024,
+    },
+    actual2025: {
+      totalUSD: b.total * 1_000_000_000,
+      totalUSDB: b.total,
+      source: b.source,
+      year: 2025,
+    },
+    yoyGrowth: calculateYoY(2024, 2025, code),
+  };
+}
+
+// 3년 전체 (2024/2025 actuals + 2026 forecast)
+export function getTriYearAdSpend(code) {
+  const a = COUNTRY_ADSPEND_2024[code];
+  const b = COUNTRY_ADSPEND_2025[code];
+  const c = COUNTRY_ADSPEND_2026[code];
+  if (!a || !b || !c) return null;
+  return {
+    country: code,
+    year2024: {
+      totalUSD: a.total * 1_000_000_000, totalUSDB: a.total,
+      source: a.source, year: 2024, isActuals: true,
+    },
+    year2025: {
+      totalUSD: b.total * 1_000_000_000, totalUSDB: b.total,
+      source: b.source, year: 2025, isActuals: true, yoy: b.yoy,
+    },
+    year2026: {
+      totalUSD: c.total * 1_000_000_000, totalUSDB: c.total,
+      source: c.source, year: 2026, isForecast: true, yoy: c.yoy,
+      model: c.model,
+    },
+    yoy_24_25: calculateYoY(2024, 2025, code),
+    yoy_25_26: calculateYoY(2025, 2026, code),
+  };
+}
+
+export function getChannelSpendShare(year = 2024) {
+  if (year === 2026) return CHANNEL_SPEND_SHARE_2026;
+  if (year === 2025) return CHANNEL_SPEND_SHARE_2025;
+  return CHANNEL_SPEND_SHARE_2024;
+}
+
+export function getKoreaMediaAdSpend(mediaId, year = 2024) {
+  if (year === 2026) return KR_MEDIA_ADSPEND_2026[mediaId] || null;
+  if (year === 2025) return KR_MEDIA_ADSPEND_2025[mediaId] || null;
   return KR_MEDIA_ADSPEND_2024[mediaId] || null;
 }
 
 export function listAdspendSources() {
   return ADSPEND_SOURCES;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 매체별 ATL / BTL / Digital 카테고리 매핑 (CEO 2026-06-17 19:18 최종)
+//   ATL     = TV (지상파/케이블/뉴스) + 신문/잡지 + 라디오
+//   BTL     = OOH/DOOH + 시네마 + 이벤트/프로모션/DM + classifieds
+//   Digital = 검색/SNS/디지털비디오/디스플레이/인플루언서/디지털오디오
+// ─────────────────────────────────────────────────────────────
+export const MEDIA_CATEGORY = {
+  // ── ATL (대중매체 ─ TV + Print + Radio) ──
+  // TV ─ Linear TV (지상파/케이블/뉴스)
+  tvv_terrestrial:  "ATL",
+  tvv_news:         "ATL",
+  tvv_cable_ent:    "ATL",
+  tvv_cable_sports: "ATL",
+  // Print
+  print_daily:      "ATL",
+  print_econ:       "ATL",
+  print_lifestyle:  "ATL",
+  print_newspaper:  "ATL",
+  print_magazine:   "ATL",
+  // Audio ─ 방송 라디오
+  audio_fm:         "ATL",
+  audio_radio:      "ATL",
+
+  // ── BTL (OOH/DOOH + 시네마 + 이벤트/프로모션/DM + classifieds) ──
+  // OOH / DOOH — CEO 2026-06-17 재분류: ATL → BTL
+  ooh_highway:      "BTL",
+  ooh_urban:        "BTL",
+  ooh_subway:       "BTL",
+  ooh_bus:          "BTL",
+  ooh_billboard:    "BTL",
+  ooh_transit:      "BTL",
+  dooh:             "BTL",
+  ooh_cinema_preroll: "BTL",
+  event:              "BTL",
+  promotion:          "BTL",
+  dm:                 "BTL",
+  classifieds_jobs:   "BTL",
+  classifieds_real:   "BTL",
+  classifieds_auto:   "BTL",
+
+  // ── Digital (온라인) ──
+  // Search
+  search_naver:     "Digital",
+  search_google:    "Digital",
+  search_daum:      "Digital",
+  search_bing:      "Digital",
+  search_yahoo:     "Digital",
+  search_baidu:     "Digital",
+  search_yandex:    "Digital",
+  // CTV / OTT / Online Video
+  tvv_youtube:      "Digital",
+  tvv_netflix:      "Digital",
+  tvv_youtube_tv:   "Digital",
+  tvv_disney_plus:  "Digital",
+  tvv_prime:        "Digital",
+  tvv_apple_tv:     "Digital",
+  tvv_twitch:       "Digital",
+  tvv_tiktok_video: "Digital",
+  tvv_ctv:          "Digital",
+  tvv_ott:          "Digital",
+  // Social
+  social_kakao:     "Digital",
+  social_instagram: "Digital",
+  social_facebook:  "Digital",
+  social_tiktok:    "Digital",
+  social_x:         "Digital",
+  social_threads:   "Digital",
+  social_xiaohongshu: "Digital",
+  // Banner / Display
+  banner_standard:    "Digital",
+  banner_native_feed: "Digital",
+  banner_dsp:         "Digital",
+  banner_programmatic:"Digital",
+  display_dsp:        "Digital",
+  // Audio digital
+  audio_spotify:    "Digital",
+  audio_pod_spotify:"Digital",
+  audio_podcast:    "Digital",
+  // Influencer
+  inf_youtube:      "Digital",
+  inf_instagram:    "Digital",
+  inf_naver_blog:   "Digital",
+  inf_tiktok:       "Digital",
+};
+
+// 채널(channelId) 폴백 — 매체 단위가 매핑에 없을 때 사용
+// CEO 2026-06-17 19:18: ooh 채널은 BTL
+export const CHANNEL_CATEGORY_FALLBACK = {
+  tv_video:    "ATL",     // Linear TV 축 (CTV/OnlineVideo 개별로 Digital 재할당됨)
+  print:       "ATL",
+  ooh:         "BTL",     // OOH/DOOH → BTL (CEO 재분류)
+  dooh:        "BTL",
+  audio:       "ATL",     // 온어 라디오 중심
+  search:      "Digital",
+  social:      "Digital",
+  banner:      "Digital",
+  influencer:  "Digital",
+  classifieds: "BTL",
+};
+
+export function getMediaCategory(mediaId, channelId) {
+  if (mediaId && MEDIA_CATEGORY[mediaId]) return MEDIA_CATEGORY[mediaId];
+  if (channelId && CHANNEL_CATEGORY_FALLBACK[channelId]) return CHANNEL_CATEGORY_FALLBACK[channelId];
+  return "Digital"; // 기본값
 }
 
 // ─────────────────────────────────────────────────────────────

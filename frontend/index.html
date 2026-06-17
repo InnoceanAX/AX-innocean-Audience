@@ -7,6 +7,114 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+// CEO 2026-06-17 TASK B: Chart.js 데이터 값 라벨 + 단위 표기 전역 설정
+try {
+  if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+    Chart.register(ChartDataLabels);
+    // 기본값은 OFF — applyChartLabels() 로 명시적으로 켜는 곳에서만 명명
+Chart.defaults.plugins.datalabels = Chart.defaults.plugins.datalabels || {};
+    Chart.defaults.plugins.datalabels.display = false;
+  }
+} catch(e){ console.warn('datalabels register failed', e); }
+
+// applyChartLabels(config, { unit, formatter, position, color, anchor, align })
+// — 데이터 라벨 + 단위 부제웅을 원킨 차트에 주입
+// 사용법: config = applyChartLabels(config, { unit:'%', formatter:(v)=>v.toFixed(1)+'%' });
+window.applyChartLabels = function(config, opts){
+  opts = opts || {};
+  if(!config) return config;
+  config.options = config.options || {};
+  config.options.plugins = config.options.plugins || {};
+  const type = config.type;
+  const isPie = (type === 'doughnut' || type === 'pie' || type === 'polarArea');
+  const isHBar = (type === 'bar' && config.options.indexAxis === 'y');
+  const isVBar = (type === 'bar' && config.options.indexAxis !== 'y');
+  const isRadar = (type === 'radar');
+  const isLine = (type === 'line');
+
+  const unit = opts.unit || '';
+  const fmt = opts.formatter || function(v){
+    if(v == null || v === '') return '';
+    if(typeof v !== 'number') return String(v) + unit;
+    if(Math.abs(v) >= 100) return v.toFixed(0) + unit;
+    if(Math.abs(v) >= 10)  return v.toFixed(1) + unit;
+    return v.toFixed(2).replace(/\.?0+$/, '') + unit;
+  };
+
+  // 위치 기본값
+  let anchor = opts.anchor || (isHBar ? 'end' : (isVBar ? 'end' : (isPie ? 'center' : 'center')));
+  let align  = opts.align  || (isHBar ? 'right' : (isVBar ? 'top'  : (isPie ? 'center' : 'top')));
+  // 색상: 파이는 흰색, 나머지는 집은 회색
+  let color = opts.color || (isPie ? '#FFFFFF' : '#1F2937');
+
+  config.options.plugins.datalabels = Object.assign({}, config.options.plugins.datalabels || {}, {
+    display: function(ctx){
+      // 0 값이면 숨김
+      const v = ctx?.dataset?.data?.[ctx?.dataIndex];
+      if(v == null || v === 0) return false;
+      // 파이는 세그먼트가 너무 작으면 숨김 (3% 미만)
+      if(isPie){
+        const total = (ctx.dataset.data||[]).reduce((s,x)=>s+(Number(x)||0),0);
+        if(total > 0 && (Number(v)/total) < 0.03) return false;
+      }
+      return true;
+    },
+    anchor: anchor,
+    align: align,
+    offset: isHBar ? 4 : (isVBar ? 4 : 0),
+    clip: false,
+    clamp: true,
+    color: color,
+    font: { size: 10, family: 'Pretendard', weight: '600' },
+    formatter: function(value, ctx){
+      // pie/doughnut 은 레이블 + 값
+      if(isPie){
+        const total = (ctx.dataset.data||[]).reduce((s,x)=>s+(Number(x)||0),0);
+        const pct = total > 0 ? (Number(value)/total * 100) : 0;
+        return pct.toFixed(0) + '%';
+      }
+      return fmt(value, ctx);
+    },
+  });
+
+  // 파이/도너츠는 레이블 접촉 방지를 위해 padding 확보
+  if(isPie){
+    config.options.layout = config.options.layout || {};
+    config.options.layout.padding = Object.assign({ top: 8, bottom: 8, left: 8, right: 8 }, config.options.layout.padding || {});
+  }
+  // 수평/수직 bar 도 라벨 잘림 방지
+  if(isHBar){
+    config.options.layout = config.options.layout || {};
+    config.options.layout.padding = Object.assign({ right: 36 }, config.options.layout.padding || {});
+  }
+  if(isVBar){
+    config.options.layout = config.options.layout || {};
+    config.options.layout.padding = Object.assign({ top: 18 }, config.options.layout.padding || {});
+  }
+
+  return config;
+};
+
+// 차트 컨테이너 바로 위에 단위 부제목 주입
+window.applyChartUnitLabel = function(canvasId, unitText){
+  try{
+    const c = document.getElementById(canvasId);
+    if(!c || !c.parentElement) return;
+    const parent = c.parentElement;
+    // 이미 있으면 재사용
+    let lbl = parent.querySelector('.chart-unit-label');
+    if(!lbl){
+      lbl = document.createElement('div');
+      lbl.className = 'chart-unit-label';
+      lbl.style.cssText = 'font-size:10.5px;color:#767676;font-weight:500;margin-bottom:4px;text-align:right;padding-right:2px';
+      parent.insertBefore(lbl, c);
+    }
+    lbl.textContent = '단위: ' + (unitText || '');
+  }catch(e){}
+};
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -839,6 +947,21 @@ body.home-fade-out #screen-home{
 .md-spend-bar{height:100%;transition:width .4s ease}
 .md-spend-val{text-align:right;font-variant-numeric:tabular-nums;color:#111;font-weight:700;font-size:12.5px}
 .md-spend-share{display:block;font-size:10px;color:var(--tm);font-weight:500;margin-top:1px}
+.md-year-tabs{display:flex;gap:6px;margin:6px 0 12px;flex-wrap:wrap}
+.md-yt{padding:6px 14px;font-size:12px;font-weight:600;background:#fff;border:1px solid var(--bdr);border-radius:6px;cursor:pointer;color:#444;transition:all .15s}
+.md-yt:hover{border-color:#999}
+.md-yt.active{background:var(--ind);color:#fff;border-color:var(--ind)}
+.md-yt[data-year="2026"].active{background:#F59E0B;border-color:#F59E0B}
+.md-yt[data-year="compare"].active{background:#111;border-color:#111}
+.md-conf{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;color:#fff;margin-left:8px;vertical-align:middle}
+.md-fc-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;background:#F59E0B;color:#fff;border-radius:3px;margin-left:6px}
+.md-cat-h{margin:18px 0 8px;padding:10px 14px;background:#FAFAFA;border-left:3px solid var(--ind);border-radius:4px}
+.md-cat-h.btl{border-left-color:#10B981}
+.md-cat-h.digital{border-left-color:#7C3AED}
+.md-cat-title{font-size:13px;font-weight:700;color:#111}
+.md-cat-sub{font-size:11px;color:var(--tm);margin-top:2px}
+.md-fc-wrap{background:rgba(245,158,11,0.04);border:1px dashed #F59E0B;border-radius:8px;padding:10px;margin-bottom:14px}
+.md-fc-note{font-size:11px;color:#92400E;font-weight:600;margin-bottom:6px}
 /* 인플루언서 매칭 */
 /* 일일 미디어 여정 */
 .iv-journey-card{background:linear-gradient(135deg,#EFF6FF 0%,#F5F3FF 100%);border:1px solid #C7D2FE;border-radius:10px;padding:16px 18px;margin-top:14px}
@@ -3489,7 +3612,7 @@ function renderMediaTree(data){
       html += `<details class="md-sub" open>
         <summary class="md-sub-h">
           <span class="md-sub-label">${sub.label}</span>
-          <span class="md-sub-meta">도달 ${sub.reach.toFixed(0)}% · 신뢰 ${sub.avgTrust} · CPM $${sub.avgCpm}</span>
+          <span class="md-sub-meta">도달 ${sub.reach.toFixed(0)}% · 신뢰 ${sub.avgTrust}</span>
         </summary>
         <div class="md-media-list">`;
       for(const m of sub.media){
@@ -3497,7 +3620,7 @@ function renderMediaTree(data){
         html += `<div class="md-media-row${blocked?' md-media-blocked':''}">
           <span class="md-media-name">${m.label}</span>
           <div class="md-media-bar"><div class="md-media-bar-fill" style="width:${m.reach}%;background:${chColor}"></div></div>
-          <span class="md-media-vals">도달 <b>${m.reach}%</b> · 신뢰 <b>${m.trust}</b> · CPM <b>$${m.cpm}</b> · 효율 <b>${m.effIndex}</b></span>
+          <span class="md-media-vals">도달 <b>${m.reach}%</b> · 신뢰 <b>${m.trust}</b></span>
         </div>`;
       }
       html += `</div></details>`;
@@ -3522,66 +3645,175 @@ const chColors = {
   tv: '#4F46E5', digital: '#7C3AED', dooh: '#EC4899',
 };
 
+// ----- TASK G: 3년 + ATL/BTL/Digital + forecast 구분 -----
+const MD_YEAR_COLORS = { 2024: '#4F46E5', 2025: '#7C3AED', 2026: '#9CA3AF' };
+const MD_CAT_META = {
+  ATL:     { icon: '📺', name: 'ATL', sub: 'TV·신문·잡지·라디오',     cls: '',         color: '#4F46E5' },
+  BTL:     { icon: '📦', name: 'BTL', sub: 'OOH·DOOH·이벤트·DM·classifieds', cls: 'btl',      color: '#10B981' },
+  Digital: { icon: '💻', name: 'Digital', sub: '검색·SNS·디지털비디오·디스플레이·인플루언서', cls: 'digital', color: '#7C3AED' },
+};
+
+function _md_money(n){
+  if(n >= 1_000_000_000) return '$' + (n/1_000_000_000).toFixed(2) + 'B';
+  if(n >= 1_000_000)     return '$' + (n/1_000_000).toFixed(0)    + 'M';
+  return '$' + n.toFixed(0);
+}
+
+function renderMediaSpendYear(yearPayload, isForecast){
+  if(!yearPayload) return '';
+  const sortedCh = [...(yearPayload.channels || [])].sort((a,b)=> b.spend - a.spend);
+  const maxSpend = sortedCh[0]?.spend || 1;
+  const conf = yearPayload.confidence || {};
+  const wrapClass = isForecast ? 'md-fc-wrap' : '';
+  const totalLine = `연 추정 광고비 <b>$${yearPayload.totalEstimatedB}B</b>` +
+    (conf.label ? `<span class="md-conf" style="background:${conf.color}">${conf.label} · 신뢰 ${conf.score}</span>` : '');
+  let html = `<div class="${wrapClass}">` +
+    (isForecast ? `<div class="md-fc-note">📊 Forecast — 2025 actuals × (AR1 즞도 0.6 + GDP × elasticity 0.4), clamp [-5%, +20%]</div>` : '') +
+    `<div class="md-spend-h"><div class="md-spend-total">${totalLine}</div><div class="md-spend-method">${yearPayload.methodology || ''}</div></div>`;
+  // 카테고리별 블록 (ATL/BTL/Digital)
+  const grandSum = sortedCh.reduce((s,x)=>s+x.spend,0) || 1;
+  for(const catKey of ['ATL','BTL','Digital']){
+    const cat = yearPayload.byCategory?.[catKey];
+    if(!cat) continue;
+    const meta = MD_CAT_META[catKey];
+    const sharePct = (cat.share * 100).toFixed(1);
+    html += `<div class="md-cat-h ${meta.cls}">` +
+      `<div class="md-cat-title">${meta.icon} ${meta.name} — $${cat.totalB}B · ${sharePct}%${isForecast?' <span class="md-fc-badge">Forecast</span>':''}</div>` +
+      `<div class="md-cat-sub">${meta.sub}</div></div>`;
+    if(cat.items && cat.items.length){
+      html += `<div class="md-spend-table">`;
+      const maxItem = cat.items[0]?.spend || 1;
+      for(const it of cat.items.slice(0, 10)){
+        if(!it.spend) continue;
+        const pct = (it.spend / maxItem) * 100;
+        const display = _md_money(it.spend);
+        html += `<div class="md-spend-row">` +
+          `<div class="md-spend-label">${it.label}</div>` +
+          `<div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${meta.color};${isForecast?'opacity:.65;background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,0.08) 4px,rgba(0,0,0,0.08) 8px);':''}"></div></div>` +
+          `<div class="md-spend-val">${display}<span class="md-spend-share">${(it.share||0).toFixed ? it.share.toFixed(2) : it.share}%</span></div>` +
+          `</div>`;
+      }
+      html += `</div>`;
+    }
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderMediaSpendCompare(s){
+  // 3년 비교
+  const years = [2024, 2025, 2026];
+  const totals = years.map(y => s['year'+y]?.totalEstimatedB || 0);
+  const yoy = s.yoy || {};
+  let html = `<div class="md-spend-h"><div class="md-spend-total">3년 광고비 비교 — ${s.countryCode}</div>` +
+    `<div class="md-spend-method">2024 실측 → 2025 실측 → 2026 전망. YoY 24→25 = ${yoy.y24_25?.pct ?? '-'}% · YoY 25→26 (forecast) = ${yoy.y25_26?.pct ?? '-'}%</div></div>`;
+  // 연도 total 목록
+  html += `<div class="md-spend-table">`;
+  for(let i=0;i<years.length;i++){
+    const yr = years[i];
+    const y = s['year'+yr]; if(!y) continue;
+    const conf = y.confidence || {};
+    const color = MD_YEAR_COLORS[yr];
+    const pct = totals[i] / Math.max(...totals) * 100;
+    const fcStyle = yr===2026 ? ';opacity:.7;background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,0.08) 4px,rgba(0,0,0,0.08) 8px);' : '';
+    html += `<div class="md-spend-row">` +
+      `<div class="md-spend-label">${yr}${yr===2026?' <span class="md-fc-badge">Forecast</span>':''}<span class="md-conf" style="background:${conf.color||'#999'}">${conf.label||''}</span></div>` +
+      `<div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${color}${fcStyle}"></div></div>` +
+      `<div class="md-spend-val">$${y.totalEstimatedB}B<span class="md-spend-share">신뢰 ${conf.score||'-'}</span></div>` +
+      `</div>`;
+  }
+  html += `</div>`;
+  // 카테고리별 3년 비교
+  for(const catKey of ['ATL','BTL','Digital']){
+    const meta = MD_CAT_META[catKey];
+    html += `<div class="md-cat-h ${meta.cls}"><div class="md-cat-title">${meta.icon} ${meta.name} 3년 추이</div></div><div class="md-spend-table">`;
+    for(let i=0;i<years.length;i++){
+      const yr = years[i];
+      const y = s['year'+yr]; const cat = y?.byCategory?.[catKey]; if(!cat) continue;
+      const max = Math.max(...years.map(yy => s['year'+yy]?.byCategory?.[catKey]?.totalB || 0)) || 1;
+      const pct = cat.totalB / max * 100;
+      const fcStyle = yr===2026 ? ';opacity:.7;background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,0.08) 4px,rgba(0,0,0,0.08) 8px);' : '';
+      html += `<div class="md-spend-row">` +
+        `<div class="md-spend-label">${yr}${yr===2026?' 📊':''}</div>` +
+        `<div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${MD_YEAR_COLORS[yr]}${fcStyle}"></div></div>` +
+        `<div class="md-spend-val">$${cat.totalB}B<span class="md-spend-share">${(cat.share*100).toFixed(1)}%</span></div>` +
+        `</div>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
 async function renderMediaSpend(data){
   if(!data.spend) return;
   const s = data.spend;
-  const sortedCh = s.channels.sort((a,b) => b.spend - a.spend);
-  const maxSpend = sortedCh[0]?.spend || 1;
-  let html = `<div class="md-spend-h">
-    <div class="md-spend-total">연 추정 광고비 <b>$${s.totalEstimatedB}B</b></div>
-    <div class="md-spend-method">${s.methodology}</div>
-  </div>
-  <div class="aud-chart-grid">
-    <div class="aud-chart-card">
-      <div class="aud-chart-t">채널별 점유율 (도넛)</div>
-      <div class="aud-chart-canvas-wrap"><canvas id="chart-media-doughnut"></canvas></div>
-    </div>
-    <div class="aud-chart-card">
-      <div class="aud-chart-t">채널별 광고비 (막대)</div>
-      <div class="aud-chart-canvas-wrap"><canvas id="chart-media-bar"></canvas></div>
-    </div>
-  </div>
-  <div class="md-spend-h" style="margin-top:18px"><div class="md-spend-total">채널 상세</div></div>
-  <div class="md-spend-table">`;
-  for(const ch of sortedCh){
-    const color = chColors[ch.channelId] || '#4F46E5';
-    const pct = (ch.spend / maxSpend) * 100;
-    const dollarB = (ch.spend / 1_000_000_000).toFixed(2);
-    const dollarM = (ch.spend / 1_000_000).toFixed(0);
-    const display = ch.spend > 1_000_000_000 ? `$${dollarB}B` : `$${dollarM}M`;
-    html += `<div class="md-spend-row">
-      <div class="md-spend-label">${ch.label}</div>
-      <div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${color}"></div></div>
-      <div class="md-spend-val">${display}<span class="md-spend-share">${ch.share}%</span></div>
-    </div>`;
-  }
-  html += `</div>`;
-  // 매체별 광고비 상위 10
-  const topMedia = [...data.items].sort((a,b) => (b.spend||0) - (a.spend||0)).slice(0, 10);
-  html += `<div class="md-spend-h" style="margin-top:18px"><div class="md-spend-total">매체별 상위 10</div></div><div class="md-spend-table">`;
-  const maxMed = topMedia[0]?.spend || 1;
-  for(const m of topMedia){
-    const color = chColors[m.channelId] || '#4F46E5';
-    const pct = (m.spend / maxMed) * 100;
-    const display = m.spend > 1_000_000_000 ? `$${(m.spend/1_000_000_000).toFixed(2)}B` : `$${(m.spend/1_000_000).toFixed(0)}M`;
-    html += `<div class="md-spend-row">
-      <div class="md-spend-label">${m.label} <span class="md-spend-ch">${m.channel}</span></div>
-      <div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${color}"></div></div>
-      <div class="md-spend-val">${display}<span class="md-spend-share">${m.spendShare}%</span></div>
-    </div>`;
-  }
-  html += `</div>`;
-  document.getElementById('md-spend-summary').innerHTML = html;
-  // 차트 렌더링
-  setTimeout(() => {
-    const chLabels = sortedCh.map(c => c.label);
-    const chSpend = sortedCh.map(c => c.spend / 1_000_000_000); // B 단위
-    const chCols = sortedCh.map(c => chColors[c.channelId] || '#4F46E5');
-    if(typeof renderChartSafe === 'function'){
-      renderChartSafe('chart-media-doughnut', 'doughnut', chLabels, sortedCh.map(c => c.share), chCols, { suffix: '%' });
-      renderChartSafe('chart-media-bar', 'bar', chLabels, chSpend, chCols, { suffix: 'B' });
+  const hasTri = !!(s.year2024 && s.year2025 && s.year2026);
+  const slot = document.getElementById('md-spend-summary');
+  if(!slot) return;
+  // 연도 상태 이월
+  state._mdSpendYear = state._mdSpendYear || (s.default || 2025);
+  function paint(){
+    const yr = state._mdSpendYear;
+    let tabs = '';
+    if(hasTri){
+      tabs = `<div class="md-year-tabs">` +
+        `<button class="md-yt${yr===2024?' active':''}" data-year="2024">2024 실측</button>` +
+        `<button class="md-yt${yr===2025?' active':''}" data-year="2025">2025 실측</button>` +
+        `<button class="md-yt${yr===2026?' active':''}" data-year="2026">2026 전망 📊</button>` +
+        `<button class="md-yt${yr==='compare'?' active':''}" data-year="compare">3년 비교</button>` +
+        `</div>`;
     }
-  }, 50);
+    let body = '';
+    if(yr === 'compare' && hasTri){
+      body = renderMediaSpendCompare(s);
+    } else if(hasTri){
+      body = renderMediaSpendYear(s['year'+yr], yr===2026);
+    } else {
+      // backward compat
+      const sortedCh = [...s.channels].sort((a,b)=>b.spend-a.spend);
+      const maxSpend = sortedCh[0]?.spend || 1;
+      body = `<div class="md-spend-h"><div class="md-spend-total">연 추정 광고비 <b>$${s.totalEstimatedB}B</b></div><div class="md-spend-method">${s.methodology}</div></div><div class="md-spend-table">`;
+      for(const ch of sortedCh){
+        const color = chColors[ch.channelId] || '#4F46E5';
+        const pct = (ch.spend / maxSpend) * 100;
+        const display = _md_money(ch.spend);
+        body += `<div class="md-spend-row"><div class="md-spend-label">${ch.label}</div><div class="md-spend-bar-wrap"><div class="md-spend-bar" style="width:${pct}%;background:${color}"></div></div><div class="md-spend-val">${display}<span class="md-spend-share">${ch.share}%</span></div></div>`;
+      }
+      body += `</div>`;
+    }
+    slot.innerHTML = tabs + body;
+    slot.querySelectorAll('.md-yt').forEach(btn => {
+      btn.onclick = () => {
+        const v = btn.getAttribute('data-year');
+        state._mdSpendYear = (v === 'compare') ? 'compare' : Number(v);
+        paint();
+      };
+    });
+    // doughnut/bar charts for non-compare year view
+    if(yr !== 'compare'){
+      const y = hasTri ? s['year'+yr] : s;
+      const sortedCh = [...(y.channels || s.channels || [])].sort((a,b)=> b.spend - a.spend);
+      const dEl = document.getElementById('chart-media-doughnut');
+      const bEl = document.getElementById('chart-media-bar');
+      if(!dEl || !bEl){
+        // 이전 레이아웃이 차트 canvas를 제공하지 않으니 다이렭트 추가
+        const chartHtml = `<div class="aud-chart-grid" id="md-spend-charts"><div class="aud-chart-card"><div class="aud-chart-t">채널별 점유율 (${yr})</div><div class="aud-chart-canvas-wrap"><canvas id="chart-media-doughnut"></canvas></div></div><div class="aud-chart-card"><div class="aud-chart-t">채널별 광고비 (${yr})</div><div class="aud-chart-canvas-wrap"><canvas id="chart-media-bar"></canvas></div></div></div>`;
+        const existing = document.getElementById('md-spend-charts');
+        if(existing) existing.remove();
+        slot.insertAdjacentHTML('afterbegin', chartHtml);
+      }
+      setTimeout(() => {
+        const chLabels = sortedCh.map(c => c.label);
+        const chSpend = sortedCh.map(c => c.spend / 1_000_000_000);
+        const chCols = sortedCh.map(c => chColors[c.channelId] || '#4F46E5');
+        if(typeof renderChartSafe === 'function'){
+          renderChartSafe('chart-media-doughnut', 'doughnut', chLabels, sortedCh.map(c => c.share), chCols, { suffix: '%' });
+          renderChartSafe('chart-media-bar', 'bar', chLabels, chSpend, chCols, { suffix: 'B' });
+        }
+      }, 50);
+    }
+  }
+  paint();
 }
 
 async function renderMediaTab(data){
@@ -3622,10 +3854,10 @@ async function renderMediaTab(data){
 
   // 표
   const tbl = document.getElementById('md-table');
-  let html = `<thead><tr><th>매체</th><th>Channel</th><th>Subchannel</th><th>도달률</th><th>신뢰도</th><th>CPM (USD)</th><th>효율</th></tr></thead><tbody>`;
+  let html = `<thead><tr><th>매체</th><th>Channel</th><th>Subchannel</th><th>도달률</th><th>신뢰도</th></tr></thead><tbody>`;
   for(const it of data.items){
     const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${it.reach}%"></div></div>`;
-    html += `<tr${it.reach===0?' class="md-blocked"':''}><td><strong>${it.label}</strong></td><td><span class="md-tag">${it.channel}</span></td><td><span class="md-tag md-tag-sub">${it.subchannel}</span></td><td>${reachBar}<span class="md-bar-v">${it.reach}%</span></td><td>${it.trust}</td><td>$${it.cpm}</td><td><strong>${it.effIndex}</strong></td></tr>`;
+    html += `<tr${it.reach===0?' class="md-blocked"':''}><td><strong>${it.label}</strong></td><td><span class="md-tag">${it.channel}</span></td><td><span class="md-tag md-tag-sub">${it.subchannel}</span></td><td>${reachBar}<span class="md-bar-v">${it.reach}%</span></td><td>${it.trust}</td></tr>`;
   }
   tbl.innerHTML = html + `</tbody>`;
 
@@ -3633,24 +3865,29 @@ async function renderMediaTab(data){
   state._mdCharts = state._mdCharts || {};
   const reachCtx = document.getElementById('md-reach-chart').getContext('2d');
   if(state._mdCharts.reach) state._mdCharts.reach.destroy();
-  state._mdCharts.reach = new Chart(reachCtx, {
+  const _reachConfig = {
     type: 'bar',
     data: { labels: data.chart.labels, datasets: [{ label: '도달률 (%)', data: data.chart.reach, backgroundColor: '#4F46E5', borderRadius: 4 }] },
     options: { responsive:true, maintainAspectRatio:false, scales: { y: { max:100, ticks:{callback:v=>v+'%'} } }, plugins:{legend:{display:false}} },
-  });
+  };
+  if(typeof window.applyChartLabels === 'function') window.applyChartLabels(_reachConfig, { unit:'%' });
+  if(typeof window.applyChartUnitLabel === 'function') window.applyChartUnitLabel('md-reach-chart', '% (도달률)');
+  state._mdCharts.reach = new Chart(reachCtx, _reachConfig);
 
-  // 매트릭스 산점도 (도달률 × 신뢰도)
+  // 매트릭스 산점도 (도달률 × 신뢰도) — scatter는 데이터 라벨이 노이즈가 되므로 비활성, 단위만 표기
   const matrixCtx = document.getElementById('md-matrix-chart').getContext('2d');
   if(state._mdCharts.matrix) state._mdCharts.matrix.destroy();
-  state._mdCharts.matrix = new Chart(matrixCtx, {
+  const _matrixConfig = {
     type: 'scatter',
     data: { datasets: [{ label: '매체', data: data.items.filter(i=>i.reach>0).map(i => ({ x: i.reach, y: i.trust, label: i.label })), backgroundColor: '#4F46E5', pointRadius: 8 }] },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label: ctx => `${ctx.raw.label}: 도달 ${ctx.raw.x}% / 신뢰 ${ctx.raw.y}`}}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label: ctx => `${ctx.raw.label}: 도달 ${ctx.raw.x}% / 신뢰 ${ctx.raw.y}`}}, datalabels:{display:false}},
       scales: { x: { title:{display:true,text:'도달률 (%)'}, max:100 }, y: { title:{display:true,text:'신뢰도'}, max:100 } },
     },
-  });
+  };
+  if(typeof window.applyChartUnitLabel === 'function') window.applyChartUnitLabel('md-matrix-chart', '% (X: 도달률, Y: 신뢰도)');
+  state._mdCharts.matrix = new Chart(matrixCtx, _matrixConfig);
 }
 
 // ============ 3-WAY ENTRY MODES ============
@@ -6399,10 +6636,42 @@ function renderChartSafe(canvasId, type, labels, data, color, opts){
         },
       };
     }
+    // CEO 2026-06-17 TASK B: 데이터 값 라벨 + 단위 표기
+    try{
+      const unit = (opts && opts.suffix) || '';
+      if(typeof window.applyChartLabels === 'function'){
+        window.applyChartLabels(config, { unit: unit });
+      }
+      // 캔버스 위에 단위 아니레이트 주입
+      if(typeof window.applyChartUnitLabel === 'function'){
+        const unitText = (opts && opts.unitLabel) || _inferUnitLabel(unit, canvasId, type);
+        if(unitText) window.applyChartUnitLabel(canvasId, unitText);
+      }
+    }catch(e){ /* non-fatal */ }
     window._chartInstances[canvasId] = new Chart(ctx, config);
   } catch(e){
     console.warn('chart render error', canvasId, e);
   }
+}
+
+// canvasId / suffix / type 을 보고 단위 텍스트 추론
+function _inferUnitLabel(suffix, canvasId, type){
+  const id = String(canvasId||'').toLowerCase();
+  if(suffix === '%'){
+    if(/spend|share|adsp/.test(id)) return '% (광고비 점유율)';
+    if(/reach/.test(id))            return '% (도달률)';
+    if(/trust/.test(id))            return '% (신뢰도)';
+    if(/income|education|city|occupation|gender|age|distribution|food|wellness|travelfreq|category|payment|channel/.test(id)) return '% (비율)';
+    return '% (비율)';
+  }
+  if(suffix === 'B') return '억 USD (연간 광고비)';
+  if(/시간|hour|hr|hrs|h$/i.test(String(suffix||''))) return '시간/일';
+  if(suffix === '명') return '명 (인구)';
+  if(/dayparts/.test(id))   return '활동 강도 (0–100)';
+  if(/life-radar|life\.radar/.test(id)) return '시간/일 (디지털)';
+  if(type === 'radar')      return '점수 (0–100)';
+  if(/spend|adspend/.test(id) && !suffix) return 'USD (연간 광고비)';
+  return suffix || '';
 }
 
 
@@ -6896,10 +7165,19 @@ function _ppHBarList(items, opts){
     }).join('') + `</div>`;
 }
 
-function _ppCardOpen(title, subtitle){
+// CEO 2026-06-17 TASK B: 카드 헤더에 단위 표기 추가
+// _ppCardOpen(title, subtitle, unit)
+//   title:    카드 제목
+//   subtitle: 보조 설명 (선택)
+//   unit:     단위 텍스트, 예: '% (비율)', '명 (인구)', '점수 0–100'
+function _ppCardOpen(title, subtitle, unit){
+  const titleMb = (subtitle || unit) ? 2 : 10;
+  const unitHtml = unit
+    ? `<span style="display:inline-block;margin-left:6px;padding:1px 6px;background:#EEF2FF;color:var(--ind2);font-size:9.5px;font-weight:600;border-radius:6px;vertical-align:1px">단위: ${_ppEscape(unit)}</span>`
+    : '';
   return `<div style="border:1px solid var(--bdr);background:#fff;padding:14px 16px">
-    <div style="font-size:12.5px;font-weight:700;color:#111;margin-bottom:${subtitle?2:10}px">${_ppEscape(title)}</div>
-    ${subtitle ? `<div style="font-size:10.5px;color:var(--tm);margin-bottom:10px">${_ppEscape(subtitle)}</div>` : ''}`;
+    <div style="font-size:12.5px;font-weight:700;color:#111;margin-bottom:${titleMb}px">${_ppEscape(title)}${unitHtml}</div>
+    ${subtitle ? `<div style="font-size:10.5px;color:var(--tm);margin-bottom:10px">${_ppEscape(subtitle)}</div>` : (unit ? '<div style="margin-bottom:10px"></div>' : '')}`;
 }
 function _ppCardClose(){ return '</div>'; }
 
@@ -7080,7 +7358,7 @@ function renderPersonaPoolDim(dim, envelope){
       _ppGridOpen('repeat(3, 1fr)') +
         _ppCardOpen('K-패션 관심도 분포') + _ppHistogram(d.kFashionHistogram, 'var(--ind)') + _ppCardClose() +
         _ppCardOpen('일반 패션 관심도 분포') + _ppHistogram(d.fashionHistogram, 'var(--ind2)') + _ppCardClose() +
-        _ppCardOpen('K-컸텐츠 노출 분포') + _ppHistogram(d.kCultureHistogram, 'var(--ind3, #7C3AED)') + _ppCardClose() +
+        _ppCardOpen('K-컸텐츠 노출 분포', null, '점수 0–100') + _ppHistogram(d.kCultureHistogram, 'var(--ind3, #7C3AED)') + _ppCardClose() +
       _ppGridClose() +
       _ppGridOpen('1fr') +
         _ppCardOpen('브랜드 선호도 (평균 점수 · 언급 수)', 'Top 15') + _ppBrandList(brandItems, { topN: 15 }) + _ppCardClose() +
@@ -7837,7 +8115,7 @@ function renderDimInsights(data){
     const labels = d.options;
     const segData = labels.map(l => d.segment[l] || 0);
     const baseData = labels.map(l => d.baseline[l] || 0);
-    state._inCharts[d.dimensionId] = new Chart(ctx, {
+    const _inConfig = {
       type:'bar',
       data:{
         labels,
@@ -7853,7 +8131,10 @@ function renderDimInsights(data){
         plugins:{legend:{display:d.filtered, position:'top', labels:{font:{size:10}}}, tooltip:{callbacks:{label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%`}}},
         scales:{y:{ticks:{callback:v=>v+'%'}, max: d.filtered ? 100 : undefined}}
       }
-    });
+    };
+    if(typeof window.applyChartLabels === 'function') window.applyChartLabels(_inConfig, { unit:'%' });
+    if(typeof window.applyChartUnitLabel === 'function') window.applyChartUnitLabel(`in-c-${d.dimensionId}`, '% (비율)');
+    state._inCharts[d.dimensionId] = new Chart(ctx, _inConfig);
   }
 }
 
@@ -8435,6 +8716,61 @@ function openCampaignCountryPicker(preset, onPick){
 }
 
 // 4-A + 4-E: apply a built-in campaign preset.
+// Map campaign-preset targets (ageBuckets / gender / interests) → builder dimension filters
+function mapCampaignTargetsToFilters(targets){
+  if(!targets || typeof targets !== 'object') return {};
+  const out = {};
+  // age: ageBuckets like "20-24","25-29","30-34" → 빌더의 "20대","30대"
+  if(Array.isArray(targets.ageBuckets) && targets.ageBuckets.length){
+    const decadeSet = new Set();
+    targets.ageBuckets.forEach(b => {
+      const m = String(b).match(/^(\d+)/);
+      if(!m) return;
+      const startAge = parseInt(m[1],10);
+      if(startAge < 20) decadeSet.add('10대');
+      else if(startAge < 30) decadeSet.add('20대');
+      else if(startAge < 40) decadeSet.add('30대');
+      else if(startAge < 50) decadeSet.add('40대');
+      else if(startAge < 60) decadeSet.add('50대');
+      else decadeSet.add('60대 이상');
+    });
+    if(decadeSet.size) out.age = Array.from(decadeSet);
+  }
+  // gender: "all" → 전체 / "female"/"male" → 여성/남성
+  if(targets.gender && targets.gender !== 'all'){
+    const g = String(targets.gender).toLowerCase();
+    if(g === 'female') out.gender = ['여성'];
+    else if(g === 'male') out.gender = ['남성'];
+  }
+  // interests: "fashion"/"kfashion" → "패션·뷰티"
+  if(Array.isArray(targets.interests) && targets.interests.length){
+    const ints = new Set();
+    const map = {
+      'fashion':'패션·뷰티', 'kfashion':'패션·뷰티', 'beauty':'패션·뷰티',
+      'food':'음식·요리', 'cooking':'음식·요리',
+      'travel':'여행',
+      'tech':'테크·가젛', 'gadget':'테크·가젛',
+      'sport':'운동·스포츠', 'sports':'운동·스포츠',
+      'pet':'반려동물',
+      'invest':'재테크·투자', 'finance':'재테크·투자',
+      'entertainment':'엔터테인먼트',
+      'reading':'독서·자기계발',
+      'parenting':'육아·교육',
+      'health':'헬스·웰니스', 'wellness':'헬스·웰니스',
+      'art':'예술·문화', 'culture':'예술·문화',
+      'auto':'자동차', 'car':'자동차',
+      'home':'인테리어·홈',
+      'eco':'환경·지속가능성',
+    };
+    targets.interests.forEach(it => {
+      const v = map[String(it).toLowerCase()];
+      if(v) ints.add(v);
+    });
+    if(ints.size) out.interests = Array.from(ints);
+  }
+  return out;
+}
+
 async function applyCampaignPreset(presetUserEntry){
   const built = presetUserEntry.builtin || null;
   if(!built) return;
@@ -8446,8 +8782,18 @@ async function applyCampaignPreset(presetUserEntry){
     state.activeBriefId = null;
     // Update the existing single-country filter UI.
     if(typeof selectCountry === 'function') selectCountry(code);
-    // Built-ins do not carry classic filters; keep filters empty/all.
+    // STEP 4-A FIX: map campaign targets → builder filters, then fill rest with 전체
+    const mapped = mapCampaignTargetsToFilters(built.targets);
+    const dimMap = {};
+    (state.dimensions || []).forEach(d => { dimMap[d.id] = d; });
     state.filters = {};
+    let applied = 0;
+    for(const k in mapped){
+      const dim = dimMap[k];
+      if(!dim) continue;
+      const valid = mapped[k].filter(v => dim.options.includes(v));
+      if(valid.length){ state.filters[k] = valid; applied++; }
+    }
     if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
     document.getElementById('pset-modal')?.remove();
     if(typeof goWorkspace === 'function') await goWorkspace();
@@ -8455,7 +8801,7 @@ async function applyCampaignPreset(presetUserEntry){
     if(typeof renderBuilder === 'function') renderBuilder();
     if(typeof refreshSegment === 'function') refreshSegment();
     if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
-    if(typeof toast === 'function') toast(`캐페인 적용: ${built.name} (${code})`);
+    if(typeof toast === 'function') toast(`캐페인 적용: ${built.name} (${code}) — ${applied}개 차원 필터 활성`);
   };
   if(built.countries && built.countries.length > 1){
     openCampaignCountryPicker(built, apply);
@@ -8537,13 +8883,77 @@ async function pollPersonaStatus(){
 }
 
 // 4-D: render the AUDIENCE-indigo badge on a tab.
+// CEO 2026-06-17: 2가지 모드만
+//   - persona-pool      → indigo 그라데이션, AI 페르소나 라벨 + 학습 출처
+//   - public-data-only  → slate, "공개 통계 기반" + 페르소나 없음 안내 + CTA 버튼
+//   - generating        → persona-pool 의 진행 상태 (회색조)
 function renderPersonaBadgeHtml(badge){
   if(!badge || !badge.label) return '';
-  return `<div class="persona-pool-badge" style="display:inline-flex;align-items:center;gap:6px;background:#EEF2FF;border:1px solid #6366F1;border-radius:10px;padding:8px 12px;font-size:12px;color:#3730A3;font-weight:600;margin-bottom:12px">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
-    <span>${badge.label}</span>
+  const mode = badge.mode || 'persona-pool';
+  // 이모지 아이콘은 백엔드에서 받음. 누락 시 mode 기반 폴백.
+  const icon = badge.icon || (mode === 'public-data-only' ? '📊' : '🧠');
+
+  // mode 별 스타일
+  let bg, border, headColor, detailColor;
+  if(mode === 'public-data-only'){
+    bg = '#F8FAFC';
+    border = '#4F46E5';            // indigo 보더
+    headColor = '#1F2937';
+    detailColor = '#6B7280';
+  } else if(mode === 'generating'){
+    bg = 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)';
+    border = '#A5B4FC';
+    headColor = '#3730A3';
+    detailColor = '#6366F1';
+  } else {
+    // persona-pool — 보라 그라데이션 #6366F1 → #8B5CF6, 흰 텍스트
+    bg = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
+    border = 'transparent';
+    headColor = '#FFFFFF';
+    detailColor = 'rgba(255,255,255,0.85)';
+  }
+
+  const iconHtml = `<span style="font-size:18px;line-height:1;flex:0 0 22px;padding-top:1px" aria-hidden="true">${icon}</span>`;
+  const headHtml = `<div class="src-badge-head" style="font-size:13px;font-weight:700;color:${headColor};line-height:1.35">${_ppEscape(badge.label)}</div>`;
+
+  // detail: [TODO-CEO] placeholder 는 노출하지 않음 (CEO 결정 전)
+  const rawDetail = badge.detail || '';
+  const hideDetail = !rawDetail || /\[TODO-CEO\]/.test(rawDetail);
+  const detailHtml = hideDetail
+    ? ''
+    : `<div class="src-badge-detail" style="font-size:11.5px;font-weight:500;color:${detailColor};line-height:1.4;margin-top:3px">↳ ${_ppEscape(rawDetail)}</div>`;
+
+  let ctaHtml = '';
+  if(badge.cta && badge.cta.text){
+    const act = String(badge.cta.action || '').replace(/'/g, "\\'");
+    ctaHtml = `<button class="src-badge-cta" onclick="window.handlePersonaBadgeCta && window.handlePersonaBadgeCta('${act}')" style="margin-left:auto;align-self:center;background:#4F46E5;color:#fff;border:none;padding:8px 14px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-radius:6px;flex:0 0 auto;white-space:nowrap;transition:background 0.15s" onmouseover="this.style.background='#4338CA'" onmouseout="this.style.background='#4F46E5'">
+      ${_ppEscape(badge.cta.text)}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>`;
+  }
+
+  return `<div class="src-badge src-badge--${mode} persona-pool-badge" data-mode="${mode}" data-tab="${badge.tab||''}" style="display:flex;align-items:flex-start;gap:10px;background:${bg};border:1px solid ${border};border-radius:10px;padding:11px 14px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+    ${iconHtml}
+    <div style="flex:1;min-width:0">${headHtml}${detailHtml}</div>
+    ${ctaHtml}
   </div>`;
 }
+
+// Persona badge CTA handler — 캐페인 빌더 열기
+window.handlePersonaBadgeCta = function(action){
+  if(action === 'openCampaignBuilder'){
+    // 우선순위대로 존재하는 핸들러 시도
+    try{
+      if(typeof openCampaignBuilder === 'function'){ openCampaignBuilder(); return; }
+      if(typeof openPersonaBuilder === 'function'){ openPersonaBuilder(); return; }
+      if(typeof window.openBriefBuilder === 'function'){ window.openBriefBuilder(); return; }
+      // 폴백: 캐페인/브리프/페르소나 탭으로 이동
+      const tabBtn = document.querySelector('[data-tab="persona"], [data-tab="brief"], [data-tab="campaign"], [data-tab="builder"]');
+      if(tabBtn){ tabBtn.click(); return; }
+      if(typeof toast === 'function'){ toast('캐페인 빌더를 열 수 없습니다. 상단 메뉴에서 캐페인 탭을 열어주세요.'); }
+    }catch(e){ console.warn('CTA handler failed', e); }
+  }
+};
 
 // ============ 사용자 프리셋 저장 ============
 function loadUserPresets(){
@@ -8734,12 +9144,12 @@ function renderCompareView(data){
   // Chart.js 렌더링
   const labels = data.chart.labels;
   const COLORS = ['#4F46E5','#10B981','#F59E0B','#EF4444'];
-  function bar(id, series, suffix=''){
+  function bar(id, series, suffix='', unitLabel=''){
     const ctx = document.getElementById(id)?.getContext('2d');
     if(!ctx) return;
     if(state._cmpCharts && state._cmpCharts[id]) state._cmpCharts[id].destroy();
     state._cmpCharts = state._cmpCharts || {};
-    state._cmpCharts[id] = new Chart(ctx, {
+    const _cfg = {
       type:'bar',
       data:{labels, datasets:[{label: series.label, data: series.data, backgroundColor: labels.map((_,i)=>COLORS[i%4]), borderRadius:4}]},
       options:{
@@ -8747,12 +9157,20 @@ function renderCompareView(data){
         plugins:{legend:{display:false}, title:{display:true, text:series.label, font:{size:12, weight:'600'}}},
         scales:{y:{ticks:{callback:v=>fmtNum(v)+suffix}}}
       }
-    });
+    };
+    if(typeof window.applyChartLabels === 'function'){
+      window.applyChartLabels(_cfg, {
+        unit: suffix,
+        formatter: function(v){ return (typeof v === 'number' ? fmtNum(v) : v) + suffix; },
+      });
+    }
+    if(unitLabel && typeof window.applyChartUnitLabel === 'function') window.applyChartUnitLabel(id, unitLabel);
+    state._cmpCharts[id] = new Chart(ctx, _cfg);
   }
-  bar('cmp-c-pop', data.chart.series.population);
-  bar('cmp-c-gdp', data.chart.series.gdpPerCapita);
-  bar('cmp-c-net', data.chart.series.internetUsers, '%');
-  bar('cmp-c-seg', data.chart.series.segmentSize);
+  bar('cmp-c-pop', data.chart.series.population, '', '명 (인구)');
+  bar('cmp-c-gdp', data.chart.series.gdpPerCapita, '', 'USD (1인당 GDP)');
+  bar('cmp-c-net', data.chart.series.internetUsers, '%', '% (인터넷 보급률)');
+  bar('cmp-c-seg', data.chart.series.segmentSize, '', '명 (세그먼트 규모)');
 }
 
 function renderPartialBanner(){

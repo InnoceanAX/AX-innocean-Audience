@@ -1,60 +1,57 @@
-// media-supplementary.js — 매체 도달 신뢰성 보조 어댑터
-// 1) 공개 출처 메타데이터 추가 (DataReportal Digital Yearbook, ITU)
-// 2) 향후 Statista/사내 InnoceanData/Talkwalker 라이선스 들어오면 어댑터로 추가
+// media-supplementary.js — 매체 도달·신뢰도 보조 어댑터 (CEO 2026-06-17 정비)
+//
+// 노출 허용된 공개 출처만 SOURCE_META 로 export.
+// 적용 예정/미연결 출처는 별도 파일/응답에서 제거하고, 코드 주석으로만 남김.
+//
+// 단일 출처 정의: lib/data-sources.js → PUBLIC_DATA_SOURCES
+//
+// 내부 전용 (응답·모달·sources 객체에 노출 금지):
+//   GroupM / MAGNA / Dentsu / KOBACO 광고비 보고서 — backend 내부 추정치로만 사용.
+//
+// TODO (future, not exposed):
+//   - INNOCEAN 사내 미디어 도달률 DB (사내 데이터팀 협의)
+//   - Talkwalker Consumer Intelligence (라이선스 확인)
+//   - Hootsuite / Meltwater 상세 라이선스 (We Are Social 별도)
 
-// DataReportal Digital 2024 보고서 + ITU 데이터를 베이스라인으로 사용
-// (수동 큐레이션된 신뢰도 보정 계수)
+import { PUBLIC_DATA_SOURCES, listActiveSources } from "../lib/data-sources.js";
+
+function _src(id) { return PUBLIC_DATA_SOURCES.find(s => s.id === id) || null; }
+
+// 라우트에서 노출하는 메타 — 적용 중인 4 공개 데이터 + 1 광고비.
+// 모두 integrated: true. confidence 는 PUBLIC_DATA_SOURCES 의 confidence 그대로.
+function _expose(id) {
+  const s = _src(id);
+  if (!s) return null;
+  return {
+    id: s.id,
+    name: s.name,
+    url: s.url,
+    coverage: s.coverage,
+    license: s.license,
+    confidence: s.confidence,
+    year: s.year,
+    integrated: true,
+  };
+}
+
+// CEO 2026-06-17 19:00: 공개 출처 4개만 노출. 광고비(adSpend)는 제거.
 export const SOURCE_META = {
-  worldBank: {
-    name: "World Bank Open Data",
-    url: "https://data.worldbank.org",
-    coverage: "글로벌 인구·GDP·인터넷·도시화",
-    license: "공개",
-    confidence: 95,
-  },
-  dataReportal: {
-    name: "DataReportal Digital Yearbook 2024",
-    url: "https://datareportal.com/reports/digital-2024",
-    coverage: "글로벌 매체별 사용률·시간",
-    license: "공개 요약 (상세는 라이선스)",
-    confidence: 85,
-    integrated: false,
-    todo: "Hootsuite/We Are Social 라이선스",
-  },
-  statista: {
-    name: "Statista Media Outlook",
-    url: "https://statista.com",
-    coverage: "매체별 광고비·CPM",
-    license: "유료 라이선스 필요",
-    confidence: 92,
-    integrated: false,
-    todo: "라이선스 협의 중",
-  },
-  innoceanInternal: {
-    name: "INNOCEAN 사내 미디어 도달률 DB",
-    url: null,
-    coverage: "한국·미주·EMEA 매체 도달률",
-    license: "사내",
-    confidence: 98,
-    integrated: false,
-    todo: "사내 데이터팀 협의 필요",
-  },
-  talkwalker: {
-    name: "Talkwalker Consumer Intelligence",
-    url: "https://talkwalker.com",
-    coverage: "AE/중동·남미·러시아 소셜",
-    license: "사내 라이선스 확인 필요",
-    confidence: 88,
-    integrated: false,
-    todo: "라이선스 확인",
-  },
+  worldBank:    _expose("worldBank"),
+  statista:     _expose("statista"),
+  dataReportal: _expose("dataReportal"),
+  reuters:      _expose("reuters"),
 };
 
-// 매체별 데이터 출처 추적 (현재는 worldBank만, 향후 statista/innoceanInternal 매핑)
-export function getDataSourceForMedia(mediaId) {
+// 활성(노출 허용) 출처만 배열 반환
+export function getActiveSources() {
+  return listActiveSources();
+}
+
+// 매체별 데이터 출처 추적 — 현재 활성 4개로 정리.
+export function getDataSourceForMedia(_mediaId) {
   return {
     primary: "worldBank",
-    secondary: ["dataReportal"],
-    note: "현재 World Bank 지표 + 베이스라인 모델. 실 패널 데이터 들어오면 교체.",
+    secondary: ["dataReportal", "statista", "reuters"],
+    note: "World Bank 지표 + DataReportal/Statista/Reuters 베이스라인 기반.",
   };
 }

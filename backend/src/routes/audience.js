@@ -62,7 +62,7 @@ async function maybePersonaPoolPayload(req, tab, code) {
       count: have,
       dimension: tab,
       data: null,
-      badge: buildGeneratingBadge(cc, sizePerCountry),
+      badge: buildGeneratingBadge(cc, sizePerCountry, { tab, briefId, progress: have }),
     };
   }
 
@@ -75,7 +75,7 @@ async function maybePersonaPoolPayload(req, tab, code) {
     count: personas.length,
     dimension: tab,
     data,
-    badge: buildPersonaPoolBadge([{ code: cc, count: personas.length }]),
+    badge: buildPersonaPoolBadge([{ code: cc, count: personas.length }], { tab, briefId }),
   };
 }
 
@@ -99,7 +99,7 @@ audienceRouter.get("/who", async (req, res) => {
 
   res.json({
     ok: true,
-    badge: buildPublicDataBadge(code),
+    badge: buildPublicDataBadge(code, { tab: "who" }),
     country: meta,
     dimension: "who",
     data: demo ? {
@@ -115,8 +115,8 @@ audienceRouter.get("/who", async (req, res) => {
       socialMediaUsers: lifestyle.socialMediaUsers,
     } : null,
     source: {
-      primary: "UN Population Division 2024",
-      enrichment: "DataReportal Global Digital Reports 2024",
+      primary: "World Bank Open Data",
+      enrichment: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: demo ? "complete" : "missing",
@@ -141,7 +141,7 @@ audienceRouter.get("/life", async (req, res) => {
 
   res.json({
     ok: true,
-    badge: buildPublicDataBadge(code),
+    badge: buildPublicDataBadge(code, { tab: "life" }),
     country: meta,
     dimension: "life",
     data: life ? {
@@ -161,8 +161,7 @@ audienceRouter.get("/life", async (req, res) => {
       diningOutPerWeek: life.diningOut,
     } : null,
     source: {
-      primary: "DataReportal Global Digital Reports 2024",
-      secondary: "We Are Social Reports",
+      primary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: life ? "complete" : "missing",
@@ -187,7 +186,7 @@ audienceRouter.get("/mind", async (req, res) => {
 
   res.json({
     ok: true,
-    badge: buildPublicDataBadge(code),
+    badge: buildPublicDataBadge(code, { tab: "mind" }),
     country: meta,
     dimension: "mind",
     data: mind ? {
@@ -213,8 +212,7 @@ audienceRouter.get("/mind", async (req, res) => {
       },
     } : null,
     source: {
-      primary: "World Values Survey Wave 7 (2017-2022)",
-      secondary: "Edelman Trust Barometer 2024 + Hofstede Insights",
+      primary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: mind ? "complete" : "missing",
@@ -246,15 +244,14 @@ audienceRouter.get("/love", async (req, res) => {
 
   res.json({
     ok: true,
-    badge: buildPublicDataBadge(code),
+    badge: buildPublicDataBadge(code, { tab: "love" }),
     country: meta,
     dimension: "love",
     data: love,
     rankedInterests: ranked.slice(0, 12),
     top3: ranked.slice(0, 3).map(r => r.id),
     source: {
-      primary: "Google Trends 12-month aggregates + DataReportal",
-      secondary: "WGSN Public Insights",
+      primary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: love ? "complete" : "missing",
@@ -279,7 +276,7 @@ audienceRouter.get("/buy", async (req, res) => {
 
   res.json({
     ok: true,
-    badge: buildPublicDataBadge(code),
+    badge: buildPublicDataBadge(code, { tab: "buy" }),
     country: meta,
     dimension: "buy",
     data: buy ? {
@@ -299,8 +296,8 @@ audienceRouter.get("/buy", async (req, res) => {
       },
     } : null,
     source: {
-      primary: "DataReportal Global Digital Shopping Report 2024",
-      secondary: "eMarketer Public Reports + Statista Free Insights",
+      primary: "Statista 공개 통계 (AMO 9세그먼트 분류 체계 + 시장 개요)",
+      secondary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: buy ? "complete" : "missing",
@@ -355,7 +352,7 @@ audienceRouter.get("/sources", async (req, res) => {
     ok: true,
     sources: listAudienceSources(),
     coverage: "28 priority countries (확장 가능)",
-    methodology: "공개 보고서 기반 (UN/WB/DataReportal/WVS/Edelman/Hofstede/eMarketer/Statista Free)",
+    methodology: "공개 보고서 기반 (World Bank Open Data + Statista 공개 통계 + DataReportal Digital 2025 + Reuters Digital News Report)",
   });
 });
 
@@ -391,7 +388,7 @@ audienceRouter.get("/compare", async (req, res) => {
           briefId,
           countries: perCountry,
           dimensions: ["who", "life", "mind", "love", "buy", "media"],
-          badge: buildPersonaPoolBadge(byCountryBadge),
+          badge: buildPersonaPoolBadge(byCountryBadge, { briefId }),
         });
       }
     }
@@ -455,7 +452,7 @@ audienceRouter.get("/compare-all", async (req, res) => {
           briefId,
           coverage: byCountry.length,
           byCountry,
-          badge: buildPersonaPoolBadge(badgeCountries),
+          badge: buildPersonaPoolBadge(badgeCountries, { briefId }),
         });
       }
     }
@@ -529,11 +526,11 @@ audienceRouter.get("/compare-all", async (req, res) => {
     coverage: supported.length,
     who, life, mind, love, buy,
     sources: {
-      who: "UN Population Division 2024",
-      life: "DataReportal Global Digital Reports 2024",
-      mind: "World Values Survey + Edelman Trust + Hofstede",
-      love: "Google Trends + DataReportal 2024",
-      buy: "DataReportal + eMarketer + Statista",
+      who:  "World Bank Open Data",
+      life: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      mind: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      love: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      buy:  "Statista 공개 통계 (AMO 9세그먼트 분류 체계 + 시장 개요)",
     },
   });
 });
@@ -582,7 +579,7 @@ audienceRouter.post("/synthesize", async (req, res) => {
 입력으로 받은 국가 + 세그먼트 필터에 대해 5차원(Who/Life/Mind/Love/Buy) 통계를 추정합니다.
 각 수치는 0~100 범위의 비중(%)이며 카테고리별로 합이 100에 가깝게 만드세요.
 실제 학술/업계 추정에 가까운 합리적 수치를 제시합니다.
-출처는 'AI 합성 추정 (GWI/Statista/DataReportal 일반 트렌드 기반)'으로 표기합니다.
+출처는 'AI 합성 추정 (Statista + DataReportal 일반 트렌드 기반)'으로 표기합니다.
 
 [언어 규칙 - 절대 준수]
 모든 설명·요약·키워드는 **반드시 한국어**로 작성합니다.
@@ -1001,8 +998,8 @@ audienceRouter.post("/synthesize", async (req, res) => {
     source: {
       type: synthesized ? "AI 합성 추정" : "공개 데이터 베이스라인",
       attribution: synthesized
-        ? "AI 합성 (GWI/Statista/DataReportal 일반 트렌드 기반 추정)"
-        : "UN Population Division + DataReportal 2024",
+        ? "AI 합성 (Statista + DataReportal 일반 트렌드 기반 추정)"
+        : "World Bank Open Data + DataReportal Digital 2025 (공개)",
       caveat: synthesized
         ? "실측 데이터가 아닌 AI 추정치이며, 의사결정용으로 사용 시 별도 검증이 필요합니다."
         : null,

@@ -1,11 +1,23 @@
 // adapters/audience-public.js
-// 타겟 인사이트 공개 데이터 어댑터
-// Sources: DataReportal, WVS, Edelman Trust Barometer, PEW Research, eMarketer 공개 보고서
-// 데이터는 2024 기준, 출처 명시, 라이선스 없음
+// 타겟 인사이트 공개 데이터 어댑터 (CEO 2026-06-17 정비)
+// Sources — 노출 혈용 출처만:
+//   - World Bank Open Data (공개)
+//   - Statista 공개 통계 (AMO 9세그먼트 + 시장 개요)
+//   - DataReportal Digital 2025 (We Are Social × Meltwater, 공개)
+//   - Reuters Digital News Report (공개)
+// 데이터는 2025 기준.
+//
+// TODO (future, not exposed):
+//   - Hofstede / WVS / Edelman / PEW 실 API
+//   - INNOCEAN 사내 DB, Hootsuite/Meltwater 상세 라이선스, Talkwalker
+//
+// ⚠️ 코드 내 수치는 공개 자료 통장 값을 부분적으로 참조한
+//    큐레이션 베이스라인. 하단 출처 메타(AUDIENCE_SOURCES)는
+//    lib/data-sources.js 의 PUBLIC_DATA_SOURCES 를 사용.
 
 // ============================================================
-// 1. DEMOGRAPHICS (인구통계) - 보강 (World Bank는 별도)
-//    UN Population Division, OECD, ILO 공개 통계
+// 1. DEMOGRAPHICS (인구통계)
+//    World Bank Open Data 기반 (인구·연령·의존률·도시화)
 // ============================================================
 export const DEMOGRAPHICS = {
   // 연령 분포 (대략 % - UN 2024 Median Population)
@@ -41,7 +53,8 @@ export const DEMOGRAPHICS = {
 };
 
 // ============================================================
-// 2. LIFESTYLE (라이프스타일) - DataReportal Digital 2024
+// 2. LIFESTYLE (라이프스타일) - DataReportal Digital 2025
+//    (We Are Social × Meltwater, 공개) 기반 베이스라인
 //    인터넷 사용 시간, 소셜 미디어 사용, 디바이스 등
 // ============================================================
 export const LIFESTYLE = {
@@ -107,7 +120,9 @@ export const LIFESTYLE = {
 };
 
 // ============================================================
-// 3. MINDSET (가치관·태도) - World Values Survey, Edelman Trust, PEW
+// 3. MINDSET (가치관·태도)
+//    공개 통계 참조 큐레이션된 베이스라인.
+//    실 API 미연결 (Hofstede/WVS/Edelman/PEW) — 출처로 노출하지 않음.
 // ============================================================
 export const MINDSET = {
   KR: {
@@ -148,7 +163,9 @@ export const MINDSET = {
 };
 
 // ============================================================
-// 4. INTERESTS (관심사) - DataReportal + Google Trends 카테고리 빈도 가중
+// 4. INTERESTS (관심사)
+//    DataReportal Digital 2025 (공개) 카테고리 빈도 가중 베이스라인.
+//    Google Trends 실 API 미연결 — 출처로 노출하지 않음.
 // ============================================================
 export const INTERESTS = {
   KR: { music: 65, sports: 58, gaming: 72, beauty: 78, fashion: 75, fitness: 42, cooking: 68, travel: 72, photography: 65, technology: 80, finance: 70, parenting: 45, automotive: 55, pets: 48, sustainability: 58, kpop: 88, drama: 85, food: 90 },
@@ -183,7 +200,9 @@ export const INTERESTS = {
 };
 
 // ============================================================
-// 5. PURCHASE BEHAVIOR (구매 행동) - DataReportal + eMarketer 공개
+// 5. PURCHASE BEHAVIOR (구매 행동)
+//    DataReportal Digital 2025 + Statista 공개 통계 (AMO + 시장 개요) 기반.
+//    eMarketer Premium 미연결 — 출처로 노출하지 않음.
 // ============================================================
 export const PURCHASE_BEHAVIOR = {
   KR: {
@@ -226,12 +245,25 @@ export const PURCHASE_BEHAVIOR = {
 // ============================================================
 // SOURCES (메타 정보)
 // ============================================================
+// CEO 2026-06-17: 출처는 lib/data-sources.js 의 PUBLIC_DATA_SOURCES 를 단일 기준으로 사용.
+//   하위 메타는 각 차원별 노출 라벨 (4개 공개 데이터 + 1개 광고비 소스에서 골라 매핑).
+import { PUBLIC_DATA_SOURCES } from "../lib/data-sources.js";
+
+function _src(id) { return PUBLIC_DATA_SOURCES.find(s => s.id === id) || null; }
+function _meta(id, cadence, coverage) {
+  const s = _src(id);
+  return s ? {
+    name: s.name, url: s.url, license: s.license,
+    cadence, coverage, year: s.year,
+  } : null;
+}
+
 export const AUDIENCE_SOURCES = {
-  demographics: { name: "UN Population Division / OECD / World Bank", url: "https://population.un.org/wpp/", license: "public", cadence: "annual", coverage: "200+ countries", year: 2024 },
-  lifestyle: { name: "DataReportal Global Digital Reports", url: "https://datareportal.com/global-digital-overview", license: "public (CC BY)", cadence: "annual", coverage: "47+ countries", year: 2024 },
-  mindset: { name: "World Values Survey + Edelman Trust Barometer + Hofstede Insights", url: "https://www.worldvaluessurvey.org/", license: "public", cadence: "5-year (WVS) + annual (Edelman)", coverage: "60+ countries", year: 2024 },
-  interests: { name: "Google Trends + DataReportal + WGSN Public Insights", url: "https://trends.google.com/", license: "public", cadence: "real-time + annual", coverage: "200+ countries", year: 2024 },
-  purchase: { name: "DataReportal + eMarketer Public Reports + Statista Free Insights", url: "https://www.emarketer.com/", license: "public reports", cadence: "annual", coverage: "47+ countries", year: 2024 },
+  demographics: _meta("worldBank", "annual", "200+ countries"),
+  lifestyle:    _meta("dataReportal", "annual", "47+ countries"),
+  mindset:      _meta("dataReportal", "annual", "47+ countries"),
+  interests:    _meta("dataReportal", "annual", "47+ countries"),
+  purchase:     _meta("statista", "annual", "AMO 9 segments"),
 };
 
 // ============================================================
