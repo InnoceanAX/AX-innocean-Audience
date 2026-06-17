@@ -125,7 +125,7 @@ export function buildTabSource(tab) {
   };
 }
 
-// 활성(노출 허용) 출처만 — 4개
+// 활성(노출 허용) 출처만 — 5개 (worldBank/statista/dataReportal/reuters/adspend)
 export function listActiveSources() {
   return PUBLIC_DATA_SOURCES;
 }

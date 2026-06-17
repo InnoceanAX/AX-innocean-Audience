@@ -34,12 +34,17 @@ function _expose(id) {
   };
 }
 
-// CEO 2026-06-17 19:00: 공개 출처 4개만 노출. 광고비(adSpend)는 제거.
+// CEO 2026-06-17 19:00: 공개 출처 4개 노출.
+// CEO 2026-06-17 19:18 (광고비 3년 모델 옵션 C 확정) + 21:35 (SoT 통일 F-4):
+//   광고비(adspend)도 PUBLIC_DATA_SOURCES 단일 출처에 포함 (WPP Media / MAGNA / Dentsu /
+//   IAB+PwC / KOBACO 공개 보고서). SOURCE_META 에도 adspend 추가 → /api/media/sources
+//   응답이 /api/media/landscape sources.active 와 일관되도록 5개로 정렬.
 export const SOURCE_META = {
   worldBank:    _expose("worldBank"),
   statista:     _expose("statista"),
   dataReportal: _expose("dataReportal"),
   reuters:      _expose("reuters"),
+  adspend:      _expose("adspend"),
 };
 
 // 활성(노출 허용) 출처만 배열 반환
@@ -47,11 +52,11 @@ export function getActiveSources() {
   return listActiveSources();
 }
 
-// 매체별 데이터 출처 추적 — 현재 활성 4개로 정리.
+// 매체별 데이터 출처 추적 — 활성 5개 (worldBank/statista/dataReportal/reuters/adspend).
 export function getDataSourceForMedia(_mediaId) {
   return {
     primary: "worldBank",
-    secondary: ["dataReportal", "statista", "reuters"],
-    note: "World Bank 지표 + DataReportal/Statista/Reuters 베이스라인 기반.",
+    secondary: ["dataReportal", "statista", "reuters", "adspend"],
+    note: "World Bank 지표 + DataReportal/Statista/Reuters 베이스라인 + 공개 광고비 보고서 기반.",
   };
 }

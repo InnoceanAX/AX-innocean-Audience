@@ -184,7 +184,11 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
 
     // Beta-shaped interests (skewed high since campaign filter = fashion interested)
     // alpha > beta → mass near 1; we then scale to 0..100
-    const fashionInterest    = Math.round(randBeta(rng, 5, 2) * 100);
+    // F-2 fix (CEO 2026-06-17 21:35): apply country fashionMean scaling so the
+    // public-statistics seed actually differentiates countries instead of
+    // collapsing to a constant ~71.4 for every country.
+    const fashionInterest    = Math.round(clamp(0, 100,
+        randBeta(rng, 5, 2) * 100 * (demo.fashionMean / 70)));
     const kCultureExposure   = Math.round(clamp(0, 100,
         randBeta(rng, 4, 2) * 100 * (demo.kCultureMean / 80)));
     const kFashionInterest   = Math.round(clamp(0, 100,

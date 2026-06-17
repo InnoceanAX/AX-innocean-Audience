@@ -115,8 +115,10 @@ window.applyChartUnitLabel = function(canvasId, unitText){
   }catch(e){}
 };
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- CEO 2026-06-17 21:32 결정: PDF 다운로드 기능 유지 + 외부 CDN 의존 제거.
+     html2canvas@1.4.1 (MIT) / jspdf@2.5.1 (MIT) 자체 호스팅 (frontend/vendor/). -->
+<script src="vendor/html2canvas.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
 <style>
 :root{
   --ind:#4F46E5;
@@ -3844,11 +3846,10 @@ async function renderMediaTab(data){
       <div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div>
       <div class="ov-insight-x">${i.text}</div>
     </div>`).join('');
-  // 데이터 소스 메타
-  if(data.sources){
+  // 데이터 소스 메타 — 활성 출처만 노출 (CEO 정책: 적용 예정 출처 노출 금지, 2026-06-17 21:35 F-3 픽스)
+  if(data.sources && Array.isArray(data.sources.active)){
     const active = data.sources.active.map(s => `<span class="md-src md-src-on">${s.name} · 신뢰 ${s.confidence}</span>`).join('');
-    const planned = data.sources.planned.map(s => `<span class="md-src md-src-todo" title="${s.todo||''}">${s.name}</span>`).join('');
-    insightHtml += `<div class="md-sources"><div class="md-src-h">데이터 소스</div><div class="md-src-row"><span class="md-src-l">활성:</span>${active}</div><div class="md-src-row"><span class="md-src-l">예정:</span>${planned}</div></div>`;
+    insightHtml += `<div class="md-sources"><div class="md-src-h">데이터 소스</div><div class="md-src-row"><span class="md-src-l">활성:</span>${active}</div></div>`;
   }
   document.getElementById('md-insights').innerHTML = insightHtml;
 
