@@ -454,6 +454,15 @@ export const ADSPEND_CONFIDENCE = {
   2026: { score: 75, label: "Forecast (전망)", color: "#F59E0B" },
 };
 
+// S-1 fix (Chaeyeon 2026-06-17 22:10 → CTO 22:12):
+//   33국 (BD/EC/GH 등)은 공개 광고비 데이터 없이 GDP 기반 추정. 기존 ADSPEND_CONFIDENCE 적용 시 광고주에 "Actuals (실측)" 로 잘못 노출.
+//   이 경우 estimate 전용 confidence 테이블 적용: 점수 50, 라벨 "Estimate (추정)", 색 주황.
+export const ADSPEND_CONFIDENCE_ESTIMATE = {
+  2024: { score: 50, label: "Estimate (추정)", color: "#F59E0B" },
+  2025: { score: 50, label: "Estimate (추정)", color: "#F59E0B" },
+  2026: { score: 40, label: "Estimate forecast (추정 전망)", color: "#F59E0B" },
+};
+
 // ─────────────────────────────────────────────────────────────
 // YoY 계산 헬퍼
 // ─────────────────────────────────────────────────────────────

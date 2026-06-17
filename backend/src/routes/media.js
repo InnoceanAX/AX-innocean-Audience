@@ -11,6 +11,7 @@ import {
   CHANNEL_SPEND_SHARE_2024, CHANNEL_SPEND_SHARE_2025, CHANNEL_SPEND_SHARE_2026,
   COUNTRY_ADSPEND_2024, COUNTRY_ADSPEND_2025, COUNTRY_ADSPEND_2026,
   ADSPEND_CONFIDENCE,
+  ADSPEND_CONFIDENCE_ESTIMATE,
   calculateYoY,
   listAdspendSources,
 } from "../adapters/adspend-public.js";
@@ -224,7 +225,11 @@ function buildYearSpendPayload({ year, items, ind, code }) {
     method: adSpend.method,
     isActuals: !!adSpend.isActuals,
     isForecast: !!adSpend.isForecast,
-    confidence: ADSPEND_CONFIDENCE[year] || null,
+    // S-1 fix (Chaeyeon 2026-06-17 22:10 → CTO 22:12):
+    //   gdp-estimate 국가는 추정이므로 Estimate confidence 적용 (50% / 주황).
+    confidence: (adSpend.method === "gdp-estimate"
+      ? ADSPEND_CONFIDENCE_ESTIMATE[year]
+      : ADSPEND_CONFIDENCE[year]) || null,
     channels: channelSummary,
     methodology: adSpend.method === "public-report"
       ? `공개 보고서 (${adSpend.source}) + WPP/MAGNA 채널 점유율${code === "KR" ? " + KOBACO/제일기획 매체별" : ""}`
