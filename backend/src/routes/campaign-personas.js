@@ -1,0 +1,304 @@
+// campaign-personas.js
+// REST routes for AI synthetic persona generation (100 per country, 6 countries).
+// Endpoints:
+//   GET  /api/personas/presets
+//   POST /api/personas/brief
+//   POST /api/personas/generate
+//   GET  /api/personas/status
+//   GET  /api/personas/list
+//   GET  /api/personas/insights
+//   GET  /api/personas/insights/all
+//   POST /api/personas/cancel       (operational convenience)
+//   GET  /api/personas/briefs       (list all briefs)
+
+import { Router } from "express";
+import { COUNTRIES } from "../data/countries.js";
+import { CAMPAIGN_PRESETS } from "../data/campaign-presets.js";
+import { buildCohort, SUPPORTED_COUNTRIES } from "../lib/cohort-builder.js";
+import { synthesizeNarratives } from "../lib/persona-narrative.js";
+import { aggregateAll, buildInsightPayload } from "../lib/persona-aggregator.js";
+import {
+  saveBrief, getBrief, listBriefs,
+  appendPersonas, setPersonas, getPersonas, countPersonas,
+  setInsights, getInsights,
+  setGenerationState, getGenerationState, markCancelled,
+} from "../lib/persona-store.js";
+import { logCampaignCompletion } from "../adapters/bigquery-audience.js";
+
+export const campaignPersonasRouter = Router();
+
+function newId(prefix = "brief") {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function resolveCountryName(code) {
+  const meta = COUNTRIES.find(c => c.code === code);
+  return meta ? meta.nameEn : code;
+}
+
+// GET /api/personas/presets
+campaignPersonasRouter.get("/presets", (_req, res) => {
+  res.json({ ok: true, presets: CAMPAIGN_PRESETS });
+});
+
+// GET /api/personas/briefs
+campaignPersonasRouter.get("/briefs", (_req, res) => {
+  res.json({ ok: true, briefs: listBriefs() });
+});
+
+// POST /api/personas/brief
+// body: { brand, name, countries[], targets[], filters, regions? }
+campaignPersonasRouter.post("/brief", (req, res) => {
+  const {
+    brand = "Musinsa",
+    name = "Untitled brief",
+    countries = [],
+    targets = null,
+    filters = null,
+    regions = null,
+    sizePerCountry = 100,
+    presetId = null,
+  } = req.body || {};
+
+  if (!Array.isArray(countries) || countries.length === 0) {
+    return res.status(400).json({ ok: false, error: "countries[] required" });
+  }
+  const normalized = countries.map(c => String(c).toUpperCase());
+  const unsupported = normalized.filter(c => !SUPPORTED_COUNTRIES.includes(c));
+  if (unsupported.length) {
+    console.warn(`[campaign-personas] brief uses unsupported countries: ${unsupported.join(",")} — will use default demo`);
+  }
+
+  const briefId = newId("brief");
+  const brief = {
+    id: briefId,
+    presetId,
+    brand,
+    name,
+    countries: normalized,
+    targets,
+    filters,
+    regions: regions || {},
+    sizePerCountry: parseInt(sizePerCountry, 10) || 100,
+    createdAt: new Date().toISOString(),
+  };
+  saveBrief(brief);
+
+  const cohorts = normalized.map(country => ({
+    country,
+    target100: brief.sizePerCountry,
+    regions: (regions && regions[country]) || null,
+  }));
+  res.json({ ok: true, brief_id: briefId, brief, cohorts });
+});
+
+// POST /api/personas/generate  → starts async generation, returns immediately
+campaignPersonasRouter.post("/generate", async (req, res) => {
+  const { brief_id } = req.body || {};
+  if (!brief_id) return res.status(400).json({ ok: false, error: "brief_id required" });
+  const brief = getBrief(brief_id);
+  if (!brief) return res.status(404).json({ ok: false, error: "brief not found" });
+
+  const existing = getGenerationState(brief_id);
+  if (existing?.status === "running") {
+    return res.json({ ok: true, status: "running", brief_id, message: "already running" });
+  }
+
+  // Initialize state
+  const total = brief.countries.length * brief.sizePerCountry;
+  setGenerationState(brief_id, {
+    status: "running",
+    total,
+    done: 0,
+    byCountry: Object.fromEntries(brief.countries.map(c => [c, 0])),
+    cancelled: false,
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    error: null,
+  });
+  // Reset stored personas/insights for re-run
+  setPersonas(brief_id, []);
+  setInsights(brief_id, null);
+
+  // Kick off async work (fire-and-forget). We do not await.
+  runGeneration(brief).catch(e => {
+    console.error("[campaign-personas] generation crashed:", e);
+    setGenerationState(brief_id, {
+      status: "failed",
+      finishedAt: new Date().toISOString(),
+      error: e.message,
+    });
+  });
+
+  res.json({ ok: true, status: "running", brief_id });
+});
+
+// GET /api/personas/status?brief_id=...
+campaignPersonasRouter.get("/status", (req, res) => {
+  const { brief_id } = req.query;
+  if (!brief_id) return res.status(400).json({ ok: false, error: "brief_id required" });
+  const state = getGenerationState(brief_id);
+  if (!state) return res.status(404).json({ ok: false, error: "no generation state for brief_id" });
+  const brief = getBrief(brief_id);
+  res.json({
+    ok: true,
+    brief_id,
+    status: state.status,
+    progress: {
+      total: state.total,
+      done: state.done,
+      byCountry: state.byCountry,
+      pct: state.total ? Math.round((state.done / state.total) * 100) : 0,
+    },
+    cancelled: !!state.cancelled,
+    startedAt: state.startedAt,
+    finishedAt: state.finishedAt,
+    error: state.error,
+    brief: brief ? { id: brief.id, brand: brief.brand, name: brief.name, countries: brief.countries } : null,
+  });
+});
+
+// POST /api/personas/cancel
+campaignPersonasRouter.post("/cancel", (req, res) => {
+  const { brief_id } = req.body || {};
+  if (!brief_id) return res.status(400).json({ ok: false, error: "brief_id required" });
+  const ok = markCancelled(brief_id);
+  res.json({ ok, brief_id });
+});
+
+// GET /api/personas/list?brief_id=...&country=...&limit=100
+campaignPersonasRouter.get("/list", (req, res) => {
+  const { brief_id, country, limit } = req.query;
+  if (!brief_id) return res.status(400).json({ ok: false, error: "brief_id required" });
+  const personas = getPersonas(brief_id, {
+    country: country ? String(country).toUpperCase() : null,
+    limit: limit ? parseInt(limit, 10) : null,
+  });
+  res.json({ ok: true, brief_id, count: personas.length, personas });
+});
+
+// GET /api/personas/insights?brief_id=...&country=...&tab=who|life|mind|love|buy|media
+campaignPersonasRouter.get("/insights", (req, res) => {
+  const { brief_id, country, tab } = req.query;
+  if (!brief_id) return res.status(400).json({ ok: false, error: "brief_id required" });
+  const tabId = String(tab || "").toLowerCase();
+  const validTabs = ["who", "life", "mind", "love", "buy", "media"];
+  if (!validTabs.includes(tabId)) {
+    return res.status(400).json({ ok: false, error: `tab must be one of ${validTabs.join("|")}` });
+  }
+
+  // Prefer cached insights from store; fall back to on-the-fly aggregation.
+  const cached = getInsights(brief_id);
+  if (cached) {
+    if (country) {
+      const cc = String(country).toUpperCase();
+      const tabData = cached.byCountry?.[cc]?.[tabId];
+      if (!tabData) return res.status(404).json({ ok: false, error: "no insight for that country/tab" });
+      return res.json({ ok: true, brief_id, country: cc, tab: tabId, data: tabData });
+    }
+    return res.json({ ok: true, brief_id, country: null, tab: tabId, data: cached.byTab?.[tabId] || null });
+  }
+  // On-the-fly fallback
+  const list = country
+    ? getPersonas(brief_id, { country: String(country).toUpperCase() })
+    : getPersonas(brief_id);
+  if (!list.length) return res.status(404).json({ ok: false, error: "no personas yet" });
+  const agg = aggregateAll(list);
+  res.json({ ok: true, brief_id, country: country || null, tab: tabId, data: agg[tabId] });
+});
+
+// GET /api/personas/insights/all?brief_id=...
+campaignPersonasRouter.get("/insights/all", (req, res) => {
+  const { brief_id } = req.query;
+  if (!brief_id) return res.status(400).json({ ok: false, error: "brief_id required" });
+  const cached = getInsights(brief_id);
+  if (cached) return res.json({ ok: true, brief_id, ...cached });
+  const all = getPersonas(brief_id);
+  if (!all.length) return res.status(404).json({ ok: false, error: "no personas yet" });
+  const payload = buildInsightPayload(all);
+  res.json({ ok: true, brief_id, ...payload });
+});
+
+// ───────────────────────────────────────────────
+// Background generation orchestrator
+// ───────────────────────────────────────────────
+async function runGeneration(brief) {
+  const briefId = brief.id;
+  const generationStartTs = Date.now();
+  console.log(`[campaign-personas] starting generation for brief ${briefId} (${brief.countries.length} countries × ${brief.sizePerCountry})`);
+
+  const shouldCancel = () => !!(getGenerationState(briefId)?.cancelled);
+
+  for (const country of brief.countries) {
+    if (shouldCancel()) {
+      console.log(`[campaign-personas] cancelled before ${country}`);
+      break;
+    }
+    const countryName = resolveCountryName(country);
+    const regionOverride = brief.regions?.[country] || null;
+
+    // Stage 1: cohort
+    const cohort = buildCohort({
+      country,
+      size: brief.sizePerCountry,
+      seed: `${briefId}:${country}`,
+      regions: regionOverride,
+    });
+    console.log(`[campaign-personas] ${country}: cohort built (${cohort.length})`);
+
+    // Stage 2: narrative
+    const merged = await synthesizeNarratives(cohort, {
+      brand: brief.brand,
+      country,
+      countryName,
+      batchSize: 20,
+      concurrency: 5,
+      shouldCancel,
+      onBatchDone: (doneInCountry, totalInCountry) => {
+        const state = getGenerationState(briefId) || {};
+        const byCountry = { ...(state.byCountry || {}) };
+        byCountry[country] = doneInCountry;
+        const done = Object.values(byCountry).reduce((s, n) => s + n, 0);
+        setGenerationState(briefId, { byCountry, done });
+      },
+    });
+
+    appendPersonas(briefId, merged);
+
+    // Mark this country as fully done (even if a batch fell back)
+    const state = getGenerationState(briefId) || {};
+    const byCountry = { ...(state.byCountry || {}) };
+    byCountry[country] = brief.sizePerCountry;
+    const done = Object.values(byCountry).reduce((s, n) => s + n, 0);
+    setGenerationState(briefId, { byCountry, done });
+    console.log(`[campaign-personas] ${country}: completed`);
+  }
+
+  // Stage 3: aggregate
+  const all = getPersonas(briefId);
+  console.log(`[campaign-personas] ${briefId}: aggregating ${all.length} personas into insights`);
+  const payload = buildInsightPayload(all);
+  setInsights(briefId, payload);
+
+  const finalState = shouldCancel() ? "cancelled" : "completed";
+  const finishedAt = new Date().toISOString();
+  setGenerationState(briefId, {
+    status: finalState,
+    finishedAt,
+  });
+  console.log(`[campaign-personas] ${briefId}: ${finalState} (${all.length} personas)`);
+
+  // Fire-and-forget cold analytics sink.
+  if (finalState === "completed") {
+    logCampaignCompletion({
+      briefId,
+      brand: brief.brand,
+      name: brief.name,
+      countries: brief.countries,
+      totalPersonas: all.length,
+      generationDurationMs: Date.now() - generationStartTs,
+      geminiCostUsd: null,
+      completedAt: finishedAt,
+    }).catch(() => {});
+  }
+}

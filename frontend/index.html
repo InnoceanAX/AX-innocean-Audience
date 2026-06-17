@@ -2060,6 +2060,12 @@ const state = {
   chatSessions: [],          // 저장된 채팅 세션
   currentChatId: null,       // 현재 활성 채팅 id
   chatMessages: [],          // 현재 세션 메시지 배열
+  // ===== Campaign persona mode (STEP 4) =====
+  campaignPresets: [],       // built-in presets fetched from /api/personas/presets
+  activePreset: null,        // currently applied campaign preset (built-in)
+  activeBriefId: null,       // brief_id once /api/personas/brief has been called
+  activeCountry: null,       // country picked from the country picker
+  personaPolling: false,     // status polling guard
 };
 
 // ============ BOOT ============
@@ -2074,6 +2080,8 @@ async function boot(){
     state.groups = data.dimensionGroups;
     state.categories = data.categoryCarousel;
     loadUserPresets();
+    // Built-in campaign presets (STEP 4-B) — best effort, do not block boot
+    fetchCampaignPresets().catch(e => console.warn('[campaign-presets] load failed', e));
     loadProjectsFromStorage();
     loadInboxFromStorage();
     loadChatSessions();
@@ -5144,6 +5152,10 @@ function psetCardHtml(p){
 }
 function applyPresetFromLib(id){
   const p = (state.userPresets||[]).find(x=>x.id===id); if(!p) return;
+  // STEP 4-A: campaign preset → same country picker flow
+  if(p.campaign && p.builtin){
+    return applyCampaignPreset(p);
+  }
   if(p.country && typeof selectCountry==='function') selectCountry(p.country);
   state.filters = JSON.parse(JSON.stringify(p.filters||{}));
   // 프리셋에 명시되지 않은 디멘션은 '전체'로 채움
@@ -6152,11 +6164,48 @@ async function _refreshAudienceTabFetch(dim){
   if(!code) return;
   const body = document.getElementById(`${dim}-body`);
   const src = document.getElementById(`${dim}-src`);
-  if(body.dataset.country === code) return; // 캐시
+  // STEP 4-C: while in campaign mode, ensure brief + generation triggered.
+  if(state.activePreset && !state.activeBriefId){
+    await ensureCampaignBrief();
+  }
+  // Cache key now includes briefId so persona-pool refresh on completion invalidates.
+  const cacheKey = code + '|' + (state.activeBriefId || '') + '|' + (state.personaPolling ? 'p' : '');
+  if(body.dataset.cacheKey === cacheKey) return; // 캐시
   body.innerHTML = '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>공개 데이터 로딩 중…</div>';
   try {
-    const res = await fetch(`${API}/audience/${dim}?country=${code}`);
+    const briefQs = state.activeBriefId ? `&briefId=${encodeURIComponent(state.activeBriefId)}` : '';
+    const res = await fetch(`${API}/audience/${dim}?country=${code}${briefQs}`);
     const data = await res.json();
+    // STEP 4-D: persona-pool branch (data may be null while generating).
+    if(data.ok && data.source === 'persona-pool'){
+      const badgeHtmlPp = renderPersonaBadgeHtml(data.badge);
+      if(data.generating){
+        body.innerHTML = badgeHtmlPp + '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>AI 합성 페르소나 생성 중…</div>';
+        body.dataset.cacheKey = '';   // do not cache placeholder
+        if(src) src.innerHTML = '<span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">' + (data.badge?.label||'') + '</span>';
+        pollPersonaStatus();
+        return;
+      }
+      // Ready: render with persona-pool data. We keep the existing dim renderer
+      // working by faking the legacy data shape minimally; renderers that don't
+      // recognize persona-pool shapes will gracefully degrade.
+      body.dataset.cacheKey = cacheKey;
+      const fallbackInner = '<div style="padding:14px 18px;font-size:12.5px;color:#374151">AI 합성 페르소나 ' + (data.count||0) + '명 기반의 ' + (data.dimension||'') + ' 집계 결과가 준비되었습니다. 기존 차트 렌더러가 persona-pool 포맷을 🇼 지원하는 경우 탭 내 차트는 공개 데이터 폴백을 사용합니다.</div>';
+      try {
+        if(typeof renderAudienceDim === 'function'){
+          body.innerHTML = badgeHtmlPp + renderAudienceDim(dim, data);
+          setTimeout(() => { try { if(typeof renderDimCharts==='function') renderDimCharts(dim, data); } catch(e){} }, 50);
+        } else {
+          body.innerHTML = badgeHtmlPp + fallbackInner;
+        }
+      } catch(e){
+        console.warn('[persona-pool render fallback]', e);
+        body.innerHTML = badgeHtmlPp + fallbackInner;
+      }
+      if(src) src.innerHTML = '<span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">' + (data.badge?.label||'') + '</span>';
+      return;
+    }
+    body.dataset.cacheKey = cacheKey;
     if(!data.ok || !data.data){
       const cName = (state.countries.find(c => c.code === code) || {}).name || code;
       body.innerHTML = `<div class="aud-missing-full">
@@ -6187,7 +6236,8 @@ async function _refreshAudienceTabFetch(dim){
     }
         src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
     body.dataset.country = code;
-    body.innerHTML = renderAudienceDim(dim, data);
+    const badgeHtmlPd = renderPersonaBadgeHtml(data.badge);
+    body.innerHTML = badgeHtmlPd + renderAudienceDim(dim, data);
     setTimeout(() => renderDimCharts(dim, data), 50);
   } catch(e){
     body.innerHTML = `<div class="aud-error">오류: ${e.message}</div>`;
@@ -6572,6 +6622,19 @@ function renderDimCharts(dim, data){
 }
 
 function renderAudienceDim(dim, data){
+  // ──────────────────────────────────────────────────────────────────
+  // Persona-pool branch (AI synthetic personas → aggregator output).
+  // Detected by data.source === 'persona-pool' OR (data.dimension + data.count).
+  // ──────────────────────────────────────────────────────────────────
+  const isPersonaPool =
+    data && (data.source === 'persona-pool' ||
+      (data.dimension != null && typeof data.count === 'number'));
+  if (isPersonaPool) {
+    if (data.generating || !data.data) {
+      return renderPersonaPoolGenerating(data);
+    }
+    return renderPersonaPoolDim(dim, data);
+  }
   const d = data.data;
   if(dim === 'who'){
     const ages = d.ageDistribution || {};
@@ -6766,7 +6829,304 @@ function renderAudienceDim(dim, data){
   return '';
 }
 
-function actLabel(k){ return ({socialNetworking:'소셜 네트워킹',videoStreaming:'영상 스트리밍',gaming:'게임',shopping:'쇼핑',banking:'모바일 뱅킹',news:'뉴스',fitness:'피트니스'})[k]||k; }
+// ═══════════════════════════════════════════════════════════════
+// Persona-pool renderer
+//   Input shape (from backend/src/lib/persona-aggregator.js):
+//     who:   { total, age:{bucket:{count,share}}, gender:{...}, region:[{key,count,share}], income:{...} }
+//     life:  { total, topLifestyleTags:[{key,count,share}], occupation:{...} }
+//     mind:  { total, topValuesTags:[{key,count,share}], shoppingStyle:{...} }
+//     love:  { total, kFashionHistogram, fashionHistogram, kCultureHistogram, topBrandAffinity:[{brand,mentions,avgScore}] }
+//     buy:   { total, priceSensitivity:{...}, topBrandAffinity:[...], shoppingStyle:{...} }
+//     media: { total, channels:[{channel,mentions,reach,totalHoursPerDay,avgHoursPerDay}] }
+//
+//   `data` envelope: { ok, source:'persona-pool', briefId, country, count, dimension, data:<above>, generating? }
+//   Uses AUDIENCE design tokens (--ind/--ind2/--bdr/--ts/--tm). Pure inline SVG bars, no Chart.js.
+// ═══════════════════════════════════════════════════════════════
+
+function renderPersonaPoolGenerating(envelope){
+  const dim = envelope.dimension || '';
+  const country = envelope.country || '';
+  const have = envelope.count || 0;
+  return `<div class="pp-empty" style="padding:32px 18px;text-align:center;border:1px dashed var(--bdr);border-radius:0;background:#FAFAFE">
+    <div style="display:inline-flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ts);font-weight:600">
+      <svg style="width:18px;height:18px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="var(--ind)" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      AI 합성 페르소나 생성 중...
+    </div>
+    <div style="margin-top:8px;font-size:11.5px;color:var(--tm)">${country || ''} · ${dim.toUpperCase()} · 현재 ${have}명 완료</div>
+  </div>`;
+}
+
+function _ppEscape(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function _ppFmtPct(x){ return (x*100).toFixed(1) + '%'; }
+function _ppFmtHr(x){ return Number(x||0).toFixed(2) + 'h'; }
+function _ppFmtScore(x){ return Number(x||0).toFixed(1); }
+
+// Distribution map { key:{count,share} } → sorted [{key,count,share}]
+function _ppDistEntries(dist){
+  if(!dist || typeof dist !== 'object') return [];
+  return Object.entries(dist)
+    .map(([key, v]) => ({ key, count: v?.count||0, share: v?.share||0 }))
+    .sort((a,b) => b.count - a.count);
+}
+
+// Horizontal SVG bar list. items: [{key,count,share}]
+function _ppHBarList(items, opts){
+  const o = Object.assign({ topN: 12, color: 'var(--ind)', labelKey:null, showCount:true, height:18 }, opts||{});
+  const list = items.slice(0, o.topN);
+  if(!list.length) return '<div style="font-size:11.5px;color:var(--tm);padding:6px 0">데이터 없음</div>';
+  const maxShare = Math.max(0.0001, ...list.map(it => it.share));
+  return `<div style="display:flex;flex-direction:column;gap:6px">` +
+    list.map(it => {
+      const lbl = o.labelKey ? (o.labelKey(it.key) || it.key) : it.key;
+      const w = Math.max(2, Math.round((it.share / maxShare) * 100));
+      const right = o.showCount
+        ? `<span style="font-size:10.5px;color:var(--tm);margin-left:6px;min-width:78px;text-align:right">${it.count} · ${_ppFmtPct(it.share)}</span>`
+        : `<span style="font-size:10.5px;color:var(--tm);margin-left:6px;min-width:54px;text-align:right">${_ppFmtPct(it.share)}</span>`;
+      return `<div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:0 0 110px;font-size:11.5px;color:var(--ts);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${_ppEscape(lbl)}">${_ppEscape(lbl)}</div>
+        <div style="flex:1;background:#F3F4F6;height:${o.height}px;position:relative">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${w}%;background:${o.color}"></div>
+        </div>
+        ${right}
+      </div>`;
+    }).join('') + `</div>`;
+}
+
+function _ppCardOpen(title, subtitle){
+  return `<div style="border:1px solid var(--bdr);background:#fff;padding:14px 16px">
+    <div style="font-size:12.5px;font-weight:700;color:#111;margin-bottom:${subtitle?2:10}px">${_ppEscape(title)}</div>
+    ${subtitle ? `<div style="font-size:10.5px;color:var(--tm);margin-bottom:10px">${_ppEscape(subtitle)}</div>` : ''}`;
+}
+function _ppCardClose(){ return '</div>'; }
+
+function _ppKpiTile(label, value, sub){
+  return `<div style="border:1px solid var(--bdr);background:#fff;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+    <div style="font-size:10.5px;color:var(--tm)">${_ppEscape(label)}</div>
+    <div style="font-size:18px;font-weight:700;color:var(--ind2)">${_ppEscape(value)}</div>
+    ${sub ? `<div style="font-size:10.5px;color:var(--ts)">${_ppEscape(sub)}</div>` : ''}
+  </div>`;
+}
+
+function _ppGridOpen(cols){
+  return `<div style="display:grid;grid-template-columns:${cols||'repeat(2,1fr)'};gap:12px;margin-top:10px">`;
+}
+function _ppGridClose(){ return '</div>'; }
+
+function _ppSummary(envelope){
+  const cc = envelope.country || '';
+  const cnt = envelope.count || 0;
+  return `<div style="font-size:11px;color:var(--tm);margin:2px 0 12px;display:flex;gap:8px;flex-wrap:wrap">
+    <span style="background:#EEF2FF;color:var(--ind2);padding:3px 8px;font-weight:600">AI 합성 페르소나</span>
+    <span>국가 <b style="color:var(--ts)">${_ppEscape(cc)}</b></span>
+    <span>표본 <b style="color:var(--ts)">${cnt.toLocaleString()}명</b></span>
+    <span>차원 <b style="color:var(--ts)">${_ppEscape((envelope.dimension||'').toUpperCase())}</b></span>
+  </div>`;
+}
+
+// Income quintile (Q1..Q5) horizontal bars in a fixed Q1→Q5 order.
+function _ppIncomeBars(income){
+  const order = ['Q1','Q2','Q3','Q4','Q5'];
+  const labels = { Q1:'최하위', Q2:'하위', Q3:'중위', Q4:'상위', Q5:'최상위' };
+  const items = order.map(k => ({ key: labels[k] + ' (' + k + ')', count: income?.[k]?.count||0, share: income?.[k]?.share||0 }));
+  return _ppHBarList(items, { topN: 5, color:'var(--ind)', height:20 });
+}
+
+// Gender split donut-like simple twin bars.
+function _ppGenderSplit(gender){
+  const m = gender?.male?.share || 0;
+  const f = gender?.female?.share || 0;
+  const o = Math.max(0, 1 - m - f);
+  return `<div style="display:flex;height:24px;border:1px solid var(--bdr)">
+    <div title="남성" style="width:${(m*100).toFixed(1)}%;background:var(--ind);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:600">${m>0.06?_ppFmtPct(m):''}</div>
+    <div title="여성" style="width:${(f*100).toFixed(1)}%;background:var(--ind3, #7C3AED);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:600">${f>0.06?_ppFmtPct(f):''}</div>
+    ${o>0?`<div style="width:${(o*100).toFixed(1)}%;background:#E5E7EB"></div>`:''}
+  </div>
+  <div style="display:flex;gap:14px;font-size:11px;color:var(--ts);margin-top:6px">
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--ind);margin-right:5px;vertical-align:-1px"></span>남성 ${_ppFmtPct(m)}</div>
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--ind3,#7C3AED);margin-right:5px;vertical-align:-1px"></span>여성 ${_ppFmtPct(f)}</div>
+  </div>`;
+}
+
+// Histogram buckets (love tab). bucketsObj: { '0-20':{count,share}, ... }
+function _ppHistogram(bucketsObj, color){
+  const order = ['0-20','21-40','41-60','61-80','81-100'];
+  const items = order.map(b => ({ key:b, count: bucketsObj?.[b]?.count||0, share: bucketsObj?.[b]?.share||0 }));
+  return _ppHBarList(items, { topN:5, color: color||'var(--ind)', showCount:true, height:18 });
+}
+
+// Tag-chip cloud (LIFE / MIND values).
+function _ppChips(items, opts){
+  const o = Object.assign({ topN: 20 }, opts||{});
+  const list = items.slice(0, o.topN);
+  if(!list.length) return '<div style="font-size:11.5px;color:var(--tm)">데이터 없음</div>';
+  const maxShare = Math.max(0.0001, ...list.map(it => it.share));
+  return `<div style="display:flex;flex-wrap:wrap;gap:6px">` +
+    list.map(it => {
+      const intensity = 0.20 + 0.80 * (it.share / maxShare); // 20%~100%
+      const bg = `rgba(79,70,229,${intensity.toFixed(2)})`;
+      const fg = intensity > 0.55 ? '#fff' : 'var(--ind2)';
+      const border = intensity > 0.55 ? 'transparent' : 'var(--ind)';
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;background:${bg};color:${fg};border:1px solid ${border};font-size:11px;font-weight:600">${_ppEscape(it.key)}<span style="opacity:0.85;font-weight:500">${_ppFmtPct(it.share)}</span></span>`;
+    }).join('') + `</div>`;
+}
+
+// Ranked list with score + mentions (LOVE/BUY brand_affinity).
+function _ppBrandList(items, opts){
+  const o = Object.assign({ topN: 12 }, opts||{});
+  const list = items.slice(0, o.topN);
+  if(!list.length) return '<div style="font-size:11.5px;color:var(--tm)">데이터 없음</div>';
+  const maxScore = Math.max(0.0001, ...list.map(it => it.avgScore||0));
+  return `<div style="display:flex;flex-direction:column">` +
+    list.map((it, idx) => {
+      const score = Number(it.avgScore||0);
+      const w = Math.max(2, Math.round((score / maxScore) * 100));
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bdr)">
+        <div style="flex:0 0 22px;font-size:11px;color:var(--tm);font-weight:700">#${idx+1}</div>
+        <div style="flex:0 0 150px;font-size:12px;color:var(--ts);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${_ppEscape(it.brand)}">${_ppEscape(it.brand)}</div>
+        <div style="flex:1;background:#F3F4F6;height:14px;position:relative">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${w}%;background:var(--ind)"></div>
+        </div>
+        <div style="flex:0 0 110px;font-size:10.5px;color:var(--ts);text-align:right">점수 <b>${_ppFmtScore(score)}</b> · 언급 ${it.mentions||0}</div>
+      </div>`;
+    }).join('') + `</div>`;
+}
+
+// MEDIA channels bar list.
+function _ppMediaChannels(channels){
+  if(!Array.isArray(channels) || !channels.length) return '<div style="font-size:11.5px;color:var(--tm)">데이터 없음</div>';
+  const maxHrs = Math.max(0.0001, ...channels.map(c => c.avgHoursPerDay||0));
+  return `<div style="display:flex;flex-direction:column;gap:6px">` +
+    channels.slice(0, 14).map(c => {
+      const w = Math.max(2, Math.round(((c.avgHoursPerDay||0) / maxHrs) * 100));
+      return `<div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:0 0 130px;font-size:11.5px;color:var(--ts);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${_ppEscape(c.channel)}">${_ppEscape(c.channel)}</div>
+        <div style="flex:1;background:#F3F4F6;height:18px;position:relative">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${w}%;background:var(--ind)"></div>
+        </div>
+        <div style="flex:0 0 140px;font-size:10.5px;color:var(--tm);text-align:right">평균 ${_ppFmtHr(c.avgHoursPerDay)}/일 · 도달 ${_ppFmtPct(c.reach||0)}</div>
+      </div>`;
+    }).join('') + `</div>`;
+}
+
+function renderPersonaPoolDim(dim, envelope){
+  const d = envelope.data || {};
+  const summary = _ppSummary(envelope);
+
+  if(dim === 'who'){
+    const ageItems = _ppDistEntries(d.age);
+    const regionItems = (d.region||[]).map(r => ({ key:r.key, count:r.count, share:r.share }));
+    return summary + _ppGridOpen('repeat(4, 1fr)') +
+      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
+      _ppKpiTile('연령 구간', String(ageItems.length) + '개') +
+      _ppKpiTile('지역', String(regionItems.length) + '개') +
+      _ppKpiTile('소득 사분위', String(_ppDistEntries(d.income).length) + '개') +
+      _ppGridClose() +
+      _ppGridOpen('repeat(2, 1fr)') +
+        _ppCardOpen('연령 분포', '구간별 인원 비율') + _ppHBarList(ageItems, { topN: 10, color:'var(--ind)' }) + _ppCardClose() +
+        _ppCardOpen('성별 비율') + _ppGenderSplit(d.gender) + _ppCardClose() +
+        _ppCardOpen('지역 분포', 'Top 10') + _ppHBarList(regionItems, { topN: 10, color:'var(--ind2)' }) + _ppCardClose() +
+        _ppCardOpen('소득 사분위', 'Q1(최하위) → Q5(최상위)') + _ppIncomeBars(d.income) + _ppCardClose() +
+      _ppGridClose();
+  }
+
+  if(dim === 'life'){
+    const tagItems = (d.topLifestyleTags||[]).map(t => ({ key:t.key, count:t.count, share:t.share }));
+    const occItems = _ppDistEntries(d.occupation);
+    return summary + _ppGridOpen('repeat(3, 1fr)') +
+      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
+      _ppKpiTile('라이프스타일 태그', String(tagItems.length) + '개') +
+      _ppKpiTile('직업 구간', String(occItems.length) + '개') +
+      _ppGridClose() +
+      _ppGridOpen('repeat(2, 1fr)') +
+        _ppCardOpen('Top 라이프스타일 태그', '비율 순 · 최대 20개') + _ppChips(tagItems, { topN: 20 }) + _ppCardClose() +
+        _ppCardOpen('직업 분포', '페르소나 표본 기준') + _ppHBarList(occItems, { topN: 10, color:'var(--ind)' }) + _ppCardClose() +
+      _ppGridClose();
+  }
+
+  if(dim === 'mind'){
+    const valItems = (d.topValuesTags||[]).map(t => ({ key:t.key, count:t.count, share:t.share }));
+    const styleItems = _ppDistEntries(d.shoppingStyle);
+    return summary + _ppGridOpen('repeat(3, 1fr)') +
+      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
+      _ppKpiTile('가치관 태그', String(valItems.length) + '개') +
+      _ppKpiTile('쇼핑 스타일', String(styleItems.length) + '개') +
+      _ppGridClose() +
+      _ppGridOpen('repeat(2, 1fr)') +
+        _ppCardOpen('핵심 가치관 태그', 'Top 20') + _ppChips(valItems, { topN: 20 }) + _ppCardClose() +
+        _ppCardOpen('쇼핑 스타일 분포', '소비자 성향') + _ppHBarList(styleItems, { topN: 10, color:'var(--ind2)' }) + _ppCardClose() +
+      _ppGridClose();
+  }
+
+  if(dim === 'love'){
+    const brandItems = (d.topBrandAffinity||[]).map(b => ({ brand:b.brand, mentions:b.mentions, avgScore:b.avgScore }));
+    const kfMean = (function(h){
+      const order = ['0-20','21-40','41-60','61-80','81-100'];
+      const mids  = [10, 30, 50, 70, 90];
+      let acc = 0; for(let i=0;i<order.length;i++){ acc += (h?.[order[i]]?.share||0) * mids[i]; }
+      return acc;
+    });
+    const kfAvg = kfMean(d.kFashionHistogram);
+    const fAvg  = kfMean(d.fashionHistogram);
+    const kcAvg = kfMean(d.kCultureHistogram);
+    return summary + _ppGridOpen('repeat(3, 1fr)') +
+      _ppKpiTile('K-패션 관심도', kfAvg.toFixed(1), '0→100 점') +
+      _ppKpiTile('일반 패션 관심도', fAvg.toFixed(1), '0→100 점') +
+      _ppKpiTile('K-컸텐츠 노출', kcAvg.toFixed(1), '0→100 점') +
+      _ppGridClose() +
+      _ppGridOpen('repeat(3, 1fr)') +
+        _ppCardOpen('K-패션 관심도 분포') + _ppHistogram(d.kFashionHistogram, 'var(--ind)') + _ppCardClose() +
+        _ppCardOpen('일반 패션 관심도 분포') + _ppHistogram(d.fashionHistogram, 'var(--ind2)') + _ppCardClose() +
+        _ppCardOpen('K-컸텐츠 노출 분포') + _ppHistogram(d.kCultureHistogram, 'var(--ind3, #7C3AED)') + _ppCardClose() +
+      _ppGridClose() +
+      _ppGridOpen('1fr') +
+        _ppCardOpen('브랜드 선호도 (평균 점수 · 언급 수)', 'Top 15') + _ppBrandList(brandItems, { topN: 15 }) + _ppCardClose() +
+      _ppGridClose();
+  }
+
+  if(dim === 'buy'){
+    const psLabels = { '1':'매우 낮음', '2':'낮음', '3':'보통', '4':'높음', '5':'매우 높음' };
+    const order = ['1','2','3','4','5'];
+    const psItems = order.map(k => ({
+      key: (psLabels[k] || k) + ' (' + k + ')',
+      count: d.priceSensitivity?.[k]?.count || 0,
+      share: d.priceSensitivity?.[k]?.share || 0,
+    }));
+    const styleItems = _ppDistEntries(d.shoppingStyle);
+    const brandItems = (d.topBrandAffinity||[]).map(b => ({ brand:b.brand, mentions:b.mentions, avgScore:b.avgScore }));
+    return summary + _ppGridOpen('repeat(3, 1fr)') +
+      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
+      _ppKpiTile('가격 민감도 구간', '1→5') +
+      _ppKpiTile('쇼핑 스타일', String(styleItems.length) + '개') +
+      _ppGridClose() +
+      _ppGridOpen('repeat(2, 1fr)') +
+        _ppCardOpen('가격 민감도 분포', '1=매우 낮음, 5=매우 높음') + _ppHBarList(psItems, { topN: 5, color:'var(--ind)', height:20 }) + _ppCardClose() +
+        _ppCardOpen('쇼핑 스타일 비율', '구매 결정 성향') + _ppHBarList(styleItems, { topN: 10, color:'var(--ind2)' }) + _ppCardClose() +
+      _ppGridClose() +
+      _ppGridOpen('1fr') +
+        _ppCardOpen('브랜드 선호도 Top 10', '점수 × 언급') + _ppBrandList(brandItems, { topN: 10 }) + _ppCardClose() +
+      _ppGridClose();
+  }
+
+  if(dim === 'media'){
+    const channels = d.channels || [];
+    const top3Hrs = channels.slice(0,3).map(c => c.avgHoursPerDay||0).reduce((a,b)=>a+b,0);
+    return summary + _ppGridOpen('repeat(3, 1fr)') +
+      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
+      _ppKpiTile('채널 수', String(channels.length) + '개') +
+      _ppKpiTile('Top3 일평균 합', _ppFmtHr(top3Hrs)) +
+      _ppGridClose() +
+      _ppGridOpen('1fr') +
+        _ppCardOpen('미디어 채널별 일평균 차용 시간 · 도달률', 'Top 14') + _ppMediaChannels(channels) + _ppCardClose() +
+      _ppGridClose();
+  }
+
+  return '<div style="padding:14px 18px;font-size:12.5px;color:var(--ts)">해당 차원의 페르소나 렌더러가 없습니다.</div>';
+}
+
 function trustLabel(k){ return ({business:'기업',media:'미디어',government:'정부',ngo:'NGO'})[k]||k; }
 function valLabel(k){ return ({environment:'환경 중요도',socialEquality:'사회 평등',tradition:'전통 존중',innovation:'혁신 수용',materialism:'물질주의',hedonism:'쿾락주의',ambition:'야망'})[k]||k; }
 function loveLabel(k){ return ({music:'음악',sports:'스포츠',gaming:'게임',beauty:'뷰티',fashion:'패션',fitness:'피트니스',cooking:'요리',travel:'여행',photography:'사진',technology:'테크',finance:'금융',parenting:'육아',automotive:'자동차',pets:'반려동물',sustainability:'지속가능성',kpop:'K-Pop',drama:'드라마',food:'음식',anime:'애니메',manga:'만화',livestream:'라이브스트림',ecommerce:'이커머스',football:'축구',wine:'와인',cricket:'크리켓',bollywood:'볼리우드',samba:'삼바',korean:'한류',basketball:'농구',halal:'할랄',outdoor:'아웃도어',hockey:'하키',luxury:'럭셔리',religion:'종교',rugby:'러그비',soccer:'축구',asado:'아사도',cycling:'자전거',autobahn:'아웃바른',sportsNFL:'NFL',hollywood:'할리우드',telenovela:'텔레노벨라',gaming:'게임'})[k]||k; }
@@ -7971,6 +8331,10 @@ function applyPreset(key){
   // 1) 병합 프리셋: 사용자 저장된 것을 먼저 탐색
   let preset = (state.userPresets || []).find(p => p.id === key);
   if(!preset){ preset = BUILTIN_PRESETS[key]; }
+  // STEP 4-A: campaign preset (built-in from /api/personas/presets) → country picker
+  if(preset && preset.campaign && preset.builtin){
+    return applyCampaignPreset(preset);
+  }
   if(!preset || !preset.filters){
     if(typeof toast === 'function') toast('프리셋을 찾을 수 없습니다');
     return;
@@ -8000,6 +8364,185 @@ function applyPreset(key){
     setTimeout(() => b.classList.remove('builder-pulse'), 1200);
   }
   if(typeof toast === 'function') toast(`«${preset.name || key}» 프리셋 적용 — ${applied}개 차원 활성`);
+}
+
+// ============================================================
+// STEP 4 — Campaign preset / persona-pool bridge
+// ============================================================
+
+// 4-B: load built-in campaign presets from backend and merge them into the
+// user-visible preset list. They get a small "캐페인" badge in the palette.
+async function fetchCampaignPresets(){
+  try{
+    const r = await fetch(`${API}/personas/presets`);
+    const d = await r.json();
+    if(!d.ok || !Array.isArray(d.presets)) return;
+    state.campaignPresets = d.presets;
+    // Prepend into userPresets-visible list as read-only campaign entries.
+    // We do NOT persist these to localStorage; they are runtime-injected.
+    const campaignEntries = d.presets.map(p => ({
+      id: 'campaign:' + p.id,
+      name: p.name,
+      country: (p.countries && p.countries[0]) || null,
+      countries: p.countries || [],
+      filters: {},                          // built-ins do not carry classic builder filters
+      campaign: true,                       // marker for badge
+      builtin: p,                           // raw preset payload (brand/targets/etc.)
+      updatedAt: Date.now(),
+    }));
+    state.userPresets = (state.userPresets || []).filter(p => !p.campaign);
+    state.userPresets.unshift(...campaignEntries);
+    if(typeof renderUserPresetsInSidebar === 'function') renderUserPresetsInSidebar();
+    if(typeof psetRender === 'function') psetRender();
+  }catch(e){ console.warn('[fetchCampaignPresets]', e); }
+}
+
+// 4-A: country picker modal for multi-country built-in presets.
+function openCampaignCountryPicker(preset, onPick){
+  const codes = (preset.countries || []).map(c => String(c).toUpperCase());
+  const meta = code => (state.countries||[]).find(x => x.code === code) || { code, name: code, flag: '' };
+  document.getElementById('campaign-cpick-modal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'campaign-cpick-modal';
+  modal.className = 'lib-modal';
+  const chips = codes.map(code => {
+    const m = meta(code);
+    return `<button class="campaign-cchip" data-code="${code}" style="padding:10px 16px;border:1.5px solid #6366F1;background:#EEF2FF;color:#3730A3;border-radius:10px;font-size:13px;font-family:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+      <span style="font-size:18px">${m.flag||''}</span><span>${m.name||code}</span>
+    </button>`;
+  }).join('');
+  modal.innerHTML = `<div class="lib-box" style="max-width:560px">
+    <div class="lib-hd"><div class="lib-hd-t">단일 국가를 선택하세요</div>
+      <button class="lib-close" onclick="document.getElementById('campaign-cpick-modal').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:18px 22px">
+      <div style="font-size:13px;color:#374151;margin-bottom:12px">캐페인 <b>${preset.name||''}</b>은 ${codes.length}개국을 포함합니다. 하나의 국가를 선택하면 해당 국가의 AI 합성 페르소나 100명을 생성합니다.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">${chips}</div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--tm)">
+        TODO: [모두 차례로 분석] 큐 버튼 — 추후 지원 예정
+      </div>
+    </div>
+  </div>`;
+  modal.onclick = (e) => { if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+  modal.querySelectorAll('.campaign-cchip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.getAttribute('data-code');
+      modal.remove();
+      onPick(code);
+    });
+  });
+}
+
+// 4-A + 4-E: apply a built-in campaign preset.
+async function applyCampaignPreset(presetUserEntry){
+  const built = presetUserEntry.builtin || null;
+  if(!built) return;
+  const apply = async (code) => {
+    // 4-E: state.activeBriefId set later (after POST /api/personas/brief);
+    // activeCountry set right now so the rest of the UI follows along.
+    state.activeCountry = code;
+    state.activePreset = built;
+    state.activeBriefId = null;
+    // Update the existing single-country filter UI.
+    if(typeof selectCountry === 'function') selectCountry(code);
+    // Built-ins do not carry classic filters; keep filters empty/all.
+    state.filters = {};
+    if(typeof fillRemainingWithAll === 'function') fillRemainingWithAll();
+    document.getElementById('pset-modal')?.remove();
+    if(typeof goWorkspace === 'function') await goWorkspace();
+    if(typeof switchTab === 'function') switchTab('overview');
+    if(typeof renderBuilder === 'function') renderBuilder();
+    if(typeof refreshSegment === 'function') refreshSegment();
+    if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
+    if(typeof toast === 'function') toast(`캐페인 적용: ${built.name} (${code})`);
+  };
+  if(built.countries && built.countries.length > 1){
+    openCampaignCountryPicker(built, apply);
+  } else {
+    await apply(built.countries?.[0] || state.currentCountry || 'KR');
+  }
+}
+
+// 4-C: ensure a brief + generation has been triggered for the active campaign.
+// Called from refreshSegment / tab refresh before fetching the 6 tabs.
+async function ensureCampaignBrief(){
+  if(!state.activePreset || !state.activeCountry) return null;
+  if(state.activeBriefId) return state.activeBriefId;
+  try{
+    const p = state.activePreset;
+    const body = {
+      brand: p.brand || 'Musinsa',
+      name: p.name,
+      countries: [state.activeCountry],            // single country only
+      targets: p.targets || null,
+      regions: p.regions || null,
+      sizePerCountry: p.sizePerCountry || 100,
+      presetId: p.id,
+    };
+    const r = await fetch(`${API}/personas/brief`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if(!d.ok || !d.brief_id) throw new Error(d.error || 'brief failed');
+    state.activeBriefId = d.brief_id;
+    // Fire generation for the active country only (NOT all 6).
+    await fetch(`${API}/personas/generate`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ brief_id: d.brief_id, countries: [state.activeCountry] }),
+    });
+    if(typeof toast === 'function') toast(`AI 페르소나 생성 시작 (${state.activeCountry} · 100명)`);
+    // Lightweight polling: the tab badge already shows "생성 중";
+    // we just keep triggering a refresh every 4s until completed/failed.
+    pollPersonaStatus();
+    return state.activeBriefId;
+  }catch(e){
+    console.warn('[ensureCampaignBrief]', e);
+    if(typeof toast === 'function') toast('캐페인 분석 준비 실패: ' + e.message);
+    return null;
+  }
+}
+
+async function pollPersonaStatus(){
+  if(state.personaPolling) return;
+  if(!state.activeBriefId) return;
+  state.personaPolling = true;
+  try{
+    while(state.activeBriefId){
+      const r = await fetch(`${API}/personas/status?brief_id=${state.activeBriefId}`);
+      const d = await r.json();
+      if(!d.ok){ break; }
+      if(d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled'){
+        if(d.status === 'completed' && typeof toast === 'function') toast('AI 페르소나 생성 완료');
+        // Refresh currently visible tab so persona-pool data shows up.
+        if(typeof _refreshAudienceTabFetch === 'function' && state.currentTab){
+          const dim = ['who','life','mind','love','buy','media'].includes(state.currentTab) ? state.currentTab : null;
+          if(dim){
+            // Force cache miss
+            const body = document.getElementById(dim + '-body');
+            if(body) body.dataset.country = '';
+            _refreshAudienceTabFetch(dim);
+          } else if(typeof refreshSegment === 'function'){
+            refreshSegment();
+          }
+        }
+        break;
+      }
+      await new Promise(res => setTimeout(res, 4000));
+    }
+  } finally {
+    state.personaPolling = false;
+  }
+}
+
+// 4-D: render the AUDIENCE-indigo badge on a tab.
+function renderPersonaBadgeHtml(badge){
+  if(!badge || !badge.label) return '';
+  return `<div class="persona-pool-badge" style="display:inline-flex;align-items:center;gap:6px;background:#EEF2FF;border:1px solid #6366F1;border-radius:10px;padding:8px 12px;font-size:12px;color:#3730A3;font-weight:600;margin-bottom:12px">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+    <span>${badge.label}</span>
+  </div>`;
 }
 
 // ============ 사용자 프리셋 저장 ============

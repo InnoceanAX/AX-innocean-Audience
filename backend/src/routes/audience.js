@@ -7,8 +7,77 @@ import {
   getDemographics, getLifestyle, getMindset, getInterests, getPurchase,
   listAudienceSources,
 } from "../adapters/audience-public.js";
+import { getBrief, getPersonas, countPersonas } from "../lib/persona-store.js";
+import {
+  aggregateWho, aggregateLife, aggregateMind, aggregateLove, aggregateBuy, aggregateMedia,
+  aggregateAll,
+} from "../lib/persona-aggregator.js";
+import { ensurePersonas, countPersonasForCountry } from "../lib/persona-ensure.js";
+import {
+  buildPersonaPoolBadge, buildGeneratingBadge, buildPublicDataBadge,
+} from "../lib/persona-badge.js";
 
 export const audienceRouter = express.Router();
+
+// ────────────────────────────────────────────────────────────
+// Persona-pool helpers (Step 3)
+// ────────────────────────────────────────────────────────────
+
+const PERSONA_TAB_AGGREGATORS = {
+  who:   aggregateWho,
+  life:  aggregateLife,
+  mind:  aggregateMind,
+  love:  aggregateLove,
+  buy:   aggregateBuy,
+  media: aggregateMedia,
+};
+
+/**
+ * Try to serve a tab from the persona pool.
+ * Returns null if the caller should fall back to public-data.
+ */
+async function maybePersonaPoolPayload(req, tab, code) {
+  const briefId = req.query.briefId ? String(req.query.briefId) : null;
+  if (!briefId) return null;
+  const brief = getBrief(briefId);
+  if (!brief) return null;
+  const cc = code || (brief.countries?.[0] || "KR");
+  const aggregator = PERSONA_TAB_AGGREGATORS[tab];
+  if (!aggregator) return null;
+
+  // If personas missing for this (briefId, country), lazily kick off generation.
+  const have = countPersonasForCountry(briefId, cc);
+  const sizePerCountry = brief.sizePerCountry || 100;
+  if (have < sizePerCountry) {
+    try {
+      await ensurePersonas(briefId, cc, sizePerCountry);
+    } catch (e) {
+      console.warn("[audience] ensurePersonas failed:", e.message);
+    }
+    return {
+      source: "persona-pool",
+      generating: true,
+      briefId,
+      country: cc,
+      count: have,
+      dimension: tab,
+      data: null,
+      badge: buildGeneratingBadge(cc, sizePerCountry),
+    };
+  }
+
+  const personas = getPersonas(briefId, { country: cc });
+  const data = aggregator(personas);
+  return {
+    source: "persona-pool",
+    briefId,
+    country: cc,
+    count: personas.length,
+    dimension: tab,
+    data,
+    badge: buildPersonaPoolBadge([{ code: cc, count: personas.length }]),
+  };
+}
 
 // ============================================================
 // GET /api/audience/who?country=KR
@@ -19,11 +88,18 @@ audienceRouter.get("/who", async (req, res) => {
   const meta = COUNTRIES.find(c => c.code === code);
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
 
+  // Persona-pool first
+  const personaPayload = await maybePersonaPoolPayload(req, "who", code);
+  if (personaPayload) {
+    return res.json({ ok: true, country: meta, ...personaPayload });
+  }
+
   const demo = getDemographics(code);
   const lifestyle = getLifestyle(code);
 
   res.json({
     ok: true,
+    badge: buildPublicDataBadge(code),
     country: meta,
     dimension: "who",
     data: demo ? {
@@ -56,10 +132,16 @@ audienceRouter.get("/life", async (req, res) => {
   const meta = COUNTRIES.find(c => c.code === code);
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
 
+  const personaPayload = await maybePersonaPoolPayload(req, "life", code);
+  if (personaPayload) {
+    return res.json({ ok: true, country: meta, ...personaPayload });
+  }
+
   const life = getLifestyle(code);
 
   res.json({
     ok: true,
+    badge: buildPublicDataBadge(code),
     country: meta,
     dimension: "life",
     data: life ? {
@@ -96,10 +178,16 @@ audienceRouter.get("/mind", async (req, res) => {
   const meta = COUNTRIES.find(c => c.code === code);
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
 
+  const personaPayload = await maybePersonaPoolPayload(req, "mind", code);
+  if (personaPayload) {
+    return res.json({ ok: true, country: meta, ...personaPayload });
+  }
+
   const mind = getMindset(code);
 
   res.json({
     ok: true,
+    badge: buildPublicDataBadge(code),
     country: meta,
     dimension: "mind",
     data: mind ? {
@@ -142,6 +230,11 @@ audienceRouter.get("/love", async (req, res) => {
   const meta = COUNTRIES.find(c => c.code === code);
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
 
+  const personaPayload = await maybePersonaPoolPayload(req, "love", code);
+  if (personaPayload) {
+    return res.json({ ok: true, country: meta, ...personaPayload });
+  }
+
   const love = getInterests(code);
 
   // Top 8 관심사 정렬
@@ -153,6 +246,7 @@ audienceRouter.get("/love", async (req, res) => {
 
   res.json({
     ok: true,
+    badge: buildPublicDataBadge(code),
     country: meta,
     dimension: "love",
     data: love,
@@ -176,10 +270,16 @@ audienceRouter.get("/buy", async (req, res) => {
   const meta = COUNTRIES.find(c => c.code === code);
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
 
+  const personaPayload = await maybePersonaPoolPayload(req, "buy", code);
+  if (personaPayload) {
+    return res.json({ ok: true, country: meta, ...personaPayload });
+  }
+
   const buy = getPurchase(code);
 
   res.json({
     ok: true,
+    badge: buildPublicDataBadge(code),
     country: meta,
     dimension: "buy",
     data: buy ? {
@@ -265,6 +365,38 @@ audienceRouter.get("/sources", async (req, res) => {
 // ============================================================
 audienceRouter.get("/compare", async (req, res) => {
   const codes = String(req.query.countries || "KR,US,JP").toUpperCase().split(",").slice(0, 6);
+
+  // Persona-pool path: if briefId is supplied, aggregate per country from persona pool.
+  const briefId = req.query.briefId ? String(req.query.briefId) : null;
+  if (briefId) {
+    const brief = getBrief(briefId);
+    if (brief) {
+      const perCountry = [];
+      const byCountryBadge = [];
+      for (const code of codes) {
+        const personas = getPersonas(briefId, { country: code });
+        if (personas.length === 0) continue;
+        const meta = COUNTRIES.find(c => c.code === code);
+        perCountry.push({
+          country: meta || { code, name: code },
+          count: personas.length,
+          ...aggregateAll(personas),
+        });
+        byCountryBadge.push({ code, count: personas.length });
+      }
+      if (perCountry.length > 0) {
+        return res.json({
+          ok: true,
+          source: "persona-pool",
+          briefId,
+          countries: perCountry,
+          dimensions: ["who", "life", "mind", "love", "buy", "media"],
+          badge: buildPersonaPoolBadge(byCountryBadge),
+        });
+      }
+    }
+  }
+
   const data = codes.map(code => {
     const meta = COUNTRIES.find(c => c.code === code);
     if (!meta) return null;
@@ -278,7 +410,12 @@ audienceRouter.get("/compare", async (req, res) => {
     };
   }).filter(Boolean);
 
-  res.json({ ok: true, countries: data, dimensions: ["who", "life", "mind", "love", "buy"] });
+  res.json({
+    ok: true,
+    badge: buildPublicDataBadge(null),
+    countries: data,
+    dimensions: ["who", "life", "mind", "love", "buy"],
+  });
 });
 
 // ============================================================
@@ -286,6 +423,44 @@ audienceRouter.get("/compare", async (req, res) => {
 // 전체 지원 국가 × 5차원 매트릭스 (글로벌 비교 매트릭스용)
 // ============================================================
 audienceRouter.get("/compare-all", async (req, res) => {
+  // Persona-pool path for global comparison
+  const briefId = req.query.briefId ? String(req.query.briefId) : null;
+  if (briefId) {
+    const brief = getBrief(briefId);
+    if (brief) {
+      const allPersonas = getPersonas(briefId);
+      if (allPersonas.length > 0) {
+        // Group personas by country code
+        const groups = new Map();
+        for (const p of allPersonas) {
+          const cc = p.country || "??";
+          if (!groups.has(cc)) groups.set(cc, []);
+          groups.get(cc).push(p);
+        }
+        const byCountry = [];
+        const badgeCountries = [];
+        for (const [cc, list] of groups.entries()) {
+          const meta = COUNTRIES.find(c => c.code === cc);
+          byCountry.push({
+            code: cc,
+            name: meta?.name || cc,
+            count: list.length,
+            ...aggregateAll(list),
+          });
+          badgeCountries.push({ code: cc, count: list.length });
+        }
+        return res.json({
+          ok: true,
+          source: "persona-pool",
+          briefId,
+          coverage: byCountry.length,
+          byCountry,
+          badge: buildPersonaPoolBadge(badgeCountries),
+        });
+      }
+    }
+  }
+
   const rows = COUNTRIES.map(c => {
     const code = c.code;
     const who = getDemographics(code);
@@ -350,6 +525,7 @@ audienceRouter.get("/compare-all", async (req, res) => {
 
   res.json({
     ok: true,
+    badge: buildPublicDataBadge(null),
     coverage: supported.length,
     who, life, mind, love, buy,
     sources: {
