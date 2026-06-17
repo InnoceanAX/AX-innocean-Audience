@@ -13,3 +13,4 @@ __pycache__/
 backend/node_modules/
 backend/package-lock.json
 
+backend/data/

@@ -107,11 +107,13 @@ async function generateForCountry(brief, country, sizePerCountry) {
   const briefId = brief.id;
   console.log(`[persona-ensure] starting single-country generation: ${briefId} / ${country}`);
 
+  // M-9 fix (2026-06-17 21:48): brief.targets 적용
   const cohort = buildCohort({
     country,
     size: sizePerCountry,
     seed: `${briefId}:${country}`,
     regions: brief.regions?.[country] || null,
+    targets: brief.targets || null,
   });
 
   const merged = await synthesizeNarratives(cohort, {

@@ -8,7 +8,7 @@ import { Router } from "express";
 import { generateJSON, isGeminiAvailable, searchAndSummarize } from "../adapters/gemini.js";
 import { COUNTRIES } from "../data/countries.js";
 import { getDemographics, getLifestyle, getMindset, getInterests, getPurchase } from "../adapters/audience-public.js";
-import { getCountryAdSpend } from "../adapters/adspend-public.js";
+import { getCountryAdSpend, CHANNEL_SPEND_SHARE_2024 } from "../adapters/adspend-public.js";
 
 
 export const insightAnswerRouter = Router();
@@ -49,9 +49,14 @@ function buildPanelData(country, synthesized, filters) {
     love: synthesized?.love || getInterests(code) || {},
     buy: synthesized?.buy || getPurchase(code) || {},
   };
+  // M-1 fix (2026-06-17 21:43): getCountryAdSpend가 channels 단일 필드를 리턴하지
+  // 않아 out.media 는 항상 누락되던 녹은 코드였음. 이제는 공개 광고비
+  // 지솤 디스트리모림(CHANNEL_SPEND_SHARE_2024)을 직접 주입해 차트셋을 제공한다.
   try {
     const adSpend = getCountryAdSpend(code);
-    if (adSpend && adSpend.channels) out.media = adSpend.channels;
+    if (adSpend) {
+      out.media = adSpend.channels || CHANNEL_SPEND_SHARE_2024;
+    }
   } catch (e) {}
   // CEO 피드백 #5: 필터 기반 패널 변형 — 30대 워킹맘 → 30대 연령대 집중
   out.who = reshapeWhoByFilters(out.who, filters);

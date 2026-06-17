@@ -238,11 +238,13 @@ async function runGeneration(brief) {
     const regionOverride = brief.regions?.[country] || null;
 
     // Stage 1: cohort
+    // M-9 fix (2026-06-17 21:48): brief.targets 적용 (ageBuckets/gender 화이트리스트/오버라이드)
     const cohort = buildCohort({
       country,
       size: brief.sizePerCountry,
       seed: `${briefId}:${country}`,
       regions: regionOverride,
+      targets: brief.targets || null,
     });
     console.log(`[campaign-personas] ${country}: cohort built (${cohort.length})`);
 

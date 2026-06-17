@@ -163,9 +163,12 @@ function buildRegions(demo, overrideRegionNames) {
  * @param {number} opts.size     count (default 100)
  * @param {string} opts.seed     deterministic seed string (default `${briefId}:${country}`)
  * @param {string[]} [opts.regions]  override allowed region names (e.g. CN: ["Shanghai","Hangzhou","Tianjin"])
+ * @param {Object} [opts.targets]    brief.targets override (M-9 fix 2026-06-17 21:47)
+ * @param {string[]} [opts.targets.ageBuckets]  whitelist age buckets (e.g. ["20대","30대"])
+ * @param {string} [opts.targets.gender]        "female" / "male" / "all" — gender override
  * @returns {Array<Object>} attribute personas
  */
-export function buildCohort({ country, size = 100, seed, regions: regionOverride } = {}) {
+export function buildCohort({ country, size = 100, seed, regions: regionOverride, targets } = {}) {
   const cc = String(country || "").toUpperCase();
   const demo = COUNTRY_DEMO[cc] || DEFAULT_DEMO;
   const rng = makeRng(seed || `cohort:${cc}:${size}`);
@@ -173,11 +176,35 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
   const regionList = buildRegions(demo, regionOverride);
   const regionWeights = Object.fromEntries(regionList.map(r => [r.name, r.weight]));
 
+  // M-9 fix: apply brief.targets to Stage 1 cohort generation.
+  // ageBuckets: whitelist filter on demo.ageBucketWeights
+  // gender: override sexRatioFemale (female=1.0, male=0.0, all=keep demo)
+  let ageWeights = demo.ageBucketWeights;
+  if (targets && Array.isArray(targets.ageBuckets) && targets.ageBuckets.length) {
+    const allowSet = new Set(targets.ageBuckets);
+    const filtered = Object.fromEntries(
+      Object.entries(demo.ageBucketWeights).filter(([k]) => allowSet.has(k))
+    );
+    const sum = Object.values(filtered).reduce((a, b) => a + b, 0);
+    if (sum > 0) {
+      // re-normalize to sum=1
+      ageWeights = Object.fromEntries(
+        Object.entries(filtered).map(([k, v]) => [k, v / sum])
+      );
+    }
+  }
+  let femaleRatio = demo.sexRatioFemale;
+  if (targets && typeof targets.gender === "string") {
+    if (targets.gender === "female") femaleRatio = 1.0;
+    else if (targets.gender === "male") femaleRatio = 0.0;
+    // "all" or other → keep demo default
+  }
+
   const out = [];
   for (let i = 0; i < size; i++) {
-    const ageBucket = weightedPick(rng, demo.ageBucketWeights);
+    const ageBucket = weightedPick(rng, ageWeights);
     const age = ageFromBucket(rng, ageBucket);
-    const gender = rng() < demo.sexRatioFemale ? "female" : "male";
+    const gender = rng() < femaleRatio ? "female" : "male";
     const region = weightedPick(rng, regionWeights);
     const incomeQuintile = demo.incomeQuintiles[randInt(rng, 0, demo.incomeQuintiles.length - 1)];
     const occupationKey = weightedPick(rng, demo.occupation);

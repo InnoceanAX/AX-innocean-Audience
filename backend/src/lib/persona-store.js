@@ -37,6 +37,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
+import { downloadDbFromGcs, scheduleDbUpload } from "./persona-gcs.js";
 
 const DB_PATH = process.env.PERSONA_DB_PATH ?? "./data/audience-personas.db";
 const LEGACY_JSON_FILE = process.env.PERSONA_STORE_FILE || "/tmp/innocean-personas.json";
@@ -392,6 +393,7 @@ export function appendPersonas(briefId, items) {
     for (const p of rows) insertPersonaRow(briefId, p);
   });
   tx(items);
+  scheduleDbUpload();
   return countPersonas(briefId);
 }
 
@@ -409,6 +411,7 @@ export function setPersonas(briefIdOrArg1, arg2, arg3) {
       for (const p of items) insertPersonaRow(briefId, p);
     });
     tx();
+    scheduleDbUpload();
     return items.length;
   }
   // task-spec: setPersonas(briefId, country, items[])
@@ -423,6 +426,7 @@ export function setPersonas(briefIdOrArg1, arg2, arg3) {
     }
   });
   tx();
+  scheduleDbUpload();
   return items.length;
 }
 
@@ -491,6 +495,7 @@ export function setInsights(briefIdOrArg1, arg2, arg3, arg4, arg5) {
       }
     });
     tx();
+    scheduleDbUpload();
     return;
   }
   // Task-spec: setInsights(briefId, scope, country, tab, data)
@@ -507,6 +512,7 @@ export function setInsights(briefIdOrArg1, arg2, arg3, arg4, arg5) {
     tab,
     data: JSON.stringify(data),
   });
+  scheduleDbUpload();
 }
 
 // getInsights signatures:
@@ -584,6 +590,7 @@ export function setGenerationState(briefIdOrArg1, arg2, arg3) {
       error: s.error ?? null,
       payload: jsonOrNull(s),
     });
+    scheduleDbUpload();
     return getGenerationState(briefId, country);
   }
   // Brief-level form (legacy): merge with existing payload
@@ -592,6 +599,7 @@ export function setGenerationState(briefIdOrArg1, arg2, arg3) {
   const existing = getGenerationState(briefId) || {};
   const merged = { ...existing, ...patch };
   upsertGenerationRow(briefId, BRIEF_SCOPE_COUNTRY, briefLevelStateToRow(merged));
+  scheduleDbUpload();
   return merged;
 }
 
@@ -638,5 +646,6 @@ export function markCancelled(briefId) {
   return true;
 }
 
-// Eagerly initialize the DB so legacy migration runs at module load.
+// GCS restore → then eagerly initialize the DB so legacy migration runs at module load.
+await downloadDbFromGcs();
 try { getDb(); } catch (e) { console.warn("[persona-store] init deferred:", e.message); }
