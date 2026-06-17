@@ -25,9 +25,19 @@ const INDICATORS = {
   ageDependencyRatio: "SP.POP.DPND",          // 노동가능인구 대비 부양률
 };
 
+// C-1 fix (Chaeyeon 2026-06-17 21:49 → CTO 2026-06-17 21:55):
+//   기존 하드코딩 `date=2018:2023` (5년전·2년전) → 동적 계산으로 전환.
+//   World Bank 키 지표는 일반적으로 1–2년 지연이므로
+//   lookback = (currentYear-5):(currentYear-1) 로 설정, 연간 자동 보정.
+const WB_LOOKBACK_YEARS = 5;
+function wbDateRange() {
+  const y = new Date().getUTCFullYear();
+  return `${y - WB_LOOKBACK_YEARS}:${y - 1}`;
+}
+
 // 단일 국가·지표 최신값 fetch
 async function fetchIndicator(wbCode, indicator) {
-  const url = `${WB_BASE}/country/${wbCode}/indicator/${indicator}?format=json&per_page=10&date=2018:2023`;
+  const url = `${WB_BASE}/country/${wbCode}/indicator/${indicator}?format=json&per_page=10&date=${wbDateRange()}`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`WB ${res.status}`);
