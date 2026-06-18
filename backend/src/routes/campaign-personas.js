@@ -261,12 +261,13 @@ async function runGeneration(brief) {
     console.log(`[campaign-personas] ${country}: cohort built (${cohort.length})`);
 
     // Stage 2: narrative
+    // CEO 2026-06-18 21:34 긴급: batch/concurrency 낮춤 — Vertex AI rate limit 완화
     const merged = await synthesizeNarratives(cohort, {
       brand: brief.brand,
       country,
       countryName,
-      batchSize: 20,
-      concurrency: 5,
+      batchSize: 10,
+      concurrency: 2,
       shouldCancel,
       onBatchDone: (doneInCountry, totalInCountry) => {
         const state = getGenerationState(briefId) || {};

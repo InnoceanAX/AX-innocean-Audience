@@ -259,7 +259,7 @@ async function runOneBatch(batch, opts) {
       schema: NARRATIVE_SCHEMA,
       model: "gemini-2.5-flash",
       temperature: 0.7,
-      maxOutputTokens: 32768,
+      maxOutputTokens: 16384,
     });
     if (!result.json?.personas || !Array.isArray(result.json.personas) || result.json.personas.length === 0) {
       throw new Error("Bad LLM output");
@@ -323,8 +323,8 @@ export async function synthesizeNarratives(attrPersonas, opts = {}) {
     brand = "Musinsa",
     country = "KR",
     countryName = "South Korea",
-    batchSize = 20,
-    concurrency = 5,
+    batchSize = 10,
+    concurrency = 2,
     onBatchDone = null,
     shouldCancel = () => false,
   } = opts;
