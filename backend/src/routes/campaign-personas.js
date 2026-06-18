@@ -262,6 +262,8 @@ async function runGeneration(brief) {
 
     // Stage 2: narrative
     // CEO 2026-06-18 21:34 긴급: batch/concurrency 낮춤 — Vertex AI rate limit 완화
+    // CEO 2026-06-18 22:30 긴급: batch 단위 DB commit + GCS force upload → SIGTERM 휠발 방지
+    let { forceDbUpload } = await import("../lib/persona-gcs.js");
     const merged = await synthesizeNarratives(cohort, {
       brand: brief.brand,
       country,
@@ -276,9 +278,22 @@ async function runGeneration(brief) {
         const done = Object.values(byCountry).reduce((s, n) => s + n, 0);
         setGenerationState(briefId, { byCountry, done });
       },
+      onBatchPersist: async (batchMerged, meta) => {
+        // batch 끝날 때마다 DB 즉시 저장 + GCS upload → SIGTERM 시점에도 존재한 batch는 보존
+        try {
+          appendPersonas(briefId, batchMerged);
+          // GCS upload는 매번 하지 않고 batch 5개마다 (rate limit 완화)
+          if (meta.batchIdx % 5 === 4 || meta.batchIdx === meta.batchCount - 1) {
+            await forceDbUpload(`batch-${country}-${meta.batchIdx + 1}/${meta.batchCount}`);
+          }
+        } catch (e) {
+          console.warn(`[campaign-personas] batch persist failed (${country}, batch ${meta.batchIdx}): ${e.message}`);
+        }
+      },
     });
 
-    appendPersonas(briefId, merged);
+    // appendPersonas 이미 onBatchPersist에서 호출됨 — 중복 방지 위해 skip
+    // appendPersonas(briefId, merged);
 
     // Mark this country as fully done (even if a batch fell back)
     const state = getGenerationState(briefId) || {};

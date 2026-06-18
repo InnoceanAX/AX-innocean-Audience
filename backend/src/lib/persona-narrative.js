@@ -326,6 +326,7 @@ export async function synthesizeNarratives(attrPersonas, opts = {}) {
     batchSize = 10,
     concurrency = 2,
     onBatchDone = null,
+    onBatchPersist = null, // CEO 2026-06-18 22:30 긴급: batch 단위 DB commit
     shouldCancel = () => false,
   } = opts;
 
@@ -367,6 +368,11 @@ export async function synthesizeNarratives(attrPersonas, opts = {}) {
       }
       doneCount += batch.length;
       console.log(`[narrative] ${country}: batch ${idx + 1}/${batches.length} done (${doneCount}/${attrPersonas.length})`);
+      // CEO 2026-06-18 22:30 긴급: batch 단위 즉시 persist → SIGTERM 시 휠발 방지
+      if (onBatchPersist && results[idx] && results[idx].length) {
+        try { await onBatchPersist(results[idx], { country, batchIdx: idx, batchCount: batches.length }); }
+        catch (e) { console.warn(`[narrative] onBatchPersist failed (${country}, batch ${idx}): ${e.message}`); }
+      }
       if (onBatchDone) onBatchDone(doneCount, attrPersonas.length);
     }
   }
