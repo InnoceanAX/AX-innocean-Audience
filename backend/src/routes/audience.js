@@ -16,6 +16,7 @@ import { ensurePersonas, countPersonasForCountry } from "../lib/persona-ensure.j
 import {
   buildPersonaPoolBadge, buildGeneratingBadge, buildPublicDataBadge,
 } from "../lib/persona-badge.js";
+import { buildSummaryOverview } from "../lib/narrative-helper.js";
 
 export const audienceRouter = express.Router();
 
@@ -1150,6 +1151,47 @@ audienceRouter.get("/persona-pool-summary", async (req, res) => {
     });
   } catch (err) {
     console.error("[persona-pool-summary] error:", err);
+    res.status(500).json({ ok: false, error: String(err && err.message || err) });
+  }
+});
+// ────────────────────────────────────────────────────────────
+// 6차원 포멀 요약 카드 — CEO 2026-06-18 v4 (옵션 Z)
+// ────────────────────────────────────────────────────────────
+audienceRouter.get("/summary-overview", async (req, res) => {
+  try {
+    const country = String(req.query.country || "KR").toUpperCase();
+    const briefId = req.query.brief_id ? String(req.query.brief_id) : null;
+
+    const VALID = ["KR", "JP", "CN", "TW", "TH", "PH"];
+    if (!VALID.includes(country)) {
+      return res.status(400).json({ ok: false, error: `Invalid country: ${country}` });
+    }
+
+    let personas = [];
+    if (briefId) {
+      try { personas = getPersonas(briefId, country) || []; } catch (e) { personas = []; }
+    }
+
+    const baseline = {
+      demographics: getDemographics(country),
+      lifestyle: getLifestyle(country),
+      mindset: getMindset(country),
+      interests: getInterests(country),
+      purchase: getPurchase(country),
+    };
+
+    const brief = briefId ? getBrief(briefId) : null;
+    const briefMeta = brief ? {
+      priorityInterestKeys: brief.priorityInterestKeys || ["fashionInterest", "kCultureExposure", "kFashionInterest"],
+      interestLabelMap: brief.interestLabelMap || {},
+    } : {};
+
+    const result = buildSummaryOverview({ country, personas, baseline, briefMeta });
+    result.brief_id = briefId || null;
+
+    res.json(result);
+  } catch (err) {
+    console.error("[summary-overview] error:", err);
     res.status(500).json({ ok: false, error: String(err && err.message || err) });
   }
 });
