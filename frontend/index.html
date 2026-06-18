@@ -3761,8 +3761,9 @@ function renderMediaTree(data){
   let html = '';
   for(const ch of data.tree){
     const chColor = chColors[ch.id] || '#4F46E5';
-    const statBadge = ch.statista ? `<span class="md-ch-tag md-ch-tag-st" title="Statista AMO 공식 세그먼트">Statista: ${ch.statista}</span>` : '';
-    const gwiBadge = (ch.gwi && ch.gwi.length) ? `<span class="md-ch-tag md-ch-tag-gwi" title="GWI 미디어 행동 카테고리">GWI: ${ch.gwi.join(' · ')}</span>` : '';
+    // CEO 2026-06-18 14:07: 카테고리별 Statista/GWI 라벨은 상단 "데이터 소스 활성:" 줄에 이미 표시됨 → 제거
+    const statBadge = '';
+    const gwiBadge = '';
     html += `<div class="md-ch-card" style="border-top:3px solid ${chColor}">
       <div class="md-ch-h">
         <div>
@@ -6788,7 +6789,7 @@ function renderSynthSegment(dim){
         <div><div style="font-size:10.5px;color:var(--tm);font-weight:700;margin-bottom:2px">음악</div>${musCh}</div>
         <div><div style="font-size:10.5px;color:var(--tm);font-weight:700;margin-bottom:2px">콘텐츠</div>${conCh}</div>
       </div>
-      <div style="font-size:11px;color:var(--tm);font-weight:700;margin:4px 0">타갟 추정 셀럽·IP</div>
+      <div style="font-size:11px;color:var(--tm);font-weight:700;margin:4px 0">타겟 추정 셀럽·IP</div>
       <div>${celCh || '-'}</div>
     </div>`;
   } else if(dim === 'buy'){
