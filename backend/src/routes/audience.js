@@ -7,6 +7,7 @@ import {
   getDemographics, getLifestyle, getMindset, getInterests, getPurchase, getSourceMeta,
   listAudienceSources,
 } from "../adapters/audience-public.js";
+import { applyMapping, getMappingRuleSet } from "../lib/dimension-mapping.js";
 import { getBrief, getPersonas, countPersonas } from "../lib/persona-store.js";
 import {
   aggregateWho, aggregateLife, aggregateMind, aggregateLove, aggregateBuy, aggregateMedia,
@@ -81,6 +82,27 @@ async function maybePersonaPoolPayload(req, tab, code) {
   };
   const baselineRef = baselineRefByTab[tab] || null;
 
+  // 구현 D (2026-06-18, Phase 1f): 명시적 매핑 + 가중 평균 결과 동봉.
+  //   페르소나 풀 산출값과 매핑 산출값을 양측 노출 → 광고주 검증 가능.
+  //   매핑 부재 dim/field는 result.values[field] = null.
+  let mappingResult = null;
+  const mappingRuleSet = getMappingRuleSet(tab);
+  if (mappingRuleSet) {
+    try {
+      const baselines = {
+        demographics: getDemographics(cc),
+        lifestyle: getLifestyle(cc),
+        mindset: getMindset(cc),
+        interests: getInterests(cc),
+        purchase: getPurchase(cc),
+        adspend: null, // ADSPEND adapter 통합은 Phase 1g 백로그
+      };
+      mappingResult = applyMapping(cc, baselines, mappingRuleSet);
+    } catch (e) {
+      console.warn("[audience] applyMapping failed:", e.message);
+    }
+  }
+
   return {
     source: "persona-pool",
     briefId,
@@ -91,6 +113,11 @@ async function maybePersonaPoolPayload(req, tab, code) {
     baselineRef: baselineRef ? {
       ...baselineRef,
       note: "원천 통계 참조 (페르소나 풀과 독립). 광고주가 양쪽 검증 가능.",
+    } : null,
+    mapping: mappingResult ? {
+      values: mappingResult.values,
+      sources: mappingResult.sources,
+      note: "BASELINE 5dim → 페르소나 6dim 명시적 매핑 + 가중 평균. CEO 정직성 정책에 따라 매핑 규칙은 코드 상수에 노출됨.",
     } : null,
     badge: buildPersonaPoolBadge([{ code: cc, count: personas.length }], { tab, briefId }),
   };
