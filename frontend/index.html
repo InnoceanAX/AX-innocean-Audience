@@ -6577,7 +6577,7 @@ async function refreshSummaryTab(){
   if(baselineHd){
     baselineHd.innerHTML = `<div class="sm-section-hd sm-section-hd-baseline">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
-      <span>📊 ${country?.name || state.currentCountry || '국가'} 시장 베이스라인 — 공개 통계 · 국가 전체 인구 기준 (빌더 필터 미적용)</span>
+      <span>${country?.name || state.currentCountry || '국가'} 시장 베이스라인 — 공개 통계 · 국가 전체 인구 기준 (빌더 필터 미적용)</span>
       <span class="sm-section-meta">Baseline</span>
     </div>`;
   }
@@ -6588,8 +6588,8 @@ async function refreshSummaryTab(){
     // CEO 2026-06-18 단계 B: 풀 우선 + baseline fallback (옵션 Z)
     const pool = state.poolSummary || null;
     const hasPool = pool && (pool.n > 0);
-    const _srcPool = `<span style="display:inline-block;font-size:9.5px;color:#4338CA;background:#EEF2FF;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">📊 풀 n=${pool?.n || 0}</span>`;
-    const _srcBaseline = '<span style="display:inline-block;font-size:9.5px;color:#6B7280;background:#F3F4F6;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">🌐 국가 baseline</span>';
+    const _srcPool = `<span style="display:inline-block;font-size:9.5px;color:#4338CA;background:#EEF2FF;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">풀 n=${pool?.n || 0}</span>`;
+    const _srcBaseline = '<span style="display:inline-block;font-size:9.5px;color:#6B7280;background:#F3F4F6;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">국가 baseline</span>';
 
     if(hasPool){
       // 빌더 기준 KPI — 채연씨 schema 확정 19:08 (narrative-helper.js extractDimStats):
@@ -6642,37 +6642,37 @@ async function refreshSummaryTab(){
     const topCat = buy.topCategories ? Object.entries(buy.topCategories).sort((a,b)=>b[1]-a[1])[0] : null;
     const topMedia = c.who && c.life ? '' : '';
     dims.innerHTML = `
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: World Bank 2024-2025 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">🌐 국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: DataReportal 2026 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">🌐 국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg><div class="sm-dim-t">가치관</div><button class="sm-dim-more" onclick="switchTab('mind')">자세히 →</button></div><div class="sm-dim-stat">신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Reuters DNR 2026 + Hofstede <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">🌐 국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">Top 3: <b>${top3 || '—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: audience-public baseline 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">🌐 국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Statista + audience-public 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">🌐 국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: World Bank 2024-2025 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: DataReportal 2026 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg><div class="sm-dim-t">가치관</div><button class="sm-dim-more" onclick="switchTab('mind')">자세히 →</button></div><div class="sm-dim-stat">신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Reuters DNR 2026 + Hofstede <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">Top 3: <b>${top3 || '—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: audience-public baseline 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Statista + audience-public 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
       ${(function(){
         // CEO 2026-06-18 19:05: 미디어 카드도 다른 5개와 동일 footer 구조 (출처 + 뱃지 분리)
         const pool = state.poolSummary?.byTab?.media;
-        let stat = '', src = '', badge = '🌐 국가 baseline', badgeStyle = 'background:#F3F4F6;color:#6B7280';
+        let stat = '', src = '', badge = '국가 baseline', badgeStyle = 'background:#F3F4F6;color:#6B7280';
         if(pool && pool.channels?.length){
           const top = pool.channels[0];
           const totalAvg = pool.channels.reduce((s,c)=>s+(c.avgHoursPerDay||0),0).toFixed(1);
           stat = `Top 채널 <b>${top.channel}</b> · 일평균 <b>${totalAvg}h</b> · 채널 ${pool.channels.length}개`;
           src = `AI 합성 페르소나 풀 (n=${pool.total})`;
-          badge = `📊 풀 n=${pool.total}`;
+          badge = `풀 n=${pool.total}`;
           badgeStyle = 'background:#EEF2FF;color:#4338CA';
         } else if(state.mediaCache?.spend){
           const sp = state.mediaCache.spend;
           stat = `연 추정 광고비 <b>$${sp.totalEstimatedB}B</b> · 채널 ${sp.channels?.length || 0}개`;
           src = '광고비 시장 자료 2024';
-          badge = '🌐 광고시장 baseline';
+          badge = '광고시장 baseline';
         } else {
           const dig = life.digital;
           if(dig){
             stat = `인터넷 <b>${dig.avgInternetHours?.toFixed(1) || '—'}h/일</b> · TV <b>${dig.avgTVHours?.toFixed(1) || '—'}h/일</b>`;
             src = 'DataReportal Digital 2026';
-            badge = '🌐 DataReportal baseline';
+            badge = 'DataReportal baseline';
           } else {
-            stat = `<span style="color:#DC2626;font-size:11px;font-weight:600">⚠️ 데이터 부재 — 풀/광고비/라이프 모두 미수신</span>`;
+            stat = `<span style="color:#DC2626;font-size:11px;font-weight:600">데이터 부재 — 풀/광고비/라이프 모두 미수신</span>`;
             src = '데이터 미수신';
-            badge = '⚠️ baseline 부재';
+            badge = 'baseline 부재';
             badgeStyle = 'background:#FEF2F2;color:#DC2626';
           }
         }
@@ -6684,7 +6684,7 @@ async function refreshSummaryTab(){
   if(targetHd){
     targetHd.innerHTML = `<div class="sm-section-hd sm-section-hd-target">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-      <span>🎯 내 타겟 세그먼트 — AI 합성 추정</span>
+      <span>내 타겟 세그먼트 — AI 합성 추정</span>
       <span class="sm-section-meta" id="sm-target-meta">Target · n=—</span>
     </div>`;
   }
