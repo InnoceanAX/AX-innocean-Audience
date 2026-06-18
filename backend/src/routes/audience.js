@@ -1009,36 +1009,70 @@ audienceRouter.post("/synthesize", async (req, res) => {
 });
 
 // ────────────────────────────────────────────────────────────
-// NEW: persona-pool-summary
-// CEO 2026-06-18 11:20 — 요약탭 옵션 D
-// baseline (국가 전체 공개 통계) vs target (페르소나 풀 평균) + delta + 95% CI + significance
+// NEW: persona-pool-summary (DYNAMIC — CEO 2026-06-18 11:31)
+// 범용 솔루션 구조: 무신사/패션 특정 차원 박제 X
+// 모든 베이스라인 매핑 가능 차원 + 페르소나 풀 키 자동 추출
+// 광고주가 빌더에서 설정한 state.filters 키 우선 노출
 // ────────────────────────────────────────────────────────────
 audienceRouter.get("/persona-pool-summary", async (req, res) => {
   try {
     const country = String(req.query.country || "").toUpperCase();
     const briefId = String(req.query.brief_id || "");
+    const focusKeys = String(req.query.focus || "").split(",").map(s => s.trim()).filter(Boolean);
     if (!country) return res.status(400).json({ ok: false, error: "country required" });
 
-    // 1) Baseline (공개 통계)
+    // 1) Baseline (공개 통계 — 모든 매핑 가능 키)
     const demo = getDemographics(country) || {};
     const interests = getInterests(country) || {};
     const lifestyle = getLifestyle(country) || {};
     const buy = getPurchase(country) || {};
+    const mindset = getMindset(country) || {};
 
-    const baseline = {
-      medianAge: demo.medianAge ?? null,
-      urbanRate: demo.urbanRate ?? null,
-      fashion: interests.fashion ?? null,
-      beauty: interests.beauty ?? null,
-      finance: interests.finance ?? null,
-      kpop: interests.kpop ?? null,
-      drama: interests.drama ?? null,
-      technology: interests.technology ?? null,
-      internetPenetration: lifestyle?.digital?.internetPenetration ?? null,
-      ecommerceShare: buy?.ecommerce?.shareOfRetail ?? null,
+    // 베이스라인 카탈로그 — 페르소나 키 ↔ 공개 통계 매핑
+    // 카테고리: demographics / interests / lifestyle / purchase / mindset
+    // group: dim group 라벨 (인물상/관심사/라이프스타일/구매/가치관)
+    const baselineCatalog = {
+      // === DEMOGRAPHICS ===
+      age:               { label: "평균 연령", unit: "세", baseline: demo.medianAge, group: "인물상" },
+      urbanRate:         { label: "도시화율", unit: "%",  baseline: demo.urbanRate, group: "인물상" },
+      dependencyRatio:   { label: "부양비",    unit: "",   baseline: demo.dependencyRatio, group: "인물상" },
+      // === INTERESTS (페르소나 fashionInterest + 추가 키 18개) ===
+      fashionInterest:   { label: "패션 관심도",     baseline: interests.fashion, group: "관심사" },
+      beautyInterest:    { label: "뷰티 관심도",     baseline: interests.beauty, group: "관심사" },
+      financeInterest:   { label: "금융 관심도",     baseline: interests.finance, group: "관심사" },
+      musicInterest:     { label: "음악 관심도",     baseline: interests.music, group: "관심사" },
+      sportsInterest:    { label: "스포츠 관심도",   baseline: interests.sports, group: "관심사" },
+      gamingInterest:    { label: "게이밍 관심도",   baseline: interests.gaming, group: "관심사" },
+      fitnessInterest:   { label: "피트니스 관심도", baseline: interests.fitness, group: "관심사" },
+      cookingInterest:   { label: "요리 관심도",     baseline: interests.cooking, group: "관심사" },
+      travelInterest:    { label: "여행 관심도",     baseline: interests.travel, group: "관심사" },
+      photoInterest:     { label: "사진 관심도",     baseline: interests.photography, group: "관심사" },
+      techInterest:      { label: "기술 관심도",     baseline: interests.technology, group: "관심사" },
+      parentingInterest: { label: "육아 관심도",     baseline: interests.parenting, group: "관심사" },
+      automotiveInterest:{ label: "자동차 관심도",   baseline: interests.automotive, group: "관심사" },
+      petsInterest:      { label: "반려동물 관심도", baseline: interests.pets, group: "관심사" },
+      sustainabilityInterest: { label: "지속가능성 관심도", baseline: interests.sustainability, group: "관심사" },
+      foodInterest:      { label: "음식 관심도",     baseline: interests.food, group: "관심사" },
+      kpopInterest:      { label: "K-pop 관심도",    baseline: interests.kpop, group: "관심사" },
+      dramaInterest:     { label: "드라마 관심도",   baseline: interests.drama, group: "관심사" },
+      kCultureExposure:  { label: "K-컬처 노출도",   baseline: interests.kpop, group: "관심사" }, // 페르소나 키
+      kFashionInterest:  { label: "K-패션 관심도",   baseline: interests.fashion, group: "관심사" },
+      // === LIFESTYLE ===
+      internetPenetration: { label: "인터넷 보급률", unit: "%", baseline: lifestyle?.digital?.internetPenetration, group: "라이프스타일" },
+      socialMediaUsers:    { label: "SNS 사용자 비율", unit: "%", baseline: lifestyle?.digital?.socialMediaUsers, group: "라이프스타일" },
+      smartphoneUsers:     { label: "스마트폰 사용 비율", unit: "%", baseline: lifestyle?.digital?.smartphoneUsers, group: "라이프스타일" },
+      // === PURCHASE ===
+      ecommerceShare:    { label: "이커머스 비중", unit: "%", baseline: buy?.ecommerce?.shareOfRetail, group: "구매" },
+      mobileCommerce:    { label: "모바일 커머스 비중", unit: "%", baseline: buy?.ecommerce?.mobileShare, group: "구매" },
+      // === MINDSET (Hofstede 등 — 베이스라인은 국가 값) ===
+      individualism:     { label: "개인주의 지수",   baseline: mindset?.hofstede?.individualism, group: "가치관" },
+      powerDistance:     { label: "권력 격차 지수",  baseline: mindset?.hofstede?.powerDistance, group: "가치관" },
+      uncertaintyAvoid:  { label: "불확실성 회피", baseline: mindset?.hofstede?.uncertaintyAvoidance, group: "가치관" },
+      // === Persona-only (베이스라인 없음, target only) ===
+      priceSensitivityPrior: { label: "가격 민감도", baseline: null, group: "구매", note: "베이스라인 비교 미가용 (페르소나 풀 추정치)" },
     };
 
-    // 2) Target (페르소나 풀 평균)
+    // 2) Target (페르소나 풀 평균 — 페르소나가 실제 가진 키만)
     let personas = [];
     if (briefId) {
       try { personas = getPersonas(briefId, country) || []; } catch (e) { personas = []; }
@@ -1051,104 +1085,67 @@ audienceRouter.get("/persona-pool-summary", async (req, res) => {
       const variance = arr.reduce((s, v) => s + (v - mean) ** 2, 0) / arr.length;
       return { mean, std: Math.sqrt(variance) };
     }
-
-    function ci95(std, n) {
-      if (!std || n < 2) return null;
-      return 1.96 * std / Math.sqrt(n);
-    }
-
+    function ci95(std, n) { if (!std || n < 2) return null; return 1.96 * std / Math.sqrt(n); }
     function significance(delta, ci) {
       if (delta == null || ci == null) return null;
       const abs = Math.abs(delta);
-      if (abs >= ci && abs >= 10) return "high"; // ★ p<.05
-      if (abs >= 5) return "low";                  // △ p<.10
-      return "none";                                // · n.s.
+      if (abs >= ci && abs >= 10) return "high";
+      if (abs >= 5) return "low";
+      return "none";
     }
 
-    // Extract per-dimension target arrays
-    const extract = (key) => personas.map(p => Number(p[key])).filter(v => !isNaN(v));
+    // 페르소나 풀의 실제 numeric 키 자동 추출
+    function extractKey(key) {
+      return personas.map(p => Number(p[key])).filter(v => !isNaN(v));
+    }
+
+    // 모든 베이스라인 카탈로그 키에 대해 페르소나 풀 값 가능 여부 확인 + delta 계산
     const dims = {};
-
-    if (n) {
-      const fashion = extract("fashionInterest");
-      const kculture = extract("kCultureExposure");
-      const ages = extract("age");
-      const priceSens = extract("priceSensitivityPrior");
-
-      const ms_fashion = meanStd(fashion);
-      const ms_kculture = meanStd(kculture);
-      const ms_age = meanStd(ages);
-      const ms_price = meanStd(priceSens);
-
-      dims.fashionInterest = {
-        label: "패션 관심도",
-        baseline: baseline.fashion,
-        target: ms_fashion.mean != null ? Math.round(ms_fashion.mean * 10) / 10 : null,
-        delta: (baseline.fashion != null && ms_fashion.mean != null)
-          ? Math.round((ms_fashion.mean - baseline.fashion) * 10) / 10 : null,
-        std: ms_fashion.std != null ? Math.round(ms_fashion.std * 100) / 100 : null,
-        ci: ci95(ms_fashion.std, n) != null ? Math.round(ci95(ms_fashion.std, n) * 10) / 10 : null,
-        n,
-      };
-
-      dims.kCultureExposure = {
-        label: "K-컬처 노출도",
-        baseline: baseline.kpop,
-        target: ms_kculture.mean != null ? Math.round(ms_kculture.mean * 10) / 10 : null,
-        delta: (baseline.kpop != null && ms_kculture.mean != null)
-          ? Math.round((ms_kculture.mean - baseline.kpop) * 10) / 10 : null,
-        std: ms_kculture.std != null ? Math.round(ms_kculture.std * 100) / 100 : null,
-        ci: ci95(ms_kculture.std, n) != null ? Math.round(ci95(ms_kculture.std, n) * 10) / 10 : null,
-        n,
-      };
-
-      dims.age = {
-        label: "평균 연령",
-        baseline: baseline.medianAge,
-        target: ms_age.mean != null ? Math.round(ms_age.mean * 10) / 10 : null,
-        delta: (baseline.medianAge != null && ms_age.mean != null)
-          ? Math.round((ms_age.mean - baseline.medianAge) * 10) / 10 : null,
-        std: ms_age.std != null ? Math.round(ms_age.std * 100) / 100 : null,
-        ci: ci95(ms_age.std, n) != null ? Math.round(ci95(ms_age.std, n) * 10) / 10 : null,
-        n,
-        unit: "세",
-      };
-
-      dims.priceSensitivityPrior = {
-        label: "가격 민감도",
-        baseline: null, // 베이스라인 없음
-        target: ms_price.mean != null ? Math.round(ms_price.mean * 10) / 10 : null,
-        delta: null,
-        std: ms_price.std != null ? Math.round(ms_price.std * 100) / 100 : null,
-        ci: ci95(ms_price.std, n) != null ? Math.round(ci95(ms_price.std, n) * 10) / 10 : null,
-        n,
-        note: "베이스라인 비교 미가용 (페르소나 풀 추정치)",
-      };
+    const personaNumericKeys = new Set();
+    if (personas.length) {
+      const sample = personas[0];
+      for (const k of Object.keys(sample)) {
+        if (typeof sample[k] === "number") personaNumericKeys.add(k);
+      }
     }
 
-    // Apply significance to each dim
-    Object.keys(dims).forEach(k => {
-      const d = dims[k];
-      d.significance = significance(d.delta, d.ci);
-    });
+    for (const key of Object.keys(baselineCatalog)) {
+      const cat = baselineCatalog[key];
+      let target = null, std = null, ci = null;
+      if (personaNumericKeys.has(key)) {
+        const arr = extractKey(key);
+        const ms = meanStd(arr);
+        target = ms.mean != null ? Math.round(ms.mean * 10) / 10 : null;
+        std = ms.std != null ? Math.round(ms.std * 100) / 100 : null;
+        const ciVal = ci95(ms.std, n);
+        ci = ciVal != null ? Math.round(ciVal * 10) / 10 : null;
+      }
+      // 베이스라인 없고 target도 없으면 스킵
+      if (cat.baseline == null && target == null) continue;
+      const delta = (cat.baseline != null && target != null) ? Math.round((target - cat.baseline) * 10) / 10 : null;
+      const sig = significance(delta, ci);
+      dims[key] = {
+        label: cat.label, unit: cat.unit || null, group: cat.group,
+        baseline: cat.baseline, target, delta, std, ci, n,
+        significance: sig, note: cat.note || null,
+      };
+    }
 
     res.json({
-      ok: true,
-      country,
-      brief_id: briefId || null,
-      n,
-      baseline,
+      ok: true, country, brief_id: briefId || null, n,
       dimensions: dims,
+      focusKeys, // 광고주가 빌더에서 설정한 키 (frontend에서 우선 표시)
       meta: {
         source: "공개 통계 (audience-public) vs AI 합성 페르소나 풀 평균",
         generatedAt: new Date().toISOString(),
         ciMethod: "95% normal-approx",
         significanceThresholds: {
-          high: "|delta| ≥ max(CI, 10) — ★ p<.05 (강한 차이)",
-          low: "|delta| ≥ 5 (약한 차이)",
-          none: "|delta| < 5 — 거의 같음",
+          high: "|delta| ≥ max(CI, 10) — ★ p<.05",
+          low: "|delta| ≥ 5",
+          none: "|delta| < 5",
         },
-        nWarning: n < 30 ? "표본 부족 (n<30) — 추정치 신뢰성 낮음" : null,
+        nWarning: n > 0 && n < 30 ? "표본 부족 (n<30)" : null,
+        totalAvailable: Object.keys(dims).length,
       },
     });
   } catch (err) {

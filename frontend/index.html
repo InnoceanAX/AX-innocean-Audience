@@ -6317,7 +6317,31 @@ async function refreshSummaryTab(){
           return;
         }
         const cards = [];
-        const order = ['fashionInterest', 'kCultureExposure', 'age', 'priceSensitivityPrior'];
+        // 동적 차원 추출 (CEO 2026-06-18 11:31 — 구체 솔루션, 무신사 박제 X)
+        // 1) 광고주가 빌더에서 설정한 state.filters 우선
+        // 2) target이 있는 차원을 significance(★ > △ > ·) × |delta| 내림차순
+        const focusKeys = Array.from(new Set([
+          ...((state.filters && Object.keys(state.filters)) || []),
+          ...(d.focusKeys || []),
+        ]));
+        const allKeys = Object.keys(d.dimensions || {});
+        const sigRank = { high: 3, low: 2, none: 1, null: 0 };
+        // 표시 차원 = focusKeys 차원 중 target 있는 것 + 그 밖 상위 N개
+        const withTarget = allKeys.filter(k => d.dimensions[k].target != null);
+        // 정렬 키셋
+        const sorted = withTarget.sort((a, b) => {
+          const af = focusKeys.includes(a) ? 1 : 0;
+          const bf = focusKeys.includes(b) ? 1 : 0;
+          if (af !== bf) return bf - af;
+          const sa = sigRank[d.dimensions[a].significance] || 0;
+          const sb = sigRank[d.dimensions[b].significance] || 0;
+          if (sa !== sb) return sb - sa;
+          const da = Math.abs(d.dimensions[a].delta || 0);
+          const db = Math.abs(d.dimensions[b].delta || 0);
+          return db - da;
+        });
+        const TOP = 8;
+        const order = sorted.slice(0, TOP);
         for (const key of order) {
           const dim = d.dimensions[key]; if (!dim) continue;
           const sig = dim.significance || 'none';
