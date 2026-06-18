@@ -102,26 +102,63 @@ function competitorsFor(country) {
   return LOCAL_COMPETITORS[country] || ["LocalBrand A", "LocalBrand B", "LocalBrand C"];
 }
 
+// CEO 2026-06-18 21:34 긴급: fallback 단일 quote/tags 다양화 (hash 기반 deterministic 분산)
+const FALLBACK_QUOTES = [
+  "K-패션이 요즘 제일 재밌어요. 어디서 사야 진짜인지 알고 싶어요.",
+  "트렌디한 옷을 찾으면서도 가성비는 놓치고 싶지 않아요.",
+  "개성 있으면서도 고급스러운 룩을 만드는 게 취미예요.",
+  "무신사에서 새로운 브랜드 발견하는 게 스트레스 해소예요.",
+  "소셜 피드에서 본 옷, 실제로 입어보고 싶어요.",
+  "한국 연예인들 입는 스타일, 이게 진짜 트렌드죠.",
+  "편한데 멋있게 입고 싶은 게 제일 중요해요.",
+  "온라인에서 사다가 실패한 적 많아서, 이제는 리뷰 꼼꼼히 봐요.",
+];
+const FALLBACK_JOBS = [
+  ["오늘의 K-패션 트렌드를 빠르게 파악하기", "내 체형/스타일에 맞는 K-브랜드 찾기", "합리적인 가격으로 K-패션 구매하기"],
+  ["온/오프 종합 코디 점검", "일상복 + 워드로브 조합", "한정판/콜라보 소식 선점"],
+  ["멤버십/적립 혜택 최대화", "주말 핫한 OOTD 소재 확보", "소셜용 셀카 무드 만들기"],
+  ["트렌드와 내 취향의 균형 찾기", "환경/윤리 부담 적은 브랜드 선택", "장기 착용 가능한 고품질 아이템"],
+];
+const FALLBACK_PAINS = [
+  ["현지 사이즈/배송 정보가 부족함", "가품/카피 브랜드 구분이 어려움"],
+  ["고객 리뷰가 적어 실패 리스크 큼", "교환/환불 절차가 복잡"],
+  ["국내 배송비 발생, 국제 배송 시간 길음", "알림 광고가 많아서 지침"],
+  ["코디 추천이 출처 불분명", "동일 상품 가격 편차 커서 선택 장애"],
+];
+const FALLBACK_LIFESTYLES = [
+  ["OOTD", "주말 카페", "K-드라마 시청", "친구와 쇼핑", "셀카"],
+  ["러닝/필라테스", "근교 여행", "홈카페", "플레이리스트 큐레이션", "미니멀 정리"],
+  ["전시/공연", "새 브랜드 탐색", "빈티지 마켓", "라이프스타일 매거진", "독립서점"],
+  ["홈트 + 식단", "파드캐스트 청취", "슬로우 라이프", "우정 시간 우선", "감성 일상 기록"],
+  ["반려동물 케어", "드라이브", "새 카페 발굴", "OOTD 기록", "빈티지 수집"],
+  ["e커머스 쇼핑", "브이로그 감상", "운동 루틴", "공구 활용", "가족 외식"],
+];
+const FALLBACK_VALUES = [
+  ["자기표현", "트렌드 감각", "가성비", "지속가능", "커뮤니티"],
+  ["실용성", "품질", "신뢰", "효율", "가족"],
+  ["개성", "독창성", "최신 트렌드", "소셜 노출", "자존감"],
+  ["윤리소비", "지역 우선", "공정 거래", "환경", "발자취"],
+];
+
+function _pickByHash(arr, key, salt) {
+  const h = Math.abs(hashStr(`${key}:${salt}`));
+  return arr[h % arr.length];
+}
+
 // Fallback narrative when LLM unavailable or batch fails
 function fallbackNarrative(p) {
   const styleIdx = Math.abs(hashStr(p.persona_id)) % SHOPPING_STYLES.length;
   const shopping = SHOPPING_STYLES[styleIdx];
+  const pid = p.persona_id || `${p.country}:0`;
   return {
     persona_id: p.persona_id,
-    quote: "K-패션이 요즘 제일 재밌어요. 어디서 사야 진짜인지 알고 싶어요.",
-    jobs_to_be_done: [
-      "오늘의 K-패션 트렌드를 빠르게 파악하기",
-      "내 체형/스타일에 맞는 K-브랜드 찾기",
-      "합리적인 가격으로 K-패션 구매하기",
-    ],
-    pain_points: [
-      "현지 사이즈/배송 정보가 부족함",
-      "가품/카피 브랜드 구분이 어려움",
-    ],
+    quote: _pickByHash(FALLBACK_QUOTES, pid, "q"),
+    jobs_to_be_done: _pickByHash(FALLBACK_JOBS, pid, "j"),
+    pain_points: _pickByHash(FALLBACK_PAINS, pid, "p"),
     media_diet: defaultMediaDiet(p),
     brand_affinity: defaultBrandAffinity(p),
-    lifestyle_tags: ["OOTD", "주말 카페", "K-드라마 시청", "친구와 쇼핑", "셀카"],
-    values_tags: ["자기표현", "트렌드 감각", "가성비", "지속가능", "커뮤니티"],
+    lifestyle_tags: _pickByHash(FALLBACK_LIFESTYLES, pid, "l"),
+    values_tags: _pickByHash(FALLBACK_VALUES, pid, "v"),
     shopping_style: shopping,
     price_sensitivity: p.priceSensitivityPrior || 3,
   };
@@ -212,6 +249,9 @@ async function runOneBatch(batch, opts) {
 주어진 합성 페르소나 속성에 맞는 narrative를 JSON 스키마에 맞게 정확히 생성합니다.
 모든 텍스트는 한국어로 작성합니다. 거짓 정보를 만들지 말고 통계적으로 그럴듯한 추론을 제공합니다.`;
 
+  // CEO 2026-06-18 21:34 긴급: 풀 v4 600명 전체 fallback hardcoded 사고 fix
+  // 원인: maxOutputTokens 8192 + n=20 = 출력 truncate → JSON parse fail
+  // Fix: maxOutputTokens 32768 + retry on fail (split batch in half)
   try {
     const result = await generateJSON({
       prompt,
@@ -219,12 +259,29 @@ async function runOneBatch(batch, opts) {
       schema: NARRATIVE_SCHEMA,
       model: "gemini-2.5-flash",
       temperature: 0.7,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 32768,
     });
-    if (!result.json?.personas) throw new Error("Bad LLM output");
+    if (!result.json?.personas || !Array.isArray(result.json.personas) || result.json.personas.length === 0) {
+      throw new Error("Bad LLM output");
+    }
     return result.json.personas;
   } catch (e) {
-    console.warn(`[narrative] batch failed (${country}, n=${batch.length}): ${e.message} — using fallback`);
+    console.warn(`[narrative] batch failed (${country}, n=${batch.length}): ${e.message} — retry with split`);
+    // Retry once with half-size split (n=10 instead of n=20) before falling back
+    if (batch.length > 5) {
+      try {
+        const mid = Math.ceil(batch.length / 2);
+        const left = batch.slice(0, mid);
+        const right = batch.slice(mid);
+        const [lRes, rRes] = await Promise.all([
+          runOneBatch(left, opts),
+          runOneBatch(right, opts),
+        ]);
+        return [...lRes, ...rRes];
+      } catch (e2) {
+        console.warn(`[narrative] retry-split also failed (${country}): ${e2.message} — using fallback`);
+      }
+    }
     return batch.map(fallbackNarrative);
   }
 }
