@@ -8918,6 +8918,29 @@ async function runAnalysis(opts){
   // 5차원 + 미디어 캐시 무효화
   state.audienceCache = {};
   state.mediaCache = null;
+
+  // CEO 2026-06-18 19:15-18 단계 C: 분석 시작 시 synthesize 자동 호출 — 28건 빈 차트 원인 A 해소
+  // 겁 해석: synthCache=null 이면 WHO/MIND/LOVE/BUY 17건 차트가 markChartPlaceholder('AI 합성 중…') 표시
+  state.synthCache = null;
+  try {
+    const _synCode = state.currentCountry;
+    const _synKey = JSON.stringify({ country: _synCode, filters: state.filters || {} });
+    const _synR = await fetch(API + '/audience/synthesize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: _synCode, filters: state.filters || {} }),
+    });
+    const _synD = await _synR.json();
+    if (_synD && _synD.ok && _synD.segments) {
+      _synD.cacheKey = _synKey;
+      state.synthCache = _synD;
+      console.log('[analyze] synthCache populated:', _synD.segments?.length || 0, 'segments');
+    } else {
+      console.warn('[analyze] synthesize returned no segments', _synD);
+    }
+  } catch (e) {
+    console.warn('[analyze] synthesize fetch failed:', e?.message || e);
+  }
   // 현재 탭 즉시 갱신 → loading UI 표시
   try {
     const cur = state.currentTab;
