@@ -8,15 +8,17 @@
 export const COUNTRIES = [
   // === Asia Pacific ===
   // C-2 fix (Chaeyeon 2026-06-17 21:49 → CTO 21:55): personaSupported 마커 추가 — 무신사 6국(KR/JP/CN/TW/TH/PH)만 true
-  { code: "KR", name: "한국",       nameEn: "South Korea",  region: "asia-pacific", flag: "🇰🇷", currency: "KRW", language: "ko", innoceanOffice: true, innoceanOfficeName: "본사 (서울)", personaSupported: true },
-  { code: "JP", name: "일본",       nameEn: "Japan",        region: "asia-pacific", flag: "🇯🇵", currency: "JPY", language: "ja", innoceanOffice: true, innoceanOfficeName: "Innocean Japan", personaSupported: true },
-  { code: "TW", name: "대만",       nameEn: "Taiwan",       region: "asia-pacific", flag: "🇹🇼", currency: "TWD", language: "zh", personaSupported: true },
+  // CEO 2026-06-18 20:10 지시: WHO 탭 population/gdpPerCapita NULL fix
+  // 6국 (무신사 사용 국가) population + gdpPerCapita 명시 (World Bank 2024 + DGBAS 2024)
+  { code: "KR", name: "한국",       nameEn: "South Korea",  region: "asia-pacific", flag: "🇰🇷", currency: "KRW", language: "ko", innoceanOffice: true, innoceanOfficeName: "본사 (서울)", personaSupported: true, population: 51751065, gdpPerCapita: 36239, popYear: 2024, gdpSource: "WB" },
+  { code: "JP", name: "일본",       nameEn: "Japan",        region: "asia-pacific", flag: "🇯🇵", currency: "JPY", language: "ja", innoceanOffice: true, innoceanOfficeName: "Innocean Japan", personaSupported: true, population: 123975371, gdpPerCapita: 32487, popYear: 2024, gdpSource: "WB" },
+  { code: "TW", name: "대만",       nameEn: "Taiwan",       region: "asia-pacific", flag: "🇹🇼", currency: "TWD", language: "zh", personaSupported: true, population: 23400000, gdpPerCapita: 33063, popYear: 2024, gdpSource: "DGBAS" },
   { code: "IN", name: "인도",       nameEn: "India",        region: "asia-pacific", flag: "🇮🇳", currency: "INR", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean India" },
   { code: "ID", name: "인도네시아", nameEn: "Indonesia",    region: "asia-pacific", flag: "🇮🇩", currency: "IDR", language: "id" },
   { code: "VN", name: "베트남",     nameEn: "Vietnam",      region: "asia-pacific", flag: "🇻🇳", currency: "VND", language: "vi" },
-  { code: "TH", name: "태국",       nameEn: "Thailand",     region: "asia-pacific", flag: "🇹🇭", currency: "THB", language: "th", personaSupported: true },
+  { code: "TH", name: "태국",       nameEn: "Thailand",     region: "asia-pacific", flag: "🇹🇭", currency: "THB", language: "th", personaSupported: true, population: 71668011, gdpPerCapita: 7347, popYear: 2024, gdpSource: "WB" },
   { code: "MY", name: "말레이시아", nameEn: "Malaysia",     region: "asia-pacific", flag: "🇲🇾", currency: "MYR", language: "ms" },
-  { code: "PH", name: "필리핀",     nameEn: "Philippines",  region: "asia-pacific", flag: "🇵🇭", currency: "PHP", language: "en", personaSupported: true },
+  { code: "PH", name: "필리핀",     nameEn: "Philippines",  region: "asia-pacific", flag: "🇵🇭", currency: "PHP", language: "en", personaSupported: true, population: 115843670, gdpPerCapita: 3985, popYear: 2024, gdpSource: "WB" },
   { code: "AU", name: "호주",       nameEn: "Australia",    region: "asia-pacific", flag: "🇦🇺", currency: "AUD", language: "en", innoceanOffice: true, innoceanOfficeName: "Innocean Australia" },
   { code: "NZ", name: "뉴질랜드",   nameEn: "New Zealand",  region: "asia-pacific", flag: "🇳🇿", currency: "NZD", language: "en" },
   { code: "SG", name: "싱가포르",   nameEn: "Singapore",    region: "asia-pacific", flag: "🇸🇬", currency: "SGD", language: "en" },
@@ -91,7 +93,7 @@ export const COUNTRIES = [
   { code: "GH", name: "가나",       nameEn: "Ghana",        region: "africa",       flag: "🇬🇭", currency: "GHS", language: "en" },
 
   // === INNOCEAN 거점. Trends 미지원 (부분 활성화: WB+Insights+Persona OK) ===
-  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", trendsUnavailable: true, trendsUnavailableReason: "Google 본토 차단 — Baidu Index 어댑터 추가 예정", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide China (Shanghai/Beijing)", personaSupported: true },
+  { code: "CN", name: "중국",       nameEn: "China",        region: "asia-pacific", flag: "🇨🇳", currency: "CNY", language: "zh", trendsUnavailable: true, trendsUnavailableReason: "Google 본토 차단 — Baidu Index 어댑터 추가 예정", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide China (Shanghai/Beijing)", personaSupported: true, population: 1408975000, gdpPerCapita: 13303, popYear: 2024, gdpSource: "WB" },
   { code: "RU", name: "러시아",     nameEn: "Russia",       region: "europe",       flag: "🇷🇺", currency: "RUB", language: "ru", trendsUnavailable: true, trendsUnavailableReason: "BigQuery Trends 미지원 — Yandex Wordstat 어댑터 추가 예정", innoceanOffice: true, innoceanOfficeName: "Innocean Worldwide Russia" },
 ];
 
