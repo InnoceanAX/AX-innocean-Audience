@@ -139,6 +139,40 @@ function localDbHasPersonas() {
   }
 }
 
+// 실제 upload 수행 (내부 공용). debounce/force 모두 이 함수 호출.
+async function _performUpload() {
+  const label = `gs://${BUCKET}/${OBJECT}`;
+
+  // 가드 1: 파일 크기 체크
+  if (shouldSkipUpload()) return false;
+
+  // 가드 2: 실제 페르소나 존재 체크
+  const hasPersonas = localDbHasPersonas();
+  if (hasPersonas === false) {
+    console.warn(`[persona-gcs] local DB has 0 personas — upload skipped to protect prior backup`);
+    return false;
+  }
+
+  try {
+    const storage = getStorage();
+    await storage.bucket(BUCKET).upload(DB_PATH, {
+      destination: OBJECT,
+      metadata: {
+        cacheControl: "no-store",
+        metadata: {
+          uploadedAt: new Date().toISOString(),
+          source: "innocean-audience-backend",
+        },
+      },
+    });
+    console.log(`[persona-gcs] backed up DB → ${label}`);
+    return true;
+  } catch (e) {
+    console.warn(`[persona-gcs] upload failed (non-fatal): ${e.message}`);
+    return false;
+  }
+}
+
 export function scheduleDbUpload() {
   if (!isGcsEnabled()) return;
 
@@ -148,33 +182,45 @@ export function scheduleDbUpload() {
 
   _uploadTimer = setTimeout(async () => {
     _uploadTimer = null;
-    const label = `gs://${BUCKET}/${OBJECT}`;
-
-    // 가드 1: 파일 크기 체크
-    if (shouldSkipUpload()) return;
-
-    // 가드 2: 실제 페르소나 존재 체크
-    const hasPersonas = localDbHasPersonas();
-    if (hasPersonas === false) {
-      console.warn(`[persona-gcs] local DB has 0 personas — upload skipped to protect prior backup`);
-      return;
-    }
-
-    try {
-      const storage = getStorage();
-      await storage.bucket(BUCKET).upload(DB_PATH, {
-        destination: OBJECT,
-        metadata: {
-          cacheControl: "no-store",
-          metadata: {
-            uploadedAt: new Date().toISOString(),
-            source: "innocean-audience-backend",
-          },
-        },
-      });
-      console.log(`[persona-gcs] backed up DB → ${label}`);
-    } catch (e) {
-      console.warn(`[persona-gcs] upload failed (non-fatal): ${e.message}`);
-    }
+    await _performUpload();
   }, DEBOUNCE_MS);
+}
+
+// CEO 2026-06-18 20:11 지시: 풀 완료 또는 SIGTERM 시 즉시 upload
+// debounce 우회 — batch 완료 직후 또는 컴테이너 종료 전 호출.
+export async function forceDbUpload(reason = "manual") {
+  if (!isGcsEnabled()) return false;
+  if (_uploadTimer) {
+    clearTimeout(_uploadTimer);
+    _uploadTimer = null;
+  }
+  console.log(`[persona-gcs] force upload triggered (reason=${reason})`);
+  return await _performUpload();
+}
+
+// CEO 2026-06-18 20:11 지시: Cloud Run shutdown hook
+// SIGTERM 수신 시 10s grace 안에 force upload 시도
+let _shutdownHookInstalled = false;
+export function installShutdownHook() {
+  if (_shutdownHookInstalled) return;
+  _shutdownHookInstalled = true;
+  if (!isGcsEnabled()) return;
+
+  const handler = async (signal) => {
+    console.log(`[persona-gcs] received ${signal}, attempting force upload before shutdown`);
+    try {
+      await Promise.race([
+        forceDbUpload(`shutdown-${signal}`),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("shutdown upload timeout")), 8000)),
+      ]);
+      console.log(`[persona-gcs] shutdown upload completed`);
+    } catch (e) {
+      console.warn(`[persona-gcs] shutdown upload failed: ${e.message}`);
+    }
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", () => handler("SIGTERM"));
+  process.on("SIGINT", () => handler("SIGINT"));
+  console.log("[persona-gcs] shutdown hook installed (SIGTERM/SIGINT)");
 }

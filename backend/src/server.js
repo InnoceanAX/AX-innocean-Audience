@@ -80,3 +80,9 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`[innocean-audience-backend] listening on :${PORT}`);
 });
+
+// CEO 2026-06-18 20:11 지시: Cloud Run shutdown hook
+// SIGTERM 수신 시 force GCS upload (풀 휘발 방지)
+import("./lib/persona-gcs.js").then(({ installShutdownHook }) => {
+  installShutdownHook();
+}).catch(e => console.warn(`[server] shutdown hook install failed: ${e.message}`));

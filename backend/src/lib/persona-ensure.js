@@ -153,6 +153,13 @@ async function generateForCountry(brief, country, sizePerCountry) {
   });
   console.log(`[persona-ensure] ${briefId}/${country}: completed (${merged.length})`);
 
+  // CEO 2026-06-18 20:11 지시: country 완료 즉시 force upload
+  // (debounce 우회 — 다음 country 시작 전 GCS 영속화)
+  try {
+    const { forceDbUpload } = await import("./persona-gcs.js");
+    forceDbUpload(`country-completed:${briefId}/${country}`).catch(() => {});
+  } catch (e) { console.warn(`[persona-ensure] force upload failed: ${e.message}`); }
+
   // Fire-and-forget per-country analytics sink.
   logPersonaBatch({
     briefId,
