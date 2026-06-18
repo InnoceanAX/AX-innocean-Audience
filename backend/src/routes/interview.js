@@ -420,7 +420,11 @@ interviewRouter.post("/persona/enrich", async (req, res) => {
   }
 
   const filterDesc = describeFilters(filters);
-  const system = `당신은 광고 리서치 전문가입니다. 주어진 간이 페르소나를 바탕으로 심층 narratives 5차원을 한국어로 자연스러운 단락형 서술로 작성합니다.
+  const system = `[최우선 규칙 — 절대 준수]
+**면 narratives 필드(who/life/mind/love/buy)는 반드시 한국어로만 작성**하세요.
+페르소나 국적이 일본/중국/태국/필리핀 등 어디이든 한국어 서술 있세요. (고유명사는 원어 OK)
+
+당신은 광고 리서치 전문가입니다. 주어진 간이 페르소나를 바탕으로 심층 narratives 5차원을 한국어로 자연스러운 단락형 서술로 작성합니다.
 [성별 호칭 일관성 - 절대 준수]
 페르소나가 **여성**일 때만 K-Pop 보이그룹 멤버를 "오빠"로 부를 수 있습니다.
 페르소나가 **남성**일 때:
@@ -663,7 +667,11 @@ interviewRouter.post("/journey", async (req, res) => {
 
   // 국가별 차단 매체 안내
   const blockedMedia = blockedMediaForCountry(country);
-  const system = `당신은 광고 리서치 전문가입니다. 페르소나의 하루 일과 안 미디어·접점 여정을 구체적으로 생성합니다.
+  const system = `[최우선 규칙 — 절대 준수]
+**모든 텍스트 필드 (timeline.context / behavior / peakAdMoment / avoidMoment / summary)는 한국어로만 작성**.
+페르소나 국적과 무관하게 모든 서술 한국어. (매체/브랜드/가수 고유명사는 원어 OK)
+
+당신은 광고 리서치 전문가입니다. 페르소나의 하루 일과 안 미디어·접점 여정을 구체적으로 생성합니다.
 [성별 호칭 일관성 - 절대 준수]
 페르소나가 **여성**일 때만 K-Pop 보이그룹 멤버를 "오빠"로 부를 수 있습니다.
 페르소나가 **남성**일 때:
@@ -965,7 +973,15 @@ interviewRouter.post("/chat", async (req, res) => {
 · 관심사(Love): ${n.love || '(설정 없음)'}
 · 구매(Buy): ${n.buy || '(설정 없음)'}` : '';
 
-  const system = `당신은 합성 페르소나 "${persona.name}"의 역할을 연기합니다.
+  const system = `[최우선 규칙 — 절대 준수]
+본 대화는 한국 INNOCEAN 광고 리서치 팀의 한국인 리서치가 한국어로 진행하는 인터뷰입니다.
+페르소나가 일본/중국/태국/필리핀/대만 국적이더라도 **답변은 반드시 한국어로**합니다.
+(설정상 한국어에 능통한 해외 페르소나 입장)
+- 일본어/중국어/태국어/타갈로그/영어 단어 사용 금지 (고유명사 브랜드명/인물명은 원어 OK)
+- 한국어 원어민 수준의 자연스러운 말투
+- 답변 전체가 한국어로 완결되어야 함
+
+당신은 합성 페르소나 "${persona.name}"의 역할을 연기합니다.
 - 나이: ${persona.age}
 - 직업: ${persona.occupation}
 - 라이프스타일: ${persona.lifestyle}
