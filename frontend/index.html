@@ -6451,6 +6451,9 @@ async function renderSummaryOverview(){
     const r = await fetch(url);
     const d = await r.json();
     if (!d.ok) throw new Error(d.error || 'fetch failed');
+    // CEO 2026-06-18 단계 B: 풍 요약 캐시 (KPI 풀 우선용)
+    state.poolSummary = d;
+    state.briefMeta = d.meta;
     const cards = ['who','life','mind','love','buy','media'].map(k => renderDimCardV4(k, d[k], d.n)).join('');
     const legend = `<div class="sm-dim-legend-v2" style="grid-column:1/-1"><strong>🗂️ 라벨 범례</strong> &nbsp; <span class="tag-pp-v2">페르소나</span> = AI 합성 페르소나 풀 end 값 (n=${d.n||0}, brief: ${briefId||'—'}) &nbsp;&nbsp; <span class="tag-bl-v2">학습 입력</span> = 국가 공개 통계 (KOSTAT/DataReportal/Reuters/Hofstede 등) — cohort 합성 학습 자원</div>`;
     const evolution = `<div class="sm-dim-evolution-cap-v2" style="grid-column:1/-1">※ Phase 1.5 cohort-builder 확장 시 모든 통계 라인 페르소나 end 값으로 통합 — 라이프/미디어/가치관 차원 100% 일관성 보장 예정</div>`;
@@ -6532,6 +6535,11 @@ async function refreshSummaryTab(){
     return;
   }
   if(empty) empty.style.display = 'none';
+  // CEO 2026-06-18 단계 B: 분석 완료 후에도 v4 4-블록 카드 표시 + state.poolSummary 캐시
+  // (renderSummaryOverview 내부에서 state.poolSummary = d 저장 → 아래 KPI 렌더에서 풍 우선 사용)
+  if (typeof renderSummaryOverview === 'function') {
+    try { await renderSummaryOverview(); } catch(e) { console.error('[sm-6dim post-analysis]', e); }
+  }
   // 1) ask-banner clone — 제거
   if(banner) banner.innerHTML = '';
   // 2) AI 네비게이터 — 답변 카드가 있으면 숨김 (중복 방지)
@@ -6576,14 +6584,35 @@ async function refreshSummaryTab(){
     const who = c.who?.data || {};
     const life = c.life?.data || {};
     const buy = c.buy?.data || {};
-    // CEO 2026-06-18 18:36: 정직 라벨 — 투명성 우선 (풀 우선 교체는 단계 B에서)
+    // CEO 2026-06-18 단계 B: 풀 우선 + baseline fallback (옵션 Z)
+    const pool = state.poolSummary || null;
+    const hasPool = pool && (pool.n > 0);
+    const _srcPool = `<span style="display:inline-block;font-size:9.5px;color:#4338CA;background:#EEF2FF;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">📊 풀 n=${pool?.n || 0}</span>`;
     const _srcBaseline = '<span style="display:inline-block;font-size:9.5px;color:#6B7280;background:#F3F4F6;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">🌐 국가 baseline</span>';
-    kpis.innerHTML = `
-      <div class="sm-kpi"><div class="sm-kpi-l">국가${_srcBaseline}</div><div class="sm-kpi-v">${country?.name || state.currentCountry || '—'}</div><div class="sm-kpi-s">${country?.region || ''}</div></div>
-      <div class="sm-kpi"><div class="sm-kpi-l">중위 연령${_srcBaseline}</div><div class="sm-kpi-v">${who.medianAge?.toFixed(1) || '—'}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">도시화 ${who.urbanRate?.toFixed(0) || '—'}% · 인구 전체 평균</div></div>
-      <div class="sm-kpi"><div class="sm-kpi-l">디지털 침투${_srcBaseline}</div><div class="sm-kpi-v">${life.digital?.internetPenetration?.toFixed(0) || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">소셜 ${life.digital?.socialMediaUsers?.toFixed(0) || '—'}% · 인구 전체 평균</div></div>
-      <div class="sm-kpi"><div class="sm-kpi-l">이커머스 비중${_srcBaseline}</div><div class="sm-kpi-v">${buy.ecommerce?.shareOfRetail || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">월평균 $${buy.ecommerce?.avgMonthlySpendUSD || '—'} · 인구 전체 평균</div></div>
-    `;
+
+    if(hasPool){
+      // 빌더 기준 KPI (세그먼트 규모 / 타겟 평균 연령 / 핵심 라이프 / 핵심 가치)
+      const ageStat = (pool.who?.stats || []).find(s => /연령|age/i.test(s?.label || ''));
+      const avgAge = (ageStat && ageStat.value != null) ? String(ageStat.value) : (who.medianAge?.toFixed(1) || '—');
+      const topLife = (pool.life?.stats || []).find(s => s?.value != null && s?.label);
+      const topMind = (pool.mind?.stats || []).find(s => s?.value != null && s?.label);
+      const lifeText = topLife ? String(topLife.label).slice(0, 16) : ((life.digital?.avgInternetHours?.toFixed(1) || '—') + 'h/일');
+      const mindText = topMind ? String(topMind.label).slice(0, 16) : '—';
+      kpis.innerHTML = `
+        <div class="sm-kpi"><div class="sm-kpi-l">세그먼트 규모${_srcPool}</div><div class="sm-kpi-v">${pool.n}<span style="font-size:13px">명</span></div><div class="sm-kpi-s">빌더 매칭 페르소나</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">타겟 평균 연령${ageStat ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v">${avgAge}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">${ageStat ? '빌더 필터 적용' : '인구 전체 평균 (풀 통계 부재)'}</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">핵심 라이프${topLife ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:15px">${lifeText}</div><div class="sm-kpi-s">${topLife ? '빌더 프로파일 상위' : '디지털 침투 대체'}</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">핵심 가치${topMind ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:15px">${mindText}</div><div class="sm-kpi-s">${topMind ? '빌더 프로파일 상위' : '데이터 부재'}</div></div>
+      `;
+    } else {
+      // 풀 없을 때: 국가 baseline KPI (단계 A 원형 유지)
+      kpis.innerHTML = `
+        <div class="sm-kpi"><div class="sm-kpi-l">국가${_srcBaseline}</div><div class="sm-kpi-v">${country?.name || state.currentCountry || '—'}</div><div class="sm-kpi-s">${country?.region || ''}</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">중위 연령${_srcBaseline}</div><div class="sm-kpi-v">${who.medianAge?.toFixed(1) || '—'}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">도시화 ${who.urbanRate?.toFixed(0) || '—'}% · 인구 전체 평균</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">디지털 침투${_srcBaseline}</div><div class="sm-kpi-v">${life.digital?.internetPenetration?.toFixed(0) || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">소셜 ${life.digital?.socialMediaUsers?.toFixed(0) || '—'}% · 인구 전체 평균</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">이커머스 비중${_srcBaseline}</div><div class="sm-kpi-v">${buy.ecommerce?.shareOfRetail || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">월평균 $${buy.ecommerce?.avgMonthlySpendUSD || '—'} · 인구 전체 평균</div></div>
+      `;
+    }
   }
   // 4) 5차원 한 줄 요약
   if(dims){
