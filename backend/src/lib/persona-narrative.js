@@ -68,8 +68,13 @@ function buildBatchPrompt(batch, { brand, countryName, localCompetitors }) {
 [합성 페르소나 ${batch.length}명 — 통계 기반 속성]
 ${personaLines}
 
-위 각 페르소나에 대해 다음 narrative를 한국어로 작성하세요. (보고서는 한국 CEO가 읽음)
-- quote: 1문장 (페르소나가 직접 말할 법한 한 줄, 한국어)
+위 각 페르소나에 대해 다음 narrative를 **반드시 한국어로만** 작성하세요. (보고서는 한국 CEO가 읽음)
+**언어 규칙 절대 준수 — 다음 예외 없음**:
+- 타겟 국가가 일본/중국/태국/베트남/영어권 등 어디이든 **모든 서술 프래이즈(quote, jobs_to_be_done, pain_points, lifestyle_tags, values_tags)는 한국어로**
+- quote가 필리핀 페르소나 입장이더라도 한국어로 (타갈로그 금지)
+- lifestyle/values tag도 한국어 (의미 있는 한국어 단어)
+- 고유명사(브랜드/플랫폼/도시)는 원이름 그대로 썰도 무방 (예: 'TikTok에서 쇼핑해요')
+- quote: 1문장 (페르소나가 직접 말할 법한 한 줄, **한국어 필수**)
 - jobs_to_be_done: 3개 (이 사람이 K-패션 쇼핑에서 해결하고 싶은 과제)
 - pain_points: 2개
 - media_diet: 4~6개 채널 × 시간 (예: [{channel:"Instagram", hoursPerDay:1.5}]). 국가 매체 환경 반영(중국=WeChat/Weibo/Xiaohongshu, 한국=Naver/KakaoTalk/유튜브, 일본=LINE/Twitter, 태국/필리핀=Facebook/TikTok 강세, 대만=YouTube/Instagram).
