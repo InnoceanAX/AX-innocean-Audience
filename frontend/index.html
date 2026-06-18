@@ -6444,7 +6444,7 @@ async function renderSummaryOverview(){
   const dimsEl = document.getElementById('sm-dims');
   if (!dimsEl) return;
   const country = state.currentCountry || 'KR';
-  const briefId = state.briefId || state.currentBriefId;
+  const briefId = state.activeBriefId || state.briefId || state.currentBriefId;
   const base = (typeof API !== 'undefined' ? API : '');
   const url = `${base}/api/audience/summary-overview?country=${encodeURIComponent(country)}` + (briefId ? `&brief_id=${encodeURIComponent(briefId)}` : '');
   try {
@@ -8938,10 +8938,13 @@ async function runAnalysis(opts){
   }catch(e){}
   try {
     // 병렬 fetch — 핵심 차원 데이터 미리 로드
+    // CEO 2026-06-18 19:09: briefId 전달 추가 — 차원 데이터가 페르소나 풀에서 나오도록
     const code = state.currentCountry;
+    const _bId = state.activeBriefId || state.briefId || state.currentBriefId || '';
+    const briefIdParam = _bId ? `&briefId=${encodeURIComponent(_bId)}` : '';
     const dims = ['who','life','mind','love','buy'];
-    const tasks = dims.map(d => fetch(`${API}/audience/${d}?country=${code}`).then(r => r.json()).catch(e => ({ ok:false, error:e.message })));
-    tasks.push(fetch(`${API}/media?country=${code}`).then(r => r.json()).catch(e => ({ ok:false })));
+    const tasks = dims.map(d => fetch(`${API}/audience/${d}?country=${code}${briefIdParam}`).then(r => r.json()).catch(e => ({ ok:false, error:e.message })));
+    tasks.push(fetch(`${API}/media?country=${code}${briefIdParam}`).then(r => r.json()).catch(e => ({ ok:false })));
     const results = await Promise.all(tasks);
     // 캐시 저장
     dims.forEach((d, i) => { if(results[i]?.ok) state.audienceCache[d] = results[i]; });
