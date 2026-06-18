@@ -219,6 +219,18 @@ campaignPersonasRouter.get("/insights/all", (req, res) => {
   res.json({ ok: true, brief_id, ...payload });
 });
 
+// CEO 2026-06-18 20:00 지시: 영속성 재발 방지 — 관리 용 force backup
+// 목적: 풀 v2 (600명) GCS 영속화 → hardening 배포 전 백업
+campaignPersonasRouter.post("/admin/force-backup", async (req, res) => {
+  try {
+    const { forceDbUpload } = await import("../lib/persona-gcs.js");
+    const ok = await forceDbUpload("admin-endpoint");
+    res.json({ ok, message: ok ? "GCS upload completed" : "GCS upload skipped or failed" });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ───────────────────────────────────────────────
 // Background generation orchestrator
 // ───────────────────────────────────────────────

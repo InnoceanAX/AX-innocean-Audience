@@ -15,6 +15,38 @@ import {
 import { CHANNELS, flattenMedia } from "../data/media-taxonomy.js";
 import { getPersonas } from "../lib/persona-store.js";
 
+// CEO 2026-06-18 20:00 지시: 일본 페르소나가 "서울 강남·성수동" 답함 = 국적·거주지 정보 누락
+// region 영문 → 한국어 매핑 (단일 페르소나 system prompt에서 사용)
+const REGION_KR_MAP = {
+  // JP
+  "Tokyo": "도쯠(東京)", "Osaka": "오사카(大阪)", "Yokohama": "요코하마(横浜)",
+  "Nagoya": "나고야(名古屋)", "Fukuoka": "후쿠오카(福岡)", "Sapporo": "삿포로(札幌)",
+  "Kyoto": "교토(京都)",
+  // CN
+  "Shanghai": "상하이(上海)", "Hangzhou": "항저우(杭州)", "Tianjin": "티엨진(天津)",
+  "Beijing": "베이징(北京)", "Guangzhou": "광저우(广州)", "Shenzhen": "선전(深圳)",
+  // TW
+  "Taipei": "타이베이(台北)", "Kaohsiung": "가오시웅(高雄)", "Taichung": "타이중(台中)",
+  "Tainan": "타이난(台南)",
+  // TH
+  "Bangkok": "방콕", "Chiang Mai": "치앙마이", "Phuket": "푸쯡", "Pattaya": "파타야",
+  // PH
+  "Manila": "마닐라", "Cebu": "세부", "Davao": "다바오", "Quezon City": "케소시티",
+  // KR
+  "Seoul": "서울", "Busan": "부산", "Incheon": "인천", "Daegu": "대구",
+  "Daejeon": "대전", "Gwangju": "광주", "Suwon": "수원",
+  // Generic
+  "Capital": "수도권", "Other": "기타 지역",
+};
+function regionKr(name) {
+  if (!name) return null;
+  return REGION_KR_MAP[name] || name;
+}
+function countryKr(code) {
+  const meta = COUNTRIES.find(c => c.code === String(code || "").toUpperCase());
+  return meta?.name || code || null;
+}
+
 // CEO 2026-06-18 19:15: 옵션 A — 인터뷰 패널 = 페르소나 풀에서 다양성 sampling
 // 파이프라인: builder 코호트 속성 (age/gender/income/occupationLabel/kCultureExposure/kFashionInterest/fashionInterest/priceSensitivityPrior)
 //             + LLM narrative (quote/jobs_to_be_done/pain_points/media_diet/brand_affinity/lifestyle_tags/values_tags/shopping_style)
@@ -75,7 +107,7 @@ function samplePanelFromPool(personas, n = 4) {
     return {
       id: `pool-${p.persona_id || `${idx}`}`,
       persona_id: p.persona_id,
-      name: `${p.region || p.country} ${p.age}세 ${p.gender === 'female' ? '여성' : p.gender === 'male' ? '남성' : ''}`,
+      name: `${regionKr(p.region) || countryKr(p.country) || p.country} ${p.age}세 ${p.gender === 'female' ? '여성' : p.gender === 'male' ? '남성' : ''}`,
       age: p.age || null,
       gender: p.gender || null,
       occupation: p.occupationLabel || p.occupation || null,
@@ -420,9 +452,21 @@ interviewRouter.post("/persona/enrich", async (req, res) => {
   }
 
   const filterDesc = describeFilters(filters);
+  // CEO 2026-06-18 20:00 지시: 페르소나 국적/거주지 명시
+  const _enrichCountryKr = countryKr(country);
+  const _enrichRegionKr = regionKr(simple.region || rawPersona.region);
+  const _nationalityBlockEnrich = _enrichCountryKr && country !== 'KR' ? `
+
+[페르소나 국적·거주지 — 절대 협상 불가]
+· 국적: ${_enrichCountryKr}인
+· 거주·활동 지역: ${_enrichRegionKr || _enrichCountryKr} (${country})
+· narratives 안에서 "주 활동 지역"·"자주 가는 곳"·"단골 카페/식당/번화가"는 ${_enrichCountryKr} 내 지역만 언급.
+· 절대 한국 지명(강남/성수동/홍대/명동/이태원/판교 등)을 거주 지역으로 언급 금지. 한국 지역은 "해외 여행 접점"으로만 가능.
+· ${_enrichCountryKr} 현지 도시/동/번화가 언급 시 한국어 관행 표기 + 원어 병기(괄호). 예: "도쿄(東京) 시부야 쪽 회사"·"상하이(上海) 신천지구 거주".` : '';
+
   const system = `[최우선 규칙 — 절대 준수]
 **면 narratives 필드(who/life/mind/love/buy)는 반드시 한국어로만 작성**하세요.
-페르소나 국적이 일본/중국/태국/필리핀 등 어디이든 한국어 서술 있세요. (고유명사는 원어 OK)
+페르소나 국적이 일본/중국/태국/필리핀 등 어디이든 한국어 서술 있세요. (고유명사는 원어 OK)${_nationalityBlockEnrich}
 
 당신은 광고 리서치 전문가입니다. 주어진 간이 페르소나를 바탕으로 심층 narratives 5차원을 한국어로 자연스러운 단락형 서술로 작성합니다.
 [성별 호칭 일관성 - 절대 준수]
@@ -667,9 +711,21 @@ interviewRouter.post("/journey", async (req, res) => {
 
   // 국가별 차단 매체 안내
   const blockedMedia = blockedMediaForCountry(country);
+  // CEO 2026-06-18 20:00 지시: 페르소나 국적/거주지 명시
+  const _journeyCountryKr = countryKr(country);
+  const _journeyRegionKr = regionKr(persona.region);
+  const _nationalityBlockJourney = _journeyCountryKr && country !== 'KR' ? `
+
+[페르소나 국적·거주지 — 절대 협상 불가]
+· 국적: ${_journeyCountryKr}인
+· 거주·활동 지역: ${_journeyRegionKr || _journeyCountryKr} (${country})
+· 하루 일과 timeline의 모든 장소/이동/번화가/매체 접점은 ${_journeyCountryKr} 현지 시나리오만 작성.
+· 절대 한국 지명(강남/성수동/홍대/명동/이태원/판교 등)을 출근지/번화가/단골 카페로 언급 금지.
+· ${_journeyCountryKr} 현지 지역 언급 시 한국어 관행 표기 + 원어 병기(괄호) OK.` : '';
+
   const system = `[최우선 규칙 — 절대 준수]
 **모든 텍스트 필드 (timeline.context / behavior / peakAdMoment / avoidMoment / summary)는 한국어로만 작성**.
-페르소나 국적과 무관하게 모든 서술 한국어. (매체/브랜드/가수 고유명사는 원어 OK)
+페르소나 국적과 무관하게 모든 서술 한국어. (매체/브랜드/가수 고유명사는 원어 OK)${_nationalityBlockJourney}
 
 당신은 광고 리서치 전문가입니다. 페르소나의 하루 일과 안 미디어·접점 여정을 구체적으로 생성합니다.
 [성별 호칭 일관성 - 절대 준수]
@@ -973,15 +1029,30 @@ interviewRouter.post("/chat", async (req, res) => {
 · 관심사(Love): ${n.love || '(설정 없음)'}
 · 구매(Buy): ${n.buy || '(설정 없음)'}` : '';
 
+  // CEO 2026-06-18 20:00 지시: 페르소나 국적/거주지 명시 (일본 페르소나가 서울 강남 답함 방지)
+  const personaCountry = persona.country || country || "";
+  const personaCountryKr = countryKr(personaCountry);
+  const personaRegionKr = regionKr(persona.region);
+  const nationalityBlock = personaCountryKr ? `
+
+[페르소나 국적·거주지 — 절대 협상 불가]
+· 국적: ${personaCountryKr}인${personaCountry !== 'KR' ? ' (한국어는 이중언어 수준)' : ''}
+· 거주·활동 지역: ${personaRegionKr || personaCountryKr}
+· 주로 활동하는 동/도시/번화가는 ${personaCountryKr} 내 지역만 언급합니다.
+${personaCountry !== 'KR' ? `· 절대 한국 지명(강남/성수동/홍대/명동/이태원/판교 등)을 "내가 가는 곳"으로 언급하지 않습니다 (한국은 해외 여행 접점으로만 언급 가능).` : ''}
+· ${personaCountryKr} 현지 도시/동/지역명을 언급할 때는 한국어 관행 표기와 함께 원어 병기(괄호)도 OK. 예: "도쿄(東京) 시부야 쪽"·"상하이(上海) 신천지구".` : '';
+
   const system = `[최우선 규칙 — 절대 준수]
 본 대화는 한국 INNOCEAN 광고 리서치 팀의 한국인 리서치가 한국어로 진행하는 인터뷰입니다.
 페르소나가 일본/중국/태국/필리핀/대만 국적이더라도 **답변은 반드시 한국어로**합니다.
 (설정상 한국어에 능통한 해외 페르소나 입장)
 - 일본어/중국어/태국어/타갈로그/영어 단어 사용 금지 (고유명사 브랜드명/인물명은 원어 OK)
 - 한국어 원어민 수준의 자연스러운 말투
-- 답변 전체가 한국어로 완결되어야 함
+- 답변 전체가 한국어로 완결되어야 함${nationalityBlock}
 
 당신은 합성 페르소나 "${persona.name}"의 역할을 연기합니다.
+- 국적: ${personaCountryKr || '한국'}인
+- 거주·활동 지역: ${personaRegionKr || '미설정'}
 - 나이: ${persona.age}
 - 직업: ${persona.occupation}
 - 라이프스타일: ${persona.lifestyle}
