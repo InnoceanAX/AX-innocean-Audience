@@ -6084,7 +6084,7 @@ function saveProjectsToStorage(){
   try{ localStorage.setItem('innocean.audience.projects', JSON.stringify(state.projects || [])); }catch(e){}
 }
 function libCreateProject(){
-  const name = prompt('프로젝트 이름:', '캐페인 ' + ((state.projects||[]).length + 1));
+  const name = prompt('프로젝트 이름:', '캠페인 ' + ((state.projects||[]).length + 1));
   if(!name) return;
   const desc = prompt('설명 (선택):', '') || '';
   loadProjectsFromStorage();
@@ -9260,7 +9260,7 @@ function applyPreset(key){
 // ============================================================
 
 // 4-B: load built-in campaign presets from backend and merge them into the
-// user-visible preset list. They get a small "캐페인" badge in the palette.
+// user-visible preset list. They get a small "캠페인" badge in the palette.
 async function fetchCampaignPresets(){
   try{
     const r = await fetch(`${API}/personas/presets`);
@@ -9305,7 +9305,7 @@ function openCampaignCountryPicker(preset, onPick){
       <button class="lib-close" onclick="document.getElementById('campaign-cpick-modal').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="padding:18px 22px">
-      <div style="font-size:13px;color:#374151;margin-bottom:12px">캐페인 <b>${preset.name||''}</b>은 ${codes.length}개국을 포함합니다. 하나의 국가를 선택하면 해당 국가의 AI 합성 페르소나 100명을 생성합니다.</div>
+      <div style="font-size:13px;color:#374151;margin-bottom:12px">캠페인 <b>${preset.name||''}</b>은 ${codes.length}개국을 포함합니다. 하나의 국가를 선택하면 해당 국가의 AI 합성 페르소나 100명을 생성합니다.</div>
       <div style="display:flex;flex-wrap:wrap;gap:10px">${chips}</div>
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--tm)">
         TODO: [모두 차례로 분석] 큐 버튼 — 추후 지원 예정
@@ -9409,7 +9409,7 @@ async function applyCampaignPreset(presetUserEntry){
     if(typeof renderBuilder === 'function') renderBuilder();
     if(typeof refreshSegment === 'function') refreshSegment();
     if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
-    if(typeof toast === 'function') toast(`캐페인 적용: ${built.name} (${code}) — ${applied}개 차원 필터 활성`);
+    if(typeof toast === 'function') toast(`캠페인 적용: ${built.name} (${code}) — ${applied}개 차원 필터 활성`);
   };
   if(built.countries && built.countries.length > 1){
     openCampaignCountryPicker(built, apply);
@@ -9453,7 +9453,7 @@ async function ensureCampaignBrief(){
     return state.activeBriefId;
   }catch(e){
     console.warn('[ensureCampaignBrief]', e);
-    if(typeof toast === 'function') toast('캐페인 분석 준비 실패: ' + e.message);
+    if(typeof toast === 'function') toast('캠페인 분석 준비 실패: ' + e.message);
     return null;
   }
 }
@@ -9547,7 +9547,7 @@ function renderPersonaBadgeHtml(badge){
   </div>`;
 }
 
-// Persona badge CTA handler — 캐페인 빌더 열기
+// Persona badge CTA handler — 캠페인 빌더 열기
 window.handlePersonaBadgeCta = function(action){
   if(action === 'openCampaignBuilder'){
     // 우선순위대로 존재하는 핸들러 시도
@@ -9555,10 +9555,10 @@ window.handlePersonaBadgeCta = function(action){
       if(typeof openCampaignBuilder === 'function'){ openCampaignBuilder(); return; }
       if(typeof openPersonaBuilder === 'function'){ openPersonaBuilder(); return; }
       if(typeof window.openBriefBuilder === 'function'){ window.openBriefBuilder(); return; }
-      // 폴백: 캐페인/브리프/페르소나 탭으로 이동
+      // 폴백: 캠페인/브리프/페르소나 탭으로 이동
       const tabBtn = document.querySelector('[data-tab="persona"], [data-tab="brief"], [data-tab="campaign"], [data-tab="builder"]');
       if(tabBtn){ tabBtn.click(); return; }
-      if(typeof toast === 'function'){ toast('캐페인 빌더를 열 수 없습니다. 상단 메뉴에서 캐페인 탭을 열어주세요.'); }
+      if(typeof toast === 'function'){ toast('캠페인 빌더를 열 수 없습니다. 상단 메뉴에서 캠페인 탭을 열어주세요.'); }
     }catch(e){ console.warn('CTA handler failed', e); }
   }
 };
