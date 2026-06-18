@@ -828,6 +828,17 @@ body.home-fade-out #screen-home{
 .cc-c-item.partial{opacity:.78}
 .cc-c-item.partial:hover{background:#F3F4F6}
 .cc-c-item.primary{background:#EEF2FF}
+/* Phase 0b: Tier 3 disabled 시각화 (Chaeyeon patch, 2026-06-18) */
+.cc-c-item.tier3-disabled { opacity: 0.55; background: #F8FAFC; }
+.cc-c-item.tier3-disabled:hover { opacity: 0.7; background: #F1F5F9; }
+.cc-c-item.tier3-disabled .cc-c-flag { color: #94A3B8; }
+.cc-tier-badge { display:inline-block; vertical-align:middle; }
+/* Phase 1f: 해석 C 3섹션 모달 (Chaeyeon patch) */
+.src-section { margin-bottom: 18px; padding: 14px; background: #F8FAFC; border-radius: 8px; border-left: 3px solid; }
+.src-section h3 { margin: 0 0 10px; font-size: 13px; font-weight: 700; border-left: 0; }
+.src-flow { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.src-step { padding: 6px 10px; background: white; border-radius: 4px; font-size: 12px; color: #1E293B; }
+.src-arrow { text-align: center; color: #CBD5E1; font-size: 10px; line-height: 1; }
 .cc-c-item.primary:hover{background:#E0E7FF}
 .cc-c-item.compare{background:#F0FDF4}
 .cc-c-item.compare:hover{background:#DCFCE7}
@@ -2260,6 +2271,7 @@ const state = {
   analyzedCountry: null,
   analyzedFilters: null,
   audienceCache: {},
+  dimResponses: {},  // Phase 1f 해석 C (Chaeyeon patch): 올라온 dim API 응답을 저장 → 출처 모달에서 baselineRef/sourceMeta 노출
   mediaCache: null,
   filters: {},
   categories: [],
@@ -2372,6 +2384,20 @@ function selectCategory(i){
 }
 
 // ============ COUNTRY COMBO ============
+// Phase 0b (2026-06-18, Chaeyeon patch): 3-tier 국가 분류 (CEO 14:28 정책)
+const TIER1_COUNTRIES = ['KR','JP','CN','TW','TH','PH'];
+const TIER2_COUNTRIES = ['US','GB','DE','FR','IT','ES','CA','AU','IN','BR','MX','RU','TR','SA','ZA','NL','SE','PL','ID','VN','MY','SG','AR','AE','AT','BE','CH','DK','FI','GR','HU','IE','IL','NO','PT','RO','SK','UA'];
+function getCountryTier(code){
+  if(TIER1_COUNTRIES.includes(code)) return 1;
+  if(TIER2_COUNTRIES.includes(code)) return 2;
+  return 3;
+}
+const TIER_META = {
+  1: { badge: 'AI', color: '#4F46E5', label: '페르소나+통계' },
+  2: { badge: 'DATA', color: '#475569', label: '통계만' },
+  3: { badge: '제한', color: '#94A3B8', label: '거시 지표만' }
+};
+
 function renderCountryList(filter=''){
   const list = document.getElementById('cc-list');
   const regions = state.catalog.regions;
@@ -2389,31 +2415,86 @@ function renderCountryList(filter=''){
       <span class="cc-help-cnt" style="margin-right:auto">총 ${totalCount}개국</span>
       <span class="cc-help-cnt">${totalSelected}개 선택됨</span>
     </div>
-    <div class="cc-help"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:3px"><polyline points="20 6 9 17 4 12"/></svg>체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경</div>`;
+    <div class="cc-help"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:3px"><polyline points="20 6 9 17 4 12"/></svg>체크하면 비교국 추가 (최대 4국) · 국명 클릭으로 기준국 변경 · <span style="color:#4F46E5;font-weight:600">AI</span> 페르소나 · <span style="color:#475569;font-weight:600">DATA</span> 통계만 · <span style="color:#94A3B8;font-weight:600">제한</span> 데이터 없음</div>`;
   for(const r of sorted){
     html += `<div class="cc-region-h">${regions[r]?.name || r}</div>`;
     for(const c of byRegion[r]){
       const isPrimary = c.code === state.currentCountry;
       const isCompare = state.compareCountries.includes(c.code);
+      const tier = getCountryTier(c.code);
+      const tierMeta = TIER_META[tier];
       let cls = 'cc-c-item';
       if(c.trendsUnavailable) cls += ' partial';
       if(isPrimary) cls += ' primary';
       if(isCompare) cls += ' compare';
+      if(tier === 3) cls += ' tier3-disabled';
       const tipParts = [];
       if(c.trendsUnavailable) tipParts.push(c.trendsUnavailableReason || 'Trends 미지원');
+      if(tier === 3) tipParts.push('상세 데이터 없음 (거시 지표만)');
       const tip = tipParts.length ? ` title="${tipParts.join(' · ')}"` : '';
+      const checkAction = tier === 3 ? `showTier3Modal('${c.code}','${c.name.replace(/'/g, "\\'")}')` : `toggleCompareCountry('${c.code}')`;
       const checkBox = isPrimary
         ? `<span class="cc-c-mark primary" title="기준국">●</span>`
-        : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();toggleCompareCountry('${c.code}')">${isCompare?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</span>`;
-      html += `<div class="${cls}"${tip} onclick="selectCountry('${c.code}')">
+        : `<span class="cc-c-check ${isCompare?'on':''}" onclick="event.stopPropagation();${checkAction}">${isCompare?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</span>`;
+      const tierBadge = `<span class="cc-tier-badge" style="background:${tierMeta.color}1A;color:${tierMeta.color};font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;letter-spacing:0.2px">${tierMeta.badge}</span>`;
+      const clickHandler = tier === 3 ? `showTier3Modal('${c.code}','${c.name.replace(/'/g, "\\'")}')` : `selectCountry('${c.code}')`;
+      html += `<div class="${cls}"${tip} onclick="${clickHandler}" data-tier="${tier}">
         ${checkBox}
         <span class="cc-c-flag">${c.code}</span>
         <span>${c.name}</span>
+        ${tierBadge}
         <span class="cc-c-code">${c.code}</span>
       </div>`;
     }
   }
   list.innerHTML = html;
+}
+
+// Phase 0b: Tier 3 "데이터 없음" 모달 (CEO 14:28 정책)
+function showTier3Modal(code, name){
+  const html = `
+    <div class="aud-modal-overlay" onclick="closeTier3Modal()" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center">
+      <div class="aud-modal-content" onclick="event.stopPropagation()" style="max-width:520px;background:white;padding:24px;border-radius:8px;position:relative;max-height:80vh;overflow-y:auto">
+        <button onclick="closeTier3Modal()" aria-label="닫기" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:24px;cursor:pointer;color:#64748B">×</button>
+        <h2 style="margin:0 0 12px;font-size:18px;font-weight:700;color:#1E293B">
+          ${name} <span style="font-size:13px;font-weight:400;color:#64748B">(${code})</span>
+        </h2>
+        <div style="padding:12px 14px;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:6px;margin-bottom:14px">
+          <strong style="color:#92400E;font-size:13px">⚠️ 상세 데이터 없음</strong>
+          <p style="margin:6px 0 0;font-size:12px;line-height:1.6;color:#78350F">
+            이 국가는 현재 거시 지표만 제공됩니다 (World Bank Open Data 기반).<br>
+            상세 페르소나 분석 / 라이프스타일 / 가치관 / 관심사 / 구매 행동 데이터는 부재합니다.
+          </p>
+        </div>
+        <div style="font-size:13px;line-height:1.7;color:#475569">
+          <strong style="color:#1E293B">제공 가능 항목</strong>
+          <ul style="margin:6px 0 12px 18px;padding:0">
+            <li>인구 (UN WPP 2025)</li>
+            <li>GDP / 1인당 GDP (World Bank Open Data)</li>
+            <li>광고비 (Statista AMO 2026)</li>
+          </ul>
+          <strong style="color:#1E293B">제공 부재 항목</strong>
+          <ul style="margin:6px 0 12px 18px;padding:0;color:#94A3B8">
+            <li>페르소나 100명 합성 (AI 내러티브)</li>
+            <li>인터넷/소셜 미디어 사용 (DataReportal Digital 2026)</li>
+            <li>가치관 (Hofstede / WVS)</li>
+            <li>관심사 / 구매 행동 (GWI Pro 라이선스 필요)</li>
+          </ul>
+        </div>
+        <div style="padding:10px 12px;background:#F1F5F9;border-radius:6px;font-size:11.5px;color:#475569;line-height:1.6">
+          <strong>데이터 정직성 정책</strong>: 광고주에게 거짓 데이터를 제공하지 않습니다. 
+          GWI Pro / Statista Pro 라이선스 도입 또는 1차 출처 큐레이션 후 제공 예정.
+        </div>
+      </div>
+    </div>`;
+  const wrap = document.createElement('div');
+  wrap.id = 'tier3-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeTier3Modal(){
+  const wrap = document.getElementById('tier3-modal-wrap');
+  if(wrap) wrap.remove();
 }
 
 function toggleOfficesOnly(){
@@ -4970,7 +5051,77 @@ const DATA_SOURCES = {
   },
 };
 
+// Phase 1f 해석 C (Chaeyeon patch, 2026-06-18):
+// 페르소나 산출 출처 + BASELINE 원천 출처 + 두 채널 관계 3섹션 렌더
+// 광고주 양쪽 검증 가능 → "근거 없는 추정 ❌" 1차 해결
+function renderSourceModalC(dim, dimData){
+  const baselineRef = dimData?.baselineRef;
+  const sourceMeta = dimData?.sourceMeta || baselineRef?.sourceMeta;
+  const dataKind = sourceMeta?.dataKind || 'unknown';
+  const dataKindColor = {
+    official: '#10B981', mixed: '#F59E0B', estimate: '#94A3B8', partial: '#F59E0B'
+  }[dataKind] || '#64748B';
+  const personaSection = `
+    <div class="src-section" style="border-color:#4F46E5">
+      <h3 style="color:#4F46E5">① 페르소나 산출 출처</h3>
+      <div class="src-flow">
+        <div class="src-step">cohort-builder COUNTRY_DEMO (인구 분포)</div>
+        <div class="src-arrow">↓</div>
+        <div class="src-step">페르소나 100명 합성 (Gemini AI)</div>
+        <div class="src-arrow">↓</div>
+        <div class="src-step">aggregateAll() 집계 → ${dim} 산출</div>
+      </div>
+    </div>`;
+  const baselineSection = baselineRef ? `
+    <div class="src-section" style="border-color:#059669">
+      <h3 style="color:#059669">② BASELINE 원천 통계 출처</h3>
+      <div class="src-flow">
+        <div class="src-step">${baselineRef.source || sourceMeta?.source || '원천 출처'}</div>
+        <div class="src-arrow">↓</div>
+        <div class="src-step">audience-public.js BASELINE 정적 객체</div>
+        <div class="src-arrow">↓</div>
+        <div class="src-step">${dim} 통계 직접 반환</div>
+      </div>
+      ${baselineRef.note ? `<small style="color:#64748B">${baselineRef.note}</small>` : ''}
+      ${sourceMeta?.notes ? `<small style="color:#64748B;display:block;margin-top:4px">${sourceMeta.notes}</small>` : ''}
+    </div>` : '';
+  const relationSection = `
+    <div class="src-section" style="border-color:#7C3AED">
+      <h3 style="color:#7C3AED">③ 두 채널 관계 (해석 C)</h3>
+      <p style="font-size:12.5px;line-height:1.7;color:#475569">
+        본 분석은 <strong>두 출처를 함께 노출</strong>합니다. 페르소나 산출값(① cohort-builder + AI)과
+        BASELINE 원천 통계(② DR / UN / Reuters 등)를 모두 제공하여 광고주 양측 검증 가능합니다.
+      </p>
+      <p style="font-size:12px;line-height:1.6;color:#64748B;margin:8px 0 0">
+        근거 없는 추정 방지: 원천 부재 시 산출 X. 가중치 학술 근거 없으면 균등 분배 + 메타 명시.
+      </p>
+    </div>`;
+  const sourceMetaBadge = sourceMeta ? `
+    <div style="display:inline-block;padding:3px 9px;background:${dataKindColor}1A;color:${dataKindColor};font-size:11px;font-weight:700;border-radius:10px;margin-left:6px">
+      ${String(dataKind).toUpperCase()}
+    </div>` : '';
+  return `
+    <div class="aud-source-modal-c">
+      <div style="margin-bottom:14px">
+        <h2 style="margin:0;font-size:17px;display:inline-block">${dim.toUpperCase()} 출처</h2>
+        ${sourceMetaBadge}
+      </div>
+      ${personaSection}${baselineSection}${relationSection}
+    </div>`;
+}
+
 function openSourceModal(dim){
+  // 해석 C 분기 — baselineRef 있으면 3섹션 렌더
+  const dimResp = (state.dimResponses && state.dimResponses[dim]) || null;
+  if(dimResp && (dimResp.baselineRef || dimResp.sourceMeta)){
+    document.getElementById('src-modal-t').textContent = `${dim.toUpperCase()} 출처 (해석 C)`;
+    const body = document.getElementById('src-modal-body');
+    body.innerHTML = renderSourceModalC(dim, dimResp);
+    document.getElementById('src-modal').classList.remove('hide');
+    setTimeout(()=>{ const b=document.getElementById('src-modal-body'); if(b) b.scrollTop=0; }, 0);
+    return;
+  }
+  // 기존 로직 (legacy)
   const data = DATA_SOURCES[dim];
   if(!data) return;
   document.getElementById('src-modal-t').textContent = data.title;
@@ -6755,6 +6906,8 @@ async function _refreshAudienceTabFetch(dim){
     const briefQs = state.activeBriefId ? `&briefId=${encodeURIComponent(state.activeBriefId)}` : '';
     const res = await fetch(`${API}/audience/${dim}?country=${code}${briefQs}`);
     const data = await res.json();
+    // Phase 1f 해석 C (Chaeyeon patch): 원천 응답을 dimResponses에 저장 → 출처 모달에서 baselineRef/sourceMeta 노출
+    if(data.ok){ state.dimResponses[dim] = data; }
     // STEP 4-D: persona-pool branch (data may be null while generating).
     if(data.ok && data.source === 'persona-pool'){
       const badgeHtmlPp = renderPersonaBadgeHtml(data.badge);
