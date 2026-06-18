@@ -349,9 +349,9 @@ export function extractDimSources(country, dim) {
   const official = COUNTRY_OFFICIAL[country] || '국가 공식 통계';
   const map = {
     who: ['AI 합성 페르소나 풀', official],
-    life: ['AI 합성 페르소나 풀', 'DataReportal Digital 2025', 'Statista Lifestyle 2024'],
+    life: ['AI 합성 페르소나 풀', 'DataReportal Digital 2026', 'Statista Lifestyle 2024'],
     mind: ['AI 합성 페르소나 풀', 'Hofstede Insights 2024'],
-    love: ['AI 합성 페르소나 풀', 'We Are Social Digital 2025'],
+    love: ['AI 합성 페르소나 풀', 'We Are Social Digital 2026'],
     buy: ['AI 합성 페르소나 풀', `${country} Retail Sales 2024`, 'Statista E-commerce'],
     media: ['AI 합성 페르소나 풀', 'Reuters Digital News 2025', 'DataReportal'],
   };

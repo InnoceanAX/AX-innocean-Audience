@@ -3,7 +3,7 @@
 // Sources — 노출 혈용 출처만:
 //   - World Bank Open Data (공개)
 //   - Statista 공개 통계 (AMO 9세그먼트 + 시장 개요)
-//   - DataReportal Digital 2025 (We Are Social × Meltwater, 공개)
+//   - DataReportal Digital 2026 (We Are Social × Meltwater, 공개)
 //   - Reuters Digital News Report (공개)
 // 데이터는 2025 기준.
 //
@@ -21,10 +21,13 @@
 // ============================================================
 export const DEMOGRAPHICS = {
   // 연령 분포 (대략 % - UN 2024 Median Population)
-  KR: { medianAge: 45.0, dependencyRatio: 41.3, urbanRate: 81.5, ageBuckets: { '0-14': 11.6, '15-29': 14.8, '30-44': 19.4, '45-59': 24.7, '60+': 29.5 } },
+  // Phase B-2 (2026-06-18): UN WPP 2025 갱신
+  KR: { medianAge: 45.6, dependencyRatio: 41.3, urbanRate: 81.6, ageBuckets: { '0-14': 11.6, '15-29': 14.8, '30-44': 19.4, '45-59': 24.7, '60+': 29.5 } },
   US: { medianAge: 38.9, dependencyRatio: 53.9, urbanRate: 83.0, ageBuckets: { '0-14': 17.5, '15-29': 19.8, '30-44': 19.7, '45-59': 18.7, '60+': 24.3 } },
-  JP: { medianAge: 49.1, dependencyRatio: 71.1, urbanRate: 92.0, ageBuckets: { '0-14': 11.4, '15-29': 13.8, '30-44': 16.5, '45-59': 19.5, '60+': 38.8 } },
-  CN: { medianAge: 39.0, dependencyRatio: 45.6, urbanRate: 65.2, ageBuckets: { '0-14': 16.7, '15-29': 17.6, '30-44': 23.4, '45-59': 22.0, '60+': 20.3 } },
+  JP: { medianAge: 49.8, dependencyRatio: 71.1, urbanRate: 92.2, ageBuckets: { '0-14': 11.4, '15-29': 13.8, '30-44': 16.5, '45-59': 19.5, '60+': 38.8 } },
+  CN: { medianAge: 40.1, dependencyRatio: 45.6, urbanRate: 66.7, ageBuckets: { '0-14': 16.7, '15-29': 17.6, '30-44': 23.4, '45-59': 22.0, '60+': 20.3 } },
+  // Phase B-0 (2026-06-18): TW BASELINE 5dim 신규 (UN WPP 2025 + DR 2026)
+  TW: { medianAge: 44.8, dependencyRatio: 45.9, urbanRate: 80.9, ageBuckets: { '0-14': 11.4, '15-29': 15.8, '30-44': 21.3, '45-59': 23.6, '60+': 27.8 } },
   GB: { medianAge: 40.6, dependencyRatio: 57.5, urbanRate: 84.4, ageBuckets: { '0-14': 17.0, '15-29': 18.5, '30-44': 19.5, '45-59': 19.4, '60+': 25.6 } },
   DE: { medianAge: 47.8, dependencyRatio: 55.5, urbanRate: 77.8, ageBuckets: { '0-14': 14.0, '15-29': 16.3, '30-44': 18.6, '45-59': 22.6, '60+': 28.5 } },
   FR: { medianAge: 42.6, dependencyRatio: 61.2, urbanRate: 81.5, ageBuckets: { '0-14': 17.4, '15-29': 17.7, '30-44': 18.2, '45-59': 19.7, '60+': 27.0 } },
@@ -32,8 +35,8 @@ export const DEMOGRAPHICS = {
   BR: { medianAge: 33.5, dependencyRatio: 45.0, urbanRate: 87.6, ageBuckets: { '0-14': 21.3, '15-29': 22.5, '30-44': 22.2, '45-59': 18.5, '60+': 15.5 } },
   ID: { medianAge: 30.2, dependencyRatio: 47.2, urbanRate: 57.3, ageBuckets: { '0-14': 24.5, '15-29': 24.0, '30-44': 22.5, '45-59': 16.5, '60+': 12.5 } },
   VN: { medianAge: 32.5, dependencyRatio: 47.5, urbanRate: 38.8, ageBuckets: { '0-14': 22.5, '15-29': 22.8, '30-44': 23.5, '45-59': 18.0, '60+': 13.2 } },
-  TH: { medianAge: 40.1, dependencyRatio: 45.2, urbanRate: 52.0, ageBuckets: { '0-14': 16.5, '15-29': 19.0, '30-44': 21.5, '45-59': 22.0, '60+': 21.0 } },
-  PH: { medianAge: 25.7, dependencyRatio: 54.1, urbanRate: 47.7, ageBuckets: { '0-14': 28.5, '15-29': 27.0, '30-44': 21.5, '45-59': 14.0, '60+': 9.0 } },
+  TH: { medianAge: 40.6, dependencyRatio: 45.2, urbanRate: 55.2, ageBuckets: { '0-14': 16.5, '15-29': 19.0, '30-44': 21.5, '45-59': 22.0, '60+': 21.0 } },
+  PH: { medianAge: 26.1, dependencyRatio: 54.1, urbanRate: 49.1, ageBuckets: { '0-14': 28.5, '15-29': 27.0, '30-44': 21.5, '45-59': 14.0, '60+': 9.0 } },
   MY: { medianAge: 30.5, dependencyRatio: 42.4, urbanRate: 78.2, ageBuckets: { '0-14': 22.8, '15-29': 24.2, '30-44': 22.5, '45-59': 17.5, '60+': 13.0 } },
   SG: { medianAge: 42.4, dependencyRatio: 38.3, urbanRate: 100, ageBuckets: { '0-14': 11.5, '15-29': 17.5, '30-44': 23.5, '45-59': 23.0, '60+': 24.5 } },
   AU: { medianAge: 38.0, dependencyRatio: 52.2, urbanRate: 86.5, ageBuckets: { '0-14': 18.0, '15-29': 19.5, '30-44': 21.0, '45-59': 18.5, '60+': 23.0 } },
@@ -53,14 +56,15 @@ export const DEMOGRAPHICS = {
 };
 
 // ============================================================
-// 2. LIFESTYLE (라이프스타일) - DataReportal Digital 2025
+// 2. LIFESTYLE (라이프스타일) - DataReportal Digital 2026
 //    (We Are Social × Meltwater, 공개) 기반 베이스라인
 //    인터넷 사용 시간, 소셜 미디어 사용, 디바이스 등
 // ============================================================
 export const LIFESTYLE = {
+  // Phase B-1 (2026-06-18): DataReportal Digital 2026 갱신 (6국: KR/JP/CN/TW/TH/PH)
   KR: {
-    internetPenetration: 97.2,    // %
-    socialMediaUsers: 84.6,        // %
+    internetPenetration: 97.9,    // % (DR 2026, +0.7)
+    socialMediaUsers: 95.4,        // % (DR 2026, +10.8 큰 격차)
     avgInternetTime: 5.69,         // 시간/일
     avgSocialTime: 1.18,
     avgTVTime: 2.65,
@@ -76,13 +80,13 @@ export const LIFESTYLE = {
     travelDomestic: 72, travelInternational: 28, diningOut: 3.5,
   },
   JP: {
-    internetPenetration: 84.9, socialMediaUsers: 78.0,
+    internetPenetration: 87.0, socialMediaUsers: 80.5,  // DR 2026
     avgInternetTime: 4.17, avgSocialTime: 0.97, avgTVTime: 2.45, mobileInternetShare: 72.0,
     activities: { socialNetworking: 75, videoStreaming: 70, gaming: 62, shopping: 82, banking: 78, news: 80, fitness: 28 },
     travelDomestic: 65, travelInternational: 15, diningOut: 3.8,
   },
   CN: {
-    internetPenetration: 76.4, socialMediaUsers: 70.2,
+    internetPenetration: 91.6, socialMediaUsers: 90.3,  // DR 2026 (+15.2 / +20.1 큰 격차)
     avgInternetTime: 5.34, avgSocialTime: 2.43, avgTVTime: 2.95, mobileInternetShare: 82.5,
     activities: { socialNetworking: 92, videoStreaming: 88, gaming: 75, shopping: 95, banking: 91, news: 85, fitness: 38 },
     travelDomestic: 78, travelInternational: 12, diningOut: 4.5,
@@ -99,8 +103,10 @@ export const LIFESTYLE = {
   BR: { internetPenetration: 84.7, socialMediaUsers: 70.0, avgInternetTime: 9.32, avgSocialTime: 3.30, avgTVTime: 3.45, mobileInternetShare: 75.5, activities: { socialNetworking: 91, videoStreaming: 85, gaming: 65, shopping: 78, banking: 82, news: 75, fitness: 32 }, travelDomestic: 55, travelInternational: 8, diningOut: 3.2 },
   ID: { internetPenetration: 79.5, socialMediaUsers: 60.4, avgInternetTime: 7.38, avgSocialTime: 3.18, avgTVTime: 2.75, mobileInternetShare: 80.5, activities: { socialNetworking: 90, videoStreaming: 82, gaming: 70, shopping: 73, banking: 70, news: 72, fitness: 28 }, travelDomestic: 38, travelInternational: 12, diningOut: 3.8 },
   VN: { internetPenetration: 79.1, socialMediaUsers: 73.3, avgInternetTime: 6.38, avgSocialTime: 2.32, avgTVTime: 2.55, mobileInternetShare: 78.5, activities: { socialNetworking: 88, videoStreaming: 80, gaming: 72, shopping: 75, banking: 75, news: 73, fitness: 30 }, travelDomestic: 42, travelInternational: 10, diningOut: 4.0 },
-  TH: { internetPenetration: 88.0, socialMediaUsers: 73.0, avgInternetTime: 8.06, avgSocialTime: 2.31, avgTVTime: 3.15, mobileInternetShare: 78.0, activities: { socialNetworking: 87, videoStreaming: 80, gaming: 65, shopping: 78, banking: 80, news: 70, fitness: 32 }, travelDomestic: 55, travelInternational: 20, diningOut: 4.5 },
-  PH: { internetPenetration: 73.0, socialMediaUsers: 80.0, avgInternetTime: 8.52, avgSocialTime: 3.30, avgTVTime: 2.85, mobileInternetShare: 82.5, activities: { socialNetworking: 92, videoStreaming: 85, gaming: 70, shopping: 70, banking: 65, news: 72, fitness: 28 }, travelDomestic: 30, travelInternational: 8, diningOut: 3.5 },
+  TH: { internetPenetration: 94.7, socialMediaUsers: 79.1, avgInternetTime: 8.06, avgSocialTime: 2.31, avgTVTime: 3.15, mobileInternetShare: 78.0, activities: { socialNetworking: 87, videoStreaming: 80, gaming: 65, shopping: 78, banking: 80, news: 70, fitness: 32 }, travelDomestic: 55, travelInternational: 20, diningOut: 4.5 },  // DR 2026 (+6.7 / +6.1)
+  // Phase B-0: TW LIFESTYLE 신규 (DR 2026, GWI 괄레이션 추정)
+  TW: { internetPenetration: 96.7, socialMediaUsers: 78.4, avgInternetTime: 6.8, avgSocialTime: 1.95, avgTVTime: 2.95, mobileInternetShare: 75.0, activities: { socialNetworking: 86, videoStreaming: 82, gaming: 76, shopping: 88, banking: 90, news: 78, fitness: 38 }, travelDomestic: 65, travelInternational: 35, diningOut: 4.2 },
+  PH: { internetPenetration: 83.8, socialMediaUsers: 81.9, avgInternetTime: 8.52, avgSocialTime: 3.30, avgTVTime: 2.85, mobileInternetShare: 82.5, activities: { socialNetworking: 92, videoStreaming: 85, gaming: 70, shopping: 70, banking: 65, news: 72, fitness: 28 }, travelDomestic: 30, travelInternational: 8, diningOut: 3.5 },  // DR 2026 (+10.8 / +1.9)
   MY: { internetPenetration: 96.8, socialMediaUsers: 78.5, avgInternetTime: 8.06, avgSocialTime: 2.42, avgTVTime: 2.85, mobileInternetShare: 75.5, activities: { socialNetworking: 88, videoStreaming: 82, gaming: 65, shopping: 80, banking: 83, news: 75, fitness: 35 }, travelDomestic: 48, travelInternational: 25, diningOut: 4.2 },
   SG: { internetPenetration: 96.0, socialMediaUsers: 84.7, avgInternetTime: 7.16, avgSocialTime: 2.18, avgTVTime: 2.65, mobileInternetShare: 68.5, activities: { socialNetworking: 85, videoStreaming: 82, gaming: 62, shopping: 88, banking: 92, news: 80, fitness: 42 }, travelDomestic: 25, travelInternational: 70, diningOut: 5.5 },
   AU: { internetPenetration: 96.2, socialMediaUsers: 80.5, avgInternetTime: 6.13, avgSocialTime: 1.88, avgTVTime: 3.25, mobileInternetShare: 62.5, activities: { socialNetworking: 86, videoStreaming: 83, gaming: 60, shopping: 90, banking: 90, news: 80, fitness: 45 }, travelDomestic: 72, travelInternational: 50, diningOut: 3.8 },
@@ -143,6 +149,8 @@ export const MINDSET = {
   ID: { trustInBusiness: 75, trustInMedia: 65, trustInGovernment: 70, trustInNGO: 60, environmentImportance: 68, socialEqualityImportance: 65, traditionalValues: 82, innovationOpenness: 78, individualism: 14, materialism: 68, hedonism: 65, ambition: 80, riskAversion: 48, longTermOrientation: 62 },
   VN: { trustInBusiness: 72, trustInMedia: 70, trustInGovernment: 75, trustInNGO: 62, environmentImportance: 70, socialEqualityImportance: 68, traditionalValues: 80, innovationOpenness: 75, individualism: 20, materialism: 65, hedonism: 60, ambition: 82, riskAversion: 30, longTermOrientation: 57 },
   TH: { trustInBusiness: 65, trustInMedia: 58, trustInGovernment: 50, trustInNGO: 60, environmentImportance: 68, socialEqualityImportance: 60, traditionalValues: 75, innovationOpenness: 72, individualism: 20, materialism: 68, hedonism: 78, ambition: 72, riskAversion: 64, longTermOrientation: 32 },
+  // Phase B-0: TW MINDSET 신규 (Hofstede TW 정규화: IDV=17→28, LTO=93→76, UAI=69→58)
+  TW: { trustInBusiness: 60, trustInMedia: 50, trustInGovernment: 48, trustInNGO: 55, environmentImportance: 72, socialEqualityImportance: 65, traditionalValues: 70, innovationOpenness: 78, individualism: 28, materialism: 60, hedonism: 60, ambition: 78, riskAversion: 58, longTermOrientation: 76 },
   PH: { trustInBusiness: 68, trustInMedia: 55, trustInGovernment: 52, trustInNGO: 62, environmentImportance: 70, socialEqualityImportance: 65, traditionalValues: 78, innovationOpenness: 78, individualism: 32, materialism: 65, hedonism: 70, ambition: 80, riskAversion: 44, longTermOrientation: 27 },
   MY: { trustInBusiness: 70, trustInMedia: 60, trustInGovernment: 55, trustInNGO: 60, environmentImportance: 70, socialEqualityImportance: 65, traditionalValues: 75, innovationOpenness: 78, individualism: 26, materialism: 70, hedonism: 68, ambition: 78, riskAversion: 36, longTermOrientation: 41 },
   SG: { trustInBusiness: 65, trustInMedia: 50, trustInGovernment: 75, trustInNGO: 55, environmentImportance: 72, socialEqualityImportance: 68, traditionalValues: 65, innovationOpenness: 85, individualism: 20, materialism: 75, hedonism: 60, ambition: 85, riskAversion: 8, longTermOrientation: 72 },
@@ -164,7 +172,7 @@ export const MINDSET = {
 
 // ============================================================
 // 4. INTERESTS (관심사)
-//    DataReportal Digital 2025 (공개) 카테고리 빈도 가중 베이스라인.
+//    DataReportal Digital 2026 (공개) 카테고리 빈도 가중 베이스라인.
 //    Google Trends 실 API 미연결 — 출처로 노출하지 않음.
 // ============================================================
 export const INTERESTS = {
@@ -180,6 +188,9 @@ export const INTERESTS = {
   ID: { music: 75, sports: 65, gaming: 75, beauty: 78, fashion: 72, fitness: 40, cooking: 70, travel: 55, photography: 65, technology: 70, finance: 50, parenting: 65, automotive: 55, pets: 55, sustainability: 50, korean: 78, kpop: 70, food: 80 },
   VN: { music: 75, sports: 65, gaming: 80, beauty: 75, fashion: 70, fitness: 42, cooking: 75, travel: 55, photography: 65, technology: 75, finance: 55, parenting: 62, automotive: 50, pets: 50, sustainability: 50, kpop: 75, food: 85 },
   TH: { music: 75, sports: 60, gaming: 70, beauty: 80, fashion: 75, fitness: 42, cooking: 72, travel: 65, photography: 68, technology: 72, finance: 55, parenting: 55, automotive: 55, pets: 70, sustainability: 55, kpop: 75, drama: 80, food: 88 },
+  // Phase B-0: TW INTERESTS 신규 (큐레이션 추정, GWI 라이선스 결정 시 갱신)
+  TW: { music: 70, sports: 55, gaming: 76, beauty: 78, fashion: 75, fitness: 40, cooking: 70, travel: 75, photography: 72, technology: 82, finance: 65, parenting: 50, automotive: 60, pets: 75, sustainability: 60, anime: 75, drama: 80, food: 85 },
+  // Phase 1c (Reuters DNR 2026 PH): contentCreator 36-46% 추가 제안 (Phase 1.5 검토)
   PH: { music: 82, sports: 72, gaming: 75, beauty: 75, fashion: 72, fitness: 38, cooking: 70, travel: 50, photography: 65, technology: 70, finance: 45, parenting: 65, automotive: 50, pets: 65, sustainability: 50, kpop: 78, basketball: 85, food: 75 },
   MY: { music: 75, sports: 68, gaming: 70, beauty: 75, fashion: 70, fitness: 45, cooking: 75, travel: 65, photography: 65, technology: 75, finance: 60, parenting: 60, automotive: 60, pets: 55, sustainability: 55, food: 85, halal: 78, kpop: 65 },
   SG: { music: 70, sports: 65, gaming: 65, beauty: 70, fashion: 72, fitness: 55, cooking: 70, travel: 80, photography: 70, technology: 82, finance: 80, parenting: 55, automotive: 55, pets: 60, sustainability: 65, food: 85 },
@@ -201,7 +212,7 @@ export const INTERESTS = {
 
 // ============================================================
 // 5. PURCHASE BEHAVIOR (구매 행동)
-//    DataReportal Digital 2025 + Statista 공개 통계 (AMO + 시장 개요) 기반.
+//    DataReportal Digital 2026 + Statista 공개 통계 (AMO + 시장 개요) 기반.
 //    eMarketer Premium 미연결 — 출처로 노출하지 않음.
 // ============================================================
 export const PURCHASE_BEHAVIOR = {
@@ -223,6 +234,8 @@ export const PURCHASE_BEHAVIOR = {
   ID: { ecommerceShare: 15.5, mobileCommerceShare: 80.5, avgMonthlySpend: 85, paymentMethods: { card: 15, mobilePay: 65, transfer: 12, cash: 8 }, topCategories: { fashion: 78, electronics: 75, beauty: 80, food: 70, travel: 45, home: 60, entertainment: 65 }, decisionFactors: { price: 85, reviews: 80, brand: 65, quality: 72, delivery: 70, recommendation: 75 }, pricesensitivity: 88, brandLoyalty: 50, impulsiveBuying: 65, planningBeforeBuy: 60 },
   VN: { ecommerceShare: 16.0, mobileCommerceShare: 78.5, avgMonthlySpend: 95, paymentMethods: { card: 20, mobilePay: 55, transfer: 15, cash: 10 }, topCategories: { fashion: 80, electronics: 75, beauty: 75, food: 75, travel: 45, home: 55, entertainment: 70 }, decisionFactors: { price: 88, reviews: 82, brand: 60, quality: 70, delivery: 72, recommendation: 75 }, pricesensitivity: 90, brandLoyalty: 45, impulsiveBuying: 65, planningBeforeBuy: 55 },
   TH: { ecommerceShare: 18.5, mobileCommerceShare: 75.5, avgMonthlySpend: 145, paymentMethods: { card: 35, mobilePay: 45, transfer: 12, cash: 8 }, topCategories: { fashion: 78, electronics: 75, beauty: 80, food: 80, travel: 50, home: 60, entertainment: 70 }, decisionFactors: { price: 80, reviews: 82, brand: 70, quality: 75, delivery: 72, recommendation: 75 }, pricesensitivity: 80, brandLoyalty: 55, impulsiveBuying: 65, planningBeforeBuy: 60 },
+  // Phase B-0: TW PURCHASE_BEHAVIOR 신규 (큐레이션 추정)
+  TW: { ecommerceShare: 28.0, mobileCommerceShare: 70.0, avgMonthlySpend: 280, paymentMethods: { card: 50, mobilePay: 35, transfer: 10, cash: 5 }, topCategories: { fashion: 75, electronics: 80, beauty: 78, food: 75, travel: 60, home: 65, entertainment: 72 }, decisionFactors: { price: 72, reviews: 82, brand: 72, quality: 82, delivery: 75, recommendation: 65 }, pricesensitivity: 70, brandLoyalty: 65, impulsiveBuying: 50, planningBeforeBuy: 70 },
   PH: { ecommerceShare: 7.5, mobileCommerceShare: 78.5, avgMonthlySpend: 85, paymentMethods: { card: 25, mobilePay: 55, transfer: 12, cash: 8 }, topCategories: { fashion: 78, electronics: 70, beauty: 75, food: 70, travel: 40, home: 55, entertainment: 65 }, decisionFactors: { price: 85, reviews: 80, brand: 65, quality: 70, delivery: 65, recommendation: 78 }, pricesensitivity: 88, brandLoyalty: 50, impulsiveBuying: 60, planningBeforeBuy: 55 },
   MY: { ecommerceShare: 18.0, mobileCommerceShare: 70.5, avgMonthlySpend: 175, paymentMethods: { card: 45, mobilePay: 35, transfer: 15, cash: 5 }, topCategories: { fashion: 75, electronics: 75, beauty: 78, food: 78, travel: 60, home: 60, entertainment: 70 }, decisionFactors: { price: 80, reviews: 82, brand: 70, quality: 78, delivery: 70, recommendation: 70 }, pricesensitivity: 78, brandLoyalty: 60, impulsiveBuying: 55, planningBeforeBuy: 65 },
   SG: { ecommerceShare: 22.5, mobileCommerceShare: 60.5, avgMonthlySpend: 350, paymentMethods: { card: 60, mobilePay: 28, transfer: 10, cash: 2 }, topCategories: { fashion: 72, electronics: 80, beauty: 70, food: 85, travel: 80, home: 65, entertainment: 75 }, decisionFactors: { price: 75, reviews: 85, brand: 75, quality: 85, delivery: 78, recommendation: 60 }, pricesensitivity: 68, brandLoyalty: 65, impulsiveBuying: 50, planningBeforeBuy: 75 },
@@ -265,6 +278,61 @@ export const AUDIENCE_SOURCES = {
   interests:    _meta("dataReportal", "annual", "47+ countries"),
   purchase:     _meta("statista", "annual", "AMO 9 segments"),
 };
+
+// ============================================================
+// AUDIENCE_SOURCES_BY_COUNTRY (Phase 1d, 2026-06-18)
+//   CEO 14:31 지침 "최신 데이터 우선, 부재 시 전년도 OK" 반영.
+//   6국 × 5dim per-country 소스 메타 (Chaeyeon 초안 통합).
+//   dataKind: official | mixed | estimate | partial
+// ============================================================
+export const AUDIENCE_SOURCES_BY_COUNTRY = {
+  KR: {
+    demographics: { source: "UN World Population Prospects 2025", year: 2025, url: "https://population.un.org/wpp/", retrievedAt: "2026-06-18", dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2026 South Korea", year: 2026, url: "https://datareportal.com/reports/digital-2026-south-korea", retrievedAt: "2026-06-18", dataKind: "official", notes: "Kepios + ITU + GSMA Intelligence 기반" },
+    mindset: { source: "Reuters Institute Digital News Report 2026 South Korea + Hofstede Insights KR", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/south-korea", retrievedAt: "2026-06-18", dataKind: "official", notes: "숲폼 뉴스 +2배, AI Act 2026-01, Naver News Committee" },
+    interests: { source: "큐레이션 추정 (KR 시장 일반론)", year: 2024, dataKind: "estimate", license: "paid-required", notes: "GWI Pro 라이선스 결정 시 정밀치 갱신" },
+    purchase: { source: "Statista KR + 큐레이션", year: 2024, dataKind: "mixed", notes: "ecommerceShare/mobileCommerce는 Statista, 나머지는 큐레이션" },
+  },
+  JP: {
+    demographics: { source: "UN WPP 2025", year: 2025, url: "https://population.un.org/wpp/", retrievedAt: "2026-06-18", dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2026 Japan", year: 2026, url: "https://datareportal.com/reports/digital-2026-japan", retrievedAt: "2026-06-18", dataKind: "official" },
+    mindset: { source: "Reuters DNR 2026 Japan + Hofstede JP", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/japan", retrievedAt: "2026-06-18", dataKind: "partial", notes: "Reuters 본문 짧음, 후반 정량 차트 Phase 1.5 fetch" },
+    interests: { source: "큐레이션 추정", year: 2024, dataKind: "estimate", license: "paid-required" },
+    purchase: { source: "Statista JP + 큐레이션", year: 2024, dataKind: "mixed" },
+  },
+  CN: {
+    demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2026 China", year: 2026, url: "https://datareportal.com/reports/digital-2026-china", retrievedAt: "2026-06-18", dataKind: "official" },
+    mindset: { source: "CNNIC 49차 인터넷 보고서 + Hofstede CN + 큐레이션", year: 2025, dataKind: "mixed", notes: "Reuters DNR 2026 중국 미포함 (404). CNNIC 영문 abstract 사용. CN mindset narrative 한계 명시." },
+    interests: { source: "큐레이션 추정", year: 2024, dataKind: "estimate", license: "paid-required" },
+    purchase: { source: "Statista CN + 큐레이션", year: 2024, dataKind: "mixed" },
+  },
+  TW: {
+    demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official", notes: "신규 작성 (TW BASELINE 5dim 부재 해결)" },
+    lifestyle: { source: "DataReportal Digital 2026 Taiwan", year: 2026, url: "https://datareportal.com/reports/digital-2026-taiwan", retrievedAt: "2026-06-18", dataKind: "official" },
+    mindset: { source: "Hofstede Insights TW + 큐레이션", year: 2026, dataKind: "mixed", notes: "Hofstede TW: IDV=17→28, LTO=93→76, UAI=69→58 (정규화 처리). Reuters TW 후반 fetch Phase 1.5." },
+    interests: { source: "큐레이션 추정 (TW 시장)", year: 2024, dataKind: "estimate", license: "paid-required" },
+    purchase: { source: "큐레이션 추정 (TW 시장)", year: 2024, dataKind: "estimate" },
+  },
+  TH: {
+    demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2026 Thailand", year: 2026, url: "https://datareportal.com/reports/digital-2026-thailand", retrievedAt: "2026-06-18", dataKind: "official" },
+    mindset: { source: "Reuters DNR 2026 Thailand + Hofstede TH", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/thailand", retrievedAt: "2026-06-18", dataKind: "partial", notes: "Reuters TH 본문 truncated, Phase 1.5 후반 fetch" },
+    interests: { source: "큐레이션 추정", year: 2024, dataKind: "estimate", license: "paid-required" },
+    purchase: { source: "Statista TH + 큐레이션", year: 2024, dataKind: "mixed" },
+  },
+  PH: {
+    demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2026 Philippines", year: 2026, url: "https://datareportal.com/reports/digital-2026-philippines", retrievedAt: "2026-06-18", dataKind: "official", notes: "internet penetration 83.8% (Kepios+ITU). cf. Reuters DNR 2026 PH 67% (디지털 뉴스 소비 인구). 두 출처 정의 다름." },
+    mindset: { source: "Reuters DNR 2026 Philippines + Hofstede PH", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/philippines", retrievedAt: "2026-06-18", dataKind: "official", notes: "Smart TV 뉴스 53%, 콘텐츠 크리에이터 36-46%, 디스인포 규제" },
+    interests: { source: "Reuters DNR 2026 PH (contentCreator 36-46%) + 큐레이션", year: 2026, dataKind: "mixed", license: "partial-paid" },
+    purchase: { source: "Statista PH + 큐레이션", year: 2024, dataKind: "mixed" },
+  },
+};
+
+export function getSourceMeta(code, dim) {
+  return AUDIENCE_SOURCES_BY_COUNTRY[code]?.[dim] || null;
+}
 
 // ============================================================
 // HELPERS

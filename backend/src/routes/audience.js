@@ -4,7 +4,7 @@
 import express from "express";
 import { COUNTRIES } from "../data/countries.js";
 import {
-  getDemographics, getLifestyle, getMindset, getInterests, getPurchase,
+  getDemographics, getLifestyle, getMindset, getInterests, getPurchase, getSourceMeta,
   listAudienceSources,
 } from "../adapters/audience-public.js";
 import { getBrief, getPersonas, countPersonas } from "../lib/persona-store.js";
@@ -69,6 +69,18 @@ async function maybePersonaPoolPayload(req, tab, code) {
 
   const personas = getPersonas(briefId, { country: cc });
   const data = aggregator(personas);
+
+  // 구현 C (2026-06-18, CEO 14:40 지침): 페르소나 산출값 + 원천 BASELINE 함께 노출.
+  //   광고주가 양측 검증 가능. "근거 없는 추정 ❌" 해결.
+  const baselineRefByTab = {
+    who: { source: "DataReportal 2026 + UN WPP 2025", data: getDemographics(cc), sourceMeta: getSourceMeta(cc, "demographics") },
+    life: { source: "DataReportal 2026", data: getLifestyle(cc), sourceMeta: getSourceMeta(cc, "lifestyle") },
+    mind: { source: "Reuters DNR 2026 + Hofstede", data: getMindset(cc), sourceMeta: getSourceMeta(cc, "mindset") },
+    love: { source: "큐레이션 추정 + Reuters DNR 2026", data: getInterests(cc), sourceMeta: getSourceMeta(cc, "interests") },
+    buy: { source: "Statista + 큐레이션", data: getPurchase(cc), sourceMeta: getSourceMeta(cc, "purchase") },
+  };
+  const baselineRef = baselineRefByTab[tab] || null;
+
   return {
     source: "persona-pool",
     briefId,
@@ -76,6 +88,10 @@ async function maybePersonaPoolPayload(req, tab, code) {
     count: personas.length,
     dimension: tab,
     data,
+    baselineRef: baselineRef ? {
+      ...baselineRef,
+      note: "원천 통계 참조 (페르소나 풀과 독립). 광고주가 양쪽 검증 가능.",
+    } : null,
     badge: buildPersonaPoolBadge([{ code: cc, count: personas.length }], { tab, briefId }),
   };
 }
@@ -117,7 +133,7 @@ audienceRouter.get("/who", async (req, res) => {
     } : null,
     source: {
       primary: "World Bank Open Data",
-      enrichment: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      enrichment: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: demo ? "complete" : "missing",
@@ -162,7 +178,7 @@ audienceRouter.get("/life", async (req, res) => {
       diningOutPerWeek: life.diningOut,
     } : null,
     source: {
-      primary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      primary: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: life ? "complete" : "missing",
@@ -213,7 +229,7 @@ audienceRouter.get("/mind", async (req, res) => {
       },
     } : null,
     source: {
-      primary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      primary: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: mind ? "complete" : "missing",
@@ -252,7 +268,7 @@ audienceRouter.get("/love", async (req, res) => {
     rankedInterests: ranked.slice(0, 12),
     top3: ranked.slice(0, 3).map(r => r.id),
     source: {
-      primary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      primary: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: love ? "complete" : "missing",
@@ -298,7 +314,7 @@ audienceRouter.get("/buy", async (req, res) => {
     } : null,
     source: {
       primary: "Statista 공개 통계 (AMO 9세그먼트 분류 체계 + 시장 개요)",
-      secondary: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      secondary: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
       type: "public-data",
     },
     dataStatus: buy ? "complete" : "missing",
@@ -353,7 +369,7 @@ audienceRouter.get("/sources", async (req, res) => {
     ok: true,
     sources: listAudienceSources(),
     coverage: "28 priority countries (확장 가능)",
-    methodology: "공개 보고서 기반 (World Bank Open Data + Statista 공개 통계 + DataReportal Digital 2025 + Reuters Digital News Report)",
+    methodology: "공개 보고서 기반 (World Bank Open Data + Statista 공개 통계 + DataReportal Digital 2026 + Reuters Digital News Report)",
   });
 });
 
@@ -528,9 +544,9 @@ audienceRouter.get("/compare-all", async (req, res) => {
     who, life, mind, love, buy,
     sources: {
       who:  "World Bank Open Data",
-      life: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
-      mind: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
-      love: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
+      life: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
+      mind: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
+      love: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
       buy:  "Statista 공개 통계 (AMO 9세그먼트 분류 체계 + 시장 개요)",
     },
   });
@@ -1000,7 +1016,7 @@ audienceRouter.post("/synthesize", async (req, res) => {
       type: synthesized ? "AI 합성 추정" : "공개 데이터 베이스라인",
       attribution: synthesized
         ? "AI 합성 (Statista + DataReportal 일반 트렌드 기반 추정)"
-        : "World Bank Open Data + DataReportal Digital 2025 (공개)",
+        : "World Bank Open Data + DataReportal Digital 2026 (공개)",
       caveat: synthesized
         ? "실측 데이터가 아닌 AI 추정치이며, 의사결정용으로 사용 시 별도 검증이 필요합니다."
         : null,

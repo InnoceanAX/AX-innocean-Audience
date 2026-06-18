@@ -4,13 +4,25 @@
 
 const WB_BASE = "https://api.worldbank.org/v2";
 
-// ISO 2자리 → World Bank 3자리 코드 매핑
+// ISO 2자리 → World Bank 3자리 코드 매핑 (ISO 3166-1 alpha-3 표준)
+// Phase 0a 확장 (2026-06-18): 35국 → 77국 (CEO 14:28 "UI 77국 라이브 fetch" 충족)
 const ISO2_TO_WB = {
+  // 기존 35국 (유지)
   KR: "KOR", JP: "JPN", CN: "CHN", ID: "IDN", VN: "VNM", TH: "THA", MY: "MYS",
   SG: "SGP", AU: "AUS", NZ: "NZL", US: "USA", CA: "CAN", MX: "MEX", BR: "BRA",
   DE: "DEU", GB: "GBR", FR: "FRA", ES: "ESP", IT: "ITA", NL: "NLD", SE: "SWE",
   PL: "POL", AE: "ARE", SA: "SAU", TR: "TUR", EG: "EGY", ZA: "ZAF", IN: "IND",
   PH: "PHL", TW: "TWN", HK: "HKG", AR: "ARG", CL: "CHL", CO: "COL", RU: "RUS",
+  // Phase 0a 신규 42국 (countries.js UI 지원 국가 전부 커버)
+  AT: "AUT", BD: "BGD", BE: "BEL", BG: "BGR", BH: "BHR",
+  CH: "CHE", CZ: "CZE", DK: "DNK", EC: "ECU", EE: "EST",
+  ET: "ETH", FI: "FIN", GH: "GHA", GR: "GRC", HR: "HRV",
+  HU: "HUN", IE: "IRL", IL: "ISR", JO: "JOR", KE: "KEN",
+  KH: "KHM", KW: "KWT", KZ: "KAZ", LK: "LKA", LT: "LTU",
+  LV: "LVA", MA: "MAR", MM: "MMR", MN: "MNG", NG: "NGA",
+  NO: "NOR", OM: "OMN", PE: "PER", PK: "PAK", PT: "PRT",
+  QA: "QAT", RO: "ROU", SI: "SVN", SK: "SVK", UA: "UKR",
+  UY: "URY", VE: "VEN",
 };
 
 // World Bank 주요 지표
