@@ -13,6 +13,67 @@ import {
   CHANNEL_SPEND_SHARE_2024, COUNTRY_ADSPEND_2024,
 } from "../adapters/adspend-public.js";
 import { CHANNELS, flattenMedia } from "../data/media-taxonomy.js";
+import { getPersonas } from "../lib/persona-store.js";
+
+// CEO 2026-06-18 19:15: 옵션 A — 인터뷰 패널 = 페르소나 풀에서 다양성 sampling
+// 파이프라인: builder 코호트 속성 (age/gender/income/occupationLabel/kCultureExposure/kFashionInterest/fashionInterest/priceSensitivityPrior)
+//             + LLM narrative (quote/jobs_to_be_done/pain_points/media_diet/brand_affinity/lifestyle_tags/values_tags/shopping_style)
+//
+// 전략: archetype 다양성 우선 (shopping_style 기준 + occupation 다양) → 4명 stratified pick
+function samplePanelFromPool(personas, n = 4) {
+  if (!Array.isArray(personas) || personas.length === 0) return [];
+  // shopping_style 그룹화 → 다양성 우선
+  const groups = {};
+  for (const p of personas) {
+    let parsedNarr = {};
+    try { parsedNarr = typeof p.narrative === 'string' ? JSON.parse(p.narrative) : (p.narrative || {}); } catch(_) {}
+    let parsedAttr = {};
+    try { parsedAttr = typeof p.attributes === 'string' ? JSON.parse(p.attributes) : (p.attributes || {}); } catch(_) {}
+    const style = parsedNarr.shopping_style || parsedAttr.shopping_style || 'value-seeker';
+    if (!groups[style]) groups[style] = [];
+    groups[style].push({ p, narr: parsedNarr, attr: parsedAttr });
+  }
+  const styles = Object.keys(groups);
+  // 다양성: 그룹 round-robin → n명 pick
+  const picked = [];
+  let i = 0;
+  while (picked.length < n && i < n * styles.length) {
+    const style = styles[i % styles.length];
+    const candidates = groups[style];
+    if (candidates && candidates.length > 0) {
+      const idx = Math.floor(Math.random() * candidates.length);
+      const item = candidates.splice(idx, 1)[0];
+      picked.push(item);
+    }
+    i++;
+  }
+  // 변환: panel persona schema
+  return picked.map((item, idx) => {
+    const { p, narr, attr } = item;
+    const brand_affinity = Array.isArray(narr.brand_affinity) ? narr.brand_affinity : [];
+    const lifestyle_tags = Array.isArray(narr.lifestyle_tags) ? narr.lifestyle_tags : [];
+    const values_tags = Array.isArray(narr.values_tags) ? narr.values_tags : [];
+    const media_diet = Array.isArray(narr.media_diet) ? narr.media_diet : [];
+    return {
+      id: `pool-${p.persona_id || `${p.brief_id}-${idx}`}`,
+      persona_id: p.persona_id,
+      name: attr.name || `페르소나 ${idx + 1}`,
+      age: p.age || attr.age || null,
+      gender: p.gender || attr.gender || null,
+      occupation: attr.occupationLabel || attr.occupation || null,
+      region: p.region || attr.region || null,
+      archetype: narr.shopping_style || 'value-seeker',
+      lifestyle: lifestyle_tags.slice(0, 5).join(' · '),
+      values: values_tags.slice(0, 5),
+      mediaHabits: media_diet.slice(0, 5).map(m => `${m.channel || ''} ${m.hoursPerDay || 0}h/일`).filter(Boolean),
+      purchaseDrivers: narr.jobs_to_be_done?.slice(0, 3) || [],
+      painPoints: narr.pain_points?.slice(0, 2) || [],
+      quote: narr.quote || '',
+      brand_affinity: brand_affinity.slice(0, 5),
+      _fromPool: true,
+    };
+  });
+}
 
 
 
@@ -420,10 +481,35 @@ function synthesizeNarratives(p, meta) {
 }
 
 interviewRouter.post("/panel", async (req, res) => {
-  const { country = "KR", filters = {}, count = 4, seedPersonas = [], seedQuestion = "", anchorPersona = null } = req.body || {};
+  const { country = "KR", filters = {}, count = 4, seedPersonas = [], seedQuestion = "", anchorPersona = null, briefId = null } = req.body || {};
   const meta = COUNTRIES.find(c => c.code === String(country).toUpperCase());
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
   const n = Math.min(5, Math.max(2, Number(count) || 4));
+
+  // CEO 2026-06-18 19:15 옵션 A: briefId 있으면 페르소나 풀에서 샘플링 — 분석 탭 통계와 정합
+  if (briefId) {
+    try {
+      const pool = getPersonas(briefId, String(country).toUpperCase());
+      if (pool && pool.length > 0) {
+        const panel = samplePanelFromPool(pool, n);
+        if (panel.length > 0) {
+          return res.json({
+            ok: true,
+            country: meta,
+            panel,
+            meta: {
+              method: "persona-pool-sampling",
+              poolSize: pool.length,
+              briefId,
+              integrity: "pool-aligned",
+            },
+          });
+        }
+      }
+    } catch (e) {
+      console.warn(`[interview/panel] pool sampling failed: ${e.message} — fallback to LLM`);
+    }
+  }
 
   if (!isGeminiAvailable()) {
     return res.json({

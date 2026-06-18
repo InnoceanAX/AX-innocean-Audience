@@ -8405,9 +8405,11 @@ async function generatePanel(count = 4, opts){
     const seedPersonas = (opts && opts.seedPersonas) || state.seedPersonas || [];
     const seedQuestion = (opts && opts.seedQuestion) || state.seedQuestion || (state.lastAsk?.question || '');
     const anchorPersona = (opts && opts.anchorPersona) || null;
+    // CEO 2026-06-18 19:15 옵션 A: briefId 전달 — 패널이 프르소나 풀에서 샘플링되도록
+    const _briefIdForPanel = state.activeBriefId || state.briefId || state.currentBriefId || null;
     const res = await fetch(`${API}/interview/panel`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ country: state.currentCountry, filters: state.filters, count, seedPersonas, seedQuestion, anchorPersona }),
+      body: JSON.stringify({ country: state.currentCountry, filters: state.filters, count, seedPersonas, seedQuestion, anchorPersona, briefId: _briefIdForPanel }),
     });
     const data = await res.json();
     if(!data.ok) throw new Error(data.error);
