@@ -101,6 +101,44 @@ export async function downloadDbFromGcs() {
 //   e.g. 50 persona rows written in 3 s → only 1 GCS upload fired 30 s after last write.
 let _uploadTimer = null;
 
+// 웅로드 가드: 로컬 DB에 실제 데이터가 없으면 GCS에 덮어쓰지 않음
+// (Cloud Run 재배포 직후 빈 DB로 GCS 릴레이스 사이클 차단)
+function shouldSkipUpload() {
+  try {
+    if (!fs.existsSync(DB_PATH)) return true;
+    const stat = fs.statSync(DB_PATH);
+    // 4KB 이하 = 스키마도 없는 완전 빈 DB → skip
+    if (stat.size <= 4096) {
+      console.warn(`[persona-gcs] local DB too small (${stat.size}B) — upload skipped to protect prior backup`);
+      return true;
+    }
+    // schema만 있고 실데이터 없을 수 있으므로 better-sqlite3로 진짜로 확인
+    // (순환 의존 제거를 위해 지연 import — persona-store에서 이미 import됨)
+    return false;
+  } catch (e) {
+    console.warn(`[persona-gcs] shouldSkipUpload check failed: ${e.message}`);
+    return false;
+  }
+}
+
+// 로컬 DB의 페르소나 건수 조회 (빈 DB 가드 강화)
+// db 객체를 외부에서 주입받아 윤환 import 회피
+let _getDbForCheck = null;
+export function _setDbAccessor(fn) { _getDbForCheck = fn; }
+
+function localDbHasPersonas() {
+  if (!_getDbForCheck) return null; // unknown — skip check
+  try {
+    const db = _getDbForCheck();
+    if (!db) return null;
+    const row = db.prepare("SELECT COUNT(*) as n FROM campaign_personas").get();
+    return row?.n > 0;
+  } catch (e) {
+    // 테이블 없으면 fresh start — upload 안하는 게 안전
+    return false;
+  }
+}
+
 export function scheduleDbUpload() {
   if (!isGcsEnabled()) return;
 
@@ -111,6 +149,17 @@ export function scheduleDbUpload() {
   _uploadTimer = setTimeout(async () => {
     _uploadTimer = null;
     const label = `gs://${BUCKET}/${OBJECT}`;
+
+    // 가드 1: 파일 크기 체크
+    if (shouldSkipUpload()) return;
+
+    // 가드 2: 실제 페르소나 존재 체크
+    const hasPersonas = localDbHasPersonas();
+    if (hasPersonas === false) {
+      console.warn(`[persona-gcs] local DB has 0 personas — upload skipped to protect prior backup`);
+      return;
+    }
+
     try {
       const storage = getStorage();
       await storage.bucket(BUCKET).upload(DB_PATH, {

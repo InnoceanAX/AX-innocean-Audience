@@ -37,7 +37,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
-import { downloadDbFromGcs, scheduleDbUpload } from "./persona-gcs.js";
+import { downloadDbFromGcs, scheduleDbUpload, _setDbAccessor } from "./persona-gcs.js";
 
 const DB_PATH = process.env.PERSONA_DB_PATH ?? "./data/audience-personas.db";
 const LEGACY_JSON_FILE = process.env.PERSONA_STORE_FILE || "/tmp/innocean-personas.json";
@@ -649,3 +649,6 @@ export function markCancelled(briefId) {
 // GCS restore → then eagerly initialize the DB so legacy migration runs at module load.
 await downloadDbFromGcs();
 try { getDb(); } catch (e) { console.warn("[persona-store] init deferred:", e.message); }
+
+// persona-gcs의 upload 가드가 로컬 DB를 조회할 수 있도록 accessor 등록
+_setDbAccessor(() => _db);
