@@ -269,7 +269,7 @@ async function runGeneration(brief) {
       country,
       countryName,
       batchSize: 10,
-      concurrency: 2,
+      concurrency: 1,
       shouldCancel,
       onBatchDone: (doneInCountry, totalInCountry) => {
         const state = getGenerationState(briefId) || {};
