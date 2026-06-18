@@ -2663,11 +2663,12 @@ async function chatBoardEnter(q, parsedAsk){
   try{
     const code = state.currentCountry || 'KR';
     const filters = (parsedAsk && parsedAsk.filters) || state.filters || {};
-    const synKey = JSON.stringify({ country: code, filters });
+    const briefId = state.activeBriefId || state.briefId || state.currentBriefId || null;
+    const synKey = JSON.stringify({ country: code, filters, briefId });
     if(!(state.synthCache && state.synthCache.cacheKey === synKey)){
       const synR = await fetch(API + '/audience/synthesize', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ country: code, filters }),
+        body: JSON.stringify({ country: code, filters, briefId }),
       });
       const synD = await synR.json();
       if(synD && synD.ok && synD.segments){
@@ -8924,11 +8925,12 @@ async function runAnalysis(opts){
   state.synthCache = null;
   try {
     const _synCode = state.currentCountry;
-    const _synKey = JSON.stringify({ country: _synCode, filters: state.filters || {} });
+    const _synBid = state.activeBriefId || state.briefId || state.currentBriefId || null;
+    const _synKey = JSON.stringify({ country: _synCode, filters: state.filters || {}, briefId: _synBid });
     const _synR = await fetch(API + '/audience/synthesize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country: _synCode, filters: state.filters || {} }),
+      body: JSON.stringify({ country: _synCode, filters: state.filters || {}, briefId: _synBid }),
     });
     const _synD = await _synR.json();
     if (_synD && _synD.ok && _synD.segments) {
@@ -8977,7 +8979,8 @@ async function runAnalysis(opts){
     // AI 합성 소비자: 필터가 있을 때만 호출
     // CEO 2026-06-15: keepSynth=true이고 기존 synthCache가 동일 country+filters면 재사용 (채팅↔인사이트 차트 일관성)
     const existingSyn = state.synthCache;
-    const synKey = JSON.stringify({ country: code, filters: state.filters || {} });
+    const _bId2 = state.activeBriefId || state.briefId || state.currentBriefId || null;
+    const synKey = JSON.stringify({ country: code, filters: state.filters || {}, briefId: _bId2 });
     const canReuseSyn = opts.keepSynth && existingSyn && existingSyn.cacheKey === synKey && existingSyn.segments;
     if(!canReuseSyn){
       state.synthCache = null;
@@ -8991,7 +8994,7 @@ async function runAnalysis(opts){
       try{
         const synR = await fetch(API + '/audience/synthesize', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ country: code, filters: state.filters }),
+          body: JSON.stringify({ country: code, filters: state.filters, briefId: _bId2 }),
         });
         const synD = await synR.json();
         if(synD.ok && synD.segments) {

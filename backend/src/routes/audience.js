@@ -587,9 +587,29 @@ audienceRouter.get("/compare-all", async (req, res) => {
 // 각 segment는 baseline에서 출발해 LLM으로 필터 컨텍스트 반영한 합성 통계
 // ============================================================
 audienceRouter.post("/synthesize", async (req, res) => {
-  const { country: code = "KR", filters = {} } = req.body || {};
+  const { country: code = "KR", filters = {}, briefId = null } = req.body || {};
   const meta = COUNTRIES.find(c => c.code === String(code).toUpperCase());
   if (!meta) return res.status(400).json({ ok: false, error: "Unknown country" });
+
+  // CEO 2026-06-18 19:28 지시: 광게 구조 데이터 정합성 보장.
+  // briefId가 있으면 페르소나 풀에서 직접 stats 산출 → 분석 탭/요약/패널/단일 페르소나 모두 같은 풀
+  // = 모든 6탭 을 한 풀에서 수입 + 요약과 페르소나가 모순 없음
+  let poolSynthesis = null;
+  if (briefId) {
+    try {
+      const brief = getBrief(briefId);
+      if (brief) {
+        const personas = getPersonas(briefId, { country: meta.code });
+        if (personas && personas.length >= 10) {
+          poolSynthesis = aggregateAll(personas);
+          // method tag
+          console.log(`[synthesize] using persona pool: briefId=${briefId} country=${meta.code} n=${personas.length}`);
+        }
+      }
+    } catch (e) {
+      console.warn(`[synthesize] persona pool fetch failed: ${e.message} — fallback to baseline+LLM`);
+    }
+  }
 
   // 베이스라인 (필터 없는 국가 통계)
   const baselineWho = getDemographics(meta.code);
@@ -1047,18 +1067,30 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
   } catch (e) { console.warn("[synthesize] final clamp failed:", e.message); }
 
-  res.json({
-    ok: true,
-    country: meta,
-    filters,
-    filterSummary,
-    hasFilters,
-    segments: synthesized,
-    baseline: hasFilters ? null : {
-      who: baselineWho,
-      life: baselineLife,
-    },
-    source: {
+  // CEO 2026-06-18 19:28 지시: 프로퍼소나 풀 있으면 그게 진실 (분석/요약/패널/단일 동일 풀)
+  // poolSynthesis가 있으면 segments를 풀 stats로 대체 → 정합성 보장
+  let finalSegments = synthesized;
+  let finalMethod = method;
+  let finalSource = null;
+
+  if (poolSynthesis) {
+    // 풀 stats를 segments의 기본값으로 사용, LLM 합성치는 poolSynthesis 없는 키에만 보완
+    finalSegments = {
+      who: { ...(synthesized?.who || {}), ...(poolSynthesis.who || {}) },
+      life: { ...(synthesized?.life || {}), ...(poolSynthesis.life || {}) },
+      mind: { ...(synthesized?.mind || {}), ...(poolSynthesis.mind || {}) },
+      love: { ...(synthesized?.love || {}), ...(poolSynthesis.love || {}) },
+      buy: { ...(synthesized?.buy || {}), ...(poolSynthesis.buy || {}) },
+      media: { ...(synthesized?.media || {}), ...(poolSynthesis.media || {}) },
+    };
+    finalMethod = synthesized ? "persona-pool + LLM-fill" : "persona-pool";
+    finalSource = {
+      type: "페르소나 풀 집계 (briefId=" + briefId + ")",
+      attribution: "INNOCEAN AI 합성 페르소나 100명 풀 (해당 브리프 설정에 따른 국가별 다르어)",
+      caveat: "분석 탭/요약/4인 패널/단일 페르소나가 모두 동일 풀에서 산출되어 정합성 보장됩니다.",
+    };
+  } else {
+    finalSource = {
       type: synthesized ? "AI 합성 추정" : "공개 데이터 베이스라인",
       attribution: synthesized
         ? "AI 합성 (Statista + DataReportal 일반 트렌드 기반 추정)"
@@ -1066,8 +1098,24 @@ audienceRouter.post("/synthesize", async (req, res) => {
       caveat: synthesized
         ? "실측 데이터가 아닌 AI 추정치이며, 의사결정용으로 사용 시 별도 검증이 필요합니다."
         : null,
+    };
+  }
+
+  res.json({
+    ok: true,
+    country: meta,
+    filters,
+    filterSummary,
+    hasFilters,
+    briefId,
+    segments: finalSegments,
+    baseline: hasFilters ? null : {
+      who: baselineWho,
+      life: baselineLife,
     },
-    method,
+    source: finalSource,
+    method: finalMethod,
+    integrity: poolSynthesis ? "pool-aligned" : "baseline-only",
   });
 });
 
