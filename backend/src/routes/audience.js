@@ -637,7 +637,9 @@ audienceRouter.post("/synthesize", async (req, res) => {
   let synthesized = null;
   let method = "baseline-only";
 
-  if (hasFilters && isGeminiAvailable() && process.env.SYNTHESIZE_USE_LLM !== "0") {
+  // CEO 2026-06-18 20:30 지시: 풀이 있을 때도 LLM 합성 강제 — dayparts/food/wellness/music/content/influencer/channel 등 풀에 없는 키 채움
+  const shouldSynthLLM = (hasFilters || poolSynthesis) && isGeminiAvailable() && process.env.SYNTHESIZE_USE_LLM !== "0";
+  if (shouldSynthLLM) {
     try {
       const sys = `당신은 광고 솔루션의 오디언스 합성 통계 생성기입니다.
 입력으로 받은 국가 + 세그먼트 필터에 대해 5차원(Who/Life/Mind/Love/Buy) 통계를 추정합니다.
