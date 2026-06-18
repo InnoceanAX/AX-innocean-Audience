@@ -8944,7 +8944,7 @@ async function runAnalysis(opts){
     const briefIdParam = _bId ? `&briefId=${encodeURIComponent(_bId)}` : '';
     const dims = ['who','life','mind','love','buy'];
     const tasks = dims.map(d => fetch(`${API}/audience/${d}?country=${code}${briefIdParam}`).then(r => r.json()).catch(e => ({ ok:false, error:e.message })));
-    tasks.push(fetch(`${API}/media?country=${code}${briefIdParam}`).then(r => r.json()).catch(e => ({ ok:false })));
+    tasks.push(fetch(`${API}/media/landscape?country=${code}${briefIdParam}`).then(r => r.json()).catch(e => ({ ok:false })));
     const results = await Promise.all(tasks);
     // 캐시 저장
     dims.forEach((d, i) => { if(results[i]?.ok) state.audienceCache[d] = results[i]; });
