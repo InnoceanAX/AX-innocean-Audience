@@ -7545,7 +7545,7 @@ function renderAudienceDim(dim, data){
       </div>
     </div>
     <div class="aud-section"><div class="aud-section-t">대표 관심사 Top 3</div>
-      <div class="aud-chips">${(data.top3||[]).map(t => `<span class="aud-chip">${loveLabel(t)}</span>`).join('')}</div>
+      <div class="aud-chips">${(data.top3||[]).map(t => `<span class="aud-chip" style="display:inline-block;padding:4px 10px;margin:0 6px 6px 0;background:#FCE7F3;border:1px solid #F9A8D4;border-radius:14px;font-size:12px;color:#831843;font-weight:600">${loveLabel(t)}</span>`).join('')}</div>
     </div>
     `;
   }

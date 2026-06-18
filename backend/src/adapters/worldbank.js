@@ -48,27 +48,37 @@ function wbDateRange() {
 }
 
 // 단일 국가·지표 최신값 fetch
+// CEO 2026-06-18 14:07 Item 1: ERR/NULL 명시 메타 반환 (채연 진단 반영).
 async function fetchIndicator(wbCode, indicator) {
   const url = `${WB_BASE}/country/${wbCode}/indicator/${indicator}?format=json&per_page=10&date=${wbDateRange()}`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) throw new Error(`WB ${res.status}`);
+    if (!res.ok) {
+      return { value: null, year: null, source: `WB API ${res.status}` };
+    }
     const data = await res.json();
-    if (!Array.isArray(data) || !Array.isArray(data[1])) return null;
+    if (!Array.isArray(data) || !Array.isArray(data[1])) {
+      return { value: null, year: null, source: "WB API NULL" };
+    }
     // 최신 non-null 값 반환
     const valid = data[1].filter(d => d.value !== null);
-    if (!valid.length) return null;
+    if (!valid.length) {
+      return { value: null, year: null, source: "WB API NO_DATA" };
+    }
     valid.sort((a, b) => Number(b.date) - Number(a.date));
-    return { value: valid[0].value, year: valid[0].date };
+    return { value: valid[0].value, year: valid[0].date, source: "WB API" };
   } catch (err) {
     console.warn(`[WB] ${wbCode}/${indicator} failed:`, err.message);
-    return null;
+    return { value: null, year: null, source: `WB API ERR: ${err.message}` };
   }
 }
 
 // 메모리 캐시 (TTL 6시간)
 const cache = new Map();
 const TTL = 6 * 60 * 60 * 1000;
+
+// CEO 2026-06-18 14:07 Item 1: TW 는 WB 회원국 아님 → 명시 메타 (외부 출처 DGBAS Taiwan / IMF WEO / UN WPP 권고)
+const WB_UNSUPPORTED = new Set(["TW"]);
 
 export async function getCountryStats(iso2) {
   const code = String(iso2).toUpperCase();
@@ -78,6 +88,21 @@ export async function getCountryStats(iso2) {
   const cacheKey = `stats:${code}`;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < TTL) return cached.data;
+
+  // CEO 14:07 Item 1: TW 명시 분기
+  if (WB_UNSUPPORTED.has(code)) {
+    const data = {
+      country: code,
+      source: "World Bank Open Data",
+      indicators: Object.fromEntries(
+        Object.keys(INDICATORS).map(key => [key, { value: null, year: null, source: "WB API UNSUPPORTED: TW (Taiwan is not a WB member, use DGBAS / IMF WEO / UN WPP)" }])
+      ),
+      note: "Taiwan은 World Bank 회원국이 아니므로 WB 데이터가 없습니다. DGBAS Taiwan / IMF WEO / UN WPP 외부 출처 사용 권장.",
+      fetchedAt: new Date().toISOString(),
+    };
+    cache.set(cacheKey, { data, ts: Date.now() });
+    return data;
+  }
 
   const results = {};
   await Promise.all(

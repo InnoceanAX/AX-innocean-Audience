@@ -906,9 +906,28 @@ audienceRouter.post("/synthesize", async (req, res) => {
     }
 
     // BUY 차트 수단 해백
+    // CEO 2026-06-18 14:07 Item 4: AI 박스 ↔ 차트 1,2위 정합성 보장.
+    // baselineBuy(audience-public.js BUY[country]) 의 share % 기준 sort 해서 박스 array 도출.
     synthesized.buy = synthesized.buy || {};
+    const _catLabelMap = { fashion:"의류·패션", electronics:"전자제품", beauty:"화장품·뷰티", food:"식품·생활", travel:"여행", home:"홈데코", entertainment:"엔터테인먼트" };
+    const _payLabelMap = { card:"신용카드", mobilePay:"모바일페이", transfer:"계좌이체", cash:"현금" };
     if (!synthesized.buy.topCategories || !synthesized.buy.topCategories.length) {
-      synthesized.buy.topCategories = ["식품·생활", "육아용품", "의류·패션", "뉴트리·건강식품", "교육·도서", "외식·커피", "화장품·뷰티"];
+      const _tc = (baselineBuy && baselineBuy.topCategories) || {};
+      const _entries = Object.entries(_tc);
+      if (_entries.length) {
+        synthesized.buy.topCategories = _entries.sort((a,b) => b[1] - a[1]).map(([k]) => _catLabelMap[k] || k);
+      } else {
+        synthesized.buy.topCategories = ["식품·생활", "육아용품", "의류·패션", "뉴트리·건강식품", "교육·도서", "외식·커피", "화장품·뷰티"];
+      }
+    }
+    // paymentPreference = paymentMethods 1위 라벨로 강제 (차트 1위 = 박스 표기 = 일치 보장)
+    if (!synthesized.buy.paymentPreference) {
+      const _pm = (baselineBuy && baselineBuy.paymentMethods) || {};
+      const _pmEntries = Object.entries(_pm);
+      if (_pmEntries.length) {
+        const [_topKey] = _pmEntries.sort((a,b) => b[1] - a[1])[0];
+        synthesized.buy.paymentPreference = _payLabelMap[_topKey] || _topKey;
+      }
     }
     if (!synthesized.buy.shoppingChannels || !Object.keys(synthesized.buy.shoppingChannels).length) {
       synthesized.buy.shoppingChannels = { "온라인": 60, "오프라인": 40 };
