@@ -22,16 +22,17 @@ import { getPersonas } from "../lib/persona-store.js";
 // 전략: archetype 다양성 우선 (shopping_style 기준 + occupation 다양) → 4명 stratified pick
 function samplePanelFromPool(personas, n = 4) {
   if (!Array.isArray(personas) || personas.length === 0) return [];
+  // persona-store 반환 객체 = top-level flatten됨 (attributes/narrative 클래스화 안 됨)
+  // 제공 필드: persona_id, country, age, gender, region, ageBucket, incomeQuintile, occupation, occupationLabel,
+  //           kCultureExposure, kFashionInterest, fashionInterest, priceSensitivityPrior,
+  //           quote, jobs_to_be_done, pain_points, media_diet, brand_affinity, lifestyle_tags, values_tags,
+  //           shopping_style, price_sensitivity
   // shopping_style 그룹화 → 다양성 우선
   const groups = {};
   for (const p of personas) {
-    let parsedNarr = {};
-    try { parsedNarr = typeof p.narrative === 'string' ? JSON.parse(p.narrative) : (p.narrative || {}); } catch(_) {}
-    let parsedAttr = {};
-    try { parsedAttr = typeof p.attributes === 'string' ? JSON.parse(p.attributes) : (p.attributes || {}); } catch(_) {}
-    const style = parsedNarr.shopping_style || parsedAttr.shopping_style || 'value-seeker';
+    const style = p.shopping_style || 'value-seeker';
     if (!groups[style]) groups[style] = [];
-    groups[style].push({ p, narr: parsedNarr, attr: parsedAttr });
+    groups[style].push(p);
   }
   const styles = Object.keys(groups);
   // 다양성: 그룹 round-robin → n명 pick
@@ -42,34 +43,56 @@ function samplePanelFromPool(personas, n = 4) {
     const candidates = groups[style];
     if (candidates && candidates.length > 0) {
       const idx = Math.floor(Math.random() * candidates.length);
-      const item = candidates.splice(idx, 1)[0];
-      picked.push(item);
+      const p = candidates.splice(idx, 1)[0];
+      picked.push(p);
     }
     i++;
   }
+  // 풀이 작아서 모자라면 나머지 임의 pick (다양성 포기 대신 시장 명수)
+  if (picked.length < n) {
+    const remaining = personas.filter(p => !picked.includes(p));
+    while (picked.length < n && remaining.length > 0) {
+      const idx = Math.floor(Math.random() * remaining.length);
+      picked.push(remaining.splice(idx, 1)[0]);
+    }
+  }
   // 변환: panel persona schema
-  return picked.map((item, idx) => {
-    const { p, narr, attr } = item;
-    const brand_affinity = Array.isArray(narr.brand_affinity) ? narr.brand_affinity : [];
-    const lifestyle_tags = Array.isArray(narr.lifestyle_tags) ? narr.lifestyle_tags : [];
-    const values_tags = Array.isArray(narr.values_tags) ? narr.values_tags : [];
-    const media_diet = Array.isArray(narr.media_diet) ? narr.media_diet : [];
+  return picked.map((p, idx) => {
+    const brand_affinity = Array.isArray(p.brand_affinity) ? p.brand_affinity : [];
+    const lifestyle_tags = Array.isArray(p.lifestyle_tags) ? p.lifestyle_tags : [];
+    const values_tags = Array.isArray(p.values_tags) ? p.values_tags : [];
+    const media_diet = Array.isArray(p.media_diet) ? p.media_diet : [];
+    const jtbd = Array.isArray(p.jobs_to_be_done) ? p.jobs_to_be_done : [];
+    const pains = Array.isArray(p.pain_points) ? p.pain_points : [];
+    // 이름: 페르소나에는 없으널, archetype + region + age 기반 속명 잠정
+    const archetypeLabel = ({
+      'trend-chaser': '트렌디 추구형',
+      'brand-loyal': '브랜드 주의형',
+      'bargain-hunter': '가성비 추구형',
+      'value-seeker': '가치 추구형',
+      'curator': '스타일 큐레이터',
+    })[p.shopping_style] || '가치 추구형';
     return {
-      id: `pool-${p.persona_id || `${p.brief_id}-${idx}`}`,
+      id: `pool-${p.persona_id || `${idx}`}`,
       persona_id: p.persona_id,
-      name: attr.name || `페르소나 ${idx + 1}`,
-      age: p.age || attr.age || null,
-      gender: p.gender || attr.gender || null,
-      occupation: attr.occupationLabel || attr.occupation || null,
-      region: p.region || attr.region || null,
-      archetype: narr.shopping_style || 'value-seeker',
+      name: `${p.region || p.country} ${p.age}세 ${p.gender === 'female' ? '여성' : p.gender === 'male' ? '남성' : ''}`,
+      age: p.age || null,
+      gender: p.gender || null,
+      occupation: p.occupationLabel || p.occupation || null,
+      region: p.region || null,
+      archetype: archetypeLabel,
       lifestyle: lifestyle_tags.slice(0, 5).join(' · '),
       values: values_tags.slice(0, 5),
       mediaHabits: media_diet.slice(0, 5).map(m => `${m.channel || ''} ${m.hoursPerDay || 0}h/일`).filter(Boolean),
-      purchaseDrivers: narr.jobs_to_be_done?.slice(0, 3) || [],
-      painPoints: narr.pain_points?.slice(0, 2) || [],
-      quote: narr.quote || '',
+      purchaseDrivers: jtbd.slice(0, 3),
+      painPoints: pains.slice(0, 2),
+      quote: p.quote || '',
       brand_affinity: brand_affinity.slice(0, 5),
+      shopping_style: p.shopping_style || null,
+      kCultureExposure: p.kCultureExposure,
+      kFashionInterest: p.kFashionInterest,
+      fashionInterest: p.fashionInterest,
+      priceSensitivityPrior: p.priceSensitivityPrior,
       _fromPool: true,
     };
   });
