@@ -1132,6 +1132,55 @@ body.home-fade-out #screen-home{
 .sm-delta-ci{font-size:10px;color:#9CA3AF;letter-spacing:.3px}
 .sm-delta-note{font-size:10.5px;color:#6B7280;font-style:italic;margin-top:4px}
 .sm-delta-empty{padding:20px;text-align:center;font-size:12px;color:#9CA3AF;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:8px;grid-column:1/-1}
+
+ /* === 6차원 포멀 카드 v4 (CEO 2026-06-18) === */
+/* === 6차원 포멀 카드 v4 CSS (블록 B 학습 입력 캡션 추가) === */
+
+/* 옵션 D 카드 시연 hide */
+#sm-baseline-hd, #sm-target-hd, #sm-deltas { display:none !important; }
+.sm-section-hd-baseline, .sm-section-hd-target, .sm-delta-card { display:none !important; }
+
+/* 블록 A: 통계 영역 */
+.sm-dim-card-v2 { background:#FFF; border:1px solid #E5E7EB; border-radius:10px; overflow:hidden; display:flex; flex-direction:column; }
+.sm-dim-hd-v2 { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid #E5E7EB; }
+.sm-dim-hd-l-v2 { display:flex; gap:8px; align-items:center; font-weight:600; color:#1F2937; font-size:15px; }
+.sm-dim-hd-r-v2 { display:flex; gap:8px; align-items:center; }
+.sm-dim-n-v2 { font-size:11px; color:#9CA3AF; background:#F3F4F6; padding:2px 6px; border-radius:4px; }
+.sm-dim-link-v2 { font-size:12px; color:#4F46E5; text-decoration:none; padding:2px 8px; border:1px solid #4F46E5; border-radius:4px; cursor:pointer; }
+.sm-dim-link-v2:hover { background:#4F46E5; color:#FFF; }
+.sm-dim-stats-v2 { padding:12px 16px; display:flex; flex-direction:column; gap:4px; min-height:180px; }
+.sm-dim-stat-v2 { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px dashed #F3F4F6; }
+.sm-dim-stat-v2:last-child { border-bottom:none; }
+.sm-dim-stat-lbl-v2 { color:#4B5563; font-size:13px; }
+.sm-dim-stat-lbl-v2 small { color:#9CA3AF; font-size:10px; margin-left:4px; font-weight:500; }
+.sm-dim-stat-val-v2 { color:#1F2937; font-size:14px; font-weight:600; text-align:right; }
+.sm-dim-stat-val-v2.top { color:#4F46E5; }
+
+/* ★ 블록 B (NEW): 학습 입력 캡션 — 베이스라인 격하 노출 */
+.sm-dim-baseline-cap-v2 { padding:10px 16px; background:#FAFAFA; border-top:1px dashed #F3F4F6; font-size:11px; color:#9CA3AF; line-height:1.5; }
+.sm-dim-baseline-cap-v2 strong { color:#6B7280; font-weight:500; }
+
+/* 블록 C: 출처 (단일 라벨, 보편) */
+.sm-dim-src-v2 { padding:10px 16px; background:#FAFAFA; border-top:1px solid #E5E7EB; font-size:11px; color:#6B7280; line-height:1.5; }
+.sm-dim-src-v2 strong { color:#4B5563; font-weight:600; }
+
+/* 블록 D: 페르소나 voice (차별점) */
+.sm-dim-voice-v2 { padding:12px 16px; background:#FAF5FF; border-top:1px solid #E9D5FF; min-height:48px; }
+.sm-dim-voice-q-v2 { font-size:13px; color:#5B21B6; line-height:1.5; font-style:italic; }
+.sm-dim-voice-meta-v2 { font-size:10.5px; color:#9F7AEA; margin-top:6px; font-style:normal; }
+.sm-dim-voice-tags-v2 { display:flex; flex-wrap:wrap; gap:4px; }
+.sm-dim-voice-tag-v2 { font-size:11px; color:#5B21B6; background:#FFF; border:1px solid #E9D5FF; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+
+/* 출처 라벨 색상 */
+.tag-pp-v2 { color:#4F46E5; font-weight:500; }
+.tag-bl-v2 { color:#6B7280; font-weight:500; }
+
+/* 카드 하단 범례 박스 */
+.sm-dim-legend-v2 { margin-top:20px; padding:14px 18px; background:#FFF; border:1px solid #E5E7EB; border-radius:8px; font-size:12px; color:#4B5563; line-height:1.6; }
+.sm-dim-legend-v2 strong { color:#1F2937; font-weight:600; }
+
+/* Phase 1.5 진화 plan 캡션 (정직 노출) */
+.sm-dim-evolution-cap-v2 { margin-top:12px; padding:10px 18px; background:#F5F3FF; border:1px dashed #C7D2FE; border-radius:6px; font-size:11px; color:#6366F1; line-height:1.5; }
 .sm-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .sm-kpi{padding:18px 20px;background:#fff;border:1px solid var(--bdr);border-radius:10px}
 .sm-kpi-l{font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -6149,6 +6198,117 @@ async function aiBuilderParse(){
   finally{ if(btn){ btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>타겟 자동 설정'; } }
 }
 
+// === 6차원 포멀 카드 v4 렌더러 (CEO 2026-06-18) ===
+// CEO 2026-06-18 12:07 본질: 카드 stats = persona end 값, baseline = "학습 입력" 캡션 격하
+// CEO 12:01 보편성: 광고주 hard-code 0건, 모든 라벨 backend 응답 동적
+
+const ICONS_V4 = {
+  who:  { ico:'👥', label:'인물상' },
+  life: { ico:'🌿', label:'라이프스타일' },
+  mind: { ico:'🧠', label:'가치관' },
+  love: { ico:'❤️', label:'관심사' },
+  buy:  { ico:'🛍️', label:'구매' },
+  media:{ ico:'📱', label:'미디어' }
+};
+
+const TAB_MAP_V4 = { who:'who', life:'life', mind:'mind', love:'love', buy:'buy', media:'media' };
+
+function escapeHtmlV4(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 블록 A: persona end stats
+function renderStatV4(s){
+  if (!s || !s.label) return '';
+  const srcTag = s.source==='persona' ? '<small class="tag-pp-v2">페르소나</small>' : '<small class="tag-bl-v2">베이스라인</small>';
+  const valCls = s.emphasis==='top' ? 'sm-dim-stat-val-v2 top' : 'sm-dim-stat-val-v2';
+  return `<div class="sm-dim-stat-v2"><span class="sm-dim-stat-lbl-v2">${escapeHtmlV4(s.label)}${srcTag}</span><span class="${valCls}">${escapeHtmlV4(s.value || '—')}</span></div>`;
+}
+
+// 블록 B: 학습 입력 캡션 (베이스라인 격하)
+function renderBaselineCapV4(baselineCap){
+  if (!baselineCap) return '';
+  if (typeof baselineCap === 'string') {
+    return `<div class="sm-dim-baseline-cap-v2"><strong>학습 입력</strong>: ${escapeHtmlV4(baselineCap)}</div>`;
+  }
+  if (Array.isArray(baselineCap) && baselineCap.length) {
+    const txt = baselineCap.map(c => typeof c==='string' ? c : `${c.label}: ${c.value}`).join(' · ');
+    return `<div class="sm-dim-baseline-cap-v2"><strong>학습 입력</strong>: ${escapeHtmlV4(txt)}</div>`;
+  }
+  return '';
+}
+
+// 블록 D: 페르소나 voice
+function renderVoiceV4(v){
+  if (!v || v._hide) {
+    return '<div style="font-size:11px;color:#9CA3AF;font-style:italic">AI 합성 페르소나 narrative (Phase 1.5 풍부화 예정)</div>';
+  }
+  if (v.quote) {
+    return `<div class="sm-dim-voice-q-v2">💬 "${escapeHtmlV4(v.quote)}"</div><div class="sm-dim-voice-meta-v2">${escapeHtmlV4(v.persona_id||'')} · ${escapeHtmlV4(v.meta||'')}</div>`;
+  }
+  if (v.type === 'tags' && Array.isArray(v.tags) && v.tags.length) {
+    return `<div class="sm-dim-voice-tags-v2">${v.tags.map(t=>{
+      const txt = typeof t==='string' ? t : (t.tag ? `${t.tag} ${t.pct||''}%` : JSON.stringify(t));
+      return `<span class="sm-dim-voice-tag-v2">${escapeHtmlV4(txt)}</span>`;
+    }).join('')}</div>${v._caption ? `<div class="sm-dim-voice-meta-v2">${escapeHtmlV4(v._caption)}</div>` : ''}`;
+  }
+  if (v.type === 'brands' && Array.isArray(v.brands) && v.brands.length) {
+    return `<div class="sm-dim-voice-tags-v2">${v.brands.map(b=>`<span class="sm-dim-voice-tag-v2">${escapeHtmlV4(b.brand)} ${b.value}</span>`).join('')}</div>`;
+  }
+  if (v.type === 'styles' && Array.isArray(v.styles) && v.styles.length) {
+    return `<div class="sm-dim-voice-tags-v2">${v.styles.map(s=>`<span class="sm-dim-voice-tag-v2">${escapeHtmlV4(s.style)} ${s.pct}%</span>`).join('')}</div>`;
+  }
+  if (v.type === 'channels' && Array.isArray(v.channels) && v.channels.length) {
+    return `<div class="sm-dim-voice-tags-v2">${v.channels.map(c=>`<span class="sm-dim-voice-tag-v2">${escapeHtmlV4(c.channel)} ${c.value}h/일</span>`).join('')}</div>`;
+  }
+  if (v.type === 'placeholder' && v.message) {
+    return `<div style="font-size:11px;color:#9CA3AF;font-style:italic">${escapeHtmlV4(v.message)}</div>`;
+  }
+  return '<div style="font-size:11px;color:#9CA3AF;font-style:italic">페르소나 voice 추출 중</div>';
+}
+
+function renderDimCardV4(k, dim, n){
+  const ic = ICONS_V4[k] || { ico:'❓', label:k };
+  const tab = TAB_MAP_V4[k] || k;
+  const stats = (dim && dim.stats || []).map(renderStatV4).join('') || '<div style="font-size:11px;color:#9CA3AF;font-style:italic;padding:8px 0">통계 추출 중</div>';
+  const baselineCap = renderBaselineCapV4(dim && dim.baselineCap);
+  const sources = Array.isArray(dim && dim.sources) && dim.sources.length ? dim.sources.map(escapeHtmlV4).join(' · ') : '데이터 출처 정의 중';
+  return `<div class="sm-dim-card-v2" data-dim="${k}">
+    <div class="sm-dim-hd-v2">
+      <div class="sm-dim-hd-l-v2">${ic.ico} ${ic.label}</div>
+      <div class="sm-dim-hd-r-v2">
+        <span class="sm-dim-n-v2">n=${n||0}</span>
+        <a class="sm-dim-link-v2" onclick="switchTab('${tab}')">자세히 ▸</a>
+      </div>
+    </div>
+    <div class="sm-dim-stats-v2">${stats}</div>
+    ${baselineCap}
+    <div class="sm-dim-src-v2"><strong>Source</strong>: ${sources}</div>
+    <div class="sm-dim-voice-v2">${renderVoiceV4(dim && dim.voice)}</div>
+  </div>`;
+}
+
+async function renderSummaryOverview(){
+  const dimsEl = document.getElementById('sm-dims');
+  if (!dimsEl) return;
+  const country = state.currentCountry || 'KR';
+  const briefId = state.briefId || state.currentBriefId;
+  const base = (typeof API !== 'undefined' ? API : '');
+  const url = `${base}/api/audience/summary-overview?country=${encodeURIComponent(country)}` + (briefId ? `&brief_id=${encodeURIComponent(briefId)}` : '');
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'fetch failed');
+    const cards = ['who','life','mind','love','buy','media'].map(k => renderDimCardV4(k, d[k], d.n)).join('');
+    const legend = `<div class="sm-dim-legend-v2" style="grid-column:1/-1"><strong>🗂️ 라벨 범례</strong> &nbsp; <span class="tag-pp-v2">페르소나</span> = AI 합성 페르소나 풀 end 값 (n=${d.n||0}, brief: ${briefId||'—'}) &nbsp;&nbsp; <span class="tag-bl-v2">학습 입력</span> = 국가 공개 통계 (KOSTAT/DataReportal/Reuters/Hofstede 등) — cohort 합성 학습 자원</div>`;
+    const evolution = `<div class="sm-dim-evolution-cap-v2" style="grid-column:1/-1">※ Phase 1.5 cohort-builder 확장 시 모든 통계 라인 페르소나 end 값으로 통합 — 라이프/미디어/가치관 차원 100% 일관성 보장 예정</div>`;
+    dimsEl.innerHTML = cards + legend + evolution;
+  } catch (e) {
+    console.error('[renderSummaryOverview]', e);
+    dimsEl.innerHTML = `<div style="grid-column:1/-1;padding:24px;text-align:center;font-size:13px;color:#9CA3AF">6차원 요약 추출 실패: ${escapeHtmlV4(e.message||e)}</div>`;
+  }
+}
+
 // ============ 요약 탭 렌더링 ============
 async function refreshSummaryTab(){
   const banner = document.getElementById('sm-banner');
@@ -6196,6 +6356,11 @@ async function refreshSummaryTab(){
   // CEO 2026-06-15: 분석 진행 중이면 loading UI (가짜/부분 데이터 표시 방지)
   if(state.analyzing){
     if(empty) empty.style.display = 'none';
+    // CEO 2026-06-18 — 6차원 포멀 카드 v4 (옵션 Z 기본) — 4-블록 카드로 옵션 D 카드 치환
+    if (typeof renderSummaryOverview === 'function') {
+      try { await renderSummaryOverview(); } catch(e) { console.error('[sm-6dim]', e); }
+      return;
+    }
     if(insWrap) insWrap.innerHTML='';
     if(macroWrap) macroWrap.innerHTML='';
     if(baselineHd) baselineHd.innerHTML = '';
