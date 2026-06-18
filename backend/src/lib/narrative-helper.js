@@ -129,9 +129,15 @@ export function extractDimVoice(personas, dim, briefMeta = {}) {
 
     case 'love': {
       const brands = listMean(personas, 'brand_affinity', 'brand', 3);
+      // CEO 12:01 universal: 브랜드명 마스킹 (광고주 hard-code 0건 보장)
+      const maskedBrands = brands.map((b, i) => ({
+        brand: `브랜드 ${i + 1}`,
+        value: b.value,
+        count: b.count,
+      }));
       return {
         type: 'brands',
-        brands,
+        brands: maskedBrands,
       };
     }
 
@@ -227,10 +233,10 @@ export function extractDimStats(personas, baseline, country, dim, briefMeta = {}
         const label = labelMap[k] || `주요 관심도 ${idx + 1}`;
         stats.push({ label, value: `${m}/100`, source: 'persona', emphasis: idx === 0 ? 'top' : null });
       });
-      // brand_affinity Top1
+      // brand_affinity Top1 — CEO 12:01 universal: 브랜드명 마스킹
       const brands = listMean(personas, 'brand_affinity', 'brand', 1);
       if (brands.length) {
-        stats.push({ label: `최우선 브랜드`, value: `${brands[0].brand} ${brands[0].value}`, source: 'persona' });
+        stats.push({ label: `최우선 브랜드`, value: `Top 브랜드 ${brands[0].value}점`, source: 'persona' });
       }
       break;
     }
