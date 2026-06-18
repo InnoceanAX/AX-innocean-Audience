@@ -1102,7 +1102,36 @@ body.home-fade-out #screen-home{
 .aud-empty, .ov-empty{padding:50px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:10px;display:flex;flex-direction:column;align-items:center}
 .aud-empty-t, .ov-empty-t{font-size:14px;font-weight:700;color:#111;margin-bottom:6px}
 .aud-empty-s, .ov-empty-s{font-size:12px;color:var(--ts);line-height:1.5}
-/* 요약 탭 */
+/* 요약 탭 — 옵션 D (베이스라인 + 타겟 + delta) — CEO 2026-06-18 11:20 */
+.sm-section-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;margin:0 0 12px;font-size:12.5px;font-weight:700;letter-spacing:.3px}
+.sm-section-hd svg{width:16px;height:16px;flex-shrink:0}
+.sm-section-hd .sm-section-meta{margin-left:auto;font-size:10.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.sm-section-hd-baseline{background:#F3F4F6;border-left:4px solid #6B7280;color:#374151}
+.sm-section-hd-baseline .sm-section-meta{color:#6B7280}
+.sm-section-hd-target{background:#EEF2FF;border-left:4px solid #6366F1;color:#3730A3;margin-top:32px}
+.sm-section-hd-target .sm-section-meta{color:#6366F1}
+.sm-section-divider{border:none;border-top:1px dashed #E5E7EB;margin:24px 0}
+/* delta 카드 그리드 (옵션 D 핵심) */
+.sm-delta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+.sm-delta-card{padding:14px 18px;background:#fff;border:1.5px solid #C7D2FE;border-radius:10px;display:flex;flex-direction:column;gap:8px}
+.sm-delta-hd{display:flex;align-items:center;gap:8px}
+.sm-delta-l{font-size:11.5px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:.4px;flex:1}
+.sm-delta-sig{font-size:13px;font-weight:700;padding:2px 7px;border-radius:8px;line-height:1}
+.sm-delta-sig-high{background:#4F46E5;color:#fff}
+.sm-delta-sig-low{background:#9CA3AF;color:#fff}
+.sm-delta-sig-none{background:#E5E7EB;color:#6B7280}
+.sm-delta-row{display:flex;align-items:baseline;gap:10px}
+.sm-delta-baseline{font-size:12.5px;color:#6B7280}
+.sm-delta-arrow{font-size:13px;color:#9CA3AF}
+.sm-delta-target{font-size:18px;font-weight:800;color:#111}
+.sm-delta-unit{font-size:12px;color:#6B7280;font-weight:500;margin-left:2px}
+.sm-delta-d{font-size:13px;font-weight:700;padding:2px 8px;border-radius:6px}
+.sm-delta-d-pos{background:#EEF2FF;color:#4338CA}
+.sm-delta-d-neg{background:#FEF3C7;color:#92400E}
+.sm-delta-d-zero{background:#F3F4F6;color:#6B7280}
+.sm-delta-ci{font-size:10px;color:#9CA3AF;letter-spacing:.3px}
+.sm-delta-note{font-size:10.5px;color:#6B7280;font-style:italic;margin-top:4px}
+.sm-delta-empty{padding:20px;text-align:center;font-size:12px;color:#9CA3AF;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:8px;grid-column:1/-1}
 .sm-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .sm-kpi{padding:18px 20px;background:#fff;border:1px solid var(--bdr);border-radius:10px}
 .sm-kpi-l{font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -1164,7 +1193,7 @@ body.home-fade-out #screen-home{
 .sm-empty-s{font-size:12.5px;color:var(--ts);line-height:1.5}
 .sm-cta-primary{padding:10px 18px;background:var(--ind);color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .sm-cta-primary:hover{background:var(--ind2)}
-@media (max-width:980px){.sm-kpi-grid{grid-template-columns:repeat(2,1fr)}.sm-dim-grid{grid-template-columns:1fr}}
+@media (max-width:980px){.sm-kpi-grid{grid-template-columns:repeat(2,1fr)}.sm-dim-grid{grid-template-columns:1fr}.sm-delta-grid{grid-template-columns:1fr}}
 /* AI 비서 토글 — 홈에서 숨김, 워크스페이스에서만 표시 */
 body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .ai-toggle{position:absolute;top:50%;left:-46px;transform:translateY(-50%);width:46px;padding:12px 0;background:var(--ind);color:#fff;border:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:-4px 0 12px rgba(79,70,229,.25)}
@@ -1817,8 +1846,11 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div id="sm-banner"></div>
           <div id="sm-answer-card"></div>
           <div id="sm-ai-nav"></div>
+          <div id="sm-baseline-hd"></div>
           <div class="sm-kpi-grid" id="sm-kpis"></div>
           <div class="sm-dim-grid" id="sm-dims"></div>
+          <div id="sm-target-hd"></div>
+          <div class="sm-delta-grid" id="sm-deltas"></div>
           <div id="sm-insights-wrap"></div>
           <div id="sm-macro-wrap"></div>
           <div id="ov-compare" class="hide"></div>
@@ -6126,6 +6158,10 @@ async function refreshSummaryTab(){
   const empty = document.getElementById('sm-empty');
   const insWrap = document.getElementById('sm-insights-wrap');
   const macroWrap = document.getElementById('sm-macro-wrap');
+  // CEO 2026-06-18 11:20 — 옵션 D: 베이스라인 / 타겟 섹션 헤더 + delta 카드
+  const baselineHd = document.getElementById('sm-baseline-hd');
+  const targetHd = document.getElementById('sm-target-hd');
+  const deltas = document.getElementById('sm-deltas');
   renderSummaryActionBar();
   renderAnswerCard();
   // CEO 2026-06-12: 빌더 미설정(필터 비어있고 분석 안 한 상태)일 때도 sm-empty 강제 표시
@@ -6135,6 +6171,9 @@ async function refreshSummaryTab(){
     if(macroWrap) macroWrap.innerHTML='';
     if(kpis) kpis.innerHTML = '';
     if(dims) dims.innerHTML = '';
+    if(baselineHd) baselineHd.innerHTML = '';
+    if(targetHd) targetHd.innerHTML = '';
+    if(deltas) deltas.innerHTML = '';
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
     const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
@@ -6146,6 +6185,9 @@ async function refreshSummaryTab(){
     if(empty) empty.style.display = 'flex';
     if(kpis) kpis.innerHTML = '';
     if(dims) dims.innerHTML = '';
+    if(baselineHd) baselineHd.innerHTML = '';
+    if(targetHd) targetHd.innerHTML = '';
+    if(deltas) deltas.innerHTML = '';
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
     const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
@@ -6156,6 +6198,9 @@ async function refreshSummaryTab(){
     if(empty) empty.style.display = 'none';
     if(insWrap) insWrap.innerHTML='';
     if(macroWrap) macroWrap.innerHTML='';
+    if(baselineHd) baselineHd.innerHTML = '';
+    if(targetHd) targetHd.innerHTML = '';
+    if(deltas) deltas.innerHTML = '';
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
     if(kpis) kpis.innerHTML = '';
@@ -6200,9 +6245,16 @@ async function refreshSummaryTab(){
       navBox.innerHTML = `<div class="ai-nav" style="margin-bottom:24px"><div class="ai-nav-l">AI 추천 — 다음 탭에서 더 자세히</div><div class="ai-nav-chips">${chips}</div></div>`;
     }
   }
-  // 3) KPI
+  // 3) KPI — 옵션 D: 베이스라인 섹션 헤더 먼저 렌더
   const c = state.audienceCache || {};
   const country = state.countries.find(x => x.code === state.currentCountry);
+  if(baselineHd){
+    baselineHd.innerHTML = `<div class="sm-section-hd sm-section-hd-baseline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+      <span>📊 ${country?.name || state.currentCountry || '국가'} 시장 베이스라인 — 공개 통계 · 국가 전체 인구</span>
+      <span class="sm-section-meta">Baseline</span>
+    </div>`;
+  }
   if(kpis){
     const who = c.who?.data || {};
     const life = c.life?.data || {};
@@ -6233,6 +6285,76 @@ async function refreshSummaryTab(){
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}</div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg><div class="sm-dim-t">미디어</div><button class="sm-dim-more" onclick="switchTab('media')">자세히 →</button></div><div class="sm-dim-stat">${state.mediaCache?.spend ? `연 추정 광고비 <b>$${state.mediaCache.spend.totalEstimatedB}B</b> · 채널 ${state.mediaCache.spend.channels?.length || 0}개` : '미디어 데이터 분석 완료'}</div></div>
     `;
+  }
+  // 4.5) 옵션 D — 타겟 섹션 헤더 + delta 카드 (CEO 2026-06-18 11:20)
+  if(targetHd){
+    targetHd.innerHTML = `<div class="sm-section-hd sm-section-hd-target">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      <span>🎯 내 타겟 세그먼트 — AI 합성 추정</span>
+      <span class="sm-section-meta" id="sm-target-meta">Target · n=—</span>
+    </div>`;
+  }
+  // delta 카드 렌더 (비동기 fetch)
+  if(deltas){
+    deltas.innerHTML = '<div class="sm-delta-empty">타겟 데이터 분석 중…</div>';
+    (async () => {
+      try {
+        const briefId = (state.briefId || state.currentBriefId || '');
+        const country = state.currentCountry || '';
+        if (!country) return;
+        const qs = `country=${encodeURIComponent(country)}${briefId ? `&brief_id=${encodeURIComponent(briefId)}` : ''}`;
+        const r = await fetch(API + '/audience/persona-pool-summary?' + qs);
+        const d = await r.json();
+        if (!d.ok) {
+          deltas.innerHTML = `<div class="sm-delta-empty">타겟 데이터 부재 — 페르소나 풍 미생성</div>`;
+          return;
+        }
+        const n = d.n || 0;
+        const meta = document.getElementById('sm-target-meta');
+        if (meta) meta.textContent = `Target · n=${n}${d.meta?.nWarning ? ' ⚠️' : ''}`;
+        if (n === 0) {
+          deltas.innerHTML = `<div class="sm-delta-empty">이 국가의 타겟 페르소나 풍이 아직 생성되지 않았습니다. 국가 베이스라인만 표시됩니다.</div>`;
+          return;
+        }
+        const cards = [];
+        const order = ['fashionInterest', 'kCultureExposure', 'age', 'priceSensitivityPrior'];
+        for (const key of order) {
+          const dim = d.dimensions[key]; if (!dim) continue;
+          const sig = dim.significance || 'none';
+          const sigBadge = sig === 'high' ? '<span class="sm-delta-sig sm-delta-sig-high" title="|delta| ≥ max(CI, 10) — 유의한 차이 (p<.05)">★</span>'
+                          : sig === 'low' ? '<span class="sm-delta-sig sm-delta-sig-low" title="|delta| ≥ 5 — 약한 차이">△</span>'
+                          : '<span class="sm-delta-sig sm-delta-sig-none" title="|delta| < 5 — 거의 같음">·</span>';
+          const target = dim.target != null ? `${dim.target}${dim.unit ? '<span class="sm-delta-unit">'+dim.unit+'</span>' : ''}` : '—';
+          const baseline = dim.baseline != null ? `${dim.baseline}${dim.unit ? dim.unit : ''}` : '—';
+          let deltaStr = '—';
+          let deltaCls = 'sm-delta-d-zero';
+          if (dim.delta != null) {
+            const sign = dim.delta > 0 ? '+' : '';
+            deltaStr = `${sign}${dim.delta}${dim.unit ? dim.unit : 'p'}`;
+            deltaCls = dim.delta > 0 ? 'sm-delta-d-pos' : (dim.delta < 0 ? 'sm-delta-d-neg' : 'sm-delta-d-zero');
+          }
+          const ci = dim.ci != null ? `95% CI ±${dim.ci}${dim.unit ? dim.unit : 'p'}` : '';
+          const note = dim.note ? `<div class="sm-delta-note">${dim.note}</div>` : '';
+          cards.push(`<div class="sm-delta-card">
+            <div class="sm-delta-hd">
+              <span class="sm-delta-l">${dim.label || key}</span>
+              ${sigBadge}
+            </div>
+            <div class="sm-delta-row">
+              <span class="sm-delta-baseline">국가 ${baseline}</span>
+              <span class="sm-delta-arrow">→</span>
+              <span class="sm-delta-target">${target}</span>
+              ${dim.delta != null ? `<span class="sm-delta-d ${deltaCls}">${deltaStr}</span>` : ''}
+            </div>
+            ${ci ? `<div class="sm-delta-ci">${ci}</div>` : ''}
+            ${note}
+          </div>`);
+        }
+        deltas.innerHTML = cards.length ? cards.join('') : '<div class="sm-delta-empty">표시할 타겟 차원이 없습니다</div>';
+      } catch (e) {
+        deltas.innerHTML = `<div class="sm-delta-empty">타겟 데이터 로딩 실패 — 국가 베이스라인만 표시됩니다</div>`;
+      }
+    })();
   }
   // 자동 인사이트 + 매크로 — 구.개요에서 요약으로 이동
   if(insWrap){
