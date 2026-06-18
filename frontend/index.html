@@ -6591,18 +6591,33 @@ async function refreshSummaryTab(){
     const _srcBaseline = '<span style="display:inline-block;font-size:9.5px;color:#6B7280;background:#F3F4F6;padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600">🌐 국가 baseline</span>';
 
     if(hasPool){
-      // 빌더 기준 KPI (세그먼트 규모 / 타겟 평균 연령 / 핵심 라이프 / 핵심 가치)
-      const ageStat = (pool.who?.stats || []).find(s => /연령|age/i.test(s?.label || ''));
-      const avgAge = (ageStat && ageStat.value != null) ? String(ageStat.value) : (who.medianAge?.toFixed(1) || '—');
-      const topLife = (pool.life?.stats || []).find(s => s?.value != null && s?.label);
-      const topMind = (pool.mind?.stats || []).find(s => s?.value != null && s?.label);
-      const lifeText = topLife ? String(topLife.label).slice(0, 16) : ((life.digital?.avgInternetHours?.toFixed(1) || '—') + 'h/일');
-      const mindText = topMind ? String(topMind.label).slice(0, 16) : '—';
+      // 빌더 기준 KPI — 채연씨 schema 확정 19:08 (narrative-helper.js extractDimStats):
+      // stats[i] = { label, value(string, 단위 포함), source:'persona', emphasis }
+      // KPI 1: 세그먼트 규모 = pool.n
+      // KPI 2: 타겟 평균 연령 = who.stats[0] '평균 연령' value '35세' → parseFloat
+      // KPI 3: 핵심 라이프 = life.stats[0] '디지털 침투율' value '95%'
+      // KPI 4: 핵심 가치/구매 = mind.stats[0] '가격 민감도' 또는 buy.stats[0] '선호 쇼핑 스타일'
+      const ageStat = (pool.who?.stats || []).find(s => /연령|age/i.test(s?.label || '')) || (pool.who?.stats || [])[0];
+      const ageRaw = String(ageStat?.value || '');
+      const ageNum = parseFloat(ageRaw.replace(/[^0-9.]/g, ''));
+      const ageDisplay = isFinite(ageNum) ? ageNum.toFixed(1) : (who.medianAge?.toFixed(1) || '—');
+      const ageOk = isFinite(ageNum);
+
+      const lifeTop = (pool.life?.stats || [])[0];
+      const lifeOk = !!(lifeTop?.label && lifeTop?.value);
+      const lifeValue = lifeOk ? lifeTop.value : ((life.digital?.internetPenetration?.toFixed(0) || '—') + '%');
+      const lifeLabel = lifeOk ? lifeTop.label : '디지털 침투율';
+
+      const mindTop = (pool.mind?.stats || [])[0] || (pool.buy?.stats || [])[0];
+      const mindOk = !!(mindTop?.label && mindTop?.value);
+      const mindValue = mindOk ? mindTop.value : ((buy.ecommerce?.shareOfRetail || '—') + '%');
+      const mindLabel = mindOk ? mindTop.label : '이커머스 비중';
+
       kpis.innerHTML = `
         <div class="sm-kpi"><div class="sm-kpi-l">세그먼트 규모${_srcPool}</div><div class="sm-kpi-v">${pool.n}<span style="font-size:13px">명</span></div><div class="sm-kpi-s">빌더 매칭 페르소나</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">타겟 평균 연령${ageStat ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v">${avgAge}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">${ageStat ? '빌더 필터 적용' : '인구 전체 평균 (풀 통계 부재)'}</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">핵심 라이프${topLife ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:15px">${lifeText}</div><div class="sm-kpi-s">${topLife ? '빌더 프로파일 상위' : '디지털 침투 대체'}</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">핵심 가치${topMind ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:15px">${mindText}</div><div class="sm-kpi-s">${topMind ? '빌더 프로파일 상위' : '데이터 부재'}</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">${ageOk ? '타겟 평균 연령' : '중위 연령'}${ageOk ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v">${ageDisplay}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">${ageOk ? '빌더 필터 적용 (페르소나 평균)' : '인구 전체 평균 (풀 통계 부재)'}</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">${lifeLabel}${lifeOk ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:17px">${lifeValue}</div><div class="sm-kpi-s">${lifeOk ? '페르소나 풀 평균' : '국가 평균'}</div></div>
+        <div class="sm-kpi"><div class="sm-kpi-l">${mindLabel}${mindOk ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:17px">${mindValue}</div><div class="sm-kpi-s">${mindOk ? '페르소나 풀 평균' : '국가 평균'}</div></div>
       `;
     } else {
       // 풀 없을 때: 국가 baseline KPI (단계 A 원형 유지)
