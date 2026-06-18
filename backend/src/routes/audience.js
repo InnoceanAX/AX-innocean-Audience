@@ -1007,3 +1007,152 @@ audienceRouter.post("/synthesize", async (req, res) => {
     method,
   });
 });
+
+// ────────────────────────────────────────────────────────────
+// NEW: persona-pool-summary
+// CEO 2026-06-18 11:20 — 요약탭 옵션 D
+// baseline (국가 전체 공개 통계) vs target (페르소나 풀 평균) + delta + 95% CI + significance
+// ────────────────────────────────────────────────────────────
+audienceRouter.get("/persona-pool-summary", async (req, res) => {
+  try {
+    const country = String(req.query.country || "").toUpperCase();
+    const briefId = String(req.query.brief_id || "");
+    if (!country) return res.status(400).json({ ok: false, error: "country required" });
+
+    // 1) Baseline (공개 통계)
+    const demo = getDemographics(country) || {};
+    const interests = getInterests(country) || {};
+    const lifestyle = getLifestyle(country) || {};
+    const buy = getPurchase(country) || {};
+
+    const baseline = {
+      medianAge: demo.medianAge ?? null,
+      urbanRate: demo.urbanRate ?? null,
+      fashion: interests.fashion ?? null,
+      beauty: interests.beauty ?? null,
+      finance: interests.finance ?? null,
+      kpop: interests.kpop ?? null,
+      drama: interests.drama ?? null,
+      technology: interests.technology ?? null,
+      internetPenetration: lifestyle?.digital?.internetPenetration ?? null,
+      ecommerceShare: buy?.ecommerce?.shareOfRetail ?? null,
+    };
+
+    // 2) Target (페르소나 풀 평균)
+    let personas = [];
+    if (briefId) {
+      try { personas = getPersonas(briefId, country) || []; } catch (e) { personas = []; }
+    }
+    const n = personas.length;
+
+    function meanStd(arr) {
+      if (!arr.length) return { mean: null, std: null };
+      const mean = arr.reduce((s, v) => s + v, 0) / arr.length;
+      const variance = arr.reduce((s, v) => s + (v - mean) ** 2, 0) / arr.length;
+      return { mean, std: Math.sqrt(variance) };
+    }
+
+    function ci95(std, n) {
+      if (!std || n < 2) return null;
+      return 1.96 * std / Math.sqrt(n);
+    }
+
+    function significance(delta, ci) {
+      if (delta == null || ci == null) return null;
+      const abs = Math.abs(delta);
+      if (abs >= ci && abs >= 10) return "high"; // ★ p<.05
+      if (abs >= 5) return "low";                  // △ p<.10
+      return "none";                                // · n.s.
+    }
+
+    // Extract per-dimension target arrays
+    const extract = (key) => personas.map(p => Number(p[key])).filter(v => !isNaN(v));
+    const dims = {};
+
+    if (n) {
+      const fashion = extract("fashionInterest");
+      const kculture = extract("kCultureExposure");
+      const ages = extract("age");
+      const priceSens = extract("priceSensitivityPrior");
+
+      const ms_fashion = meanStd(fashion);
+      const ms_kculture = meanStd(kculture);
+      const ms_age = meanStd(ages);
+      const ms_price = meanStd(priceSens);
+
+      dims.fashionInterest = {
+        label: "패션 관심도",
+        baseline: baseline.fashion,
+        target: ms_fashion.mean != null ? Math.round(ms_fashion.mean * 10) / 10 : null,
+        delta: (baseline.fashion != null && ms_fashion.mean != null)
+          ? Math.round((ms_fashion.mean - baseline.fashion) * 10) / 10 : null,
+        std: ms_fashion.std != null ? Math.round(ms_fashion.std * 100) / 100 : null,
+        ci: ci95(ms_fashion.std, n) != null ? Math.round(ci95(ms_fashion.std, n) * 10) / 10 : null,
+        n,
+      };
+
+      dims.kCultureExposure = {
+        label: "K-컬처 노출도",
+        baseline: baseline.kpop,
+        target: ms_kculture.mean != null ? Math.round(ms_kculture.mean * 10) / 10 : null,
+        delta: (baseline.kpop != null && ms_kculture.mean != null)
+          ? Math.round((ms_kculture.mean - baseline.kpop) * 10) / 10 : null,
+        std: ms_kculture.std != null ? Math.round(ms_kculture.std * 100) / 100 : null,
+        ci: ci95(ms_kculture.std, n) != null ? Math.round(ci95(ms_kculture.std, n) * 10) / 10 : null,
+        n,
+      };
+
+      dims.age = {
+        label: "평균 연령",
+        baseline: baseline.medianAge,
+        target: ms_age.mean != null ? Math.round(ms_age.mean * 10) / 10 : null,
+        delta: (baseline.medianAge != null && ms_age.mean != null)
+          ? Math.round((ms_age.mean - baseline.medianAge) * 10) / 10 : null,
+        std: ms_age.std != null ? Math.round(ms_age.std * 100) / 100 : null,
+        ci: ci95(ms_age.std, n) != null ? Math.round(ci95(ms_age.std, n) * 10) / 10 : null,
+        n,
+        unit: "세",
+      };
+
+      dims.priceSensitivityPrior = {
+        label: "가격 민감도",
+        baseline: null, // 베이스라인 없음
+        target: ms_price.mean != null ? Math.round(ms_price.mean * 10) / 10 : null,
+        delta: null,
+        std: ms_price.std != null ? Math.round(ms_price.std * 100) / 100 : null,
+        ci: ci95(ms_price.std, n) != null ? Math.round(ci95(ms_price.std, n) * 10) / 10 : null,
+        n,
+        note: "베이스라인 비교 미가용 (페르소나 풀 추정치)",
+      };
+    }
+
+    // Apply significance to each dim
+    Object.keys(dims).forEach(k => {
+      const d = dims[k];
+      d.significance = significance(d.delta, d.ci);
+    });
+
+    res.json({
+      ok: true,
+      country,
+      brief_id: briefId || null,
+      n,
+      baseline,
+      dimensions: dims,
+      meta: {
+        source: "공개 통계 (audience-public) vs AI 합성 페르소나 풀 평균",
+        generatedAt: new Date().toISOString(),
+        ciMethod: "95% normal-approx",
+        significanceThresholds: {
+          high: "|delta| ≥ max(CI, 10) — ★ p<.05 (강한 차이)",
+          low: "|delta| ≥ 5 (약한 차이)",
+          none: "|delta| < 5 — 거의 같음",
+        },
+        nWarning: n < 30 ? "표본 부족 (n<30) — 추정치 신뢰성 낮음" : null,
+      },
+    });
+  } catch (err) {
+    console.error("[persona-pool-summary] error:", err);
+    res.status(500).json({ ok: false, error: String(err && err.message || err) });
+  }
+});
