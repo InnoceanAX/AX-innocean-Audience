@@ -267,29 +267,31 @@ export function extractDimStats(personas, baseline, country, dim, briefMeta = {}
 // ============================================================
 export function extractBaselineCap(baseline, country, dim) {
   const parts = [];
+  const demo = baseline?.demographics || {};
+  const ls = baseline?.lifestyle || {};
+  const mind = baseline?.mindset || {};
+  const pur = baseline?.purchase || {};
 
   switch (dim) {
     case 'who': {
-      const demo = baseline?.demographics;
-      if (demo?.urbanizationRate != null) parts.push(`도시 거주율 ${demo.urbanizationRate}%`);
-      if (demo?.singleHouseholdRate != null) parts.push(`1-2인 가구 ${demo.singleHouseholdRate}%`);
+      if (demo.medianAge != null) parts.push(`중위 연령 ${demo.medianAge}세`);
+      if (demo.urbanRate != null) parts.push(`도시화율 ${demo.urbanRate}%`);
+      if (demo.dependencyRatio != null) parts.push(`부양비 ${demo.dependencyRatio}%`);
       break;
     }
     case 'life': {
-      const dig = baseline?.lifestyle?.digital;
-      if (dig?.internetPenetration != null) parts.push(`디지털 침투율 ${dig.internetPenetration}%`);
-      if (dig?.avgInternetTime != null) parts.push(`인터넷 사용 ${dig.avgInternetTime}h/일`);
-      const dining = baseline?.lifestyle?.dining;
-      if (dining?.frequency != null) parts.push(`외식 주 ${dining.frequency}회`);
-      const travel = baseline?.lifestyle?.travel;
-      if (travel?.domestic != null) parts.push(`국내 여행 ${travel.domestic}회/년`);
+      if (ls.internetPenetration != null) parts.push(`인터넷 침투율 ${ls.internetPenetration}%`);
+      if (ls.avgInternetTime != null) parts.push(`인터넷 사용 ${ls.avgInternetTime}h/일`);
+      if (ls.diningOut != null) parts.push(`외식 주 ${ls.diningOut}회`);
+      if (ls.travelDomestic != null) parts.push(`국내 여행 ${ls.travelDomestic}%`);
       break;
     }
     case 'mind': {
-      const hof = baseline?.mindset?.hofstede;
-      if (hof?.individualism != null) parts.push(`개인주의 ${hof.individualism}`);
-      if (hof?.uncertaintyAvoidance != null) parts.push(`불확실성 회피 ${hof.uncertaintyAvoidance}`);
-      if (hof?.powerDistance != null) parts.push(`권력 격차 ${hof.powerDistance}`);
+      const hof = mind.hofstede || mind;
+      if (hof.individualism != null) parts.push(`개인주의 ${hof.individualism}`);
+      if (hof.uncertaintyAvoidance != null) parts.push(`불확실성 회피 ${hof.uncertaintyAvoidance}`);
+      if (hof.powerDistance != null) parts.push(`권력 격차 ${hof.powerDistance}`);
+      if (hof.longTermOrientation != null) parts.push(`장기 지향 ${hof.longTermOrientation}`);
       break;
     }
     case 'love': {
@@ -305,16 +307,19 @@ export function extractBaselineCap(baseline, country, dim) {
       break;
     }
     case 'buy': {
-      const ec = baseline?.purchase?.ecommerce;
+      if (pur.ecommerceShareOfRetail != null) parts.push(`이커머스 비중 ${pur.ecommerceShareOfRetail}%`);
+      if (pur.mobileCommerceShare != null) parts.push(`모바일 커머스 ${pur.mobileCommerceShare}%`);
+      if (pur.avgOnlineSpendUSD != null) parts.push(`연 온라인 소비 $${pur.avgOnlineSpendUSD}`);
+      const ec = pur.ecommerce;
       if (ec?.shareOfRetail != null) parts.push(`이커머스 비중 ${ec.shareOfRetail}%`);
       if (ec?.mobileShare != null) parts.push(`모바일 커머스 ${ec.mobileShare}%`);
       break;
     }
     case 'media': {
-      const dig = baseline?.lifestyle?.digital;
-      if (dig?.mobileInternetShare != null) parts.push(`모바일 비중 ${dig.mobileInternetShare}%`);
-      if (dig?.socialMediaUsers != null) parts.push(`SNS 사용자 ${dig.socialMediaUsers}%`);
-      parts.push(`매체 신뢰도: 뉴스 76% · SNS 51% (Reuters Digital News 2025)`);
+      if (ls.mobileInternetShare != null) parts.push(`모바일 비중 ${ls.mobileInternetShare}%`);
+      if (ls.socialMediaUsers != null) parts.push(`SNS 사용자 ${ls.socialMediaUsers}%`);
+      if (ls.avgSocialTime != null) parts.push(`SNS 사용 ${ls.avgSocialTime}h/일`);
+      if (ls.avgTVTime != null) parts.push(`TV 시청 ${ls.avgTVTime}h/일`);
       break;
     }
   }
