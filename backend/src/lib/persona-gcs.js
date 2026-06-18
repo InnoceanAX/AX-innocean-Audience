@@ -103,17 +103,13 @@ let _uploadTimer = null;
 
 // 웅로드 가드: 로컬 DB에 실제 데이터가 없으면 GCS에 덮어쓰지 않음
 // (Cloud Run 재배포 직후 빈 DB로 GCS 릴레이스 사이클 차단)
+// CEO 2026-06-18 20:11: WAL 모드 시 메인 file이 4KB일 수 있으므로
+// file size 가드 제거 → localDbHasPersonas() 결과만 신뢰.
 function shouldSkipUpload() {
   try {
     if (!fs.existsSync(DB_PATH)) return true;
-    const stat = fs.statSync(DB_PATH);
-    // 4KB 이하 = 스키마도 없는 완전 빈 DB → skip
-    if (stat.size <= 4096) {
-      console.warn(`[persona-gcs] local DB too small (${stat.size}B) — upload skipped to protect prior backup`);
-      return true;
-    }
-    // schema만 있고 실데이터 없을 수 있으므로 better-sqlite3로 진짜로 확인
-    // (순환 의존 제거를 위해 지연 import — persona-store에서 이미 import됨)
+    // 수정: file size 가드 제거. WAL 모드 시 메인 file은 작고 데이터는 -wal에 있음.
+    // 실제 페르소나 고수는 _performUpload의 localDbHasPersonas()에서 체크함.
     return false;
   } catch (e) {
     console.warn(`[persona-gcs] shouldSkipUpload check failed: ${e.message}`);
@@ -143,7 +139,7 @@ function localDbHasPersonas() {
 async function _performUpload() {
   const label = `gs://${BUCKET}/${OBJECT}`;
 
-  // 가드 1: 파일 크기 체크
+  // 가드 1: 파일 존재 체크
   if (shouldSkipUpload()) return false;
 
   // 가드 2: 실제 페르소나 존재 체크
@@ -151,6 +147,21 @@ async function _performUpload() {
   if (hasPersonas === false) {
     console.warn(`[persona-gcs] local DB has 0 personas — upload skipped to protect prior backup`);
     return false;
+  }
+  if (hasPersonas === null) {
+    console.warn(`[persona-gcs] DB accessor not registered — upload anyway (file size based fallback)`);
+  }
+
+  // CEO 2026-06-18 20:11: WAL checkpoint 강제— -wal/-shm의 데이터를 메인 file에 fsync.
+  try {
+    if (_getDbForCheck) {
+      const db = _getDbForCheck();
+      if (db) {
+        db.pragma("wal_checkpoint(TRUNCATE)");
+      }
+    }
+  } catch (e) {
+    console.warn(`[persona-gcs] WAL checkpoint failed: ${e.message}`);
   }
 
   try {
