@@ -2026,7 +2026,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <button class="sm-cta-primary" onclick="switchTab('overview')">빌더로 가기 →</button>
             </div>
           </div>
-          <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중…</div></div>
+          <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중… (약 10~20초 소요)</div></div>
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
             <div class="md-view-tabs">
@@ -2756,10 +2756,10 @@ function renderChatTurn(t, idx){
     aHtml = idx === 0
       ? '<div class="cb-a-loading">'
         + '<span class="loader"></span>'
-        + '<div><div class="cb-a-loading-txt">AI가 정밀 분석 중입니다…</div>'
+        + '<div><div class="cb-a-loading-txt">AI가 정밀 분석 중입니다… (약 15~30초 소요) (약 15~30초 소요)</div>'
         + '<div class="cb-a-loading-sub">데이터 해석 · 서술 · 차트 · 인용 적용</div></div>'
         + '</div>'
-      : '<div class="cb-a-bubble cb-a-bubble-loading"><span class="loader"></span><span style="color:var(--tm)">답변 작성 중…</span></div>';
+      : '<div class="cb-a-bubble cb-a-bubble-loading"><span class="loader"></span><span style="color:var(--tm)">답변 작성 중… (약 15~30초 소요)</span></div>';
   } else if(t.a.error){
     aHtml = '<div class="cb-a-board" style="border-color:#FCA5A5;background:#FEF2F2">'
       + '<div style="color:#991B1B;font-weight:600">답변 생성 실패: ' + escapeHtml(t.a.error) + '</div>'
@@ -2960,7 +2960,7 @@ function showJumpLoading(tab, q){
   const safeQ = (q || '질문').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
   const html = '<div class="aud-jump-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:14px;margin:14px 0">'
     + '<div style="width:42px;height:42px;border:4px solid #E0E7FF;border-top:4px solid #6366F1;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px"></div>'
-    + '<div style="font-size:16px;font-weight:700;color:#4338CA;margin-bottom:6px">AI 페르소나 패널 합성 중…</div>'
+    + '<div style="font-size:16px;font-weight:700;color:#4338CA;margin-bottom:6px">AI 페르소나 패널 합성 중… (약 20~40초 소요) (약 30~60초 소요)</div>'
     + '<div style="font-size:13px;color:#4B5563;line-height:1.6;max-width:520px">"' + safeQ + '"<br/>→ <b>' + (tabLabels[tab] || tab) + '</b> 표준 분석 데이터를 생성하고 있습니다</div>'
     + '<div style="font-size:11px;color:#9CA3AF;margin-top:12px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
     + '</div>';
@@ -6322,7 +6322,7 @@ async function aiBuilderParse(){
     return;
   }
   const btn = document.getElementById('bld-ai-btn');
-  if(btn){ btn.disabled = true; btn.innerHTML = '분석 중…'; }
+  if(btn){ btn.disabled = true; btn.innerHTML = '분석 중… (약 2~5초 소요)'; }
   try{
     const r = await fetch(API + '/ask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: text }) });
     const d = await r.json();
@@ -6530,7 +6530,7 @@ async function refreshSummaryTab(){
       dims.innerHTML = `<div style="padding:60px 20px;text-align:center;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:12px;grid-column:1/-1">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:6px">분석 진행 중</div>
-        <div style="font-size:12.5px;color:var(--ts);line-height:1.5">5차원 데이터 + AI 합성 세그먼트를 분석하고 있습니다.<br>완료 후 실데이터로 표시됩니다.</div>
+        <div style="font-size:12.5px;color:var(--ts);line-height:1.5">5차원 데이터 + AI 합성 세그먼트를 분석하고 있습니다. (약 15~30초 소요)<br>완료 후 실데이터로 표시됩니다.</div>
       </div>`;
     }
     const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
@@ -6572,15 +6572,12 @@ async function refreshSummaryTab(){
       navBox.innerHTML = `<div class="ai-nav" style="margin-bottom:24px"><div class="ai-nav-l">AI 추천 — 다음 탭에서 더 자세히</div><div class="ai-nav-chips">${chips}</div></div>`;
     }
   }
-  // 3) KPI — 옵션 D: 베이스라인 섹션 헤더 먼저 렌더
+  // 3) KPI — CEO 2026-06-22: 베이스라인 헤더 격하 (타겟 기준 결과 우선)
   const c = state.audienceCache || {};
   const country = state.countries.find(x => x.code === state.currentCountry);
   if(baselineHd){
-    baselineHd.innerHTML = `<div class="sm-section-hd sm-section-hd-baseline">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
-      <span>${country?.name || state.currentCountry || '국가'} 시장 베이스라인 — 공개 통계 · 국가 전체 인구 기준 (빌더 필터 미적용)</span>
-      <span class="sm-section-meta">Baseline</span>
-    </div>`;
+    // CEO 2026-06-22: 베이스라인 헤더를 최소화 — 참고 footnote 수준으로 격하
+    baselineHd.innerHTML = `<div style="font-size:11px;color:#9CA3AF;padding:4px 0 8px 2px;font-style:italic">※ 아래 KPI는 빌더 타겟 기준 분석입니다. 국가 평균 비교는 각 항목 내 표기를 참고하세요.</div>`;
   }
   if(kpis){
     const who = c.who?.data || {};
@@ -6691,7 +6688,7 @@ async function refreshSummaryTab(){
   }
   // delta 카드 렌더 (비동기 fetch)
   if(deltas){
-    deltas.innerHTML = '<div class="sm-delta-empty">타겟 데이터 분석 중…</div>';
+    deltas.innerHTML = '<div class="sm-delta-empty">타겟 데이터 분석 중… (약 15~30초 소요) (약 5~10초 소요)</div>';
     (async () => {
       try {
         const briefId = (state.briefId || state.currentBriefId || '');
@@ -6919,7 +6916,7 @@ async function refreshAudienceTab(dim){
       body.innerHTML = `<div style="padding:60px 20px;text-align:center;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:12px">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:6px">분석 진행 중</div>
-        <div style="font-size:12.5px;color:var(--ts);line-height:1.5">실데이터 + AI 합성 세그먼트 분석 중입니다.<br>완료 후 자동으로 표시됩니다.</div>
+        <div style="font-size:12.5px;color:var(--ts);line-height:1.5">실데이터 + AI 합성 세그먼트 분석 중입니다. (약 15~30초 소요)<br>완료 후 자동으로 표시됩니다.</div>
       </div>`;
     }
     return;
@@ -6980,7 +6977,7 @@ async function _refreshAudienceTabFetch(dim){
   // Cache key now includes briefId so persona-pool refresh on completion invalidates.
   const cacheKey = code + '|' + (state.activeBriefId || '') + '|' + (state.personaPolling ? 'p' : '');
   if(body.dataset.cacheKey === cacheKey) return; // 캐시
-  body.innerHTML = '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>공개 데이터 로딩 중…</div>';
+  body.innerHTML = '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>공개 데이터 로딩 중… (약 2~5초 소요)</div>';
   try {
     const briefQs = state.activeBriefId ? `&briefId=${encodeURIComponent(state.activeBriefId)}` : '';
     const res = await fetch(`${API}/audience/${dim}?country=${code}${briefQs}`);
@@ -6991,7 +6988,7 @@ async function _refreshAudienceTabFetch(dim){
     if(data.ok && data.source === 'persona-pool'){
       const badgeHtmlPp = renderPersonaBadgeHtml(data.badge);
       if(data.generating){
-        body.innerHTML = badgeHtmlPp + '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>AI 합성 페르소나 생성 중…</div>';
+        body.innerHTML = badgeHtmlPp + '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>AI 합성 페르소나 생성 중… (약 2~4분 소요) (약 2~4분 소요)</div>';
         body.dataset.cacheKey = '';   // do not cache placeholder
         if(src) src.innerHTML = '<span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">' + (data.badge?.label||'') + '</span>';
         pollPersonaStatus();
@@ -7269,28 +7266,28 @@ function renderDimCharts(dim, data){
         const genKeys = Object.keys(synGen);
         const genVals = genKeys.map(k => +synGen[k] || 0);
         renderChartSafe('chart-who-gender', 'doughnut', genKeys, genVals, ['#6366F1','#EC4899'], { suffix: '%' });
-      } else { markChartPlaceholder('chart-who-gender', 'AI 합성 중…'); }
+      } else { markChartPlaceholder('chart-who-gender', 'AI 합성 중… (약 20초)'); }
       // 세부 분포 (빌더 안 한 차원 — 심화 인사이트)
       const occ = syn && syn.occupationDistribution;
       if(occ && Object.keys(occ).length){
         const k = Object.keys(occ); const v = k.map(x => +occ[x] || 0);
         renderChartSafe('chart-who-occupation', 'bar', k, v, '#8B5CF6', { suffix: '%' });
-      } else { markChartPlaceholder('chart-who-occupation', 'AI 합성 중…'); }
+      } else { markChartPlaceholder('chart-who-occupation', 'AI 합성 중… (약 20초)'); }
       const inc = syn && syn.incomeDistribution;
       if(inc && Object.keys(inc).length){
         const k = Object.keys(inc); const v = k.map(x => +inc[x] || 0);
         renderChartSafe('chart-who-income', 'bar', k, v, '#10B981', { suffix: '%' });
-      } else { markChartPlaceholder('chart-who-income', 'AI 합성 중…'); }
+      } else { markChartPlaceholder('chart-who-income', 'AI 합성 중… (약 20초)'); }
       const edu = syn && syn.educationDistribution;
       if(edu && Object.keys(edu).length){
         const k = Object.keys(edu); const v = k.map(x => +edu[x] || 0);
         renderChartSafe('chart-who-education', 'doughnut', k, v, ['#F59E0B','#EF4444','#06B6D4','#10B981'], { suffix: '%' });
-      } else { markChartPlaceholder('chart-who-education', 'AI 합성 중…'); }
+      } else { markChartPlaceholder('chart-who-education', 'AI 합성 중… (약 20초)'); }
       const city = syn && syn.cityTierDistribution;
       if(city && Object.keys(city).length){
         const k = Object.keys(city); const v = k.map(x => +city[x] || 0);
         renderChartSafe('chart-who-city', 'doughnut', k, v, ['#6366F1','#0EA5E9','#84CC16','#F97316'], { suffix: '%' });
-      } else { markChartPlaceholder('chart-who-city', 'AI 합성 중…'); }
+      } else { markChartPlaceholder('chart-who-city', 'AI 합성 중… (약 20초)'); }
       // 베이스라인 비교 노트 업데이트
       if (baseline && baseline.who) {
         const bWho = baseline.who;
@@ -7315,29 +7312,29 @@ function renderDimCharts(dim, data){
         // 시간대별 활동
         const dp = syn.dayparts || {};
         if(Object.keys(dp).length) renderChartSafe('chart-life-dayparts', 'bar', Object.keys(dp), Object.values(dp).map(v=>+v||0), '#0EA5E9', { suffix: '' });
-        else markChartPlaceholder('chart-life-dayparts', 'AI 합성 중…');
+        else markChartPlaceholder('chart-life-dayparts', 'AI 합성 중… (약 15~30초 소요)');
         // 식생활
         const fh = syn.foodHabits || {};
         if(Object.keys(fh).length) renderChartSafe('chart-life-food', 'doughnut', Object.keys(fh), Object.values(fh).map(v=>+v||0), ['#F59E0B','#EF4444','#10B981','#06B6D4','#8B5CF6'], { suffix: '%' });
-        else markChartPlaceholder('chart-life-food', 'AI 합성 중…');
+        else markChartPlaceholder('chart-life-food', 'AI 합성 중… (약 15~30초 소요)');
         // 운동 빈도
         const wf = syn.wellnessFreq || {};
         if(Object.keys(wf).length) renderChartSafe('chart-life-wellness', 'doughnut', Object.keys(wf), Object.values(wf).map(v=>+v||0), ['#10B981','#84CC16','#F59E0B','#EF4444'], { suffix: '%' });
-        else markChartPlaceholder('chart-life-wellness', 'AI 합성 중…');
+        else markChartPlaceholder('chart-life-wellness', 'AI 합성 중… (약 15~30초 소요)');
         // 여행 빈도
         const tf = syn.travelFreq || {};
         if(Object.keys(tf).length) renderChartSafe('chart-life-travelfreq', 'doughnut', Object.keys(tf), Object.values(tf).map(v=>+v||0), ['#3B82F6','#6366F1','#8B5CF6','#A855F7'], { suffix: '%' });
-        else markChartPlaceholder('chart-life-travelfreq', 'AI 합성 중…');
+        else markChartPlaceholder('chart-life-travelfreq', 'AI 합성 중… (약 15~30초 소요)');
       } else {
         const act = d.activities || {};
         const t = d.travel || {};
         const actKeys = Object.keys(act);
         renderChartSafe('chart-life-radar', 'radar', actKeys.map(k => actLabel(k)), actKeys.map(k => act[k]), '#6366F1');
         renderChartSafe('chart-life-travel', 'doughnut', ['국내여행', '해외여행'], [t.domestic||0, t.international||0], ['#06B6D4', '#0EA5E9'], { suffix: '%' });
-        markChartPlaceholder('chart-life-dayparts', 'AI 합성 중…');
-        markChartPlaceholder('chart-life-food', 'AI 합성 중…');
-        markChartPlaceholder('chart-life-wellness', 'AI 합성 중…');
-        markChartPlaceholder('chart-life-travelfreq', 'AI 합성 중…');
+        markChartPlaceholder('chart-life-dayparts', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-life-food', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-life-wellness', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-life-travelfreq', 'AI 합성 중… (약 15~30초 소요)');
       }
     } else if(dim === 'mind'){
       // 합성 우선: coreValues + brandTrust/riskAttitude 등컴 수치화
@@ -7379,8 +7376,8 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-mind-culture', 'doughnut', ['개인주의','위험회피','장기지향'], [cul.individualism||0, cul.riskAversion||0, cul.longTermOrientation||0], ['#F59E0B','#EF4444','#06B6D4'], { suffix: '%' });
         // baseline만 있을 때 (syn 아직 도착 안함) — 심화 차트 3개는 플레이스홀더
         markChartPlaceholder('chart-mind-decision', 'AI 합성 중… (약 30–60초)');
-        markChartPlaceholder('chart-mind-info', 'AI 합성 중…');
-        markChartPlaceholder('chart-mind-personality', 'AI 합성 중…');
+        markChartPlaceholder('chart-mind-info', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-mind-personality', 'AI 합성 중… (약 15~30초 소요)');
       }
     } else if(dim === 'love'){
       if(syn && (syn.topInterests || []).length){
@@ -7391,25 +7388,25 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-love-bar', 'bar', items, scores, '#EC4899', { suffix: '' });
         const mg = syn.musicGenreShares || {};
         if(Object.keys(mg).length) renderChartSafe('chart-love-music', 'doughnut', Object.keys(mg), Object.values(mg).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4'], { suffix: '%' });
-        else markChartPlaceholder('chart-love-music', 'AI 합성 중…');
+        else markChartPlaceholder('chart-love-music', 'AI 합성 중… (약 15~30초 소요)');
         const cg = syn.contentGenreShares || {};
         if(Object.keys(cg).length) renderChartSafe('chart-love-content', 'doughnut', Object.keys(cg), Object.values(cg).map(v=>+v||0), ['#EF4444','#F59E0B','#10B981','#06B6D4','#3B82F6','#A855F7'], { suffix: '%' });
-        else markChartPlaceholder('chart-love-content', 'AI 합성 중…');
+        else markChartPlaceholder('chart-love-content', 'AI 합성 중… (약 15~30초 소요)');
         const inf = syn.influencerTypes || {};
         if(Object.keys(inf).length) renderChartSafe('chart-love-influencer', 'doughnut', Object.keys(inf), Object.values(inf).map(v=>+v||0), ['#EC4899','#A855F7','#8B5CF6','#6366F1'], { suffix: '%' });
-        else markChartPlaceholder('chart-love-influencer', 'AI 합성 중…');
+        else markChartPlaceholder('chart-love-influencer', 'AI 합성 중… (약 15~30초 소요)');
         const sp = syn.sportsAffinity || {};
         if(Object.keys(sp).length) renderChartSafe('chart-love-sports', 'radar', Object.keys(sp), Object.values(sp).map(v=>+v||0), '#10B981', { rmax: 100 });
-        else markChartPlaceholder('chart-love-sports', 'AI 합성 중…');
+        else markChartPlaceholder('chart-love-sports', 'AI 합성 중… (약 15~30초 소요)');
       } else {
         const ranked = data.rankedInterests || [];
         const top8 = ranked.slice(0, 8);
         renderChartSafe('chart-love-radar', 'radar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
         renderChartSafe('chart-love-bar', 'bar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
-        markChartPlaceholder('chart-love-music', 'AI 합성 중…');
-        markChartPlaceholder('chart-love-content', 'AI 합성 중…');
-        markChartPlaceholder('chart-love-influencer', 'AI 합성 중…');
-        markChartPlaceholder('chart-love-sports', 'AI 합성 중…');
+        markChartPlaceholder('chart-love-music', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-love-content', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-love-influencer', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-love-sports', 'AI 합성 중… (약 15~30초 소요)');
       }
     } else if(dim === 'buy'){
       if(syn && (syn.shoppingChannels || syn.topCategories)){
@@ -7443,11 +7440,11 @@ function renderDimCharts(dim, data){
         // 쇼핑 채널
         const cm = syn.channelMix || {};
         if(Object.keys(cm).length) renderChartSafe('chart-buy-channel', 'doughnut', Object.keys(cm), Object.values(cm).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#0EA5E9'], { suffix: '%' });
-        else markChartPlaceholder('chart-buy-channel', 'AI 합성 중…');
+        else markChartPlaceholder('chart-buy-channel', 'AI 합성 중… (약 15~30초 소요)');
         // 구매 주기
         const pf = syn.purchaseFrequency || {};
         if(Object.keys(pf).length) renderChartSafe('chart-buy-freq', 'doughnut', Object.keys(pf), Object.values(pf).map(v=>+v||0), ['#10B981','#84CC16','#F59E0B','#EF4444'], { suffix: '%' });
-        else markChartPlaceholder('chart-buy-freq', 'AI 합성 중…');
+        else markChartPlaceholder('chart-buy-freq', 'AI 합성 중… (약 15~30초 소요)');
         // 구매 속성 프로파일
         const ps2 = +syn.priceSensitivityScore || 55;
         const bl2 = +syn.brandLoyaltyScore || 55;
@@ -7465,9 +7462,9 @@ function renderDimCharts(dim, data){
         renderChartSafe('chart-buy-cat', 'doughnut', tcSorted.map(e => catLabel(e[0])), tcSorted.map(e => e[1]), ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899'], { suffix: '%' });
         renderChartSafe('chart-buy-decision', 'radar', dfSorted.map(e => decLabel(e[0])), dfSorted.map(e => e[1]), '#0EA5E9');
         renderChartSafe('chart-buy-pay', 'doughnut', Object.keys(pm).map(k => payLabel(k)), Object.values(pm), ['#84CC16','#22C55E','#10B981','#06B6D4'], { suffix: '%' });
-        markChartPlaceholder('chart-buy-channel', 'AI 합성 중…');
-        markChartPlaceholder('chart-buy-freq', 'AI 합성 중…');
-        markChartPlaceholder('chart-buy-profile', 'AI 합성 중…');
+        markChartPlaceholder('chart-buy-channel', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-buy-freq', 'AI 합성 중… (약 15~30초 소요)');
+        markChartPlaceholder('chart-buy-profile', 'AI 합성 중… (약 15~30초 소요)');
       }
     }
   } catch(e){ console.warn('renderDimCharts error', e); }
@@ -7702,7 +7699,7 @@ function renderPersonaPoolGenerating(envelope){
   return `<div class="pp-empty" style="padding:32px 18px;text-align:center;border:1px dashed var(--bdr);border-radius:0;background:#FAFAFE">
     <div style="display:inline-flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ts);font-weight:600">
       <svg style="width:18px;height:18px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="var(--ind)" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-      AI 합성 페르소나 생성 중...
+      AI 합성 페르소나 생성 중… (약 2~4분 소요) (약 2~4분 소요)
     </div>
     <div style="margin-top:8px;font-size:11.5px;color:var(--tm)">${country || ''} · ${dim.toUpperCase()} · 현재 ${have}명 완료</div>
   </div>`;
@@ -8016,7 +8013,7 @@ async function fetchPersonaJourney(persona){
     if(!wrap) return;
     // 로딩 표시
     if(!wrap.querySelector('.iv-journey-card')){
-      wrap.insertAdjacentHTML('beforeend', '<div class="iv-journey-card iv-journey-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>이 사람의 하루 미디어 여정을 그리는 중…</div>');
+      wrap.insertAdjacentHTML('beforeend', '<div class="iv-journey-card iv-journey-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>이 사람의 하루 미디어 여정을 그리는 중… (약 20~40초 소요)</div>');
     }
     const res = await fetch(`${API}/interview/journey`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -8380,7 +8377,7 @@ async function generatePersona(persona){
       if(typeof openWsCountrySelector==='function') openWsCountrySelector();
       return;
     }
-    document.getElementById('iv-card').innerHTML = '<div class="iv-loading">페르소나를 만들고 있어요… (수 초 소요)</div>';
+    document.getElementById('iv-card').innerHTML = '<div class="iv-loading">페르소나를 만들고 있어요… (약 20~40초 소요)</div>';
     document.getElementById('iv-msgs').innerHTML = '';
     state.ivHistory = [];
     state.ivPersona = null;
@@ -8411,7 +8408,7 @@ async function generatePanel(count = 4, opts){
     document.getElementById('iv-body').classList.remove('hide');
     document.getElementById('iv-single-wrap').classList.add('hide');
     document.getElementById('iv-panel-wrap').classList.remove('hide');
-    document.getElementById('iv-panel-grid').innerHTML = '<div class="iv-loading">패널을 준비하고 있어요… (수 초 소요)</div>';
+    document.getElementById('iv-panel-grid').innerHTML = '<div class="iv-loading">패널을 준비하고 있어요… (약 30~60초 소요)</div>';
     document.getElementById('iv-panel-contrast').innerHTML = '';
     const seedPersonas = (opts && opts.seedPersonas) || state.seedPersonas || [];
     const seedQuestion = (opts && opts.seedQuestion) || state.seedQuestion || (state.lastAsk?.question || '');
@@ -8920,7 +8917,7 @@ async function runAnalysis(opts){
     if(status) status.innerHTML = '<div class="bld-analyze-ok" style="background:#FEE2E2;border-color:#FCA5A5;color:#991B1B">국가를 먼저 선택해주세요.</div>';
     return;
   }
-  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="loader"></span> 분석 중...'; }
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="loader"></span> 분석 중… (약 15~30초 소요)'; }
   state.analysisRun = true;
   // CEO 2026-06-15: 분석 진행 중 플래그 — 가짜/부분 데이터 표시 방지
   state.analyzing = true;
@@ -10055,7 +10052,7 @@ function _createCoverDOM(tabs){
 async function downloadReportPDF(){
   const btn = document.getElementById('tb-pdf-report');
   let origHTML = '';
-  if(btn){ btn.disabled = true; origHTML = btn.innerHTML; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>생성 중…'; }
+  if(btn){ btn.disabled = true; origHTML = btn.innerHTML; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>생성 중… (약 30~60초 소요)'; }
   try {
     if(!window.html2canvas || !window.jspdf){ toast('PDF 라이브러리 로딩 중'); return; }
     const { jsPDF } = window.jspdf;
