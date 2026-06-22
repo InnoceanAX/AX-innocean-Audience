@@ -1,7 +1,7 @@
 // cohort-builder.js
 // Stage 1 — Statistical sampling (no LLM) of 100 personas per country.
-// Reflects rough World Bank / national-statistic-style distributions for ages
-// 20-34 fashion-interested cohort.
+// Generic, campaign-agnostic distributions. Stage 2 LLM enriches
+// interests, values_tags, lifestyle_tags, media_diet, brand_affinity, shopping_style.
 
 import { makeRng, weightedPick, randInt, randBeta } from "./seeded-rng.js";
 
@@ -12,7 +12,7 @@ const COUNTRY_DEMO = {
   KR: {
     name: "South Korea",
     sexRatioFemale: 0.502,
-    ageBucketWeights: { "20-24": 0.30, "25-29": 0.34, "30-34": 0.36 },
+    ageBucketWeights: { "18-24": 0.12, "25-34": 0.16, "35-44": 0.19, "45-54": 0.21, "55-64": 0.18, "65+": 0.14 },
     regions: [
       { name: "Seoul",   weight: 0.45 },
       { name: "Busan",   weight: 0.12 },
@@ -23,16 +23,15 @@ const COUNTRY_DEMO = {
       { name: "Suwon",   weight: 0.07 },
       { name: "Other",   weight: 0.07 },
     ],
-    kCultureMean: 88, kCultureStd: 8,
-    kFashionMean: 82, kFashionStd: 12,
-    fashionMean:  78, fashionStd: 14,
-    occupation: { student: 0.18, junior_office: 0.34, creative: 0.18, freelance: 0.14, tech: 0.16 },
+    education: { highSchool: 0.15, vocational: 0.15, bachelor: 0.55, postgrad: 0.15 },
+    cityTier: { metro: 0.50, midCity: 0.35, rural: 0.15 },
+    occupation: { student: 0.08, office: 0.30, professional: 0.15, selfEmployed: 0.12, service: 0.15, creative: 0.08, tech: 0.07, homemaker: 0.05 },
     incomeQuintiles: ["Q1","Q2","Q3","Q4","Q5"], // equal split → 20% each, perturbed by RNG
   },
   JP: {
     name: "Japan",
     sexRatioFemale: 0.512,
-    ageBucketWeights: { "20-24": 0.33, "25-29": 0.34, "30-34": 0.33 },
+    ageBucketWeights: { "18-24": 0.10, "25-34": 0.14, "35-44": 0.17, "45-54": 0.20, "55-64": 0.18, "65+": 0.21 },
     regions: [
       { name: "Tokyo",    weight: 0.40 },
       { name: "Osaka",    weight: 0.15 },
@@ -43,25 +42,23 @@ const COUNTRY_DEMO = {
       { name: "Kyoto",    weight: 0.06 },
       { name: "Other",    weight: 0.07 },
     ],
-    kCultureMean: 72, kCultureStd: 14,
-    kFashionMean: 70, kFashionStd: 15,
-    fashionMean:  72, fashionStd: 16,
-    occupation: { student: 0.12, junior_office: 0.42, creative: 0.16, freelance: 0.12, tech: 0.18 },
+    education: { highSchool: 0.20, vocational: 0.20, bachelor: 0.50, postgrad: 0.10 },
+    cityTier: { metro: 0.55, midCity: 0.30, rural: 0.15 },
+    occupation: { student: 0.08, office: 0.30, professional: 0.15, selfEmployed: 0.12, service: 0.15, creative: 0.08, tech: 0.07, homemaker: 0.05 },
     incomeQuintiles: ["Q1","Q2","Q3","Q4","Q5"],
   },
   CN: {
     name: "China (Shanghai/Hangzhou/Tianjin)",
     sexRatioFemale: 0.488,
-    ageBucketWeights: { "20-24": 0.28, "25-29": 0.36, "30-34": 0.36 },
+    ageBucketWeights: { "18-24": 0.13, "25-34": 0.18, "35-44": 0.22, "45-54": 0.20, "55-64": 0.15, "65+": 0.12 },
     regions: [
       { name: "Shanghai", weight: 0.50 },
       { name: "Hangzhou", weight: 0.24 },
       { name: "Tianjin",  weight: 0.26 },
     ],
-    kCultureMean: 65, kCultureStd: 16,
-    kFashionMean: 62, kFashionStd: 18,
-    fashionMean:  75, fashionStd: 14,
-    occupation: { student: 0.14, junior_office: 0.36, creative: 0.18, freelance: 0.14, tech: 0.18 },
+    education: { highSchool: 0.25, vocational: 0.20, bachelor: 0.45, postgrad: 0.10 },
+    cityTier: { metro: 0.60, midCity: 0.25, rural: 0.15 },
+    occupation: { student: 0.08, office: 0.30, professional: 0.15, selfEmployed: 0.12, service: 0.15, creative: 0.08, tech: 0.07, homemaker: 0.05 },
     incomeQuintiles: ["Q1","Q2","Q3","Q4","Q5"],
   },
   TW: {
@@ -122,24 +119,30 @@ const COUNTRY_DEMO = {
 const DEFAULT_DEMO = {
   name: "Generic",
   sexRatioFemale: 0.505,
-  ageBucketWeights: { "20-24": 0.33, "25-29": 0.34, "30-34": 0.33 },
+  ageBucketWeights: { "18-24": 0.15, "25-34": 0.20, "35-44": 0.20, "45-54": 0.20, "55-64": 0.15, "65+": 0.10 },
   regions: [{ name: "Capital", weight: 0.6 }, { name: "Other", weight: 0.4 }],
-  kCultureMean: 55, kCultureStd: 18,
-  kFashionMean: 55, kFashionStd: 18,
-  fashionMean:  70, fashionStd: 16,
-  occupation: { student: 0.18, junior_office: 0.34, creative: 0.18, freelance: 0.14, tech: 0.16 },
+  education: { highSchool: 0.15, vocational: 0.20, bachelor: 0.50, postgrad: 0.15 },
+  cityTier: { metro: 0.55, midCity: 0.30, rural: 0.15 },
+  occupation: { student: 0.08, office: 0.30, professional: 0.15, selfEmployed: 0.12, service: 0.15, creative: 0.08, tech: 0.07, homemaker: 0.05 },
   incomeQuintiles: ["Q1","Q2","Q3","Q4","Q5"],
 };
 
 const OCCUPATION_LABELS_KO = {
-  student:       "대학생/대학원생",
-  junior_office: "주니어 오피스 워커",
-  creative:      "크리에이티브 직군",
-  freelance:     "프리랜서",
-  tech:          "테크/IT 직군",
+  student:      "학생",
+  office:       "사무직",
+  professional: "전문직",
+  selfEmployed: "자영업/프리랜서",
+  service:      "서비스/영업",
+  creative:     "크리에이티브",
+  tech:         "IT/테크",
+  homemaker:    "주부/가사",
 };
 
 function ageFromBucket(rng, bucket) {
+  if (bucket.endsWith("+")) {
+    const a = parseInt(bucket, 10);
+    return randInt(rng, a, a + 9); // e.g. "65+" → 65..74
+  }
   const [a, b] = bucket.split("-").map(n => parseInt(n, 10));
   return randInt(rng, a, b);
 }
@@ -209,18 +212,9 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
     const incomeQuintile = demo.incomeQuintiles[randInt(rng, 0, demo.incomeQuintiles.length - 1)];
     const occupationKey = weightedPick(rng, demo.occupation);
 
-    // Beta-shaped interests (skewed high since campaign filter = fashion interested)
-    // alpha > beta → mass near 1; we then scale to 0..100
-    // F-2 fix (CEO 2026-06-17 21:35): apply country fashionMean scaling so the
-    // public-statistics seed actually differentiates countries instead of
-    // collapsing to a constant ~71.4 for every country.
-    const fashionInterest    = Math.round(clamp(0, 100,
-        randBeta(rng, 5, 2) * 100 * (demo.fashionMean / 70)));
-    const kCultureExposure   = Math.round(clamp(0, 100,
-        randBeta(rng, 4, 2) * 100 * (demo.kCultureMean / 80)));
-    const kFashionInterest   = Math.round(clamp(0, 100,
-        randBeta(rng, 4, 2) * 100 * (demo.kFashionMean / 80)));
-    const priceSensitivity   = randInt(rng, 1, 5); // refined in LLM stage too
+    const education     = weightedPick(rng, demo.education);
+    const cityTier      = weightedPick(rng, demo.cityTier);
+    const priceSensitivity = randInt(rng, 1, 5);
 
     out.push({
       persona_id: `${cc}-${String(i + 1).padStart(3, "0")}`,
@@ -232,16 +226,20 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
       incomeQuintile,
       occupation: occupationKey,
       occupationLabel: OCCUPATION_LABELS_KO[occupationKey] || occupationKey,
-      kCultureExposure,
-      kFashionInterest,
-      fashionInterest,
-      priceSensitivityPrior: priceSensitivity,
+      education,
+      cityTier,
+      price_sensitivity: priceSensitivity,
+      interests: [],
+      values_tags: [],
+      lifestyle_tags: [],
+      media_diet: [],
+      brand_affinity: [],
+      shopping_style: null,
     });
   }
   return out;
 }
 
-function clamp(min, max, v) { return Math.min(max, Math.max(min, v)); }
 
 export const SUPPORTED_COUNTRIES = Object.keys(COUNTRY_DEMO);
 export { COUNTRY_DEMO };
