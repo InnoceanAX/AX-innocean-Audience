@@ -1077,8 +1077,32 @@ audienceRouter.post("/synthesize", async (req, res) => {
 
   if (poolSynthesis) {
     // 풀 stats를 segments의 기본값으로 사용, LLM 합성치는 poolSynthesis 없는 키에만 보완
+    // Phase 3: aggregateWho() 출력 → 프론트 차트 형식 매핑
+    // distribution() 결과 { key: {count, share} } → 프론트 기대 { key: share*100 }
+    const toPercent = (distObj) => {
+      if (!distObj || typeof distObj !== 'object') return distObj;
+      const out = {};
+      for (const [k, v] of Object.entries(distObj)) {
+        out[k] = typeof v === 'object' && v !== null && 'share' in v
+          ? Math.round(v.share * 1000) / 10  // 0.30 → 30.0
+          : (typeof v === 'number' ? v : 0);
+      }
+      return out;
+    };
+    const poolWho = poolSynthesis.who || {};
+    const mappedWho = {
+      ...poolWho,
+      // 키 rename + 값 변환 (프론트 차트 호환)
+      ageDistribution: toPercent(poolWho.age),
+      genderRatio: toPercent(poolWho.gender),
+      occupationDistribution: toPercent(poolWho.occupation),
+      incomeDistribution: toPercent(poolWho.income),
+      educationDistribution: toPercent(poolWho.education),
+      cityTierDistribution: toPercent(poolWho.cityTier),
+      regionDistribution: poolWho.region,  // toRanked 형태 유지
+    };
     finalSegments = {
-      who: { ...(synthesized?.who || {}), ...(poolSynthesis.who || {}) },
+      who: { ...(synthesized?.who || {}), ...mappedWho },
       life: { ...(synthesized?.life || {}), ...(poolSynthesis.life || {}) },
       mind: { ...(synthesized?.mind || {}), ...(poolSynthesis.mind || {}) },
       love: { ...(synthesized?.love || {}), ...(poolSynthesis.love || {}) },
