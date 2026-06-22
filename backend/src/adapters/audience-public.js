@@ -21,37 +21,37 @@
 // ============================================================
 export const DEMOGRAPHICS = {
   // 연령 분포 (대략 % - UN 2024 Median Population)
-  // Phase B-2 (2026-06-18): UN WPP 2025 갱신
+  // Phase B-2 (2026-06-22): WB 2024 갱신
   KR: { medianAge: 45.6, dependencyRatio: 41.3, urbanRate: 81.6, ageBuckets: { '0-14': 11.6, '15-29': 14.8, '30-44': 19.4, '45-59': 24.7, '60+': 29.5 } },
-  US: { medianAge: 38.9, dependencyRatio: 53.9, urbanRate: 83.0, ageBuckets: { '0-14': 17.5, '15-29': 19.8, '30-44': 19.7, '45-59': 18.7, '60+': 24.3 } },
+  US: { medianAge: 38.9, dependencyRatio: 53.9, urbanRate: 80.1, ageBuckets: { '0-14': 17.5, '15-29': 19.8, '30-44': 19.7, '45-59': 18.7, '60+': 24.3 } },
   JP: { medianAge: 49.8, dependencyRatio: 71.1, urbanRate: 92.2, ageBuckets: { '0-14': 11.4, '15-29': 13.8, '30-44': 16.5, '45-59': 19.5, '60+': 38.8 } },
   CN: { medianAge: 40.1, dependencyRatio: 45.6, urbanRate: 66.7, ageBuckets: { '0-14': 16.7, '15-29': 17.6, '30-44': 23.4, '45-59': 22.0, '60+': 20.3 } },
   // Phase B-0 (2026-06-18): TW BASELINE 5dim 신규 (UN WPP 2025 + DR 2026)
   TW: { medianAge: 44.8, dependencyRatio: 45.9, urbanRate: 80.9, ageBuckets: { '0-14': 11.4, '15-29': 15.8, '30-44': 21.3, '45-59': 23.6, '60+': 27.8 } },
   GB: { medianAge: 40.6, dependencyRatio: 57.5, urbanRate: 84.4, ageBuckets: { '0-14': 17.0, '15-29': 18.5, '30-44': 19.5, '45-59': 19.4, '60+': 25.6 } },
-  DE: { medianAge: 47.8, dependencyRatio: 55.5, urbanRate: 77.8, ageBuckets: { '0-14': 14.0, '15-29': 16.3, '30-44': 18.6, '45-59': 22.6, '60+': 28.5 } },
-  FR: { medianAge: 42.6, dependencyRatio: 61.2, urbanRate: 81.5, ageBuckets: { '0-14': 17.4, '15-29': 17.7, '30-44': 18.2, '45-59': 19.7, '60+': 27.0 } },
+  DE: { medianAge: 47.8, dependencyRatio: 55.5, urbanRate: 82.0, ageBuckets: { '0-14': 14.0, '15-29': 16.3, '30-44': 18.6, '45-59': 22.6, '60+': 28.5 } },
+  FR: { medianAge: 42.6, dependencyRatio: 61.2, urbanRate: 78.8, ageBuckets: { '0-14': 17.4, '15-29': 17.7, '30-44': 18.2, '45-59': 19.7, '60+': 27.0 } },
   IN: { medianAge: 28.4, dependencyRatio: 47.5, urbanRate: 36.4, ageBuckets: { '0-14': 24.0, '15-29': 26.0, '30-44': 21.5, '45-59': 14.5, '60+': 14.0 } },
   BR: { medianAge: 33.5, dependencyRatio: 45.0, urbanRate: 87.6, ageBuckets: { '0-14': 21.3, '15-29': 22.5, '30-44': 22.2, '45-59': 18.5, '60+': 15.5 } },
   ID: { medianAge: 30.2, dependencyRatio: 47.2, urbanRate: 57.3, ageBuckets: { '0-14': 24.5, '15-29': 24.0, '30-44': 22.5, '45-59': 16.5, '60+': 12.5 } },
   VN: { medianAge: 32.5, dependencyRatio: 47.5, urbanRate: 38.8, ageBuckets: { '0-14': 22.5, '15-29': 22.8, '30-44': 23.5, '45-59': 18.0, '60+': 13.2 } },
-  TH: { medianAge: 40.6, dependencyRatio: 45.2, urbanRate: 55.2, ageBuckets: { '0-14': 16.5, '15-29': 19.0, '30-44': 21.5, '45-59': 22.0, '60+': 21.0 } },
-  PH: { medianAge: 26.1, dependencyRatio: 54.1, urbanRate: 49.1, ageBuckets: { '0-14': 28.5, '15-29': 27.0, '30-44': 21.5, '45-59': 14.0, '60+': 9.0 } },
+  TH: { medianAge: 40.6, dependencyRatio: 45.2, urbanRate: 61.9, ageBuckets: { '0-14': 16.5, '15-29': 19.0, '30-44': 21.5, '45-59': 22.0, '60+': 21.0 } },
+  PH: { medianAge: 26.1, dependencyRatio: 54.1, urbanRate: 55.5, ageBuckets: { '0-14': 28.5, '15-29': 27.0, '30-44': 21.5, '45-59': 14.0, '60+': 9.0 } },
   MY: { medianAge: 30.5, dependencyRatio: 42.4, urbanRate: 78.2, ageBuckets: { '0-14': 22.8, '15-29': 24.2, '30-44': 22.5, '45-59': 17.5, '60+': 13.0 } },
   SG: { medianAge: 42.4, dependencyRatio: 38.3, urbanRate: 100, ageBuckets: { '0-14': 11.5, '15-29': 17.5, '30-44': 23.5, '45-59': 23.0, '60+': 24.5 } },
   AU: { medianAge: 38.0, dependencyRatio: 52.2, urbanRate: 86.5, ageBuckets: { '0-14': 18.0, '15-29': 19.5, '30-44': 21.0, '45-59': 18.5, '60+': 23.0 } },
   CA: { medianAge: 41.7, dependencyRatio: 51.3, urbanRate: 81.7, ageBuckets: { '0-14': 15.5, '15-29': 19.0, '30-44': 20.5, '45-59': 19.5, '60+': 25.5 } },
-  IT: { medianAge: 47.3, dependencyRatio: 57.9, urbanRate: 71.7, ageBuckets: { '0-14': 12.8, '15-29': 14.5, '30-44': 17.5, '45-59': 22.5, '60+': 32.7 } },
+  IT: { medianAge: 47.3, dependencyRatio: 57.9, urbanRate: 69.6, ageBuckets: { '0-14': 12.8, '15-29': 14.5, '30-44': 17.5, '45-59': 22.5, '60+': 32.7 } },
   ES: { medianAge: 44.9, dependencyRatio: 52.8, urbanRate: 81.1, ageBuckets: { '0-14': 13.6, '15-29': 15.5, '30-44': 19.7, '45-59': 22.5, '60+': 28.7 } },
   MX: { medianAge: 30.0, dependencyRatio: 49.5, urbanRate: 81.4, ageBuckets: { '0-14': 24.0, '15-29': 25.5, '30-44': 21.5, '45-59': 16.0, '60+': 13.0 } },
   AE: { medianAge: 34.9, dependencyRatio: 17.8, urbanRate: 87.5, ageBuckets: { '0-14': 14.5, '15-29': 21.0, '30-44': 35.5, '45-59': 19.0, '60+': 10.0 } },
   SA: { medianAge: 31.8, dependencyRatio: 38.5, urbanRate: 84.3, ageBuckets: { '0-14': 25.5, '15-29': 22.0, '30-44': 26.0, '45-59': 16.5, '60+': 10.0 } },
-  TR: { medianAge: 33.4, dependencyRatio: 47.8, urbanRate: 76.6, ageBuckets: { '0-14': 22.5, '15-29': 23.0, '30-44': 21.5, '45-59': 17.5, '60+': 15.5 } },
+  TR: { medianAge: 33.4, dependencyRatio: 47.8, urbanRate: 89.3, ageBuckets: { '0-14': 22.5, '15-29': 23.0, '30-44': 21.5, '45-59': 17.5, '60+': 15.5 } },
   RU: { medianAge: 40.3, dependencyRatio: 51.6, urbanRate: 74.9, ageBuckets: { '0-14': 17.5, '15-29': 15.0, '30-44': 23.0, '45-59': 20.0, '60+': 24.5 } },
-  ZA: { medianAge: 28.0, dependencyRatio: 52.5, urbanRate: 67.8, ageBuckets: { '0-14': 28.5, '15-29': 27.0, '30-44': 22.5, '45-59': 13.5, '60+': 8.5 } },
+  ZA: { medianAge: 28.0, dependencyRatio: 52.5, urbanRate: 63.7, ageBuckets: { '0-14': 28.5, '15-29': 27.0, '30-44': 22.5, '45-59': 13.5, '60+': 8.5 } },
   AR: { medianAge: 31.8, dependencyRatio: 53.2, urbanRate: 92.1, ageBuckets: { '0-14': 23.5, '15-29': 23.0, '30-44': 20.5, '45-59': 17.5, '60+': 15.5 } },
   PL: { medianAge: 42.7, dependencyRatio: 50.2, urbanRate: 60.0, ageBuckets: { '0-14': 14.5, '15-29': 16.5, '30-44': 23.5, '45-59': 20.0, '60+': 25.5 } },
-  NL: { medianAge: 43.2, dependencyRatio: 56.3, urbanRate: 92.6, ageBuckets: { '0-14': 15.5, '15-29': 18.5, '30-44': 18.5, '45-59': 21.5, '60+': 26.0 } },
+  NL: { medianAge: 43.2, dependencyRatio: 56.3, urbanRate: 95.6, ageBuckets: { '0-14': 15.5, '15-29': 18.5, '30-44': 18.5, '45-59': 21.5, '60+': 26.0 } },
   SE: { medianAge: 41.1, dependencyRatio: 60.5, urbanRate: 88.3, ageBuckets: { '0-14': 17.5, '15-29': 18.5, '30-44': 19.5, '45-59': 19.0, '60+': 25.5 } },
 };
 
