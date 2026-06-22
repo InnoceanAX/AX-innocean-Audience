@@ -1682,6 +1682,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .cb-a-bubble-n{ font-size:13.5px; color:#374151 }
 .cb-a-bubble-loading{ display:flex; align-items:center; gap:10px; font-size:13px }
 .cb-a-bubble-oos{ background:#FEF3C7; border-color:#FCD34D; color:#92400E; font-size:13px }
+.aud-baseline-note { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 4px; font-style: italic; }
 </style>
 </head>
 <body class="home-mode">
@@ -7251,6 +7252,7 @@ function _inferUnitLabel(suffix, canvasId, type){
 function renderDimCharts(dim, data){
   // 우선순위: 합성 데이터(빌더 필터 기반) > 실데이터 폴백
   const syn = state.synthCache && state.synthCache.segments && state.synthCache.segments[dim];
+  const baseline = state.synthCache && state.synthCache.baseline;
   const d = data.data || {};
   try {
     if(dim === 'who'){
@@ -7289,6 +7291,14 @@ function renderDimCharts(dim, data){
         const k = Object.keys(city); const v = k.map(x => +city[x] || 0);
         renderChartSafe('chart-who-city', 'doughnut', k, v, ['#6366F1','#0EA5E9','#84CC16','#F97316'], { suffix: '%' });
       } else { markChartPlaceholder('chart-who-city', 'AI 합성 중…'); }
+      // 베이스라인 비교 노트 업데이트
+      if (baseline && baseline.who) {
+        const bWho = baseline.who;
+        const noteAge = document.getElementById('baseline-note-age');
+        if (noteAge) noteAge.textContent = `국가 중위연령: ${bWho.medianAge != null ? bWho.medianAge.toFixed(1) : '-'}세`;
+        const noteUrban = document.getElementById('baseline-note-urban');
+        if (noteUrban) noteUrban.textContent = `국가 도시화율: ${bWho.urbanRate != null ? bWho.urbanRate.toFixed(1) : '-'}%`;
+      }
     } else if(dim === 'life'){
       // 합성 목롭이 있으면 이를 우선 (digitalUsage + topActivities)
       if(syn && (syn.digitalUsage || syn.topActivities)){
@@ -7491,7 +7501,7 @@ function renderAudienceDim(dim, data){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">연령 분포</div>
-        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-doughnut"></canvas></div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-doughnut"></canvas><div id="baseline-note-age" class="aud-baseline-note"></div></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">직업 분포</div>
@@ -7507,7 +7517,7 @@ function renderAudienceDim(dim, data){
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">도시 규모 분포</div>
-        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-city"></canvas></div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-who-city"></canvas><div id="baseline-note-urban" class="aud-baseline-note"></div></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">성별 비율</div>

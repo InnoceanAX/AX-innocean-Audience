@@ -1135,9 +1135,11 @@ audienceRouter.post("/synthesize", async (req, res) => {
     hasFilters,
     briefId,
     segments: finalSegments,
-    baseline: hasFilters ? null : {
-      who: baselineWho,
-      life: baselineLife,
+    baseline: {
+      who: baselineWho ? {
+        urbanRate: baselineWho.urbanRate,
+        medianAge: baselineWho.medianAge,
+      } : null,
     },
     source: finalSource,
     method: finalMethod,
