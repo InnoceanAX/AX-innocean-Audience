@@ -58,7 +58,7 @@ const SHOPPING_STYLES = ["bargain-hunter", "brand-loyal", "trend-chaser", "value
 // Build a compact prompt for one batch of attribute personas
 function buildBatchPrompt(batch, { brand, countryName, localCompetitors }) {
   const personaLines = batch.map(p => {
-    return `- id=${p.persona_id} | age=${p.age} (${p.ageBucket}) | gender=${p.gender} | region=${p.region} | income=${p.incomeQuintile} | occupation=${p.occupationLabel} | k-culture=${p.kCultureExposure}/100 | k-fashion=${p.kFashionInterest}/100 | fashion=${p.fashionInterest}/100 | price-prior=${p.priceSensitivityPrior}/5`;
+    return `- id=${p.persona_id} | age=${p.age} (${p.ageBucket}) | gender=${p.gender} | region=${p.region} | income=${p.incomeQuintile} | occupation=${p.occupationLabel || p.occupation} | education=${p.education || "N/A"} | cityTier=${p.cityTier || "N/A"} | price-prior=${p.price_sensitivity || p.priceSensitivityPrior || 3}/5`;
   }).join("\n");
 
   return `[국가] ${countryName}
@@ -70,32 +70,30 @@ ${personaLines}
 
 위 각 페르소나에 대해 다음 narrative를 **반드시 한국어로만** 작성하세요. (보고서는 한국 CEO가 읽음)
 **언어 규칙 절대 준수 — 다음 예외 없음**:
-- 타겟 국가가 일본/중국/태국/베트남/영어권 등 어디이든 **모든 서술 프래이즈(quote, jobs_to_be_done, pain_points, lifestyle_tags, values_tags)는 한국어로**
-- quote가 필리핀 페르소나 입장이더라도 한국어로 (타갈로그 금지)
-- lifestyle/values tag도 한국어 (의미 있는 한국어 단어)
-- 고유명사(브랜드/플랫폼/도시)는 원이름 그대로 썰도 무방 (예: 'TikTok에서 쇼핑해요')
+- 타겟 국가가 어디이든 **모든 서술(quote, jobs_to_be_done, pain_points, lifestyle_tags, values_tags)는 한국어로**
+- 고유명사(브랜드/플랫폼/도시)는 원이름 그대로 써도 무방
 - quote: 1문장 (페르소나가 직접 말할 법한 한 줄, **한국어 필수**)
-- jobs_to_be_done: 3개 (이 사람이 K-패션 쇼핑에서 해결하고 싶은 과제)
-- pain_points: 2개
-- media_diet: 4~6개 채널 × 시간 (예: [{channel:"Instagram", hoursPerDay:1.5}]). 국가 매체 환경 반영(중국=WeChat/Weibo/Xiaohongshu, 한국=Naver/KakaoTalk/유튜브, 일본=LINE/Twitter, 태국/필리핀=Facebook/TikTok 강세, 대만=YouTube/Instagram).
-- brand_affinity: 4~6개. 반드시 "${brand}" 포함하고, 현지 경쟁 브랜드(${localCompetitors.join(", ")}) 중 최소 2개 포함. score 0-100.
-- lifestyle_tags: 5개 짧은 태그 (예: "주말 카페", "OOTD")
-- values_tags: 5개 (MIND 탭용 — 가치관 키워드, 예: "지속가능", "자기표현")
+- jobs_to_be_done: 3개 (이 사람이 일상에서 해결하고 싶은 과제 — 캠페인 브랜드(${brand}) 맥락)
+- pain_points: 2개 (이 사람의 소비/라이프스타일 고충)
+- media_diet: 4~6개 채널 × 시간 (예: [{channel:"Instagram", hoursPerDay:1.5}]). 국가 매체 환경 반영.
+- brand_affinity: 4~6개. 반드시 "${brand}" 포함하고, 현지 경쟁 브랜드 중 최소 2개 포함. score 0-100.
+- lifestyle_tags: 5개 짧은 태그
+- values_tags: 5개 (가치관 키워드)
 - shopping_style: 정확히 하나 [bargain-hunter|brand-loyal|trend-chaser|value-seeker|curator]
-- price_sensitivity: 1~5 정수 (1=가격 무관, 5=극도 민감)
+- price_sensitivity: 1~5 정수
 
-⚠️ persona_id 필드에 위 입력 id를 정확히 그대로 복사해주세요. 순서는 입력과 동일하게.
+⚠️ persona_id 필드에 위 입력 id를 정확히 그대로 복사해주세요.
 ⚠️ JSON 외 다른 텍스트 금지.`;
 }
 
 // Local competitor seed by country — non-comprehensive but useful for prompt grounding.
 const LOCAL_COMPETITORS = {
-  KR: ["Beanpole", "8seconds", "Spao", "Ader Error", "Kirsh"],
-  JP: ["Uniqlo", "GU", "Beams", "Earth Music & Ecology", "WEGO"],
-  CN: ["Bosideng", "Peacebird", "Urban Revivo", "MO&Co", "JNBY"],
-  TW: ["NET", "Pazzo", "Lativ", "Queen Shop", "Meier Q"],
-  TH: ["Greyhound", "Jaspal", "Vatanika", "Sretsis", "Painkiller"],
-  PH: ["Bench", "Penshoppe", "Folded & Hung", "Plains & Prints", "Kamiseta"],
+  KR: ["Samsung", "Coupang", "Naver", "CJ", "Hyundai"],
+  JP: ["Sony", "Toyota", "Rakuten", "Uniqlo", "Muji"],
+  CN: ["Alibaba", "Tencent", "Huawei", "Xiaomi", "ByteDance"],
+  TW: ["ASUS", "HTC", "PChome", "Shopee TW", "7-Eleven"],
+  TH: ["CP Group", "Central Group", "Lazada TH", "Shopee TH", "AIS"],
+  PH: ["SM Group", "Jollibee", "Globe Telecom", "Shopee PH", "Lazada PH"],
 };
 
 function competitorsFor(country) {
@@ -104,34 +102,33 @@ function competitorsFor(country) {
 
 // CEO 2026-06-18 21:34 긴급: fallback 단일 quote/tags 다양화 (hash 기반 deterministic 분산)
 const FALLBACK_QUOTES = [
-  "K-패션이 요즘 제일 재밌어요. 어디서 사야 진짜인지 알고 싶어요.",
-  "트렌디한 옷을 찾으면서도 가성비는 놓치고 싶지 않아요.",
-  "개성 있으면서도 고급스러운 룩을 만드는 게 취미예요.",
-  "무신사에서 새로운 브랜드 발견하는 게 스트레스 해소예요.",
-  "소셜 피드에서 본 옷, 실제로 입어보고 싶어요.",
-  "한국 연예인들 입는 스타일, 이게 진짜 트렌드죠.",
-  "편한데 멋있게 입고 싶은 게 제일 중요해요.",
-  "온라인에서 사다가 실패한 적 많아서, 이제는 리뷰 꼼꼼히 봐요.",
+  "요즘 관심 있는 브랜드를 비교하고 최선의 선택을 하고 싶어요.",
+  "트렌디하면서도 가성비 좋은 걸 찾는 게 제일 중요해요.",
+  "소셜에서 본 제품, 실제로 써보고 싶어요.",
+  "온라인 리뷰 꼼꼼히 보고 구매하는 편이에요.",
+  "새로운 브랜드 발견하는 게 스트레스 해소예요.",
+  "편리하면서도 품질 좋은 걸 원해요.",
+  "환경이나 윤리적 소비에도 신경 쓰는 편이에요.",
+  "가족/친구 추천이 구매에 큰 영향을 줘요.",
 ];
 const FALLBACK_JOBS = [
-  ["오늘의 K-패션 트렌드를 빠르게 파악하기", "내 체형/스타일에 맞는 K-브랜드 찾기", "합리적인 가격으로 K-패션 구매하기"],
-  ["온/오프 종합 코디 점검", "일상복 + 워드로브 조합", "한정판/콜라보 소식 선점"],
-  ["멤버십/적립 혜택 최대화", "주말 핫한 OOTD 소재 확보", "소셜용 셀카 무드 만들기"],
-  ["트렌드와 내 취향의 균형 찾기", "환경/윤리 부담 적은 브랜드 선택", "장기 착용 가능한 고품질 아이템"],
+  ["최적의 가성비 제품 찾기", "내 라이프스타일에 맞는 브랜드 발견", "빠르고 편한 구매 경험"],
+  ["리뷰 비교로 실패 줄이기", "할인/프로모션 최대 활용", "새로운 트렌드 파악"],
+  ["주변 추천 제품 확인", "장기적으로 믿을 수 있는 브랜드 선택", "일상의 편의성 향상"],
+  ["환경 부담 적은 소비 실천", "정보 과부하 속 핵심만 파악", "나만의 큐레이션 구축"],
 ];
 const FALLBACK_PAINS = [
-  ["현지 사이즈/배송 정보가 부족함", "가품/카피 브랜드 구분이 어려움"],
-  ["고객 리뷰가 적어 실패 리스크 큼", "교환/환불 절차가 복잡"],
-  ["국내 배송비 발생, 국제 배송 시간 길음", "알림 광고가 많아서 지침"],
-  ["코디 추천이 출처 불분명", "동일 상품 가격 편차 커서 선택 장애"],
+  ["정보가 많아서 선택 장애", "배송/반품 절차 번거로움"],
+  ["리뷰 신뢰도 판단 어려움", "가격 비교에 시간 소요"],
+  ["원하는 제품 품절/재고 부족", "광고성 콘텐츠 피로감"],
+  ["개인정보 노출 우려", "브랜드 간 품질 편차"],
 ];
 const FALLBACK_LIFESTYLES = [
-  ["OOTD", "주말 카페", "K-드라마 시청", "친구와 쇼핑", "셀카"],
-  ["러닝/필라테스", "근교 여행", "홈카페", "플레이리스트 큐레이션", "미니멀 정리"],
-  ["전시/공연", "새 브랜드 탐색", "빈티지 마켓", "라이프스타일 매거진", "독립서점"],
-  ["홈트 + 식단", "파드캐스트 청취", "슬로우 라이프", "우정 시간 우선", "감성 일상 기록"],
-  ["반려동물 케어", "드라이브", "새 카페 발굴", "OOTD 기록", "빈티지 수집"],
-  ["e커머스 쇼핑", "브이로그 감상", "운동 루틴", "공구 활용", "가족 외식"],
+  ["주말 카페", "운동 루틴", "넷플릭스", "친구 모임", "맛집 탐방"],
+  ["러닝/필라테스", "근교 여행", "홈카페", "음악 감상", "미니멀 정리"],
+  ["전시/공연", "독서", "새 브랜드 탐색", "라이프스타일 매거진", "독립서점"],
+  ["반려동물 케어", "드라이브", "일상 기록", "요리", "가족 시간"],
+  ["e커머스 쇼핑", "브이로그 감상", "SNS 큐레이션", "자기계발", "외식"],
 ];
 const FALLBACK_VALUES = [
   ["자기표현", "트렌드 감각", "가성비", "지속가능", "커뮤니티"],
@@ -160,7 +157,7 @@ function fallbackNarrative(p) {
     lifestyle_tags: _pickByHash(FALLBACK_LIFESTYLES, pid, "l"),
     values_tags: _pickByHash(FALLBACK_VALUES, pid, "v"),
     shopping_style: shopping,
-    price_sensitivity: p.priceSensitivityPrior || 3,
+    price_sensitivity: p.price_sensitivity || p.priceSensitivityPrior || 3,
   };
 }
 
@@ -223,14 +220,14 @@ function defaultMediaDiet(p) {
   ]);
 }
 
-function defaultBrandAffinity(p) {
+function defaultBrandAffinity(p, brand = "Campaign Brand") {
   const competitors = competitorsFor(p.country);
   return [
-    { brand: "Musinsa", score: 60 + Math.floor((p.kFashionInterest || 50) / 4) },
+    { brand: brand, score: 65 },
     { brand: competitors[0], score: 55 },
     { brand: competitors[1], score: 45 },
-    { brand: "Zara", score: 50 },
-    { brand: "Uniqlo", score: 48 },
+    { brand: competitors[2] || "Global Brand A", score: 50 },
+    { brand: competitors[3] || "Global Brand B", score: 48 },
   ];
 }
 
@@ -245,7 +242,7 @@ async function runOneBatch(batch, opts) {
   const localCompetitors = competitorsFor(country);
   const prompt = buildBatchPrompt(batch, { brand, countryName, localCompetitors });
 
-  const system = `당신은 글로벌 K-패션 캠페인 리서치 전문가입니다.
+  const system = `당신은 글로벌 소비자 인사이트 리서치 전문가입니다.
 주어진 합성 페르소나 속성에 맞는 narrative를 JSON 스키마에 맞게 정확히 생성합니다.
 모든 텍스트는 한국어로 작성합니다. 거짓 정보를 만들지 말고 통계적으로 그럴듯한 추론을 제공합니다.`;
 
