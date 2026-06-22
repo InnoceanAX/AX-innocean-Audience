@@ -27,14 +27,26 @@ function distribution(map, { total } = {}) {
   return obj;
 }
 
-// WHO — age / gender / region / income
+// WHO — age / gender / region / income / education / occupation / cityTier
 export function aggregateWho(personas) {
   const total = personas.length;
   const age = distribution(tally(personas, p => p.ageBucket), { total });
   const gender = distribution(tally(personas, p => p.gender), { total });
   const region = toRanked(tally(personas, p => p.region), { topN: 10, total });
   const income = distribution(tally(personas, p => p.incomeQuintile), { total });
-  return { total, age, gender, region, income };
+
+  // Phase 2-B 추가
+  const education = distribution(tally(personas, p => p.education), { total });
+  const occupation = distribution(tally(personas, p => p.occupationLabel || p.occupation), { total });
+
+  // cityTier: 영문 키 → 한글 레이블 변환 후 집계
+  const cityTierLabel = { metro: '대도시', midCity: '중소도시', rural: '농촌/읍면' };
+  const cityTier = distribution(
+    tally(personas, p => cityTierLabel[p.cityTier] ?? p.cityTier),
+    { total }
+  );
+
+  return { total, age, gender, region, income, education, occupation, cityTier };
 }
 
 // LIFE — lifestyle_tags top + occupation distribution
