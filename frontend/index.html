@@ -409,16 +409,16 @@ function renderMatrixInsightsBox(groups) {
     '광고 비효율':    { tag: 'LOW',    desc: '도달·시청 모두 낮음 → 광고 예산 효율 낮음', color: '#9CA3AF' }
   };
   
-  // CEO 2026-06-23: 인사이트 박스를 미디어 파란박스(synth segment 톤)와 동일하게 감쌈 — "요약 개념" 표시.
-  let html = '<div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">';
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--ind)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span style="font-size:12px;font-weight:700;color:var(--ind)">매트릭스 4사분면 인사이트 — 자동 분류 요약</span></div>';
+  // CEO 2026-06-23: 미디어 파란박스는 상단 1개만 — 하단 4사분면 인사이트는 파란박스 배경 제거(차트 카드 내부 요소화).
+  let html = '<div style="margin-top:14px;padding:0">';
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--tm)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span style="font-size:12px;font-weight:700;color:var(--ts)">매트릭스 4사분면 인사이트 — 자동 분류</span></div>';
   for (const [zone, channels] of Object.entries(groups)) {
     if (!channels.length) continue;
     const meta = ZONE_META[zone] || { tag: '—', desc: '', color: '#9CA3AF' };
     const shown = channels.slice(0, 4).map(c => `<span class="md-mi-ch">${escapeHtml(c)}</span>`).join(' ');
     const more = channels.length > 4 ? `<span class="md-mi-more">외 ${channels.length - 4}개</span>` : '';
     html += `
-      <div class="md-matrix-insight" style="border-left-color:${meta.color};background:#fff;margin-bottom:6px;padding:8px 10px;border-radius:6px;border-left-width:3px;border-left-style:solid">
+      <div class="md-matrix-insight" style="border-left-color:${meta.color};background:#F9FAFB;border:1px solid #E5E7EB;margin-bottom:6px;padding:8px 10px;border-radius:6px;border-left-width:3px;border-left-style:solid">
         <div class="md-mi-h" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px">
           <span class="md-mi-tag" style="display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:0.05em;padding:2px 6px;border-radius:4px;background:${meta.color};color:#fff">${meta.tag}</span>
           <strong style="font-size:12px">${zone}</strong>
@@ -4059,7 +4059,11 @@ function switchTab(tab, opts){
   });
   if(tab === 'summary') refreshSummaryTab();
   if(tab === 'insights') refreshInsightsTab();
-  if(tab === 'media') refreshMediaTab();
+  if(tab === 'media'){
+    // CEO 2026-06-23: 대분류 다녀온 뒤 미디어 소분류 탭을 첫 탭(채널 트리)으로 리셋
+    try{ if(typeof switchMediaView === 'function') switchMediaView('tree'); }catch(e){}
+    refreshMediaTab();
+  }
   if(tab === 'compare') renderCompareMatrix();
   if(['who','life','mind','love','buy'].includes(tab)) refreshAudienceTab(tab);
   // interview는 사용자 액션(generatePersona)으로만 시작 — 빈 상태일 때 안내 보장
@@ -8421,6 +8425,80 @@ function _ppSummary(envelope){
   </div>`;
 }
 
+// CEO 2026-06-23: persona-pool 경로용 "AI 합성 소비자 추정치" 파란박스 (인물상~미디어 차트 상단).
+//   각 탭 핵심 요약을 파란박스에 담음. 차트 위 KPI 네모박스는 제거하고 이 박스로 대체.
+function _ppTopList(dist, n){
+  // dist: {key:{count,share}} 또는 [{key,count,share}] → 'A 41% · B 59%' 형태 상위 n
+  let arr = Array.isArray(dist) ? dist.slice() : _ppDistEntries(dist);
+  arr = arr.filter(x => x && (x.key!=null)).slice(0, n||3);
+  return arr.map(x => `${_ppEscape(x.key)} <b>${((x.share||0)*100).toFixed(0)}%</b>`).join(' · ');
+}
+function _ppTopActivities(actObj, n){
+  if(!actObj || typeof actObj!=='object') return '';
+  return Object.entries(actObj).sort((a,b)=>b[1]-a[1]).slice(0,n||3)
+    .map(([k,v]) => `${_ppEscape(k)} <b>${Number(v||0).toFixed(0)}</b>`).join(' · ');
+}
+function _ppMeanLikert(dist){
+  // {"1":{count},"2":{count}...} → 가중평균
+  if(!dist || typeof dist!=='object') return null;
+  let sum=0, n=0;
+  for(const [k,v] of Object.entries(dist)){ const num=Number(k); const c=(v&&v.count)||0; if(!isNaN(num)){ sum+=num*c; n+=c; } }
+  return n? (sum/n) : null;
+}
+function _ppSynthBox(dim, envelope){
+  const d = envelope.data || {};
+  const cc = envelope.country || '';
+  const cnt = envelope.count || 0;
+  const rows = [];
+  if(dim === 'who'){
+    const age = _ppTopList(d.age, 2);
+    const gen = (()=>{ const g=_ppDistEntries(d.gender); const f=g.find(x=>x.key==='female'); const m=g.find(x=>x.key==='male'); return f&&m? `여 ${(f.share*100).toFixed(0)}% · 남 ${(m.share*100).toFixed(0)}%`:''; })();
+    const reg = _ppTopList(d.region, 2);
+    if(age) rows.push(['연령', age]);
+    if(gen) rows.push(['성별', gen]);
+    if(reg) rows.push(['주요 지역', reg]);
+    const occ = _ppTopList(d.occupation, 2); if(occ) rows.push(['직업', occ]);
+  } else if(dim === 'life'){
+    const tags = _ppTopList(d.topLifestyleTags, 3); if(tags) rows.push(['라이프스타일', tags]);
+    const acts = _ppTopActivities(d.activities, 3); if(acts) rows.push(['주요 활동(관심도)', acts]);
+    const food = _ppTopList(d.foodHabit, 2); if(food) rows.push(['식습관', food]);
+  } else if(dim === 'mind'){
+    const vals = _ppTopList(d.topValuesTags, 3); if(vals) rows.push(['핵심 가치', vals]);
+    const sty = _ppTopList(d.shoppingStyle, 2); if(sty) rows.push(['쇼핑 성향', sty]);
+    const cv = _ppTopActivities(d.coreValues, 3); if(cv) rows.push(['가치 점수', cv]);
+  } else if(dim === 'love'){
+    const intr = _ppTopList(d.interests, 3); if(intr) rows.push(['관심사', intr]);
+    const brand = Array.isArray(d.topBrandAffinity)&&d.topBrandAffinity.length ? d.topBrandAffinity.slice(0,3).map(b=>`${_ppEscape(b.brand)}`).join(' · ') : '';
+    if(brand) rows.push(['선호 브랜드', brand]);
+    const mus = _ppTopList(d.musicGenre, 2); if(mus) rows.push(['음악 장르', mus]);
+  } else if(dim === 'buy'){
+    const ps = _ppMeanLikert(d.priceSensitivity); if(ps!=null) rows.push(['가격 민감도', `${ps.toFixed(1)}/5`]);
+    const brand = Array.isArray(d.topBrandAffinity)&&d.topBrandAffinity.length ? d.topBrandAffinity.slice(0,3).map(b=>`${_ppEscape(b.brand)}`).join(' · ') : '';
+    if(brand) rows.push(['선호 브랜드', brand]);
+    const sty = _ppTopList(d.shoppingStyle, 2); if(sty) rows.push(['쇼핑 성향', sty]);
+    const cat = _ppTopList(d.purchaseCategories, 2); if(cat) rows.push(['구매 카테고리', cat]);
+  } else if(dim === 'media'){
+    const ch = Array.isArray(d.channels)? d.channels.slice(0,3) : [];
+    if(ch.length) rows.push(['주요 채널', ch.map(c=>`${_ppEscape(c.channel)} ${Number(c.avgHoursPerDay||0).toFixed(1)}h`).join(' · ')]);
+    const fmts = (d.adReceptivity&&Array.isArray(d.adReceptivity.formats))? d.adReceptivity.formats.slice().sort((a,b)=>(b.avg||0)-(a.avg||0)).slice(0,3) : [];
+    if(fmts.length) rows.push(['광고 수용도', fmts.map(f=>`${_ppEscape(f.format)} ${Number(f.avg||0).toFixed(0)}`).join(' · ')]);
+    const totalH = ch.reduce((s,c)=>s+Number(c.avgHoursPerDay||0),0);
+    if(totalH>0) rows.push(['총 매체 사용', `${totalH.toFixed(1)}h/일`]);
+  }
+  if(!rows.length) return '';
+  const rowsHtml = rows.map(([label, val]) =>
+    `<div style="display:flex;gap:8px;font-size:12px;line-height:1.55;padding:2px 0"><span style="flex:0 0 96px;color:var(--ind2);font-weight:600">${_ppEscape(label)}</span><span style="color:#1F2937">${val}</span></div>`
+  ).join('');
+  return `<div style="background:linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 100%);border:1px solid #A5B4FC;border-radius:12px;padding:13px 16px;margin:0 0 16px">
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
+      <span style="font-size:12.5px;font-weight:700;color:#3730A3">AI 합성 소비자 — 타겟 세그먼트 추정치</span>
+      <span style="margin-left:auto;font-size:10.5px;color:var(--ind2);background:#fff;border:1px solid #C7D2FE;border-radius:9px;padding:1px 7px;font-weight:600">${_ppEscape(cc)} · N=${cnt.toLocaleString()}</span>
+    </div>
+    ${rowsHtml}
+  </div>`;
+}
+
 // Income quintile (Q1..Q5) horizontal bars in a fixed Q1→Q5 order.
 function _ppIncomeBars(income){
   const order = ['Q1','Q2','Q3','Q4','Q5'];
@@ -8530,13 +8608,7 @@ function renderPersonaPoolDimChartjs(dim, envelope){
   if(dim === 'who'){
     const ageItems = _ppDistEntries(d.age);
     const regionItems = (d.region||[]);
-    const kpis = _ppGridOpen('repeat(4, 1fr)') +
-      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
-      _ppKpiTile('연령 구간', String(ageItems.length) + '개') +
-      _ppKpiTile('지역', String(regionItems.length) + '개') +
-      _ppKpiTile('소득 사분위', String(_ppDistEntries(d.income).length) + '개') +
-      _ppGridClose();
-    return summary + kpis + `
+    return _ppSynthBox('who', envelope) + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">연령 분포</div>
@@ -8567,12 +8639,7 @@ function renderPersonaPoolDimChartjs(dim, envelope){
   if(dim === 'life'){
     const tagItems = (d.topLifestyleTags||[]);
     const occItems = _ppDistEntries(d.occupation);
-    const kpis = _ppGridOpen('repeat(3, 1fr)') +
-      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
-      _ppKpiTile('라이프스타일 태그', String(tagItems.length) + '개') +
-      _ppKpiTile('직업 구간', String(occItems.length) + '개') +
-      _ppGridClose();
-    return summary + kpis + `
+    return _ppSynthBox('life', envelope) + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">활동 관심도 (radar · 0–100)</div>
@@ -8603,12 +8670,7 @@ function renderPersonaPoolDimChartjs(dim, envelope){
   if(dim === 'mind'){
     const valItems = (d.topValuesTags||[]);
     const styleItems = _ppDistEntries(d.shoppingStyle);
-    const kpis = _ppGridOpen('repeat(3, 1fr)') +
-      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
-      _ppKpiTile('가치관 태그', String(valItems.length) + '개') +
-      _ppKpiTile('쇼핑 스타일', String(styleItems.length) + '개') +
-      _ppGridClose();
-    return summary + kpis + `
+    return _ppSynthBox('mind', envelope) + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">핵심 가치 (radar · 0–100)</div>
@@ -8638,12 +8700,7 @@ function renderPersonaPoolDimChartjs(dim, envelope){
   }
   if(dim === 'love'){
     const brandItems = (d.topBrandAffinity||[]);
-    const kpis = _ppGridOpen('repeat(3, 1fr)') +
-      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
-      _ppKpiTile('관심사 축', '8개 (0–100)') +
-      _ppKpiTile('스포츠 친밀 축', '5개 (0–100)') +
-      _ppGridClose();
-    return summary + kpis + `
+    return _ppSynthBox('love', envelope) + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">관심사 (radar · 0–100)</div>
@@ -8674,12 +8731,7 @@ function renderPersonaPoolDimChartjs(dim, envelope){
   if(dim === 'buy'){
     const styleItems = _ppDistEntries(d.shoppingStyle);
     const brandItems = (d.topBrandAffinity||[]);
-    const kpis = _ppGridOpen('repeat(3, 1fr)') +
-      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
-      _ppKpiTile('카테고리 축', '8개 (0–100)') +
-      _ppKpiTile('쇼핑 스타일', String(styleItems.length) + '개') +
-      _ppGridClose();
-    return summary + kpis + `
+    return _ppSynthBox('buy', envelope) + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 카테고리 분포</div>
