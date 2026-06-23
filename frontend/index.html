@@ -4610,19 +4610,9 @@ async function renderMediaTab(data){
     renderChart5Receptivity(pc.adReceptivity);
     return;
   }
-    const synHtml = renderSynthSegment('media');
-    const wrap = document.getElementById('md-insights');
-    if(wrap && synHtml){
-      // wrap 앞에 삽입
-      const parent = wrap.parentNode;
-      let synSlot = document.getElementById('md-synth-slot');
-      if(!synSlot){
-        synSlot = document.createElement('div');
-        synSlot.id = 'md-synth-slot';
-        parent.insertBefore(synSlot, wrap);
-      }
-      synSlot.innerHTML = synHtml;
-    } else {
+    // CEO 2026-06-24: 미디어 탭도 예전 NLG 서술형 파란박스(renderSynthSegment) 제거 — renderPersonaPoolBadge(현재 박스)와 중복.
+    //   이미 들어간 synSlot이 있으면 비움.
+    {
       const existing = document.getElementById('md-synth-slot');
       if(existing) existing.innerHTML = '';
     }
@@ -7760,9 +7750,10 @@ async function refreshAudienceTab(dim){
       if(body){
         body.dataset.country = code;
         const panelHtml = renderPanelSample(dim);
-        const synthHtml = renderSynthSegment(dim);
+        // CEO 2026-06-24: 예전 NLG 서술형 파란박스(renderSynthSegment) 제거 — 현재 _ppSynthBox(renderAudienceDim 내)와 중복해 두 개 뜨던 버그.
+        //   _ppSynthBox(정형 테이블)만 유지.
         const jumpBanner = (typeof renderJumpContextBanner === 'function') ? renderJumpContextBanner() : '';
-        body.innerHTML = jumpBanner + panelHtml + synthHtml + renderAudienceDim(dim, data);
+        body.innerHTML = jumpBanner + panelHtml + renderAudienceDim(dim, data);
         setTimeout(() => renderDimCharts(dim, data), 50);
       }
       // 출처 배지도 갱신
