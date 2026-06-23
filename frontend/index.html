@@ -149,6 +149,22 @@ function renderPersonaPoolBadge(badge, mediaData) {
     }
     // CEO 2026-06-23: 차단·제한 매체 제거 — 차트(도달/시청/수용도) 기준 요약만, 국가한정 구조정보 제외
   }catch(e){ console.warn('[mediaSummary]', e); }
+  // CEO 2026-06-23: 4사분면 요약을 상단 파란박스로 통합 (하단 별도 박스 제거)
+  let quadHtml = '';
+  try{
+    const matrix = (mediaData?.personaChart?.matrix) || (mediaData?.personaChannels?.matrix) || [];
+    if(Array.isArray(matrix) && matrix.length && typeof classifyMatrixQuadrants === 'function'){
+      const pts = matrix.filter(m=>m.x>0||m.y>0).map(m=>({x:m.x,y:m.y,label:m.label,mentions:m.mentions||0}));
+      const groups = classifyMatrixQuadrants(pts);
+      const ZMETA = {'광고 효율 최고':{tag:'CORE',color:'#10B981'},'마니아 채널':{tag:'NICHE',color:'#7C3AED'},'광고 노출 최적':{tag:'REACH',color:'#0EA5E9'},'광고 비효율':{tag:'LOW',color:'#9CA3AF'}};
+      const qrows = Object.entries(groups).filter(([z,ch])=>ch.length).map(([z,ch])=>{
+        const m = ZMETA[z]||{tag:'—',color:'#9CA3AF'};
+        const shown = ch.slice(0,4).map(c=>escapeHtml(c)).join(', ') + (ch.length>4?` 외 ${ch.length-4}개`:'');
+        return `<div style="display:flex;gap:7px;align-items:baseline;font-size:11.5px;line-height:1.5;padding:1px 0"><span style="flex:0 0 auto;font-size:9px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:3px;background:${m.color};color:#fff">${m.tag}</span><span style="flex:0 0 84px;color:var(--ts);font-weight:600">${z}</span><span style="color:#374151">${shown}</span></div>`;
+      }).join('');
+      if(qrows) quadHtml = `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #C7D2FE"><div style="font-size:11px;font-weight:700;color:var(--ind2);margin-bottom:5px">매트릭스 4사분면 — 자동 분류</div>${qrows}</div>`;
+    }
+  }catch(e){ console.warn('[quadSummary]', e); }
   return `<div style="margin-bottom:18px;padding:14px 16px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--ind)"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
@@ -156,6 +172,7 @@ function renderPersonaPoolBadge(badge, mediaData) {
       <span style="margin-left:auto;font-size:10px;color:var(--tm)">${country ? country + ' · ' : ''}N=${count} 직접 집계</span>
     </div>
     ${rows || '<div style="font-size:11.5px;color:var(--tm)">차트 데이터를 불러오는 중…</div>'}
+    ${quadHtml}
   </div>`;
 }
 
@@ -244,7 +261,7 @@ function channelIcon(name) {
 /**
  * 차트 2: 도달률 막대 (md-reach-chart 캔버스 갱신)
  */
-function renderChart2ReachBar(labels, reach) {
+function renderChart2ReachBar(labels, reach, nArg) {
   const ctx = document.getElementById('md-reach-chart')?.getContext('2d');
   if (!ctx) return;
   
@@ -282,13 +299,15 @@ function renderChart2ReachBar(labels, reach) {
         title: { display: true, text: (function(){
           // CEO 2026-06-23: N 값 폴백 행이수 강화 — _mediaPoolN → poolSummary.n → adReceptivity.total → 100
           const s = window.state || {};
-          const n = s._mediaPoolN
+          // CEO 2026-06-23: N 직접 인자(nArg) 최우선 — 호출부에서 명시 전달, 없으면 state 폴백
+          const n = nArg
+            || s._mediaPoolN
             || s.poolSummary?.n
             || s.mediaCache?.adReceptivity?.total
             || s.mediaCache?.personaChart?.adReceptivity?.total
-            || (s.activeBriefId ? 100 : 0);
+            || (s.activeBriefId ? 100 : 100);
           // top10만 표시되므로 레이블도 명확하게
-          return '채널별 도달률 — 상위 10개 채널 (페르소나 풀 N=' + (n || '—') + ')';
+          return '채널별 도달률 — 상위 10개 채널 (페르소나 풀 N=' + (n || '100') + ')';
         })() },
         subtitle: { display: true, text: '출처: 합성소비자 풀 직접 집계 · 단위: %', font: { size: 11 } },
         legend: { display: false },
@@ -370,8 +389,10 @@ function renderChart3Matrix(matrix) {
     }
   });
   
-  // 인사이트 박스 자동 렌더 (md-matrix-insights 또는 md-insights 하단)
-  renderMatrixInsightsBox(insights);
+  // CEO 2026-06-23: 4사분면 요약을 상단 파란박스(renderPersonaPoolBadge)로 올림 → 하단 별도 박스 제거
+  // renderMatrixInsightsBox(insights);  // 상단 통합으로 비활성화
+  const _oldBox = document.getElementById('md-matrix-insights');
+  if(_oldBox) _oldBox.innerHTML = '';
 }
 
 function classifyMatrixQuadrants(data) {
@@ -4508,7 +4529,7 @@ async function renderMediaTab(data){
     const pc = data.personaChart || {};
     const channels = data.personaChannels?.channels || [];
     renderChart1Tree(channels);
-    renderChart2ReachBar(pc.labels, pc.reach);
+    renderChart2ReachBar(pc.labels, pc.reach, state._mediaPoolN || data.badge?.count || data.adReceptivity?.total || 100);
     renderChart3Matrix(pc.matrix);
     renderChart4Table(channels);
     renderChart5Receptivity(pc.adReceptivity);
