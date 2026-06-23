@@ -61,7 +61,8 @@ function buildPersonaChannels(pool) {
     share: total > 0 ? Number((c.mentions / total).toFixed(4)) : 0,
     avgHoursPerDay: Number((c.avgHoursPerDay || 0).toFixed(2)),
     totalHoursPerDay: Number((c.totalHoursPerDay || 0).toFixed(2)),
-    reach: Number((c.reach || 0).toFixed(4)),
+    reach: Number((c.reach || 0).toFixed(4)),        // 0~1 소수 (하위호환)
+    reachPct: Number(((c.reach || 0) * 100).toFixed(1)),  // 2026-06-23: % 단위 통일 (프론트 차트1/4 용)
   }));
   return { total, channels, adReceptivity: agg.adReceptivity || null };
 }
