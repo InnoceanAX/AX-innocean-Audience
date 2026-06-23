@@ -119,6 +119,7 @@ window.applyChartUnitLabel = function(canvasId, unitText){
      html2canvas@1.4.1 (MIT) / jspdf@2.5.1 (MIT) 자체 호스팅 (frontend/vendor/). -->
 <script src="vendor/html2canvas.min.js"></script>
 <script src="vendor/jspdf.umd.min.js"></script>
+<script>
 /**
  * persona-pool 배지 HTML
  */
@@ -494,7 +495,7 @@ function renderReceptivityInsightsBox(formats) {
   wrap.innerHTML = '<div class="md-receptivity-insights-h">광고형식 수용도 인사이트</div>' +
     insights.map(i => `<div class="md-receptivity-insight">• ${i}</div>`).join('');
 }
-
+</script>
 
 <style>
 :root{
