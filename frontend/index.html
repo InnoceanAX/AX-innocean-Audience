@@ -2455,7 +2455,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">라이프스타일 (Life)</div>
-              <div class="aud-tab-s">어떻게 살고 있는가 — 라이프스타일 태그 / 직업 분포</div>
+              <div class="aud-tab-s">어떻게 살고 있는가 — 활동 관심도 / 여행 패턴 / 활동 시간대 / 식생활 / 운동·여행 빈도</div>
               <span class="aud-src" id="life-src">데이터 로딩 중…</span>
             </div>
             <div id="life-body"></div>
@@ -2466,7 +2466,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">가치관 (Mind)</div>
-              <div class="aud-tab-s">무엇을 믿는가 — 핵심 가치관 태그 / 쇼핑 스타일 분포</div>
+              <div class="aud-tab-s">무엇을 믿는가 — 핵심 가치 / 마인드셋 / 사회 관심사 / 의사결정 스타일 / 정보 소비 / 성격(Big5)</div>
               <span class="aud-src" id="mind-src">데이터 로딩 중…</span>
             </div>
             <div id="mind-body"></div>
@@ -2477,7 +2477,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">관심사 (Love)</div>
-              <div class="aud-tab-s">무엇에 열정적인가 — K·일반 패션 관심도 / K・콘텐츠 노출 / 브랜드 선호도</div>
+              <div class="aud-tab-s">무엇에 열정적인가 — 관심사 / 음악 장르 / 콘텐츠 장르 / 인플루언서 타입 / 스포츠 친밀도</div>
               <span class="aud-src" id="love-src">데이터 로딩 중…</span>
             </div>
             <div id="love-body"></div>
@@ -2488,7 +2488,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">구매 행동 (Buy)</div>
-              <div class="aud-tab-s">어떻게 구매하는가 — 가격 민감도 / 쇼핑 스타일 / 브랜드 선호도 Top 10</div>
+              <div class="aud-tab-s">어떻게 구매하는가 — 구매 카테고리 / 결제 수단 / 쇼핑 채널 / 구매 의사결정 / 구매 빈도 / 소비 프로파일</div>
               <span class="aud-src" id="buy-src">데이터 로딩 중…</span>
             </div>
             <div id="buy-body"></div>
@@ -4268,7 +4268,9 @@ async function refreshMediaTab(){
 
   // CEO 2026-06-23: 깜빡임 제거 — 같은 국가/brief 캐시가 있으면 로딩 없이 즉시 렌더 (탭 재방문 시 깜빡 방지)
   const _mdCacheKey = `${state.currentCountry}::${state.activeBriefId||state.briefId||''}`;
-  if(state.analyzing || state.personaPolling || (state.activePreset && !state.activeBriefId)){
+  // CEO 2026-06-23 22:46: 결과가 있으면 로딩에 갇히지 않도록 — briefId는 activeBriefId/briefId/currentBriefId 중 아무거나 있으면 해제
+  const _mdAnyBriefId = state.activeBriefId || state.briefId || state.currentBriefId;
+  if(state.analyzing || state.personaPolling || (state.activePreset && !_mdAnyBriefId)){
     // CEO 2026-06-23 22:29: 다른 탭과 동일한 표준 분석진행 화면(스피너+분석 진행 중)으로 통일
     if(mdLoad){
       mdLoad.classList.remove('hide');
@@ -7666,7 +7668,7 @@ async function refreshAudienceTab(dim){
         } else {
           badgeHtml = '<span class="aud-src-badge">실데이터</span>';
         }
-        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${(data.source && data.source.primary) || (typeof data.source==="string" ? "AI 합성 페르소나 풀" : "") || (data.badge && data.badge.label) || "AI 합성 페르소나 풀"}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
       }
       return;
     } catch(e){ /* fall through to fetch */ }
@@ -7761,7 +7763,7 @@ async function _refreshAudienceTabFetch(dim){
     } else {
       badgeHtml = '<span class="aud-src-badge">실데이터</span>';
     }
-        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${data.source.primary}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+        src.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('${dim}')" title="데이터 출처 자세히 보기">${badgeHtml} <span class="aud-src-txt">${(data.source && data.source.primary) || (typeof data.source==="string" ? "AI 합성 페르소나 풀" : "") || (data.badge && data.badge.label) || "AI 합성 페르소나 풀"}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
     body.dataset.country = code;
     const badgeHtmlPd = renderPersonaBadgeHtml(data.badge);
     body.innerHTML = badgeHtmlPd + renderAudienceDim(dim, data);
