@@ -10866,6 +10866,12 @@ async function pollPersonaStatus(){
         }
         // summary 탭이면 요약도 갱신
         if(_curTab === 'summary' && typeof refreshSummaryTab === 'function'){ try { refreshSummaryTab(); } catch(e){} }
+        // CEO 2026-06-24 (방식A): 미디어는 추가 fetch가 있어 다른 탭보다 느림 →
+        //   완료 시 현재 탭이 미디어가 아니어도 미디어 데이터를 백그라운드 prefetch.
+        //   그러면 사용자가 미디어 탭을 눌렀을 때 캐시(state.mediaData)로 즉시 표시 = 전체 탭 동시 완료 체감.
+        if(_curTab !== 'media' && typeof refreshMediaTab === 'function'){
+          try { refreshMediaTab(); } catch(e){}
+        }
         break;
       }
       await new Promise(res => setTimeout(res, 4000));
