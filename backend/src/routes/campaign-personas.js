@@ -263,13 +263,14 @@ async function runGeneration(brief) {
     // Stage 2: narrative
     // CEO 2026-06-18 21:34 긴급: batch/concurrency 낮춤 — Vertex AI rate limit 완화
     // CEO 2026-06-18 22:30 긴급: batch 단위 DB commit + GCS force upload → SIGTERM 휠발 방지
-    // CEO 2026-06-23: 생성 시간 단축 (옵션 A) — batch10/conc2 → batch20/conc3 (~5분→~2.5분)
+    // CEO 2026-06-23: 생성 시간 단축 — batch20은 16384 토큰 truncate→retry-split으로 오히려 정체(60% 8분+).
+    // batchSize는 10 유지(안정), concurrency만 2→3으로 상향 — 안전한 병렬도 증가
     let { forceDbUpload } = await import("../lib/persona-gcs.js");
     const merged = await synthesizeNarratives(cohort, {
       brand: brief.brand,
       country,
       countryName,
-      batchSize: 20,
+      batchSize: 10,
       concurrency: 3,
       shouldCancel,
       onBatchDone: (doneInCountry, totalInCountry) => {
