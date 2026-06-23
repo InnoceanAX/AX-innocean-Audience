@@ -2404,7 +2404,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
               <button class="sm-cta-primary" onclick="switchTab('overview')">빌더로 가기 →</button>
             </div>
           </div>
-          <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중… (약 10~20초 소요)</div></div>
+          <div id="md-loading" class="ws-empty"><div class="ws-empty-s">매체 환경 분석 중…</div></div>
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
             <div class="md-view-tabs">
@@ -4101,11 +4101,16 @@ async function refreshMediaTab(){
   if(mdEmpty) mdEmpty.style.display = 'none';
 
   try{
-    document.getElementById('md-loading').classList.remove('hide');
+    const _mdLoadEl = document.getElementById('md-loading');
+    if(_mdLoadEl) _mdLoadEl.classList.remove('hide');
     document.getElementById('md-body').classList.add('hide');
     // CEO 2026-06-23: campaign 모드면 brief 생성/연결 보장 (activeBriefId 유실 방지) — 미디어 탭도 8박스 탭과 동일하게 persona-pool 우선
     if(state.activePreset && !state.activeBriefId && typeof ensureCampaignBrief === 'function'){
+      // CEO 2026-06-23: 생성 트리거 직전 — 합성소비자 풀 생성 안내 멘트 (실제 ~2.5분)
+      if(_mdLoadEl){ const _s=_mdLoadEl.querySelector('.ws-empty-s'); if(_s) _s.textContent='AI 합성 소비자 100명 생성 중… (약 2~3분 소요)'; }
       try { await ensureCampaignBrief(); } catch(e){ console.warn('[media ensureBrief]', e); }
+    } else if(state.personaPolling && _mdLoadEl){
+      const _s=_mdLoadEl.querySelector('.ws-empty-s'); if(_s) _s.textContent='AI 합성 소비자 풀 생성 중… (약 2~3분 소요)';
     }
     // CEO 2026-06-23: briefId 전달 — persona-pool(합성소비자) 데이터 수신 (누락 시 baseline+광고비 fallback되던 버그 수정)
     const _mediaBriefId = state.activeBriefId || state.briefId || state.currentBriefId || null;
