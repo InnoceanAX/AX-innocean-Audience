@@ -263,7 +263,17 @@ function renderChart2ReachBar(labels, reach) {
         x: { ticks: { maxRotation: 40, minRotation: 0, font: { size: 11 } } }
       },
       plugins: {
-        title: { display: true, text: '채널별 도달률 (페르소나 풀 N=' + (window.state?._mediaPoolN || (window.state?.activeBriefId ? 100 : '—')) + ')' },
+        title: { display: true, text: (function(){
+          // CEO 2026-06-23: N 값 폴백 행이수 강화 — _mediaPoolN → poolSummary.n → adReceptivity.total → 100
+          const s = window.state || {};
+          const n = s._mediaPoolN
+            || s.poolSummary?.n
+            || s.mediaCache?.adReceptivity?.total
+            || s.mediaCache?.personaChart?.adReceptivity?.total
+            || (s.activeBriefId ? 100 : 0);
+          // top10만 표시되므로 레이블도 명확하게
+          return '채널별 도달률 — 상위 10개 채널 (페르소나 풀 N=' + (n || '—') + ')';
+        })() },
         subtitle: { display: true, text: '출처: 합성소비자 풀 직접 집계 · 단위: %', font: { size: 11 } },
         legend: { display: false },
         datalabels: {
@@ -375,30 +385,34 @@ function renderMatrixInsightsBox(groups) {
   }
   if (!wrap) return;
   
+  // CEO 2026-06-23: 이모지 제거 + 4사분면 인사이트 = 요약 개념 → 파란박스 톤으로 통일
   const ZONE_META = {
-    '광고 효율 최고': { icon: '⭐', desc: '도달 + 시청시간 모두 강 → 핵심 매체 우선', color: '#10B981' },
-    '마니아 채널':    { icon: '🎯', desc: '도달 낮지만 깊은 몰입 → 정밀 타겟 최적', color: '#7C3AED' },
-    '광고 노출 최적': { icon: '📣', desc: '도달 넓음 + 짧은 노출 → 짧은 메시지 캠페인', color: '#0EA5E9' },
-    '광고 비효율':    { icon: '⚠️', desc: '도달·시청 모두 낮음 → 광고 예산 효율 낮음', color: '#9CA3AF' }
+    '광고 효율 최고': { tag: 'CORE',   desc: '도달 + 시청시간 모두 강 → 핵심 매체 우선', color: '#10B981' },
+    '마니아 채널':    { tag: 'NICHE',  desc: '도달 낮지만 깊은 몰입 → 정밀 타겟 최적', color: '#7C3AED' },
+    '광고 노출 최적': { tag: 'REACH',  desc: '도달 넓음 + 짧은 노출 → 짧은 메시지 캠페인', color: '#0EA5E9' },
+    '광고 비효율':    { tag: 'LOW',    desc: '도달·시청 모두 낮음 → 광고 예산 효율 낮음', color: '#9CA3AF' }
   };
   
-  let html = '<div class="md-matrix-insights-h">매트릭스 4사분면 인사이트 (자동 분류)</div>';
+  // CEO 2026-06-23: 인사이트 박스를 미디어 파란박스(synth segment 톤)와 동일하게 감쌈 — "요약 개념" 표시.
+  let html = '<div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">';
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--ind)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span style="font-size:12px;font-weight:700;color:var(--ind)">매트릭스 4사분면 인사이트 — 자동 분류 요약</span></div>';
   for (const [zone, channels] of Object.entries(groups)) {
     if (!channels.length) continue;
-    const meta = ZONE_META[zone];
+    const meta = ZONE_META[zone] || { tag: '—', desc: '', color: '#9CA3AF' };
     const shown = channels.slice(0, 4).map(c => `<span class="md-mi-ch">${escapeHtml(c)}</span>`).join(' ');
     const more = channels.length > 4 ? `<span class="md-mi-more">외 ${channels.length - 4}개</span>` : '';
     html += `
-      <div class="md-matrix-insight" style="border-left-color:${meta.color}">
-        <div class="md-mi-h">
-          <span class="md-mi-icon">${meta.icon}</span>
-          <strong>${zone}</strong>
-          <span class="md-mi-desc">${meta.desc}</span>
+      <div class="md-matrix-insight" style="border-left-color:${meta.color};background:#fff;margin-bottom:6px;padding:8px 10px;border-radius:6px;border-left-width:3px;border-left-style:solid">
+        <div class="md-mi-h" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px">
+          <span class="md-mi-tag" style="display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:0.05em;padding:2px 6px;border-radius:4px;background:${meta.color};color:#fff">${meta.tag}</span>
+          <strong style="font-size:12px">${zone}</strong>
+          <span class="md-mi-desc" style="font-size:10.5px;color:var(--tm)">${meta.desc}</span>
         </div>
         <div class="md-mi-channels">${shown}${more}</div>
       </div>
     `;
   }
+  html += '</div>';
   wrap.innerHTML = html;
 }
 
@@ -2479,7 +2493,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             <!-- View 3: 차트 -->
             <div id="md-view-chart" class="md-view hide">
               <div class="ov-section">
-                <div class="ov-section-t">도달률 차트 (상위 15)</div>
+                <div class="ov-section-t">도달률 차트 — 상위 10개 채널</div>
                 <div class="md-chart-wrap"><canvas id="md-reach-chart"></canvas></div>
               </div>
               <div class="ov-section">
@@ -2890,7 +2904,7 @@ function showTier3Modal(code, name){
           ${name} <span style="font-size:13px;font-weight:400;color:#64748B">(${code})</span>
         </h2>
         <div style="padding:12px 14px;background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:6px;margin-bottom:14px">
-          <strong style="color:#92400E;font-size:13px">⚠️ 상세 데이터 없음</strong>
+          <strong style="color:#92400E;font-size:13px;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>상세 데이터 없음</strong>
           <p style="margin:6px 0 0;font-size:12px;line-height:1.6;color:#78350F">
             이 국가는 현재 거시 지표만 제공됩니다 (World Bank Open Data 기반).<br>
             상세 페르소나 분석 / 라이프스타일 / 가치관 / 관심사 / 구매 행동 데이터는 부재합니다.
@@ -7130,22 +7144,50 @@ async function refreshSummaryTab(){
     const trustAvg = mind.trust ? Math.round(Object.values(mind.trust).reduce((s,v)=>s+v,0)/Object.values(mind.trust).length) : null;
     const topCat = buy.topCategories ? Object.entries(buy.topCategories).sort((a,b)=>b[1]-a[1])[0] : null;
     const topMedia = c.who && c.life ? '' : '';
+    // CEO 2026-06-23: 요약 탭 6 카드 — persona-pool 실데이터 우선 (state.poolSummary 6차원 stats)
+    // 분석 후 풀이 있으면 stats[0..2] 사용 + "페르소나 풀 N=" 뱃지, 풀 없으면 baseline 폴백.
+    const _ppRoot = state.poolSummary || null;
+    const _ppN = _ppRoot?.n || 0;
+    const _ppBadge = _ppN > 0
+      ? `<span style="background:#EEF2FF;padding:1px 5px;border-radius:4px;color:#4338CA;font-weight:600">페르소나 풀 N=${_ppN}</span>`
+      : `<span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span>`;
+    function _ppStatLine(dimKey, fallbackHtml, fallbackSrc){
+      const dimEntry = _ppRoot && _ppRoot[dimKey];
+      const stats = Array.isArray(dimEntry?.stats) ? dimEntry.stats : [];
+      if(_ppN > 0 && stats.length){
+        const top = stats.slice(0, 3).filter(s => s && (s.label || s.value));
+        const parts = top.map(s => {
+          const lab = (s.label || '').toString();
+          const val = (s.value == null ? '—' : s.value).toString();
+          return `${lab} <b>${val}</b>`;
+        });
+        const srcArr = Array.isArray(dimEntry?.sources) ? dimEntry.sources : [];
+        const src = srcArr.length ? srcArr.slice(0,2).join(' · ') : '페르소나 풀 집계';
+        return { stat: parts.join(' · ') || '데이터 수집 중', src };
+      }
+      return { stat: fallbackHtml, src: fallbackSrc };
+    }
+    const _ppWho = _ppStatLine('who', `중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b>`, 'World Bank 2024-2025');
+    const _ppLife = _ppStatLine('life', `인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b>`, 'DataReportal 2025');
+    const _ppMind = _ppStatLine('mind', `신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b>`, 'Reuters DNR 2025 + Hofstede');
+    const _ppLove = _ppStatLine('love', `Top 3: <b>${top3 || '—'}</b>`, 'audience-public baseline 2024');
+    const _ppBuy = _ppStatLine('buy', `이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}`, 'Statista + audience-public 2024');
     dims.innerHTML = `
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: World Bank 2024-2025 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: DataReportal 2025 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg><div class="sm-dim-t">가치관</div><button class="sm-dim-more" onclick="switchTab('mind')">자세히 →</button></div><div class="sm-dim-stat">신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Reuters DNR 2025 + Hofstede <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">Top 3: <b>${top3 || '—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: audience-public baseline 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Statista + audience-public 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">${_ppWho.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppWho.src} ${_ppBadge}</div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">${_ppLife.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppLife.src} ${_ppBadge}</div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg><div class="sm-dim-t">가치관</div><button class="sm-dim-more" onclick="switchTab('mind')">자세히 →</button></div><div class="sm-dim-stat">${_ppMind.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppMind.src} ${_ppBadge}</div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">${_ppLove.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppLove.src} ${_ppBadge}</div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">${_ppBuy.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppBuy.src} ${_ppBadge}</div></div>
       ${(function(){
-        // CEO 2026-06-18 19:05: 미디어 카드도 다른 5개와 동일 footer 구조 (출처 + 뱃지 분리)
-        const pool = state.poolSummary?.byTab?.media;
+        // CEO 2026-06-23: 미디어 카드도 다른 5개와 동일하게 summary-overview media.stats 우선 사용 (byTab 구조 아님)
         let stat = '', src = '', badge = '국가 baseline', badgeStyle = 'background:#F3F4F6;color:#6B7280';
-        if(pool && pool.channels?.length){
-          const top = pool.channels[0];
-          const totalAvg = pool.channels.reduce((s,c)=>s+(c.avgHoursPerDay||0),0).toFixed(1);
-          stat = `Top 채널 <b>${top.channel}</b> · 일평균 <b>${totalAvg}h</b> · 채널 ${pool.channels.length}개`;
-          src = `AI 합성 페르소나 풀 (n=${pool.total})`;
-          badge = `풀 n=${pool.total}`;
+        const mStats = Array.isArray(_ppRoot?.media?.stats) ? _ppRoot.media.stats : [];
+        if(_ppN > 0 && mStats.length){
+          const top = mStats.slice(0,3).filter(s => s && (s.label || s.value));
+          stat = top.map(s => `${(s.label||'')} <b>${(s.value==null?'—':s.value)}</b>`).join(' · ') || '데이터 수집 중';
+          const srcArr = Array.isArray(_ppRoot?.media?.sources) ? _ppRoot.media.sources : [];
+          src = srcArr.length ? srcArr.slice(0,2).join(' · ') : '페르소나 풀 집계';
+          badge = `페르소나 풀 N=${_ppN}`;
           badgeStyle = 'background:#EEF2FF;color:#4338CA';
         } else if(state.mediaCache?.spend){
           const sp = state.mediaCache.spend;
@@ -7194,7 +7236,7 @@ async function refreshSummaryTab(){
         }
         const n = d.n || 0;
         const meta = document.getElementById('sm-target-meta');
-        if (meta) meta.textContent = `Target · n=${n}${d.meta?.nWarning ? ' ⚠️' : ''}`;
+        if (meta) meta.textContent = `Target · n=${n}${d.meta?.nWarning ? ' (!)' : ''}`;
         if (n === 0) {
           deltas.innerHTML = `<div class="sm-delta-empty">이 국가의 타겟 페르소나 풍이 아직 생성되지 않았습니다. 국가 베이스라인만 표시됩니다.</div>`;
           return;
@@ -7307,6 +7349,33 @@ function renderPanelSample(dim){
   </div>`;
 }
 
+// CEO 2026-06-23: synth segment 값 [object Object] 방어 헬퍼
+// 서버가 객체 형태({level,score} 또는 {영상광고:..})로 내려주는 경우 문자열화.
+function _segVal(v){
+  if(v == null) return '-';
+  if(typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if(Array.isArray(v)){
+    return v.map(x => _segVal(x)).filter(x => x && x !== '-').join(', ') || '-';
+  }
+  if(typeof v === 'object'){
+    const keys = ['level','label','value','name','type','desc','description','tag'];
+    for(const k of keys){
+      if(v[k] != null && typeof v[k] !== 'object') return String(v[k]);
+    }
+    const entries = Object.entries(v).filter(([k,val]) => val != null && typeof val !== 'object');
+    if(entries.length){
+      const numeric = entries.filter(([_,val]) => typeof val === 'number');
+      if(numeric.length === entries.length && numeric.length){
+        const top = numeric.sort((a,b) => b[1] - a[1])[0];
+        return `${top[0]} ${top[1]}`;
+      }
+      return entries.slice(0,2).map(([k,val]) => `${k}: ${val}`).join(' / ');
+    }
+    return '-';
+  }
+  return String(v);
+}
+
 function renderSynthSegment(dim){
   const syn = state.synthCache;
   if(!syn || !syn.segments || !syn.segments[dim]) return '';
@@ -7325,31 +7394,31 @@ function renderSynthSegment(dim){
       <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">연령 분포</div>${ageRows}</div>
       <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">성별 / 소득 / 가구</div>
         <div style="font-size:11.5px;padding:3px 0">여성: <b>${gr['여성']||0}%</b> / 남성: <b>${gr['남성']||0}%</b></div>
-        <div style="font-size:11.5px;padding:3px 0">소득 수준: <b>${seg.incomeLevel||'-'}</b></div>
-        <div style="font-size:11.5px;padding:3px 0">가구 형태: <b>${seg.householdType||'-'}</b></div>
+        <div style="font-size:11.5px;padding:3px 0">소득 수준: <b>${_segVal(seg.incomeLevel)}</b></div>
+        <div style="font-size:11.5px;padding:3px 0">가구 형태: <b>${_segVal(seg.householdType)}</b></div>
       </div>
     </div>`;
   } else if(dim === 'life'){
     const du = seg.digitalUsage || {};
-    const acts = (seg.topActivities||[]).map(a => `<span style="display:inline-block;padding:3px 9px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;font-size:11px;margin:2px">${a}</span>`).join('');
+    const acts = (seg.topActivities||[]).map(a => `<span style="display:inline-block;padding:3px 9px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;font-size:11px;margin:2px">${_segVal(a)}</span>`).join('');
     bodyHtml = `<div style="font-size:12px;line-height:1.6">
-      <div style="margin-bottom:8px"><b>일과:</b> ${seg.dailyRoutine||'-'}</div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">${Object.entries(du).map(([k,v])=>`<div style="font-size:11.5px"><span style="color:var(--tm)">${k}:</span> <b>${v}</b></div>`).join('')}</div>
+      <div style="margin-bottom:8px"><b>일과:</b> ${_segVal(seg.dailyRoutine)}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px">${Object.entries(du).map(([k,v])=>`<div style="font-size:11.5px"><span style="color:var(--tm)">${k}:</span> <b>${_segVal(v)}</b></div>`).join('')}</div>
       <div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">주요 활동</div>
       <div>${acts || '-'}</div>
     </div>`;
   } else if(dim === 'mind'){
-    const vals = (seg.coreValues||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:12px;font-size:11px;margin:2px">${v}</span>`).join('');
+    const vals = (seg.coreValues||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:12px;font-size:11px;margin:2px">${_segVal(v)}</span>`).join('');
     bodyHtml = `<div style="font-size:12px;line-height:1.6">
       <div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">핵심 가치</div>
       <div style="margin-bottom:10px">${vals || '-'}</div>
-      <div>브랜드 신뢰: <b>${seg.brandTrust||'-'}</b> / 리스크 태도: <b>${seg.riskAttitude||'-'}</b></div>
+      <div>브랜드 신뢰: <b>${_segVal(seg.brandTrust)}</b> / 리스크 태도: <b>${_segVal(seg.riskAttitude)}</b></div>
     </div>`;
   } else if(dim === 'love'){
-    const intCh = (seg.topInterests||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#FCE7F3;border:1px solid #F9A8D4;border-radius:12px;font-size:11px;margin:2px">${v}</span>`).join('');
-    const musCh = (seg.musicGenres||[]).map(v => `<span style="display:inline-block;padding:2px 7px;background:#F3F4F6;border-radius:8px;font-size:10.5px;margin:1px">${v}</span>`).join('');
-    const conCh = (seg.contentGenres||[]).map(v => `<span style="display:inline-block;padding:2px 7px;background:#F3F4F6;border-radius:8px;font-size:10.5px;margin:1px">${v}</span>`).join('');
-    const celCh = (seg.celebrities||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#EDE9FE;border:1px solid #C4B5FD;border-radius:12px;font-size:11px;margin:2px;color:var(--ind2)"><svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${v}</span>`).join('');
+    const intCh = (seg.topInterests||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#FCE7F3;border:1px solid #F9A8D4;border-radius:12px;font-size:11px;margin:2px">${_segVal(v)}</span>`).join('');
+    const musCh = (seg.musicGenres||[]).map(v => `<span style="display:inline-block;padding:2px 7px;background:#F3F4F6;border-radius:8px;font-size:10.5px;margin:1px">${_segVal(v)}</span>`).join('');
+    const conCh = (seg.contentGenres||[]).map(v => `<span style="display:inline-block;padding:2px 7px;background:#F3F4F6;border-radius:8px;font-size:10.5px;margin:1px">${_segVal(v)}</span>`).join('');
+    const celCh = (seg.celebrities||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#EDE9FE;border:1px solid #C4B5FD;border-radius:12px;font-size:11px;margin:2px;color:var(--ind2)"><svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${_segVal(v)}</span>`).join('');
     bodyHtml = `<div style="font-size:12px">
       <div style="font-size:11px;color:var(--tm);font-weight:700;margin:0 0 4px">관심사</div>
       <div style="margin-bottom:8px">${intCh}</div>
@@ -7362,28 +7431,58 @@ function renderSynthSegment(dim){
     </div>`;
   } else if(dim === 'buy'){
     const sc = seg.shoppingChannels || {};
-    const cats = (seg.topCategories||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#D1FAE5;border:1px solid #6EE7B7;border-radius:12px;font-size:11px;margin:2px;color:#065F46">${v}</span>`).join('');
+    const cats = (seg.topCategories||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#D1FAE5;border:1px solid #6EE7B7;border-radius:12px;font-size:11px;margin:2px;color:#065F46">${_segVal(v)}</span>`).join('');
     bodyHtml = `<div style="font-size:12px;line-height:1.6">
       <div style="margin-bottom:8px">온라인: <b>${sc['온라인']||0}%</b> / 오프라인: <b>${sc['오프라인']||0}%</b></div>
-      <div style="margin-bottom:8px">가격 민감도: <b>${seg.priceSensitivity||'-'}</b> / 브랜드 충성도: <b>${seg.brandLoyalty||'-'}</b></div>
-      <div style="margin-bottom:8px">결제 선호: <b>${seg.paymentPreference||'-'}</b></div>
+      <div style="margin-bottom:8px">가격 민감도: <b>${_segVal(seg.priceSensitivity)}</b> / 브랜드 충성도: <b>${_segVal(seg.brandLoyalty)}</b></div>
+      <div style="margin-bottom:8px">결제 선호: <b>${_segVal(seg.paymentPreference)}</b></div>
       <div style="font-size:11px;color:var(--tm);font-weight:700;margin:4px 0">주요 지출 카테고리</div>
       <div>${cats || '-'}</div>
     </div>`;
   } else if(dim === 'media'){
     const dmh = seg.dailyMediaHours || {};
     const ar = seg.adReceptivity || {};
-    const ch = (seg.topChannels||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#DBEAFE;border:1px solid #93C5FD;border-radius:12px;font-size:11px;margin:2px;color:#1E40AF">${v}</span>`).join('');
-    const hourRows = Object.entries(dmh).map(([k,v]) => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0"><span>${k}</span><b>${(+v||0).toFixed(1)}h</b></div>`).join('');
-    const recRows = Object.entries(ar).map(([k,v]) => `<div style="font-size:11px;padding:2px 0"><span style="color:var(--tm)">${k}:</span> <b>${v}</b>/100 <div class="md-bar" style="display:inline-block;width:80px;margin-left:6px;vertical-align:middle"><div class="md-bar-fill" style="width:${v}%"></div></div></div>`).join('');
+    // CEO 2026-06-23: adReceptivity 값은 숫자 / {avg,count} / {score,level} 형태 모두 가능 → 숫자 추출 헬퍼
+    const _numScore = (val) => {
+      if(val == null) return 0;
+      if(typeof val === 'number') return val;
+      if(typeof val === 'string'){ const n = parseFloat(val); return isFinite(n) ? n : 0; }
+      if(typeof val === 'object'){
+        const cand = val.avg ?? val.score ?? val.value ?? val.mean;
+        if(typeof cand === 'number') return cand;
+        if(typeof cand === 'string'){ const n = parseFloat(cand); return isFinite(n) ? n : 0; }
+      }
+      return 0;
+    };
+    const ch = (seg.topChannels||[]).map(v => `<span style="display:inline-block;padding:3px 9px;background:#DBEAFE;border:1px solid #93C5FD;border-radius:12px;font-size:11px;margin:2px;color:#1E40AF">${_segVal(v)}</span>`).join('');
+    const hourRows = Object.entries(dmh).map(([k,v]) => `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0"><span>${k}</span><b>${(+_numScore(v)||0).toFixed(1)}h</b></div>`).join('');
+    // 광고 수용도 — 숫자 우선 추출, 0이면 "-" 표시 (0 버그 방지)
+    const recRows = Object.entries(ar).map(([k,v]) => {
+      const num = _numScore(v);
+      const display = num > 0 ? `<b>${num.toFixed(0)}</b>/100` : `<b>${_segVal(v)}</b>`;
+      const w = Math.max(0, Math.min(100, num));
+      return `<div style="font-size:11px;padding:2px 0"><span style="color:var(--tm)">${k}:</span> ${display} <div class="md-bar" style="display:inline-block;width:80px;margin-left:6px;vertical-align:middle"><div class="md-bar-fill" style="width:${w}%"></div></div></div>`;
+    }).join('');
+    // 실데이터 채널별 도달률 Top5 (persona-pool media 우선, 없으면 mediaCache)
+    const _ppMedia = state.poolSummary?.byTab?.media || state.poolSummary?.media || null;
+    let _topChByReach = '';
+    if(_ppMedia && Array.isArray(_ppMedia.channels) && _ppMedia.channels.length){
+      const sorted = _ppMedia.channels.slice().sort((a,b) => (b.reachPct ?? (b.reach||0)*100) - (a.reachPct ?? (a.reach||0)*100));
+      _topChByReach = sorted.slice(0, 5).map(c => {
+        const reach = (c.reachPct != null ? c.reachPct : (c.reach||0)*100).toFixed(0);
+        const hrs = (c.avgHoursPerDay||0).toFixed(2);
+        return `<div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;border-bottom:1px dashed #E5E7EB"><span>${_segVal(c.channel)}</span><span><b>도달 ${reach}%</b> · ${hrs}h/일</span></div>`;
+      }).join('');
+    }
     bodyHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">일평균 소비 시간 (시간)</div>${hourRows}</div>
-      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">광고 수용도</div>${recRows}</div>
+      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">일평균 소비 시간 (시간)</div>${hourRows||'<div style="font-size:11px;color:var(--tm)">-</div>'}</div>
+      <div><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">광고 수용도 (포맷별 점수)</div>${recRows||'<div style="font-size:11px;color:var(--tm)">-</div>'}</div>
     </div>
+    ${_topChByReach ? `<div style="margin-top:10px"><div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">채널별 도달률 Top5 (페르소나 풀)</div>${_topChByReach}</div>` : ''}
     <div style="margin-top:10px">
       <div style="font-size:11px;color:var(--tm);font-weight:700;margin-bottom:4px">주요 매체</div>
       <div>${ch || '-'}</div>
-      <div style="font-size:11.5px;margin-top:6px">선호 광고 포맷: <b>${seg.preferredFormat || '-'}</b></div>
+      <div style="font-size:11.5px;margin-top:6px">선호 광고 포맷: <b>${_segVal(seg.preferredFormat)}</b></div>
     </div>`;
   }
 
@@ -7394,7 +7493,7 @@ function renderSynthSegment(dim){
       <span style="margin-left:auto;font-size:10px;color:var(--tm)">${syn.method||''}</span>
     </div>
     <div style="margin-bottom:8px">${filterChips}</div>
-    <div style="padding:10px 12px;background:#fff;border-radius:8px;margin-bottom:8px;font-size:11.5px;color:#374151"><b>요약:</b> ${seg.summary||'-'}</div>
+    <div style="padding:10px 12px;background:#fff;border-radius:8px;margin-bottom:8px;font-size:11.5px;color:#374151"><b>요약:</b> ${_segVal(seg.summary)}</div>
     ${bodyHtml}
     <div style="margin-top:10px;font-size:10px;color:var(--tm);font-style:italic">[주의] ${syn.source?.caveat || 'AI 추정 출처 표시'}</div>
   </div>`;
@@ -9243,6 +9342,35 @@ async function expandToPanelFromSingle(){
   }
 }
 
+// CEO 2026-06-23: 전체 분석 완료 시 페르소나 동시 생성(백그라운드 prewarm).
+// DOM을 건드리지 않고 fetch만 수행해 state.ivPersona에 캐시.
+// 이후 이터뷰 탭 진입 시 generatePersona가 동일 조건이면 재사용.
+async function prewarmPersona(){
+  try{
+    if(!state.currentCountry) return;
+    // 이미 prewarm되었고 국가/필터 일치하면 skip
+    const fkey = JSON.stringify({ c: state.currentCountry, f: state.filters || {} });
+    if(state._personaPrewarmKey === fkey && state.ivPersona) return;
+    if(state._personaPrewarmInFlight) return;
+    state._personaPrewarmInFlight = true;
+    const res = await fetch(`${API}/interview/persona`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ country: state.currentCountry, filters: state.filters }),
+    });
+    const data = await res.json();
+    if(data && data.ok && data.persona){
+      state.ivPersona = data.persona;
+      state._personaPrewarmMeta = data.meta || null;
+      state._personaPrewarmKey = fkey;
+      console.log('[prewarmPersona] cached', data.persona?.name || '');
+    }
+  }catch(e){
+    console.warn('[prewarmPersona] failed', e?.message || e);
+  }finally{
+    state._personaPrewarmInFlight = false;
+  }
+}
+
 async function generatePersona(persona){
   try{
     document.getElementById('iv-empty').classList.add('hide');
@@ -9336,6 +9464,13 @@ async function generatePersona(persona){
     document.getElementById('iv-card').innerHTML = '<div class="iv-loading">페르소나를 만들고 있어요… (약 20~40초 소요)</div>';
     document.getElementById('iv-msgs').innerHTML = '';
     state.ivHistory = [];
+    // CEO 2026-06-23: 분석 완료 시 prewarm된 페르소나가 있고 국가/필터가 일치하면 재사용 (이터뷰 탭 지연 로딩 제거)
+    const _curKey = JSON.stringify({ c: state.currentCountry, f: state.filters || {} });
+    if(state._personaPrewarmKey === _curKey && state.ivPersona){
+      renderPersonaCard(state.ivPersona, state._personaPrewarmMeta || { method: 'prewarmed' });
+      fetchPersonaJourney(state.ivPersona);
+      return;
+    }
     state.ivPersona = null;
     const res = await fetch(`${API}/interview/persona`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -9344,6 +9479,8 @@ async function generatePersona(persona){
     const data = await res.json();
     if(!data.ok) throw new Error(data.error);
     state.ivPersona = data.persona;
+    state._personaPrewarmKey = _curKey;
+    state._personaPrewarmMeta = data.meta || null;
     renderPersonaCard(data.persona, data.meta);
     // 인플루언서 자동 매칭 — CEO 요청으로 제거
     fetchPersonaJourney(data.persona);  // 하루의 미디어 여정 자동 호출
@@ -10035,6 +10172,9 @@ async function runAnalysis(opts){
       state.chatModeAnalysis = false;
       return;
     }
+    // CEO 2026-06-23: 페르소나 자동 prewarm (백그라운드, await 하지 않음 — 요약 탭 표시 지연 방지)
+    // 인터뷰 탭 진입 시 generatePersona가 캐시 감지 → 즉시 렌더 (중복 생성 방지).
+    try{ if(typeof prewarmPersona === 'function') prewarmPersona(); }catch(e){ console.warn('prewarmPersona dispatch failed', e); }
     // 타겟 인사이트 모드: 요약 탭으로 이동
     state.autoRouteToSummary = false;
     switchTab('summary');
@@ -10532,11 +10672,12 @@ function renderPersonaBadgeHtml(badge){
     headColor = '#3730A3';
     detailColor = '#6366F1';
   } else {
-    // persona-pool — 보라 그라데이션 #6366F1 → #8B5CF6, 흰 텍스트
-    bg = 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)';
-    border = 'transparent';
-    headColor = '#FFFFFF';
-    detailColor = 'rgba(255,255,255,0.85)';
+    // CEO 2026-06-23: persona-pool — 다른 탭과 동일한 파란박스 톤으로 통일 (보라 그라데이션 제거)
+    // life/mind/love/buy/who/media 모든 탭이 같은 헤더 돈.
+    bg = 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)';
+    border = '#A5B4FC';
+    headColor = '#3730A3';
+    detailColor = '#4338CA';
   }
 
   const iconHtml = `<span style="font-size:18px;line-height:1;flex:0 0 22px;padding-top:1px" aria-hidden="true">${icon}</span>`;
