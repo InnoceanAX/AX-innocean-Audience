@@ -1678,7 +1678,7 @@ body.home-fade-out #screen-home{
 
 /* Phase 1.5 진화 plan 캡션 (정직 노출) */
 .sm-dim-evolution-cap-v2 { margin-top:12px; padding:10px 18px; background:#F5F3FF; border:1px dashed #C7D2FE; border-radius:6px; font-size:11px; color:#6366F1; line-height:1.5; }
-.sm-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sm-kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:24px;max-width:720px}
 .sm-kpi{padding:18px 20px;background:#fff;border:1px solid var(--bdr);border-radius:10px}
 .sm-kpi-l{font-size:10.5px;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
 .sm-kpi-v{font-size:24px;font-weight:800;color:#111;line-height:1.1;margin-bottom:3px}
@@ -7280,37 +7280,21 @@ async function refreshSummaryTab(){
       // stats[i] = { label, value(string, 단위 포함), source:'persona', emphasis }
       // KPI 1: 세그먼트 규모 = pool.n
       // KPI 2: 타겟 평균 연령 = who.stats[0] '평균 연령' value '35세' → parseFloat
-      // KPI 3: 핵심 라이프 = life.stats[0] '디지털 침투율' value '95%'
-      // KPI 4: 핵심 가치/구매 = mind.stats[0] '가격 민감도' 또는 buy.stats[0] '선호 쇼핑 스타일'
+      // CEO 2026-06-24: KPI 박스 2개만 — ①세그먼트 규모 ②타겟 평균 연령 (디지털 침투율/가격 민감도 KPI 제거 — 해당 정보는 6카드 파란박스에 그대로 표시됨)
       const ageStat = (pool.who?.stats || []).find(s => /연령|age/i.test(s?.label || '')) || (pool.who?.stats || [])[0];
       const ageRaw = String(ageStat?.value || '');
       const ageNum = parseFloat(ageRaw.replace(/[^0-9.]/g, ''));
       const ageDisplay = isFinite(ageNum) ? ageNum.toFixed(1) : (who.medianAge?.toFixed(1) || '—');
       const ageOk = isFinite(ageNum);
-
-      const lifeTop = (pool.life?.stats || [])[0];
-      const lifeOk = !!(lifeTop?.label && lifeTop?.value);
-      const lifeValue = lifeOk ? lifeTop.value : ((life.digital?.internetPenetration?.toFixed(0) || '—') + '%');
-      const lifeLabel = lifeOk ? lifeTop.label : '디지털 침투율';
-
-      const mindTop = (pool.mind?.stats || [])[0] || (pool.buy?.stats || [])[0];
-      const mindOk = !!(mindTop?.label && mindTop?.value);
-      const mindValue = mindOk ? mindTop.value : ((buy.ecommerce?.shareOfRetail || '—') + '%');
-      const mindLabel = mindOk ? mindTop.label : '이커머스 비중';
-
       kpis.innerHTML = `
         <div class="sm-kpi"><div class="sm-kpi-l">세그먼트 규모${_srcPool}</div><div class="sm-kpi-v">${pool.n}<span style="font-size:13px">명</span></div><div class="sm-kpi-s">빌더 매칭 페르소나</div></div>
         <div class="sm-kpi"><div class="sm-kpi-l">${ageOk ? '타겟 평균 연령' : '중위 연령'}${ageOk ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v">${ageDisplay}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">${ageOk ? '빌더 필터 적용 (페르소나 평균)' : '인구 전체 평균 (풀 통계 부재)'}</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">${lifeLabel}${lifeOk ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:17px">${lifeValue}</div><div class="sm-kpi-s">${lifeOk ? '페르소나 풀 평균' : '국가 평균'}</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">${mindLabel}${mindOk ? _srcPool : _srcBaseline}</div><div class="sm-kpi-v" style="font-size:17px">${mindValue}</div><div class="sm-kpi-s">${mindOk ? '페르소나 풀 평균' : '국가 평균'}</div></div>
       `;
     } else {
-      // 풀 없을 때: 국가 baseline KPI (단계 A 원형 유지)
+      // 풀 없을 때: 국가 baseline KPI (CEO 2026-06-24: 디지털 침투/이커머스 제거 → 국가+중위연령 2개만)
       kpis.innerHTML = `
         <div class="sm-kpi"><div class="sm-kpi-l">국가${_srcBaseline}</div><div class="sm-kpi-v">${country?.name || state.currentCountry || '—'}</div><div class="sm-kpi-s">${country?.region || ''}</div></div>
         <div class="sm-kpi"><div class="sm-kpi-l">중위 연령${_srcBaseline}</div><div class="sm-kpi-v">${who.medianAge?.toFixed(1) || '—'}<span style="font-size:13px">세</span></div><div class="sm-kpi-s">도시화 ${who.urbanRate?.toFixed(0) || '—'}% · 인구 전체 평균</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">디지털 침투${_srcBaseline}</div><div class="sm-kpi-v">${life.digital?.internetPenetration?.toFixed(0) || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">소셜 ${life.digital?.socialMediaUsers?.toFixed(0) || '—'}% · 인구 전체 평균</div></div>
-        <div class="sm-kpi"><div class="sm-kpi-l">이커머스 비중${_srcBaseline}</div><div class="sm-kpi-v">${buy.ecommerce?.shareOfRetail || '—'}<span style="font-size:13px">%</span></div><div class="sm-kpi-s">월평균 $${buy.ecommerce?.avgMonthlySpendUSD || '—'} · 인구 전체 평균</div></div>
       `;
     }
   }
@@ -7409,34 +7393,44 @@ async function refreshSummaryTab(){
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">${_ppLove.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppLove.src} ${_ppBadge}</div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">${_ppBuy.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppBuy.src} ${_ppBadge}</div></div>
       ${(function(){
-        // CEO 2026-06-24: 미디어 카드도 파란박스 상위 2 row 방식으로 통일
+        // CEO 2026-06-24: 미디어 카드도 다른 5카드와 동일하게 "그 탭 파란박스 상위 2줄" 로 통일
+        // 소스 우선순위:
+        //   ① state.mediaCache.personaChannels (=/api/media/landscape 의 persona-pool agg — 주요 채널/광고수용도)
+        //   ② c.media (=audienceCache.media, 동일 envelope.data 구조 시)
+        //   ③ 풀 없을 때만 최종 안전망: life.digital 또는 데이터 부재 메시지
+        //   (광고비/채널수는 미디어 탭 파란박스에 없으므로 제거)
         let stat = '', src = '', badge = '국가 baseline', badgeStyle = 'background:#F3F4F6;color:#6B7280';
-        const mediaRows = (c.media) ? _smRowsFor('media', c.media) : [];
+        // 우선 1: state.mediaCache.personaChannels 을 envelope.data 로 wrap
+        let mediaRows = [];
+        const pchan = state.mediaCache?.personaChannels;
+        if(pchan && (Array.isArray(pchan.channels) || pchan.adReceptivity)){
+          mediaRows = _smRowsFor('media', { data: { channels: pchan.channels || [], adReceptivity: pchan.adReceptivity || null } });
+        }
+        // 우선 2: c.media (다른 5카드와 동일한 경로 — 특이 경우)
+        if(!mediaRows.length && c.media){
+          mediaRows = _smRowsFor('media', c.media);
+        }
         if(_ppN > 0 && mediaRows.length){
           const top2 = mediaRows.slice(0, 2);
           stat = top2.map(([label, val]) =>
             `<div style="display:flex;gap:8px;line-height:1.55;padding:1px 0"><span style="flex:0 0 90px;color:var(--ind2);font-weight:600;font-size:11px">${_ppEscape(label)}</span><span style="color:#1F2937;font-size:11.5px">${val}</span></div>`
           ).join('');
           const srcArr = Array.isArray(_ppRoot?.media?.sources) ? _ppRoot.media.sources : [];
-          src = srcArr.length ? srcArr.slice(0,2).join(' · ') : '페르소나 풀 집계';
+          src = srcArr.length ? srcArr.slice(0,2).join(' · ') : 'AI 합성 페르소나 풀 · Reuters DNR 2025';
           badge = `페르소나 풀 N=${_ppN}`;
           badgeStyle = 'background:#EEF2FF;color:#4338CA';
-        } else if(state.mediaCache?.spend){
-          const sp = state.mediaCache.spend;
-          stat = `연 추정 광고비 <b>$${sp.totalEstimatedB}B</b> · 채널 ${sp.channels?.length || 0}개`;
-          src = '광고비 시장 자료 2024';
-          badge = '광고시장 baseline';
         } else {
+          // 풀 없을 때의 최후 안전망 — 광고비 폴백 제거 (미디어 탭 파란박스와 불일치)
           const dig = life.digital;
-          if(dig){
+          if(dig && (dig.avgInternetHours != null || dig.avgTVHours != null)){
             stat = `인터넷 <b>${dig.avgInternetHours?.toFixed(1) || '—'}h/일</b> · TV <b>${dig.avgTVHours?.toFixed(1) || '—'}h/일</b>`;
             src = 'DataReportal Digital 2025';
             badge = 'DataReportal baseline';
           } else {
-            stat = `<span style="color:#DC2626;font-size:11px;font-weight:600">데이터 부재 — 풀/광고비/라이프 모두 미수신</span>`;
-            src = '데이터 미수신';
+            stat = `<span style="color:#9CA3AF;font-size:11px">페르소나 풀 생성 후 표시됩니다</span>`;
+            src = '페르소나 풀 미생성';
             badge = 'baseline 부재';
-            badgeStyle = 'background:#FEF2F2;color:#DC2626';
+            badgeStyle = 'background:#F9FAFB;color:#9CA3AF';
           }
         }
         return `<div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a8 8 0 0 1 0-10"/><path d="M19 17a8 8 0 0 0 0-10"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg><div class="sm-dim-t">미디어</div><button class="sm-dim-more" onclick="switchTab('media')">자세히 →</button></div><div class="sm-dim-stat">${stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${src} <span style="${badgeStyle};padding:1px 5px;border-radius:4px;font-weight:600">${badge}</span></div></div>`;
