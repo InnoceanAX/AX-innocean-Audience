@@ -1405,11 +1405,8 @@ function _siBuildBlueBoxRows(agg) {
   const eduMap = { highSchool: "고졸", bachelor: "학사", vocational: "전문학사", postgrad: "대학원" };
   const edu = _siTopList(w.education, 2, eduMap);    if (edu) rows.who.push(["학력", edu]);
   const city = _siTopList(w.cityTier, 2);            if (city) rows.who.push(["도시 규모", city]);
-  // 성별
-  if (w.gender && typeof w.gender === "object") {
-    const f = w.gender.female, m = w.gender.male;
-    if (f && m) rows.who.push(["성별", `여 ${Math.round((f.share || 0) * 100)}% · 남 ${Math.round((m.share || 0) * 100)}%`]);
-  }
+  // CEO 2026-06-24: 성별 row 제거 — 종합 인사이트(Gemini) 입력에서 성별을 빼 성별 언급(·남성 거주·) 방지.
+  //   성별은 특정 해석을 유도해 오해 소지 — 의도적 제외.
 
   const l = agg.life || {};
   rows.life = [];
@@ -1617,6 +1614,7 @@ audienceRouter.get("/summary-insight", async (req, res) => {
           "당신은 한국어 광고 인사이트 카피라이터입니다. " +
           "사용자가 제공한 사실(숫자·항목)만 사용해 자연스러운 한국어 한 문단(3~5문장)을 작성합니다. " +
           "절대 새로운 숫자·국가·브랜드명을 만들지 마세요. " +
+          "성별(남성·여성)은 언급하지 마세요 — '대도시 거주 남성' 같은 성별 표현 금지. " +
           "주어진 라벨과 수치를 인용하되 매끄럽게 연결만 하세요. " +
           "광고 기획자가 '이 타겟이 어떤 사람인가'를 한눈에 이해할 수 있도록 강렬하고 구체적인 문장으로 마무리하세요. " +
           "출력은 한 문단(3~5문장), 머리말·번호·따옴표·마크다운 없이 평문만.";
