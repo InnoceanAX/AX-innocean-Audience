@@ -163,8 +163,9 @@ function renderPersonaPoolBadge(badge, mediaData) {
 function _mdSmallBadge(badge){
   const count = badge?.count || badge?.totalPersonas || (window.state?._mediaPoolN) || 0;
   const country = badge?.country || '';
-  const icon = badge?.icon || '🧠';
-  return `<div class="md-persona-badge"><span class="md-persona-icon">${icon}</span><strong>합성소비자 N=${count}</strong><span class="md-persona-meta">${country ? country + ' · ' : ''}페르소나 풀 직접 집계</span></div>`;
+  // CEO 2026-06-23: 이모지 제거 → SVG
+  const _svg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>';
+  return `<div class="md-persona-badge"><span class="md-persona-icon">${_svg}</span><strong>합성소비자 N=${count}</strong><span class="md-persona-meta">${country ? country + ' · ' : ''}페르소나 풀 직접 집계</span></div>`;
 }
 
 // CEO 2026-06-23: 미디어 요약 파란박스 행 (다른 탭 스타일 통일)
@@ -6860,13 +6861,15 @@ async function aiBuilderParse(){
 // CEO 2026-06-18 12:07 본질: 카드 stats = persona end 값, baseline = "학습 입력" 캡션 격하
 // CEO 12:01 보편성: 광고주 hard-code 0건, 모든 라벨 backend 응답 동적
 
+// CEO 2026-06-23: 이모지 제거 → 인라인 SVG 아이콘 (16px, currentColor)
+const _svgW = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" style="vertical-align:-2px;margin-right:4px"';
 const ICONS_V4 = {
-  who:  { ico:'👥', label:'인물상' },
-  life: { ico:'🌿', label:'라이프스타일' },
-  mind: { ico:'🧠', label:'가치관' },
-  love: { ico:'❤️', label:'관심사' },
-  buy:  { ico:'🛍️', label:'구매' },
-  media:{ ico:'📱', label:'미디어' }
+  who:  { ico:`<svg ${_svgW}><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>`, label:'인물상' },
+  life: { ico:`<svg ${_svgW}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`, label:'라이프스타일' },
+  mind: { ico:`<svg ${_svgW}><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>`, label:'가치관' },
+  love: { ico:`<svg ${_svgW}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`, label:'관심사' },
+  buy:  { ico:`<svg ${_svgW}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`, label:'구매' },
+  media:{ ico:`<svg ${_svgW}><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>`, label:'미디어' }
 };
 
 const TAB_MAP_V4 = { who:'who', life:'life', mind:'mind', love:'love', buy:'buy', media:'media' };
@@ -6902,7 +6905,7 @@ function renderVoiceV4(v){
     return '<div style="font-size:11px;color:#9CA3AF;font-style:italic">AI 합성 페르소나 narrative (Phase 1.5 풍부화 예정)</div>';
   }
   if (v.quote) {
-    return `<div class="sm-dim-voice-q-v2">💬 "${escapeHtmlV4(v.quote)}"</div><div class="sm-dim-voice-meta-v2">${escapeHtmlV4(v.persona_id||'')} · ${escapeHtmlV4(v.meta||'')}</div>`;
+    return `<div class="sm-dim-voice-q-v2">“${escapeHtmlV4(v.quote)}”</div><div class="sm-dim-voice-meta-v2">${escapeHtmlV4(v.persona_id||'')} · ${escapeHtmlV4(v.meta||'')}</div>`;
   }
   if (v.type === 'tags' && Array.isArray(v.tags) && v.tags.length) {
     return `<div class="sm-dim-voice-tags-v2">${v.tags.map(t=>{
@@ -6926,7 +6929,7 @@ function renderVoiceV4(v){
 }
 
 function renderDimCardV4(k, dim, n){
-  const ic = ICONS_V4[k] || { ico:'❓', label:k };
+  const ic = ICONS_V4[k] || { ico:'', label:k };
   const tab = TAB_MAP_V4[k] || k;
   const stats = (dim && dim.stats || []).map(renderStatV4).join('') || '<div style="font-size:11px;color:#9CA3AF;font-style:italic;padding:8px 0">통계 추출 중</div>';
   const baselineCap = renderBaselineCapV4(dim && dim.baselineCap);
@@ -10656,8 +10659,10 @@ async function pollPersonaStatus(){
 function renderPersonaBadgeHtml(badge){
   if(!badge || !badge.label) return '';
   const mode = badge.mode || 'persona-pool';
-  // 이모지 아이콘은 백엔드에서 받음. 누락 시 mode 기반 폴백.
-  const icon = badge.icon || (mode === 'public-data-only' ? '📊' : '🧠');
+  // CEO 2026-06-23: 이모지 제거 → 인라인 SVG 아이콘 (다른 탭 파란박스 통일). 백엔드 icon 문자열은 무시.
+  const _svgIcon = (mode === 'public-data-only')
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>';
 
   // mode 별 스타일
   let bg, border, headColor, detailColor;
@@ -10680,7 +10685,7 @@ function renderPersonaBadgeHtml(badge){
     detailColor = '#4338CA';
   }
 
-  const iconHtml = `<span style="font-size:18px;line-height:1;flex:0 0 22px;padding-top:1px" aria-hidden="true">${icon}</span>`;
+  const iconHtml = `<span style="line-height:1;flex:0 0 16px;padding-top:1px;color:${headColor}" aria-hidden="true">${_svgIcon}</span>`;
   const headHtml = `<div class="src-badge-head" style="font-size:13px;font-weight:700;color:${headColor};line-height:1.35">${_ppEscape(badge.label)}</div>`;
 
   // detail: [TODO-CEO] placeholder 는 노출하지 않음 (CEO 결정 전)
