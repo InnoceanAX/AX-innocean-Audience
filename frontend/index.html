@@ -4103,6 +4103,10 @@ async function refreshMediaTab(){
   try{
     document.getElementById('md-loading').classList.remove('hide');
     document.getElementById('md-body').classList.add('hide');
+    // CEO 2026-06-23: campaign 모드면 brief 생성/연결 보장 (activeBriefId 유실 방지) — 미디어 탭도 8박스 탭과 동일하게 persona-pool 우선
+    if(state.activePreset && !state.activeBriefId && typeof ensureCampaignBrief === 'function'){
+      try { await ensureCampaignBrief(); } catch(e){ console.warn('[media ensureBrief]', e); }
+    }
     // CEO 2026-06-23: briefId 전달 — persona-pool(합성소비자) 데이터 수신 (누락 시 baseline+광고비 fallback되던 버그 수정)
     const _mediaBriefId = state.activeBriefId || state.briefId || state.currentBriefId || null;
     const _mediaBriefQs = _mediaBriefId ? `&briefId=${encodeURIComponent(_mediaBriefId)}` : '';
