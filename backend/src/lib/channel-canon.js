@@ -10,7 +10,21 @@
 // 정규명 사전: 소문자 키워드 → canonical 표시명
 // 키워드가 정규화된 베이스명에 '포함'되면 매칭 (부분 일치, 우선순위 순서대로)
 const CANON_RULES = [
-  // 글로벌 플랫폼
+  // === 우선 분리 규칙 (상위 플랫폼에 흡수되면 안 되는 것 먼저) ===
+  // 채연 정책: YouTube Music은 YouTube와 별도(사용 의도 다름), OTT는 TV와 별도
+  { match: ["youtube music", "유튜브 뮤직", "youtube 뮤직"], canon: "YouTube Music" },
+  { match: ["apple music", "애플뮤직", "애플 뮤직"], canon: "Apple Music" },
+  { match: ["melon", "멜론"], canon: "멜론" },
+  { match: ["genie", "지니뮤직", "지니"], canon: "지니뮤직" },
+  { match: ["flo ", "플로"], canon: "FLO" },
+  { match: ["tving", "티빙"], canon: "Tving" },
+  { match: ["wavve", "웨이브"], canon: "Wavve" },
+  { match: ["disney", "디즈니"], canon: "Disney+" },
+  { match: ["coupang play", "쿠팡플레이", "쿠팡 플레이"], canon: "Coupang Play" },
+  { match: ["watcha", "왓챠"], canon: "Watcha" },
+  { match: ["abema", "아베마"], canon: "ABEMA" },
+  { match: ["u-next", "unext", "유넥스트"], canon: "U-NEXT" },
+  // === 글로벌 플랫폼 ===
   { match: ["youtube", "유튜브"], canon: "YouTube" },
   { match: ["instagram", "인스타그램", "인스타"], canon: "Instagram" },
   { match: ["tiktok", "틱톡"], canon: "TikTok" },
@@ -27,11 +41,18 @@ const CANON_RULES = [
   { match: ["coupang", "쿠팡"], canon: "Coupang" },
   { match: ["daum", "다음"], canon: "Daum" },
   { match: ["baemin", "배민", "배달의민족"], canon: "배달의민족" },
+  { match: ["musinsa", "무신사"], canon: "Musinsa" },
+  { match: ["29cm"], canon: "29CM" },
+  { match: ["zigzag", "지그재그"], canon: "Zigzag" },
+  { match: ["오늘의집", "ohou"], canon: "오늘의집" },
+  { match: ["당근", "daangn", "karrot"], canon: "당근마켓" },
+  { match: ["올리브영", "oliveyoung"], canon: "올리브영" },
   // 일본
-  { match: ["line", "라인"], canon: "LINE" },
-  { match: ["yahoo", "야후"], canon: "Yahoo!" },
+  { match: ["line", "라인", "ライン"], canon: "LINE" },
+  { match: ["yahoo", "야후", "ヤフー"], canon: "Yahoo! Japan" },
   { match: ["niconico", "니코니코"], canon: "niconico" },
   { match: ["rakuten", "라쿠텐"], canon: "Rakuten" },
+  { match: ["mercari", "메루카리", "メルカリ"], canon: "Mercari" },
   // 중국
   { match: ["xiaohongshu", "샤오훙수", "샤오홍슈", "rednote", "小红书"], canon: "Xiaohongshu" },
   { match: ["wechat", "위챗", "微信", "weixin"], canon: "WeChat" },
