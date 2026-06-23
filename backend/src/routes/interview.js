@@ -47,30 +47,72 @@ function countryKr(code) {
   return meta?.name || code || null;
 }
 
+// CEO 2026-06-24: 페르소나 탭 이름 일관성 — 동일 persona_id 항상 동일 이름 부여
+// seed: persona_id + gender + age (엔트로피 강화)
+// 규칙: "{region} {age}세 {gender성} {archetype}" 형식
+// archetype은 shopping_style 매핑 또는 별도 지정
+const _ARCHETYPE_NAME_MAP = {
+  'trend-chaser': '트렌디형',
+  'brand-loyal': '브랜드형',
+  'bargain-hunter': '가성비형',
+  'value-seeker': '가치추구형',
+  'curator': '큐레이터형',
+};
+function _fnv1aHash(str) {
+  // 결정적 32-bit FNV-1a hash (JS bigint 불필요, persona_id 길이 작음)
+  let hash = 0x811c9dc5;
+  const s = String(str || '');
+  for (let i = 0; i < s.length; i++) {
+    hash ^= s.charCodeAt(i);
+    hash = (hash * 0x01000193) >>> 0;
+  }
+  return hash >>> 0;
+}
+function generatePersonaNameDeterministic(persona_id, gender, age, region, archetypeKey) {
+  // seed: persona_id + gender + age 결합 (충돌 방지)
+  // 출력: "{region_kr} {age}세 {gender_kr} {archetype_kr}" — 모든 호출에서 동일
+  const regionKrName = regionKr(region) || region || '지역미상';
+  const genderKr = gender === 'female' ? '여성' : gender === 'male' ? '남성' : '';
+  const ageStr = age ? `${age}세` : '';
+  const archetypeName = _ARCHETYPE_NAME_MAP[archetypeKey] || '가치추구형';
+  // hash 사용은 향후 variation seed 확장용 (현재는 순수 명시적 조합)
+  // persona_id seed 보존: 추후 같은 라벨이 여럿일 때 short suffix 부여 가능
+  void _fnv1aHash(`${persona_id}|${gender}|${age}`);
+  const parts = [regionKrName, ageStr, genderKr, archetypeName].filter(Boolean);
+  return parts.join(' ');
+}
+
 // CEO 2026-06-18 19:15: 옵션 A — 인터뷰 패널 = 페르소나 풀에서 다양성 sampling
 // 파이프라인: builder 코호트 속성 (age/gender/income/occupationLabel/kCultureExposure/kFashionInterest/fashionInterest/priceSensitivityPrior)
 //             + LLM narrative (quote/jobs_to_be_done/pain_points/media_diet/brand_affinity/lifestyle_tags/values_tags/shopping_style)
 //
 // 전략: archetype 다양성 우선 (shopping_style 기준 + occupation 다양) → 4명 stratified pick
-function samplePanelFromPool(personas, n = 4) {
+// CEO 2026-06-24: anchorPersona 있으면 picked[0]에 고정 + 모든 picked의 name을 결정적으로 부여
+function samplePanelFromPool(personas, n = 4, anchorPersona = null) {
   if (!Array.isArray(personas) || personas.length === 0) return [];
   // persona-store 반환 객체 = top-level flatten됨 (attributes/narrative 클래스화 안 됨)
   // 제공 필드: persona_id, country, age, gender, region, ageBucket, incomeQuintile, occupation, occupationLabel,
   //           kCultureExposure, kFashionInterest, fashionInterest, priceSensitivityPrior,
   //           quote, jobs_to_be_done, pain_points, media_diet, brand_affinity, lifestyle_tags, values_tags,
   //           shopping_style, price_sensitivity
-  // shopping_style 그룹화 → 다양성 우선
+  // CEO 2026-06-24: anchorPersona 있으면 1순위로 picked[0]에 고정 (정규화는 변환부에서 수행)
+  // 나머지 (n-1)명만 풀에서 샘플링. anchor의 persona_id와 중복되는 풀 항목은 제외.
+  const anchorPersonaId = anchorPersona && (anchorPersona.persona_id || anchorPersona.id) || null;
+  const remainingNeeded = anchorPersona ? Math.max(0, n - 1) : n;
+  // shopping_style 그룹화 → 다양성 우선 (anchor의 persona_id 제외)
   const groups = {};
   for (const p of personas) {
+    if (anchorPersonaId && (p.persona_id === anchorPersonaId)) continue;
     const style = p.shopping_style || 'value-seeker';
     if (!groups[style]) groups[style] = [];
     groups[style].push(p);
   }
   const styles = Object.keys(groups);
-  // 다양성: 그룹 round-robin → n명 pick
+  // 다양성: 그룹 round-robin → remainingNeeded명 pick
   const picked = [];
+  const _targetN = remainingNeeded;
   let i = 0;
-  while (picked.length < n && i < n * styles.length) {
+  while (picked.length < _targetN && i < (_targetN + 1) * Math.max(1, styles.length)) {
     const style = styles[i % styles.length];
     const candidates = groups[style];
     if (candidates && candidates.length > 0) {
@@ -81,12 +123,40 @@ function samplePanelFromPool(personas, n = 4) {
     i++;
   }
   // 풀이 작아서 모자라면 나머지 임의 pick (다양성 포기 대신 시장 명수)
-  if (picked.length < n) {
-    const remaining = personas.filter(p => !picked.includes(p));
-    while (picked.length < n && remaining.length > 0) {
+  if (picked.length < _targetN) {
+    const remaining = personas.filter(p => !picked.includes(p) && (!anchorPersonaId || p.persona_id !== anchorPersonaId));
+    while (picked.length < _targetN && remaining.length > 0) {
       const idx = Math.floor(Math.random() * remaining.length);
       picked.push(remaining.splice(idx, 1)[0]);
     }
+  }
+  // CEO 2026-06-24: anchorPersona 있으면 picked 맨 앞에 삽입 (정규화 형식)
+  if (anchorPersona) {
+    // anchorPersona를 풀 schema와 동일한 키로 정규화
+    const normalized = {
+      persona_id: anchorPersona.persona_id || anchorPersona.id || `anchor-${Date.now()}`,
+      country: anchorPersona.country || null,
+      age: anchorPersona.age || null,
+      gender: anchorPersona.gender || null,
+      region: anchorPersona.region || null,
+      occupation: anchorPersona.occupation || null,
+      occupationLabel: anchorPersona.occupation || anchorPersona.occupationLabel || null,
+      shopping_style: anchorPersona.shopping_style || null,
+      // narrative 필드 carry-over (단일 페르소나 schema가 풍부)
+      quote: anchorPersona.quote || '',
+      jobs_to_be_done: anchorPersona.purchaseDrivers || anchorPersona.jobs_to_be_done || [],
+      pain_points: anchorPersona.painPoints || anchorPersona.pain_points || [],
+      media_diet: anchorPersona.media_diet || [],
+      brand_affinity: anchorPersona.brand_affinity || [],
+      lifestyle_tags: anchorPersona.lifestyle_tags || (typeof anchorPersona.lifestyle === 'string' ? anchorPersona.lifestyle.split(/[·,]/).map(s=>s.trim()).filter(Boolean) : []),
+      values_tags: anchorPersona.values || anchorPersona.values_tags || [],
+      _isAnchor: true,
+      _anchorSourceName: anchorPersona.name || null,
+      _anchorArchetype: anchorPersona.archetype || null,
+    };
+    picked.unshift(normalized);
+    // n 초과 시 잘라내기 (anchor가 추가됐으므로)
+    if (picked.length > n) picked.length = n;
   }
   // 변환: panel persona schema
   return picked.map((p, idx) => {
@@ -103,11 +173,19 @@ function samplePanelFromPool(personas, n = 4) {
       'bargain-hunter': '가성비 추구형',
       'value-seeker': '가치 추구형',
       'curator': '스타일 큐레이터',
-    })[p.shopping_style] || '가치 추구형';
+    })[p.shopping_style] || (p._anchorArchetype || '가치 추구형');
+    // CEO 2026-06-24: 모든 panel 멤버 이름을 결정적으로 부여 — 동일 persona_id → 동일 이름
+    const _deterministicName = generatePersonaNameDeterministic(
+      p.persona_id || `idx-${idx}`,
+      p.gender,
+      p.age,
+      p.region,
+      p.shopping_style,
+    );
     return {
-      id: `pool-${p.persona_id || `${idx}`}`,
+      id: p._isAnchor ? `pool-anchor-${p.persona_id}` : `pool-${p.persona_id || `${idx}`}`,
       persona_id: p.persona_id,
-      name: `${regionKr(p.region) || countryKr(p.country) || p.country} ${p.age}세 ${p.gender === 'female' ? '여성' : p.gender === 'male' ? '남성' : ''}`,
+      name: _deterministicName,
       age: p.age || null,
       gender: p.gender || null,
       occupation: p.occupationLabel || p.occupation || null,
@@ -562,7 +640,8 @@ interviewRouter.post("/panel", async (req, res) => {
     try {
       const pool = getPersonas(briefId, String(country).toUpperCase());
       if (pool && pool.length > 0) {
-        const panel = samplePanelFromPool(pool, n);
+        // CEO 2026-06-24: anchorPersona 전달 — picked[0]에 고정 + 결정적 이름 부여
+        const panel = samplePanelFromPool(pool, n, anchorPersona);
         if (panel.length > 0) {
           return res.json({
             ok: true,
