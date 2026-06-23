@@ -8112,7 +8112,6 @@ function renderDimCharts(dim, data){
         const scoreMap = syn.interestsScore || {};
         const scores = items.map((v, i) => +scoreMap[v] || Math.max(60, 95 - i*5));
         renderChartSafe('chart-love-radar', 'radar', items, scores, '#EC4899', { rmax: 100 });
-        renderChartSafe('chart-love-bar', 'bar', items, scores, '#EC4899', { suffix: '' });
         const mg = syn.musicGenreShares || {};
         if(Object.keys(mg).length) renderChartSafe('chart-love-music', 'doughnut', Object.keys(mg), Object.values(mg).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4'], { suffix: '%' });
         else markChartPlaceholder('chart-love-music', 'AI 합성 중… (약 15~30초 소요)');
@@ -8129,7 +8128,6 @@ function renderDimCharts(dim, data){
         const ranked = data.rankedInterests || [];
         const top8 = ranked.slice(0, 8);
         renderChartSafe('chart-love-radar', 'radar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
-        renderChartSafe('chart-love-bar', 'bar', top8.map(r => loveLabel(r.id)), top8.map(r => r.score), '#EC4899');
         markChartPlaceholder('chart-love-music', 'AI 합성 중… (약 15~30초 소요)');
         markChartPlaceholder('chart-love-content', 'AI 합성 중… (약 15~30초 소요)');
         markChartPlaceholder('chart-love-influencer', 'AI 합성 중… (약 15~30초 소요)');
@@ -8333,10 +8331,6 @@ function renderAudienceDim(dim, data){
       <div class="aud-chart-card">
         <div class="aud-chart-t">Top 관심사 (레이더)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
-      </div>
-      <div class="aud-chart-card">
-        <div class="aud-chart-t">Top 관심사 점수</div>
-        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-bar"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">음악 장르 점유율</div>
@@ -8833,12 +8827,8 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     return _ppSynthBox('love', envelope) + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">관심사 (radar · 0–100)</div>
+        <div class="aud-chart-t">관심사 (0–100)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
-      </div>
-      <div class="aud-chart-card">
-        <div class="aud-chart-t">관심사 (bar · 0–100)</div>
-        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-bar"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">선호 음악 장르 분포</div>
@@ -9053,12 +9043,7 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
       const [labels, vals] = scoresFixed(d.interests, interestsOrder);
       renderChartSafe('chart-love-radar', 'radar', labels, vals, '#EC4899', { rmax: 100 });
     }
-    // 2. 관심사 bar (chart-love-bar — 같은 데이터)
-    {
-      const [labels, vals] = scoresFixed(d.interests, interestsOrder);
-      renderChartSafe('chart-love-bar', 'bar', labels, vals, '#EC4899', { suffix: '' });
-    }
-    // 3. 음악 장르 (chart-love-music · doughnut)
+    // 2. 음악 장르 (chart-love-music · doughnut)
     {
       const order = ['K-pop','팝','힙합','인디','클래식','발라드'];
       const [labels, vals] = distFixed(d.musicGenre, order);
