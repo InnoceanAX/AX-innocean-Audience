@@ -1609,6 +1609,8 @@ audienceRouter.get("/summary-insight", async (req, res) => {
     let fallback = false;
     let source = "fallback";
     let _geminiErr = null;
+    let _geminiFinish = null;
+    let _geminiLen = null;
     if (_siGeminiAvailable()) {
       try {
         const factBlock = _siSerializeRows(rows);
@@ -1631,6 +1633,8 @@ audienceRouter.get("/summary-insight", async (req, res) => {
           temperature: 0.35, maxTokens: 2048, // CEO 2026-06-24: 2.5-flash thinking 토큰 여유 — 768은 빈응답 원인
         });
         const txt = (out && out.text || "").trim();
+        _geminiFinish = out && out.finishReason; // 진단
+        _geminiLen = txt.length; // 진단
         if (txt && txt.length >= 30) {
           insight = txt.replace(/^["“'\s]+|["”'\s]+$/g, "");
           source = "gemini-2.5-flash";
@@ -1651,6 +1655,8 @@ audienceRouter.get("/summary-insight", async (req, res) => {
       insight, fallback, source, n, avgAge,
       rows, // 디버그/검증용 — 어떤 사실을 모델에 줬는지 확인 가능
       geminiError: _geminiErr || undefined, // 진단용
+      geminiFinish: _geminiFinish || undefined, // 진단용
+      geminiLen: _geminiLen != null ? _geminiLen : undefined, // 진단용
     };
     _SUMMARY_INSIGHT_CACHE.set(cacheKey, { payload, ts: Date.now() });
     return res.json({ ok: true, country, briefId, ...payload });
