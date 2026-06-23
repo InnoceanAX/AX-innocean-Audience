@@ -2393,13 +2393,12 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div id="sm-banner"></div>
           <div id="sm-answer-card"></div>
           <div id="sm-ai-nav"></div>
+          <!-- CEO 2026-06-24: 요약탭 재구성 — 블록1 LLM 종합 인사이트 + KPI + 블록2 6카드만 유지 -->
+          <div id="sm-insight-llm"></div>
           <div id="sm-baseline-hd"></div>
           <div class="sm-kpi-grid" id="sm-kpis"></div>
           <div class="sm-dim-grid" id="sm-dims"></div>
-          <div id="sm-target-hd"></div>
-          <div class="sm-delta-grid" id="sm-deltas"></div>
-          <div id="sm-insights-wrap"></div>
-          <div id="sm-macro-wrap"></div>
+          <!-- CEO 2026-06-24: 제거 — sm-target-hd / sm-deltas / sm-insights-wrap / sm-macro-wrap(World Bank) -->
           <div id="ov-compare" class="hide"></div>
           <div id="ov-single" style="display:none"><div id="ov-kpis"></div><div id="ov-insights"></div><div id="ov-wb"></div></div>
           <div class="sm-empty" id="sm-empty" style="display:flex">
@@ -7092,6 +7091,64 @@ async function renderSummaryOverview(){
   }
 }
 
+// ============ 요약탭 LLM 종합 인사이트 (블록1) — CEO 2026-06-24 ============
+// Gemini가 6개 탭 파란박스 사실을 종합해 "이 타겟은 어떤 사람인가"를 한 문단(3~5문장)으로.
+// Gemini 미가용 시 서버 규칙기반 폴백으로 동일 디자인 파란박스 렌더.
+let _sm_lastInsightKey = null;
+async function renderSummaryInsightLLM(){
+  const el = document.getElementById('sm-insight-llm');
+  if(!el) return;
+  const country = state.currentCountry || 'KR';
+  const briefId = state.activeBriefId || state.briefId || state.currentBriefId || null;
+  const cacheKey = `${country}::${briefId||''}`;
+  // 로딩 상태 먼저 표시 (동일 key 재요청은 남겨둘)
+  if(_sm_lastInsightKey !== cacheKey){
+    el.innerHTML = `<div style="background:linear-gradient(135deg,#EEF2FF 0%,#F0F9FF 100%);border:1px solid #C7D2FE;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:#3730A3;font-size:12.5px;font-weight:600">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      AI가 타겟 인사이트 정리 중…
+    </div>`;
+  }
+  try{
+    const base = (typeof API !== 'undefined' ? API : '/api');
+    const url = `${base}/audience/summary-insight?country=${encodeURIComponent(country)}` + (briefId ? `&briefId=${encodeURIComponent(briefId)}` : '');
+    const r = await fetch(url);
+    const d = await r.json();
+    _sm_lastInsightKey = cacheKey;
+    if(!d || !d.ok){
+      el.innerHTML = '';
+      return;
+    }
+    const insight = (d.insight || '').toString();
+    if(!insight){
+      el.innerHTML = '';
+      return;
+    }
+    const sourceLabel = d.source === 'gemini-2.5-flash' ? 'Gemini 2.5 Flash'
+                       : d.source === 'rule-based' ? '규칙기반 폴백'
+                       : d.source === 'no-pool' ? '세그먼트 머역 미생성'
+                       : d.source === 'no-brief' ? '브리프 미설정'
+                       : 'AI 요약';
+    const meta = (d.n ? `N=${d.n}` : '') + (d.avgAge != null ? ` · 평균 ${d.avgAge}세` : '');
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,#EEF2FF 0%,#F0F9FF 100%);border:1px solid #C7D2FE;border-radius:14px;padding:18px 22px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
+          <span style="font-size:13px;font-weight:800;color:#3730A3;letter-spacing:-0.2px">AI 종합 인사이트 — 이 타겟은 어떤 사람인가</span>
+          <span style="margin-left:auto;font-size:10.5px;color:var(--ind2);background:#fff;border:1px solid #C7D2FE;border-radius:9px;padding:2px 9px;font-weight:600">${_ppEscape(country)} · ${_ppEscape(meta)}</span>
+        </div>
+        <div style="font-size:14px;line-height:1.75;color:#1F2937;font-weight:500;letter-spacing:-0.1px">${_ppEscape(insight)}</div>
+        <div style="margin-top:10px;font-size:10.5px;color:#6B7280;display:flex;align-items:center;gap:6px">
+          <span>✨ 생성 소스: ${_ppEscape(sourceLabel)}${d.fallback ? ' (폴백)' : ''}</span>
+          <span style="opacity:0.5">•</span>
+          <span>6개 탭 파란박스 사실을 종합 (숨자·항목 입력 그대로)</span>
+        </div>
+      </div>`;
+  } catch(e){
+    console.error('[summary-insight] fetch error', e);
+    el.innerHTML = '';
+  }
+}
+
 // ============ 요약 탭 렌더링 ============
 async function refreshSummaryTab(){
   const banner = document.getElementById('sm-banner');
@@ -7119,6 +7176,7 @@ async function refreshSummaryTab(){
     if(deltas) deltas.innerHTML = '';
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
+    { const _llmEl = document.getElementById('sm-insight-llm'); if(_llmEl) _llmEl.innerHTML = ''; }
     const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
     return;
   }
@@ -7133,6 +7191,7 @@ async function refreshSummaryTab(){
     if(deltas) deltas.innerHTML = '';
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
+    { const _llmEl = document.getElementById('sm-insight-llm'); if(_llmEl) _llmEl.innerHTML = ''; }
     const ac = document.getElementById('sm-answer-card'); if(ac) ac.innerHTML = '';
     return;
   }
@@ -7147,6 +7206,8 @@ async function refreshSummaryTab(){
     if(navBox) navBox.innerHTML = '';
     if(banner) banner.innerHTML = '';
     if(kpis) kpis.innerHTML = '';
+    const llmEl = document.getElementById('sm-insight-llm');
+    if(llmEl) llmEl.innerHTML = `<div style="background:linear-gradient(135deg,#EEF2FF 0%,#F0F9FF 100%);border:1px solid #C7D2FE;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:#3730A3;font-size:12.5px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>AI가 타겟 인사이트 정리 중…</div>`;
     if(dims){
       dims.innerHTML = `<div style="padding:60px 20px;text-align:center;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:12px;grid-column:1/-1">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -7162,6 +7223,10 @@ async function refreshSummaryTab(){
   // (renderSummaryOverview 내부에서 state.poolSummary = d 저장 → 아래 KPI 렌더에서 풍 우선 사용)
   if (typeof renderSummaryOverview === 'function') {
     try { await renderSummaryOverview(); } catch(e) { console.error('[sm-6dim post-analysis]', e); }
+  }
+  // CEO 2026-06-24: 블록1 — LLM 종합 인사이트 파란박스 (요약탭 최상단)
+  if (typeof renderSummaryInsightLLM === 'function') {
+    try { renderSummaryInsightLLM(); } catch(e) { console.error('[sm-insight-llm]', e); }
   }
   // 1) ask-banner clone — 제거
   if(banner) banner.innerHTML = '';
@@ -7249,7 +7314,8 @@ async function refreshSummaryTab(){
       `;
     }
   }
-  // 4) 5차원 한 줄 요약
+  // 4) 6카드 — CEO 2026-06-24: 각 탭 파란박스(_ppSynthBox)의 상위 2줄을 그대로 카드에 표시
+  // (임의 텍스트 ×. 각 탭의 차트 순서=중요도 순 첫 2 row 사용)
   if(dims){
     const who = c.who?.data || {};
     const life = c.life?.data || {};
@@ -7267,27 +7333,75 @@ async function refreshSummaryTab(){
     const _ppBadge = _ppN > 0
       ? `<span style="background:#EEF2FF;padding:1px 5px;border-radius:4px;color:#4338CA;font-weight:600">페르소나 풀 N=${_ppN}</span>`
       : `<span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span>`;
-    function _ppStatLine(dimKey, fallbackHtml, fallbackSrc){
-      const dimEntry = _ppRoot && _ppRoot[dimKey];
-      const stats = Array.isArray(dimEntry?.stats) ? dimEntry.stats : [];
-      if(_ppN > 0 && stats.length){
-        const top = stats.slice(0, 3).filter(s => s && (s.label || s.value));
-        const parts = top.map(s => {
-          const lab = (s.label || '').toString();
-          const val = (s.value == null ? '—' : s.value).toString();
-          return `${lab} <b>${val}</b>`;
-        });
-        const srcArr = Array.isArray(dimEntry?.sources) ? dimEntry.sources : [];
-        const src = srcArr.length ? srcArr.slice(0,2).join(' · ') : '페르소나 풀 집계';
-        return { stat: parts.join(' · ') || '데이터 수집 중', src };
+
+    // CEO 2026-06-24: 각 탭의 ·파란박스· 상위 2 row를 직접 추출 (임의 라텍스트 제거)
+    // 단, _ppSynthBox는 envelope.data 구조 전체를 읽으므로, 우리가 dim별 row 추출 함수로 직접 구성.
+    function _smRowsFor(dim, envelope){
+      const d = envelope?.data || {};
+      const rows = [];
+      if(dim === 'who'){
+        const age = _ppTopList(d.age, 2); if(age) rows.push(['연령', age]);
+        const occ = _ppTopList(d.occupation, 2); if(occ) rows.push(['직업', occ]);
+        const incMap = { Q1:'Q1(최하위)', Q2:'Q2(하위)', Q3:'Q3(중위)', Q4:'Q4(상위)', Q5:'Q5(최상위)' };
+        const inc = _ppTopList(d.income, 2, incMap); if(inc) rows.push(['소득', inc]);
+        const eduMap = { highSchool:'고졸', bachelor:'학사', vocational:'전문학사', postgrad:'대학원' };
+        const edu = _ppTopList(d.education, 2, eduMap); if(edu) rows.push(['학력', edu]);
+        const city = _ppTopList(d.cityTier, 2); if(city) rows.push(['도시 규모', city]);
+      } else if(dim === 'life'){
+        const acts = _ppTopActivities(d.activities, 3); if(acts) rows.push(['활동 관심도', acts]);
+        const trv = _ppTopList(d.travelType, 2); if(trv) rows.push(['여행 패턴', trv]);
+        const day = _ppTopList(d.activeDaypart, 2); if(day) rows.push(['활동 시간대', day]);
+        const food = _ppTopList(d.foodHabit, 2); if(food) rows.push(['식생활', food]);
+      } else if(dim === 'mind'){
+        const cv = _ppTopActivities(d.coreValues, 3); if(cv) rows.push(['핵심 가치', cv]);
+        const ms = _ppTopActivities(d.mindset, 3); if(ms) rows.push(['마인드셋', ms]);
+        const sc = _ppTopList(d.socialConcern, 3); if(sc) rows.push(['사회 관심사', sc]);
+      } else if(dim === 'love'){
+        const intr = _ppTopActivities(d.interests, 3); if(intr) rows.push(['관심사', intr]);
+        const mus = _ppTopList(d.musicGenre, 2); if(mus) rows.push(['음악 장르', mus]);
+        const ctn = _ppTopList(d.contentGenre, 2); if(ctn) rows.push(['콘텐츠 장르', ctn]);
+      } else if(dim === 'buy'){
+        const cat = _ppTopPercent(d.purchaseCategories, 3); if(cat) rows.push(['구매 카테고리', cat]);
+        const pay = _ppTopList(d.paymentMethod, 2); if(pay) rows.push(['결제 수단', pay]);
+        const ch = _ppTopList(d.shoppingChannel, 2); if(ch) rows.push(['쇼핑 채널', ch]);
+      } else if(dim === 'media'){
+        const ch = Array.isArray(d.channels)? d.channels.slice(0,3) : [];
+        if(ch.length) rows.push(['주요 채널', ch.map(x=>`${_ppEscape(x.channel)} <b>${Number(x.avgHoursPerDay||0).toFixed(1)}h</b>`).join(' · ')]);
+        const fmts = (d.adReceptivity&&Array.isArray(d.adReceptivity.formats))? d.adReceptivity.formats.slice().sort((a,b)=>(b.avg||0)-(a.avg||0)).slice(0,3) : [];
+        if(fmts.length) rows.push(['광고 수용도', fmts.map(f=>`${_ppEscape(f.format)} <b>${Number(f.avg||0).toFixed(0)}</b>`).join(' · ')]);
       }
-      return { stat: fallbackHtml, src: fallbackSrc };
+      return rows;
     }
-    const _ppWho = _ppStatLine('who', `중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b>`, 'World Bank 2024-2025');
-    const _ppLife = _ppStatLine('life', `인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b>`, 'DataReportal 2025');
-    const _ppMind = _ppStatLine('mind', `신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b>`, 'Reuters DNR 2025 + Hofstede');
-    const _ppLove = _ppStatLine('love', `Top 3: <b>${top3 || '—'}</b>`, 'audience-public baseline 2024');
-    const _ppBuy = _ppStatLine('buy', `이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}`, 'Statista + audience-public 2024');
+    // 상위 2 row를 카드 본문 HTML 로 렌더. 없으면 baseline 폴백으로.
+    function _smCardContent(dimKey, envelope, fallbackHtml, fallbackSrc, fallbackSrcLabel){
+      const rows = envelope ? _smRowsFor(dimKey, envelope) : [];
+      if(_ppN > 0 && rows.length){
+        // 이미 파란박스 row는 <b>NN%</b>/<b>NN</b> 형식을 포함. 그대로 표시.
+        const top2 = rows.slice(0, 2);
+        const html = top2.map(([label, val]) =>
+          `<div style="display:flex;gap:8px;line-height:1.55;padding:1px 0"><span style="flex:0 0 90px;color:var(--ind2);font-weight:600;font-size:11px">${_ppEscape(label)}</span><span style="color:#1F2937;font-size:11.5px">${val}</span></div>`
+        ).join('');
+        const srcArr = Array.isArray(_ppRoot && _ppRoot[dimKey] && _ppRoot[dimKey].sources) ? _ppRoot[dimKey].sources : [];
+        const src = srcArr.length ? srcArr.slice(0,2).join(' · ') : '페르소나 풀 집계';
+        return { stat: html, src };
+      }
+      return { stat: fallbackHtml, src: fallbackSrcLabel || fallbackSrc };
+    }
+    const _ppWho = _smCardContent('who', c.who,
+      `중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b>`,
+      'World Bank 2024-2025', 'World Bank 2024-2025');
+    const _ppLife = _smCardContent('life', c.life,
+      `인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b>`,
+      'DataReportal 2025', 'DataReportal 2025');
+    const _ppMind = _smCardContent('mind', c.mind,
+      `신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b>`,
+      'Reuters DNR 2025 + Hofstede', 'Reuters DNR 2025 + Hofstede');
+    const _ppLove = _smCardContent('love', c.love,
+      `Top 3: <b>${top3 || '—'}</b>`,
+      'audience-public baseline 2024', 'audience-public baseline 2024');
+    const _ppBuy = _smCardContent('buy', c.buy,
+      `이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b>`,
+      'Statista + audience-public 2024', 'Statista + audience-public 2024');
     dims.innerHTML = `
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">${_ppWho.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppWho.src} ${_ppBadge}</div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">${_ppLife.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppLife.src} ${_ppBadge}</div></div>
@@ -7295,12 +7409,14 @@ async function refreshSummaryTab(){
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">${_ppLove.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppLove.src} ${_ppBadge}</div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">${_ppBuy.stat}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: ${_ppBuy.src} ${_ppBadge}</div></div>
       ${(function(){
-        // CEO 2026-06-23: 미디어 카드도 다른 5개와 동일하게 summary-overview media.stats 우선 사용 (byTab 구조 아님)
+        // CEO 2026-06-24: 미디어 카드도 파란박스 상위 2 row 방식으로 통일
         let stat = '', src = '', badge = '국가 baseline', badgeStyle = 'background:#F3F4F6;color:#6B7280';
-        const mStats = Array.isArray(_ppRoot?.media?.stats) ? _ppRoot.media.stats : [];
-        if(_ppN > 0 && mStats.length){
-          const top = mStats.slice(0,3).filter(s => s && (s.label || s.value));
-          stat = top.map(s => `${(s.label||'')} <b>${(s.value==null?'—':s.value)}</b>`).join(' · ') || '데이터 수집 중';
+        const mediaRows = (c.media) ? _smRowsFor('media', c.media) : [];
+        if(_ppN > 0 && mediaRows.length){
+          const top2 = mediaRows.slice(0, 2);
+          stat = top2.map(([label, val]) =>
+            `<div style="display:flex;gap:8px;line-height:1.55;padding:1px 0"><span style="flex:0 0 90px;color:var(--ind2);font-weight:600;font-size:11px">${_ppEscape(label)}</span><span style="color:#1F2937;font-size:11.5px">${val}</span></div>`
+          ).join('');
           const srcArr = Array.isArray(_ppRoot?.media?.sources) ? _ppRoot.media.sources : [];
           src = srcArr.length ? srcArr.slice(0,2).join(' · ') : '페르소나 풀 집계';
           badge = `페르소나 풀 N=${_ppN}`;

@@ -18,6 +18,7 @@ import {
   buildPersonaPoolBadge, buildGeneratingBadge, buildPublicDataBadge,
 } from "../lib/persona-badge.js";
 import { buildSummaryOverview } from "../lib/narrative-helper.js";
+import { isGeminiAvailable as _siGeminiAvailable, generateText as _siGenerateText } from "../adapters/gemini.js";
 
 export const audienceRouter = express.Router();
 
@@ -1338,6 +1339,318 @@ audienceRouter.get("/summary-overview", async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error("[summary-overview] error:", err);
+    res.status(500).json({ ok: false, error: String(err && err.message || err) });
+  }
+});
+
+// ────────────────────────────────────────────────────────────
+// 요약탭 LLM 종합 인사이트 — CEO 2026-06-24
+// GET /api/audience/summary-insight?country=KR&briefId=...
+// 6개 탭 파란박스(_ppSynthBox) 사실(텍스트 행)을 입력으로 Gemini가
+// "이 타겟은 어떤 사람인가" 한 문단(3~5문장) 생성.
+// 숫자·항목은 입력 그대로. Gemini 미가용/실패 시 규칙기반 폴백.
+// 환각 방지: 모델에 해석/숫자생성 금지, 자연스러운 문장 연결만.
+// ────────────────────────────────────────────────────────────
+// 메모리 캐시 (briefId+country → { insight, ts, fallback })
+const _SUMMARY_INSIGHT_CACHE = new Map();
+const _SUMMARY_INSIGHT_TTL_MS = 30 * 60 * 1000; // 30분
+
+// _ppTopList 포팅 — 분포 객체에서 상위 N개를 "라벨 NN% · 라벨 NN%" 형태로
+function _siTopList(dist, n, labelMap) {
+  if (!dist || typeof dist !== "object") return "";
+  const arr = Object.entries(dist)
+    .map(([k, v]) => ({ key: k, share: (v && typeof v === "object") ? Number(v.share || 0) : 0 }))
+    .filter(x => x.key != null && x.share > 0)
+    .sort((a, b) => b.share - a.share)
+    .slice(0, n || 3);
+  return arr.map(x => {
+    const lbl = (labelMap && labelMap[x.key]) ? labelMap[x.key] : x.key;
+    return `${lbl} ${Math.round(x.share * 100)}%`;
+  }).join(" · ");
+}
+
+// _ppTopActivities 포팅 — 점수 객체 상위 N개를 "라벨 NN · 라벨 NN" 형태로
+function _siTopActivities(obj, n) {
+  if (!obj || typeof obj !== "object") return "";
+  return Object.entries(obj)
+    .filter(([k, v]) => Number(v || 0) > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n || 3)
+    .map(([k, v]) => `${k} ${Number(v).toFixed(0)}`)
+    .join(" · ");
+}
+
+// _ppTopPercent — 점수 객체 → 합계 대비 %로 환산
+function _siTopPercent(obj, n) {
+  if (!obj || typeof obj !== "object") return "";
+  const entries = Object.entries(obj).filter(([k, v]) => Number(v || 0) > 0);
+  const total = entries.reduce((s, [k, v]) => s + Number(v), 0);
+  if (total <= 0) return "";
+  return entries
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n || 3)
+    .map(([k, v]) => `${k} ${Math.round(Number(v) / total * 100)}%`)
+    .join(" · ");
+}
+
+// 6개 탭 _ppSynthBox row 구조 그대로 재현 → { who: [["연령","..."], ...], life: [...], ... }
+function _siBuildBlueBoxRows(agg) {
+  const rows = {};
+  const w = agg.who || {};
+  rows.who = [];
+  const ageStr = _siTopList(w.age, 2);              if (ageStr) rows.who.push(["연령", ageStr]);
+  const occ = _siTopList(w.occupation, 2);           if (occ) rows.who.push(["직업", occ]);
+  const incMap = { Q1: "Q1(최하위)", Q2: "Q2(하위)", Q3: "Q3(중위)", Q4: "Q4(상위)", Q5: "Q5(최상위)" };
+  const inc = _siTopList(w.income, 2, incMap);       if (inc) rows.who.push(["소득", inc]);
+  const eduMap = { highSchool: "고졸", bachelor: "학사", vocational: "전문학사", postgrad: "대학원" };
+  const edu = _siTopList(w.education, 2, eduMap);    if (edu) rows.who.push(["학력", edu]);
+  const city = _siTopList(w.cityTier, 2);            if (city) rows.who.push(["도시 규모", city]);
+  // 성별
+  if (w.gender && typeof w.gender === "object") {
+    const f = w.gender.female, m = w.gender.male;
+    if (f && m) rows.who.push(["성별", `여 ${Math.round((f.share || 0) * 100)}% · 남 ${Math.round((m.share || 0) * 100)}%`]);
+  }
+
+  const l = agg.life || {};
+  rows.life = [];
+  const acts = _siTopActivities(l.activities, 3);    if (acts) rows.life.push(["활동 관심도", acts]);
+  const trv = _siTopList(l.travelType, 2);           if (trv) rows.life.push(["여행 패턴", trv]);
+  const day = _siTopList(l.activeDaypart, 2);        if (day) rows.life.push(["활동 시간대", day]);
+  const food = _siTopList(l.foodHabit, 2);           if (food) rows.life.push(["식생활", food]);
+  const wf = _siTopList(l.wellnessFreq, 2);          if (wf) rows.life.push(["운동 빈도", wf]);
+  const tfq = _siTopList(l.travelFreq, 2);           if (tfq) rows.life.push(["여행 빈도", tfq]);
+
+  const m = agg.mind || {};
+  rows.mind = [];
+  const cv = _siTopActivities(m.coreValues, 3);      if (cv) rows.mind.push(["핵심 가치", cv]);
+  const ms = _siTopActivities(m.mindset, 3);         if (ms) rows.mind.push(["마인드셋", ms]);
+  const sc = _siTopList(m.socialConcern, 3);         if (sc) rows.mind.push(["사회 관심사", sc]);
+  const dec = _siTopList(m.decisionStyle, 2);        if (dec) rows.mind.push(["의사결정 스타일", dec]);
+  const info = _siTopList(m.infoSource, 2);          if (info) rows.mind.push(["정보 소비 채널", info]);
+  const bf = _siTopActivities(m.bigFive, 3);         if (bf) rows.mind.push(["성격(Big5)", bf]);
+
+  const lv = agg.love || {};
+  rows.love = [];
+  const intr = _siTopActivities(lv.interests, 3);    if (intr) rows.love.push(["관심사", intr]);
+  const mus = _siTopList(lv.musicGenre, 2);          if (mus) rows.love.push(["음악 장르", mus]);
+  const ctn = _siTopList(lv.contentGenre, 2);        if (ctn) rows.love.push(["콘텐츠 장르", ctn]);
+  const inf = _siTopList(lv.influencerType, 2);      if (inf) rows.love.push(["인플루언서", inf]);
+  const spt = _siTopActivities(lv.sportsAffinity, 3); if (spt) rows.love.push(["스포츠 친밀도", spt]);
+
+  const b = agg.buy || {};
+  rows.buy = [];
+  const cat = _siTopPercent(b.purchaseCategories, 3); if (cat) rows.buy.push(["구매 카테고리", cat]);
+  const pay = _siTopList(b.paymentMethod, 2);         if (pay) rows.buy.push(["결제 수단", pay]);
+  const ch = _siTopList(b.shoppingChannel, 2);        if (ch) rows.buy.push(["쇼핑 채널", ch]);
+  const buyFc = _siTopActivities(b.buyFactors, 3);    if (buyFc) rows.buy.push(["구매 의사결정", buyFc]);
+  const fq = _siTopList(b.purchaseFreq, 2);           if (fq) rows.buy.push(["구매 빈도", fq]);
+  const prof = _siTopActivities(b.buyProfile, 3);     if (prof) rows.buy.push(["소비 프로파일", prof]);
+
+  const md = agg.media || {};
+  rows.media = [];
+  if (Array.isArray(md.channels) && md.channels.length) {
+    const top3 = md.channels.slice(0, 3)
+      .map(c => `${c.channel} ${Number(c.avgHoursPerDay || 0).toFixed(1)}h`).join(" · ");
+    rows.media.push(["주요 채널", top3]);
+  }
+  if (md.adReceptivity && Array.isArray(md.adReceptivity.formats)) {
+    const fmts = md.adReceptivity.formats.slice().sort((a, b) => (b.avg || 0) - (a.avg || 0)).slice(0, 3);
+    if (fmts.length) {
+      const s = fmts.map(f => `${f.format} ${Number(f.avg || 0).toFixed(0)}`).join(" · ");
+      rows.media.push(["광고 수용도", s]);
+    }
+  }
+  if (Array.isArray(md.channels)) {
+    const totalH = md.channels.reduce((s, c) => s + Number(c.avgHoursPerDay || 0), 0);
+    if (totalH > 0) rows.media.push(["총 매체 사용", `${totalH.toFixed(1)}h/일`]);
+  }
+
+  return rows;
+}
+
+// 평균 연령 추출 (페르소나 풀에서 — 정확)
+function _siAvgAge(personas) {
+  if (!Array.isArray(personas) || !personas.length) return null;
+  const ages = personas.map(p => Number(p.age)).filter(v => Number.isFinite(v));
+  if (!ages.length) return null;
+  return Math.round((ages.reduce((s, v) => s + v, 0) / ages.length) * 10) / 10;
+}
+
+// 규칙 기반 폴백 — Gemini 없이도 자연스러운 한 문단
+function _siFallbackInsight({ rows, avgAge, n, countryName }) {
+  const parts = [];
+  // 문장 1: 인물상 — 연령/직업 + 평균연령
+  const whoTop = (rows.who && rows.who.length) ? rows.who : [];
+  const whoAge = whoTop.find(r => r[0] === "연령");
+  const whoOcc = whoTop.find(r => r[0] === "직업");
+  let s1 = `${countryName || "이 국가"}의 N=${n} 타겟은`;
+  if (avgAge != null) s1 += ` 평균 ${avgAge}세의`;
+  if (whoOcc) s1 += ` ${whoOcc[1].split(" · ")[0]} 중심`;
+  else if (whoAge) s1 += ` ${whoAge[1].split(" · ")[0]} 연령대`;
+  s1 += " 소비자입니다.";
+  parts.push(s1);
+
+  // 문장 2: 라이프 — 활동 + 시간대
+  const lifeTop = rows.life || [];
+  const acts = lifeTop.find(r => r[0] === "활동 관심도");
+  const day = lifeTop.find(r => r[0] === "활동 시간대");
+  if (acts || day) {
+    let s2 = "일상은";
+    if (acts) s2 += ` ${acts[1].split(" · ").slice(0, 2).join("·")}`;
+    if (day) s2 += ` 중심이며 주로 ${day[1].split(" · ")[0]} 시간대에 활동`;
+    else s2 += " 중심";
+    s2 += "합니다.";
+    parts.push(s2);
+  }
+
+  // 문장 3: 가치관 — 핵심가치 + 마인드셋
+  const mindTop = rows.mind || [];
+  const core = mindTop.find(r => r[0] === "핵심 가치");
+  const ms = mindTop.find(r => r[0] === "마인드셋");
+  if (core || ms) {
+    let s3 = "가치관은";
+    if (core) s3 += ` ${core[1].split(" · ").slice(0, 2).join("·")}을(를) 중시`;
+    if (ms) s3 += `${core ? "하며" : ""} ${ms[1].split(" · ")[0]} 성향`;
+    s3 += "을 보입니다.";
+    parts.push(s3);
+  }
+
+  // 문장 4: 관심사·구매
+  const loveTop = rows.love || [];
+  const buyTop = rows.buy || [];
+  const intr = loveTop.find(r => r[0] === "관심사");
+  const cat = buyTop.find(r => r[0] === "구매 카테고리");
+  if (intr || cat) {
+    let s4 = "관심사는";
+    if (intr) s4 += ` ${intr[1].split(" · ").slice(0, 2).join("·")}`;
+    if (cat) s4 += `, 구매는 ${cat[1].split(" · ").slice(0, 2).join("·")} 카테고리`;
+    s4 += "에 집중됩니다.";
+    parts.push(s4);
+  }
+
+  // 문장 5: 미디어
+  const mediaTop = rows.media || [];
+  const ch = mediaTop.find(r => r[0] === "주요 채널");
+  if (ch) {
+    parts.push(`주요 매체는 ${ch[1].split(" · ").slice(0, 2).join("·")}로, 광고 노출과 메시지 전달은 이 채널을 중심으로 설계하는 것이 효과적입니다.`);
+  }
+
+  return parts.join(" ");
+}
+
+// 모델용 입력 직렬화 (사실만 — 모델이 새로운 숫자를 만들지 못하도록)
+function _siSerializeRows(rows) {
+  const order = [["who", "인물상"], ["life", "라이프스타일"], ["mind", "가치관"], ["love", "관심사"], ["buy", "구매"], ["media", "미디어"]];
+  const lines = [];
+  for (const [k, label] of order) {
+    const r = rows[k] || [];
+    if (!r.length) continue;
+    lines.push(`[${label}]`);
+    for (const [name, val] of r) lines.push(`- ${name}: ${val}`);
+  }
+  return lines.join("\n");
+}
+
+audienceRouter.get("/summary-insight", async (req, res) => {
+  try {
+    const country = String(req.query.country || "KR").toUpperCase();
+    // briefId 표기 호환: briefId 또는 brief_id 모두 허용
+    const briefId = req.query.briefId ? String(req.query.briefId)
+                   : (req.query.brief_id ? String(req.query.brief_id) : null);
+    const VALID = ["KR", "JP", "CN", "TW", "TH", "PH"];
+    if (!VALID.includes(country)) {
+      return res.status(400).json({ ok: false, error: `Invalid country: ${country}` });
+    }
+    if (!briefId) {
+      return res.json({
+        ok: true, country, briefId: null,
+        insight: "타겟 페르소나 풀이 아직 생성되지 않았습니다. 빌더에서 분석을 시작해 주세요.",
+        fallback: true, source: "no-brief",
+      });
+    }
+
+    // 캐시 확인
+    const cacheKey = `${briefId}::${country}`;
+    const cached = _SUMMARY_INSIGHT_CACHE.get(cacheKey);
+    if (cached && (Date.now() - cached.ts) < _SUMMARY_INSIGHT_TTL_MS) {
+      return res.json({ ok: true, country, briefId, ...cached.payload, cached: true });
+    }
+
+    // 페르소나 풀 로드
+    let personas = [];
+    try { personas = getPersonas(briefId, { country }) || []; } catch (_) { personas = []; }
+    if (!Array.isArray(personas)) personas = [];
+    const n = personas.length;
+    if (n === 0) {
+      return res.json({
+        ok: true, country, briefId,
+        insight: "타겟 페르소나 풀이 아직 생성되지 않았습니다. 빌더 분석이 완료된 뒤 다시 시도해 주세요.",
+        fallback: true, source: "no-pool", n: 0,
+      });
+    }
+
+    // 6개 차원 집계 (페르소나 풀 기반 — 같은 데이터를 프론트 파란박스도 사용)
+    const agg = {
+      who: aggregateWho(personas),
+      life: aggregateLife(personas),
+      mind: aggregateMind(personas),
+      love: aggregateLove(personas),
+      buy: aggregateBuy(personas),
+      media: aggregateMedia(personas, country),
+    };
+    const rows = _siBuildBlueBoxRows(agg);
+    const avgAge = _siAvgAge(personas);
+    const countryMeta = COUNTRIES.find(c => c.code === country);
+    const countryName = countryMeta?.name || country;
+
+    // Gemini 시도
+    let insight = null;
+    let fallback = false;
+    let source = "fallback";
+    if (_siGeminiAvailable()) {
+      try {
+        const factBlock = _siSerializeRows(rows);
+        const ageLine = avgAge != null ? `\n[기본] 평균 연령: ${avgAge}세, 표본: N=${n}` : `\n[기본] 표본: N=${n}`;
+        const system =
+          "당신은 한국어 광고 인사이트 카피라이터입니다. " +
+          "사용자가 제공한 사실(숫자·항목)만 사용해 자연스러운 한국어 한 문단(3~5문장)을 작성합니다. " +
+          "절대 새로운 숫자·국가·브랜드명을 만들지 마세요. " +
+          "주어진 라벨과 수치를 인용하되 매끄럽게 연결만 하세요. " +
+          "광고 기획자가 '이 타겟이 어떤 사람인가'를 한눈에 이해할 수 있도록 강렬하고 구체적인 문장으로 마무리하세요. " +
+          "출력은 한 문단(3~5문장), 머리말·번호·따옴표·마크다운 없이 평문만.";
+        const prompt =
+          `국가: ${countryName} (${country})${ageLine}\n\n` +
+          `[페르소나 풀 6차원 핵심 사실 — 이 내용만 사용]\n${factBlock}\n\n` +
+          `위 사실만을 이용해 "이 타겟은 어떤 사람인가"를 3~5문장으로 작성하세요.\n` +
+          `반드시 한국어. 인물상→라이프→가치관→관심사·구매→미디어 순서로 자연스럽게 연결.\n` +
+          `숫자·항목은 입력 그대로 인용. 새로운 정보 추가 금지.`;
+        const out = await _siGenerateText({
+          prompt, system, model: "gemini-2.5-flash",
+          temperature: 0.35, maxTokens: 768,
+        });
+        const txt = (out && out.text || "").trim();
+        if (txt && txt.length >= 30) {
+          insight = txt.replace(/^["“'\s]+|["”'\s]+$/g, "");
+          source = "gemini-2.5-flash";
+        }
+      } catch (e) {
+        console.warn("[summary-insight] Gemini error:", e && e.message);
+      }
+    }
+    if (!insight) {
+      insight = _siFallbackInsight({ rows, avgAge, n, countryName });
+      fallback = true;
+      source = source === "fallback" ? "rule-based" : source;
+    }
+
+    const payload = {
+      insight, fallback, source, n, avgAge,
+      rows, // 디버그/검증용 — 어떤 사실을 모델에 줬는지 확인 가능
+    };
+    _SUMMARY_INSIGHT_CACHE.set(cacheKey, { payload, ts: Date.now() });
+    return res.json({ ok: true, country, briefId, ...payload });
+  } catch (err) {
+    console.error("[summary-insight] error:", err);
     res.status(500).json({ ok: false, error: String(err && err.message || err) });
   }
 });
