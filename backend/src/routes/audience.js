@@ -1569,10 +1569,11 @@ audienceRouter.get("/summary-insight", async (req, res) => {
       });
     }
 
-    // 캐시 확인
+    // 캐시 확인 (nocache=1 진단 옵션 — CEO 2026-06-24 Gemini 진단용)
+    const _noCache = String(req.query.nocache || "") === "1";
     const cacheKey = `${briefId}::${country}`;
     const cached = _SUMMARY_INSIGHT_CACHE.get(cacheKey);
-    if (cached && (Date.now() - cached.ts) < _SUMMARY_INSIGHT_TTL_MS) {
+    if (!_noCache && cached && (Date.now() - cached.ts) < _SUMMARY_INSIGHT_TTL_MS) {
       return res.json({ ok: true, country, briefId, ...cached.payload, cached: true });
     }
 
@@ -1607,6 +1608,7 @@ audienceRouter.get("/summary-insight", async (req, res) => {
     let insight = null;
     let fallback = false;
     let source = "fallback";
+    let _geminiErr = null;
     if (_siGeminiAvailable()) {
       try {
         const factBlock = _siSerializeRows(rows);
@@ -1635,6 +1637,7 @@ audienceRouter.get("/summary-insight", async (req, res) => {
         }
       } catch (e) {
         console.warn("[summary-insight] Gemini error:", e && e.message);
+        _geminiErr = String(e && e.message || e);
       }
     }
     if (!insight) {
@@ -1646,6 +1649,7 @@ audienceRouter.get("/summary-insight", async (req, res) => {
     const payload = {
       insight, fallback, source, n, avgAge,
       rows, // 디버그/검증용 — 어떤 사실을 모델에 줬는지 확인 가능
+      geminiError: _geminiErr || undefined, // 진단용
     };
     _SUMMARY_INSIGHT_CACHE.set(cacheKey, { payload, ts: Date.now() });
     return res.json({ ok: true, country, briefId, ...payload });
