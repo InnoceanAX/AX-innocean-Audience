@@ -6447,8 +6447,9 @@ async function renderSummaryOverview(){
   if (!dimsEl) return;
   const country = state.currentCountry || 'KR';
   const briefId = state.activeBriefId || state.briefId || state.currentBriefId;
-  const base = (typeof API !== 'undefined' ? API : '');
-  const url = `${base}/api/audience/summary-overview?country=${encodeURIComponent(country)}` + (briefId ? `&brief_id=${encodeURIComponent(briefId)}` : '');
+  const base = (typeof API !== 'undefined' ? API : '/api');
+  // base 에 이미 '/api' 가 포함됨 (const API = '/api'). 이중 '/api/api' 버그 fix 2026-06-23.
+  const url = `${base}/audience/summary-overview?country=${encodeURIComponent(country)}` + (briefId ? `&brief_id=${encodeURIComponent(briefId)}` : '');
   try {
     const r = await fetch(url);
     const d = await r.json();
