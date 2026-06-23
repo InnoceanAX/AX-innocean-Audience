@@ -9839,6 +9839,11 @@ async function applyCampaignPreset(presetUserEntry){
     if(typeof refreshSegment === 'function') refreshSegment();
     if(typeof updateWsCountryLabel === 'function') updateWsCountryLabel();
     if(typeof toast === 'function') toast(`캠페인 적용: ${built.name} (${code}) — ${applied}개 차원 필터 활성`);
+    // CEO 2026-06-23: 프리셋 적용 즉시 persona-pool brief 생성 트리거 (골조: 프리셋→100명 합성소비자 풀)
+    // 이전엔 8박스 탭 진입 시에만 호출돼 미디어 탭/요약만 보면 baseline에 머무는 버그 → 적용 시점에 보장
+    if(typeof ensureCampaignBrief === 'function'){
+      try { await ensureCampaignBrief(); } catch(e){ console.warn('[applyCampaignPreset ensureBrief]', e); }
+    }
   };
   if(built.countries && built.countries.length > 1){
     openCampaignCountryPicker(built, apply);
@@ -9897,10 +9902,14 @@ async function pollPersonaStatus(){
       const d = await r.json();
       if(!d.ok){ break; }
       if(d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled'){
-        if(d.status === 'completed' && typeof toast === 'function') toast('AI 페르소나 생성 완료');
+        if(d.status === 'completed' && typeof toast === 'function') toast('AI 페르소나 생성 완료 — 합성소비자 100명 풀 반영');
         // Refresh currently visible tab so persona-pool data shows up.
-        if(typeof _refreshAudienceTabFetch === 'function' && state.currentTab){
-          const dim = ['who','life','mind','love','buy','media'].includes(state.currentTab) ? state.currentTab : null;
+        // CEO 2026-06-23: media 탭은 별도 함수(refreshMediaTab) 사용 — 완료 시 미디어 탭도 persona-pool 재로드
+        const _curTab = state.currentTab;
+        if(_curTab === 'media' && typeof refreshMediaTab === 'function'){
+          refreshMediaTab();
+        } else if(typeof _refreshAudienceTabFetch === 'function' && _curTab){
+          const dim = ['who','life','mind','love','buy'].includes(_curTab) ? _curTab : null;
           if(dim){
             // Force cache miss
             const body = document.getElementById(dim + '-body');
@@ -9910,6 +9919,8 @@ async function pollPersonaStatus(){
             refreshSegment();
           }
         }
+        // summary 탭이면 요약도 갱신
+        if(_curTab === 'summary' && typeof refreshSummaryTab === 'function'){ try { refreshSummaryTab(); } catch(e){} }
         break;
       }
       await new Promise(res => setTimeout(res, 4000));
