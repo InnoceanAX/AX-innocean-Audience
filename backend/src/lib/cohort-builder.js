@@ -138,13 +138,20 @@ const OCCUPATION_LABELS_KO = {
   homemaker:    "주부/가사",
 };
 
-function ageFromBucket(rng, bucket) {
+function ageFromBucket(rng, bucket, clampMin, clampMax) {
+  let lo, hi;
   if (bucket.endsWith("+")) {
     const a = parseInt(bucket, 10);
-    return randInt(rng, a, a + 9); // e.g. "65+" → 65..74
+    lo = a; hi = a + 9; // e.g. "65+" → 65..74
+  } else {
+    const [a, b] = bucket.split("-").map(n => parseInt(n, 10));
+    lo = a; hi = b;
   }
-  const [a, b] = bucket.split("-").map(n => parseInt(n, 10));
-  return randInt(rng, a, b);
+  // 2026-06-23: 타겟 연령 범위로 클램프 (2034 타겟이면 18-24 버킷에서도 20세 이상만)
+  if (typeof clampMin === "number") lo = Math.max(lo, clampMin);
+  if (typeof clampMax === "number") hi = Math.min(hi, clampMax);
+  if (lo > hi) { const t = lo; lo = hi; hi = t; }
+  return randInt(rng, lo, hi);
 }
 
 // Normalize region weights when caller overrides them (e.g. CN preset).
@@ -183,11 +190,44 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
   // ageBuckets: whitelist filter on demo.ageBucketWeights
   // gender: override sexRatioFemale (female=1.0, male=0.0, all=keep demo)
   let ageWeights = demo.ageBucketWeights;
+  let ageClampMin, ageClampMax; // 2026-06-23: 타겟 연령 클램프 범위
   if (targets && Array.isArray(targets.ageBuckets) && targets.ageBuckets.length) {
+    // 2026-06-23 fix: targets.ageBuckets 키가 demo 키와 다른 체계일 수 있음.
+    //   demo 6버킷: "18-24","25-34","35-44","45-54","55-64","65+"
+    //   청년 프리셋: "20-24","25-29","30-34" (TW/TH/PH 전용) → KR/JP/CN demo에 직접 매칭 안됨
+    //   → 타겟 연령 범위(min~max)를 산출해 demo 버킷 중 겹치는 것만 화이트리스트로 사용.
+    const bucketRange = (k) => {
+      if (k.endsWith("+")) { const a = parseInt(k, 10); return [a, a + 30]; }
+      const [a, b] = k.split("-").map(n => parseInt(n, 10));
+      return [a, isNaN(b) ? a : b];
+    };
+    // 타겟이 커버하는 전체 연령 [min,max]
+    let tMin = Infinity, tMax = -Infinity;
+    for (const tk of targets.ageBuckets) {
+      const [a, b] = bucketRange(tk);
+      if (a < tMin) tMin = a;
+      if (b > tMax) tMax = b;
+    }
+    if (isFinite(tMin)) ageClampMin = tMin;
+    if (isFinite(tMax)) ageClampMax = tMax;
+    // 1차: 키 직접 일치
     const allowSet = new Set(targets.ageBuckets);
-    const filtered = Object.fromEntries(
+    let filtered = Object.fromEntries(
       Object.entries(demo.ageBucketWeights).filter(([k]) => allowSet.has(k))
     );
+    // 2차: 직접 일치 없으면 연령 범위가 겹치는 demo 버킷 선택 (겹침 비율로 가중)
+    if (Object.values(filtered).reduce((a, b) => a + b, 0) <= 0 && isFinite(tMin) && isFinite(tMax)) {
+      filtered = {};
+      for (const [k, w] of Object.entries(demo.ageBucketWeights)) {
+        const [a, b] = bucketRange(k);
+        const overlap = Math.max(0, Math.min(b, tMax) - Math.max(a, tMin) + 1);
+        const span = (b - a + 1);
+        if (overlap > 0 && span > 0) {
+          // demo 버킷 중 타겟과 겹치는 부분 비율만큼 가중치 반영
+          filtered[k] = w * (overlap / span);
+        }
+      }
+    }
     const sum = Object.values(filtered).reduce((a, b) => a + b, 0);
     if (sum > 0) {
       // re-normalize to sum=1
@@ -206,7 +246,7 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
   const out = [];
   for (let i = 0; i < size; i++) {
     const ageBucket = weightedPick(rng, ageWeights);
-    const age = ageFromBucket(rng, ageBucket);
+    const age = ageFromBucket(rng, ageBucket, ageClampMin, ageClampMax);
     const gender = rng() < femaleRatio ? "female" : "male";
     const region = weightedPick(rng, regionWeights);
     const incomeQuintile = demo.incomeQuintiles[randInt(rng, 0, demo.incomeQuintiles.length - 1)];
