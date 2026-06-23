@@ -4107,10 +4107,10 @@ async function refreshMediaTab(){
     // CEO 2026-06-23: campaign 모드면 brief 생성/연결 보장 (activeBriefId 유실 방지) — 미디어 탭도 8박스 탭과 동일하게 persona-pool 우선
     if(state.activePreset && !state.activeBriefId && typeof ensureCampaignBrief === 'function'){
       // CEO 2026-06-23: 생성 트리거 직전 — 합성소비자 풀 생성 안내 멘트 (실제 ~2.5분)
-      if(_mdLoadEl){ const _s=_mdLoadEl.querySelector('.ws-empty-s'); if(_s) _s.textContent='AI 합성 소비자 100명 생성 중… (약 2~3분 소요)'; }
+      if(_mdLoadEl){ const _s=_mdLoadEl.querySelector('.ws-empty-s'); if(_s) _s.textContent='AI 합성 소비자 100명 생성 중… (약 5~6분 소요)'; }
       try { await ensureCampaignBrief(); } catch(e){ console.warn('[media ensureBrief]', e); }
     } else if(state.personaPolling && _mdLoadEl){
-      const _s=_mdLoadEl.querySelector('.ws-empty-s'); if(_s) _s.textContent='AI 합성 소비자 풀 생성 중… (약 2~3분 소요)';
+      const _s=_mdLoadEl.querySelector('.ws-empty-s'); if(_s) _s.textContent='AI 합성 소비자 풀 생성 중… (약 5~6분 소요)';
     }
     // CEO 2026-06-23: briefId 전달 — persona-pool(합성소비자) 데이터 수신 (누락 시 baseline+광고비 fallback되던 버그 수정)
     const _mediaBriefId = state.activeBriefId || state.briefId || state.currentBriefId || null;
@@ -9857,6 +9857,37 @@ async function applyCampaignPreset(presetUserEntry){
   }
 }
 
+// CEO 2026-06-23: 프리셋 캐시 — presetId+국가로 기존 completed 풀 조회 (최신우선). 없으면 null.
+async function findCachedBrief(presetId, country){
+  if(!presetId || !country) return null;
+  try{
+    const r = await fetch(`${API}/personas/briefs`);
+    const d = await r.json();
+    const briefs = (d && (d.briefs || d)) || [];
+    if(!Array.isArray(briefs)) return null;
+    // presetId + 해당 국가 포함, 최신순 정렬
+    const cand = briefs.filter(b => {
+      const pid = b.presetId || b.preset_id;
+      const ctrys = b.countries || [];
+      return pid === presetId && Array.isArray(ctrys) && ctrys.includes(country);
+    }).sort((a,b) => String(b.created_at||b.createdAt||'').localeCompare(String(a.created_at||a.createdAt||'')));
+    // 완성(completed) 상태 + 해당 국가 100명 확인
+    for(const b of cand){
+      const bid = b.brief_id || b.id;
+      if(!bid) continue;
+      try{
+        const sr = await fetch(`${API}/personas/status?brief_id=${encodeURIComponent(bid)}`);
+        const sd = await sr.json();
+        const kr = sd?.progress?.byCountry?.[country] || 0;
+        if(sd?.status === 'completed' && kr >= (state.activePreset?.sizePerCountry || 100)){
+          return bid;
+        }
+      }catch(e){ /* skip */ }
+    }
+    return null;
+  }catch(e){ console.warn('[findCachedBrief]', e); return null; }
+}
+
 // 4-C: ensure a brief + generation has been triggered for the active campaign.
 // Called from refreshSegment / tab refresh before fetching the 6 tabs.
 async function ensureCampaignBrief(){
@@ -9864,6 +9895,18 @@ async function ensureCampaignBrief(){
   if(state.activeBriefId) return state.activeBriefId;
   try{
     const p = state.activePreset;
+    // CEO 2026-06-23: 기존 완성 풀 우선 조회 (프리셋 캐시) — presetId+국가 매칭 completed brief가 있으면 즉시 재사용 (대기 0초)
+    if(!state.forceRegenerate){
+      try{
+        const cached = await findCachedBrief(p.id, state.activeCountry);
+        if(cached){
+          state.activeBriefId = cached;
+          if(typeof toast === 'function') toast(`기존 합성소비자 풀 로드 (${state.activeCountry} · 즉시)`);
+          return state.activeBriefId;
+        }
+      }catch(e){ console.warn('[findCachedBrief]', e); }
+    }
+    state.forceRegenerate = false;
     const body = {
       brand: p.brand || 'Musinsa',
       name: p.name,
@@ -9885,7 +9928,7 @@ async function ensureCampaignBrief(){
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ brief_id: d.brief_id, countries: [state.activeCountry] }),
     });
-    if(typeof toast === 'function') toast(`AI 페르소나 생성 시작 (${state.activeCountry} · 100명)`);
+    if(typeof toast === 'function') toast(`AI 페르소나 생성 시작 (${state.activeCountry} · 100명 · 약 5~6분 소요)`);
     // Lightweight polling: the tab badge already shows "생성 중";
     // we just keep triggering a refresh every 4s until completed/failed.
     pollPersonaStatus();
