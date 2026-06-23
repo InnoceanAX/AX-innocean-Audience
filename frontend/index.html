@@ -8538,6 +8538,17 @@ function _ppTopActivities(actObj, n){
     .slice(0,n||3)
     .map(([k,v]) => `${_ppEscape(k)} <b>${Number(v||0).toFixed(0)}</b>`).join(' · ');
 }
+function _ppTopPercent(actObj, n){
+  // CEO 2026-06-24: doughnut 차트(%환산)와 단위 통일 — {name:score} → 전체합 대비 % 계산 'A 27% · B 24%'
+  if(!actObj || typeof actObj!=='object') return '';
+  const entries = Object.entries(actObj).filter(([k,v]) => Number(v||0) > 0);
+  const total = entries.reduce((s,[k,v])=>s+Number(v||0),0);
+  if(total<=0) return '';
+  return entries
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,n||3)
+    .map(([k,v]) => `${_ppEscape(k)} <b>${Math.round(Number(v||0)/total*100)}%</b>`).join(' · ');
+}
 function _ppMeanLikert(dist){
   // {"1":{count},"2":{count}...} → 가중평균
   if(!dist || typeof dist!=='object') return null;
@@ -8590,7 +8601,7 @@ function _ppSynthBox(dim, envelope){
     const spt = _ppTopActivities(d.sportsAffinity, 3); if(spt) rows.push(['스포츠 친밀도', spt]);
   } else if(dim === 'buy'){
     // CEO 2026-06-23: 차트 순서 그대로 6 row — ①구매카테고리 ②결제수단 ③쇼핑채널 ④구매의사결정 ⑤구매빈도 ⑥소비프로파일
-    const cat = _ppTopActivities(d.purchaseCategories, 3); if(cat) rows.push(['구매 카테고리', cat]);
+    const cat = _ppTopPercent(d.purchaseCategories, 3); if(cat) rows.push(['구매 카테고리', cat]); // doughnut 차트와 %로 통일
     const pay = _ppTopList(d.paymentMethod, 2); if(pay) rows.push(['결제 수단', pay]);
     const ch = _ppTopList(d.shoppingChannel, 2); if(ch) rows.push(['쇼핑 채널', ch]);
     const bf = _ppTopActivities(d.buyFactors, 3); if(bf) rows.push(['구매 의사결정', bf]);
@@ -10834,6 +10845,9 @@ async function pollPersonaStatus(){
       if(!d.ok){ break; }
       if(d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled'){
         if(d.status === 'completed' && typeof toast === 'function') toast('AI 페르소나 생성 완료 — 합성소비자 100명 풀 반영');
+        // CEO 2026-06-24: 미디어 무한 "분석중" 버그 수정 — refreshMediaTab 게이트가 personaPolling을 보므로,
+        //   탭 재호출 전에 polling 플래그를 먼저 내려야 로딩 화면에 갇히지 않음.
+        state.personaPolling = false;
         // Refresh currently visible tab so persona-pool data shows up.
         // CEO 2026-06-23: media 탭은 별도 함수(refreshMediaTab) 사용 — 완료 시 미디어 탭도 persona-pool 재로드
         const _curTab = state.currentTab;
