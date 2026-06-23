@@ -158,7 +158,30 @@ export function aggregateMedia(personas) {
     }))
     .sort((a, b) => b.totalHoursPerDay - a.totalHoursPerDay)
     .slice(0, 20);
-  return { total, channels };
+  return { total, channels, adReceptivity: aggregateAdReceptivity(personas) };
+}
+
+// 2026-06-23 (CEO 지시): 광고형식별 수용도 집계. 100명 개인 ad_receptivity 평균.
+//   차트5 persona-pool SoT. count(명수) 실재.
+export function aggregateAdReceptivity(personas) {
+  const KEYS = ["영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"];
+  const sums = {};
+  const counts = {};
+  for (const k of KEYS) { sums[k] = 0; counts[k] = 0; }
+  for (const p of personas) {
+    const ar = p.ad_receptivity;
+    if (!ar || typeof ar !== "object") continue;
+    for (const k of KEYS) {
+      const v = Number(ar[k]);
+      if (Number.isFinite(v)) { sums[k] += v; counts[k] += 1; }
+    }
+  }
+  const formats = KEYS.map((k) => ({
+    format: k,
+    avg: counts[k] ? Math.round((sums[k] / counts[k]) * 10) / 10 : null,
+    n: counts[k],
+  })).sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1));
+  return { total: personas.length, formats };
 }
 
 // Bundle all 6 tabs for one scope (country or "all")

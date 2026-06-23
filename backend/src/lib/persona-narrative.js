@@ -37,11 +37,23 @@ const NARRATIVE_SCHEMA_ITEM = {
     values_tags: { type: "array", items: { type: "string" } },
     shopping_style: { type: "string" }, // bargain-hunter|brand-loyal|trend-chaser|value-seeker|curator
     price_sensitivity: { type: "number" },
+    // 2026-06-23 (CEO 지시): 광고형식별 수용도 개인 속성. media 탭 차트5를 persona-pool SoT로.
+    ad_receptivity: {
+      type: "object",
+      properties: {
+        "영상 광고": { type: "number" },
+        "검색 광고": { type: "number" },
+        "디스플레이": { type: "number" },
+        "소셜 피드": { type: "number" },
+        "인플루언서": { type: "number" },
+      },
+      required: ["영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"],
+    },
   },
   required: [
     "persona_id", "quote", "jobs_to_be_done", "pain_points",
     "media_diet", "brand_affinity", "lifestyle_tags", "values_tags",
-    "shopping_style", "price_sensitivity",
+    "shopping_style", "price_sensitivity", "ad_receptivity",
   ],
 };
 
@@ -81,6 +93,7 @@ ${personaLines}
 - values_tags: 5개 (가치관 키워드)
 - shopping_style: 정확히 하나 [bargain-hunter|brand-loyal|trend-chaser|value-seeker|curator]
 - price_sensitivity: 1~5 정수
+- ad_receptivity: 이 사람의 광고형식별 수용도(0~100 정수). 5개 키 모두 필수: {"영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"}. 이 사람의 연령·미디어 소비 성향에 맞게 차등 부여 (예: 소셜 많이 보면 소셜 피드·인플루언서 높게).
 
 ⚠️ persona_id 필드에 위 입력 id를 정확히 그대로 복사해주세요.
 ⚠️ JSON 외 다른 텍스트 금지.`;
@@ -158,7 +171,40 @@ function fallbackNarrative(p) {
     values_tags: _pickByHash(FALLBACK_VALUES, pid, "v"),
     shopping_style: shopping,
     price_sensitivity: p.price_sensitivity || p.priceSensitivityPrior || 3,
+    ad_receptivity: defaultAdReceptivity(p),
   };
+}
+
+// 2026-06-23 (CEO 지시): 광고형식별 수용도 fallback. persona_id 해시 시드로 100명 변동 확보.
+//   LLM 부재/필드 누락 시 사용. 연령·쇼핑스타일 편향 반영.
+function defaultAdReceptivity(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  const seed = (salt) => {
+    const h = Math.abs(hashStr(`${pid}:adrcv:${salt}`));
+    return (h % 21) - 10; // -10 ~ +10 노이즈
+  };
+  const clamp = (v) => Math.min(95, Math.max(10, Math.round(v)));
+  // 기본 성향: 검색>소셜>영상>인플>디스플레이 (국가 무관 공통 baseline + 개인 노이즈)
+  return {
+    "영상 광고": clamp(55 + seed("v")),
+    "검색 광고": clamp(70 + seed("s")),
+    "디스플레이": clamp(35 + seed("d")),
+    "소셜 피드": clamp(60 + seed("f")),
+    "인플루언서": clamp(50 + seed("i")),
+  };
+}
+
+// ad_receptivity 값 정규화: 5개 키 모두 0~100 숫자 보장, 누락 시 fallback 병합.
+function normalizeAdReceptivity(narr, attr) {
+  const KEYS = ["영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"];
+  const src = narr?.ad_receptivity;
+  const fb = defaultAdReceptivity(attr);
+  const out = {};
+  for (const k of KEYS) {
+    const v = src && typeof src[k] === "number" ? src[k] : null;
+    out[k] = v != null ? Math.min(100, Math.max(0, Math.round(v))) : fb[k];
+  }
+  return out;
 }
 
 // M-7 fix (Chaeyeon 2026-06-17 21:43 → CTO 22:08):
@@ -299,6 +345,7 @@ export function mergePersona(attr, narr) {
     values_tags: narr?.values_tags || [],
     shopping_style: shoppingStyle,
     price_sensitivity: priceSens,
+    ad_receptivity: normalizeAdReceptivity(narr, attr),
   };
 }
 

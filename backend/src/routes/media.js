@@ -50,9 +50,10 @@ function buildMediaBadge(pool, code) {
 }
 
 // persona-pool media_diet 집계 → personaChannels 배열
+//   2026-06-23 (CEO 지시): 광고형식별 수용도(adReceptivity)도 포함. 차트5 persona-pool SoT.
 function buildPersonaChannels(pool) {
   if (!pool || !pool.personas) return null;
-  const agg = aggregateMedia(pool.personas); // { total, channels:[{channel,mentions,reach,totalHoursPerDay,avgHoursPerDay}] }
+  const agg = aggregateMedia(pool.personas); // { total, channels:[...], adReceptivity:{total,formats} }
   const total = agg.total || pool.count || 0;
   const channels = (agg.channels || []).map(c => ({
     channel: c.channel,
@@ -62,7 +63,7 @@ function buildPersonaChannels(pool) {
     totalHoursPerDay: Number((c.totalHoursPerDay || 0).toFixed(2)),
     reach: Number((c.reach || 0).toFixed(4)),
   }));
-  return { total, channels };
+  return { total, channels, adReceptivity: agg.adReceptivity || null };
 }
 
 // 매체별 도달률 계산
@@ -339,12 +340,28 @@ mediaRouter.get("/landscape", async (req, res) => {
   const pool = loadPersonaPool(req, code);
   const personaChannelsPayload = buildPersonaChannels(pool);
 
+  // 2026-06-23 (CEO 지시): persona-pool 모드에서는 시장지표(trust/spend) 제거, 타겟 기준(페르소나 풌) 차트가 메인.
+  //   personaChart: 프론트가 바로 그릴 수 있는 페르소나 기반 차트 데이터 (reach/시청시간/광고수용도).
+  let personaChart = undefined;
+  if (pool && personaChannelsPayload) {
+    const topCh = (personaChannelsPayload.channels || []).slice(0, 15);
+    personaChart = {
+      labels: topCh.map(c => c.channel),
+      reach: topCh.map(c => Number((c.reach * 100).toFixed(1))),       // 도달률 %
+      avgHoursPerDay: topCh.map(c => c.avgHoursPerDay),                 // 평균 시청시간 h/일
+      matrix: topCh.map(c => ({ x: Number((c.reach * 100).toFixed(1)), y: c.avgHoursPerDay, label: c.channel, mentions: c.mentions })),
+      adReceptivity: personaChannelsPayload.adReceptivity || null,     // {total, formats:[{format,avg,n}]}
+      excluded: ["trust", "spend"],                                    // CEO 지시: 시장지표 제외
+    };
+  }
+
   res.json({
     ok: true,
     source: pool ? "persona-pool" : "public-data",
     badge: buildMediaBadge(pool, code),
     briefId: pool ? pool.briefId : undefined,
     personaChannels: personaChannelsPayload || undefined,
+    personaChart,
     country: meta,
     items,
     insights,
