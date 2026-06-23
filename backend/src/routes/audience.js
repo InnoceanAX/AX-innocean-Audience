@@ -76,8 +76,8 @@ async function maybePersonaPoolPayload(req, tab, code) {
   const baselineRefByTab = {
     who: { source: "DataReportal 2025 + UN WPP 2025", data: getDemographics(cc), sourceMeta: getSourceMeta(cc, "demographics") },
     life: { source: "DataReportal 2025", data: getLifestyle(cc), sourceMeta: getSourceMeta(cc, "lifestyle") },
-    mind: { source: "Reuters DNR 2026 + Hofstede", data: getMindset(cc), sourceMeta: getSourceMeta(cc, "mindset") },
-    love: { source: "큐레이션 추정 + Reuters DNR 2026", data: getInterests(cc), sourceMeta: getSourceMeta(cc, "interests") },
+    mind: { source: "Reuters DNR 2025 + Hofstede", data: getMindset(cc), sourceMeta: getSourceMeta(cc, "mindset") },
+    love: { source: "큐레이션 추정 + Reuters DNR 2025", data: getInterests(cc), sourceMeta: getSourceMeta(cc, "interests") },
     buy: { source: "Statista + 큐레이션", data: getPurchase(cc), sourceMeta: getSourceMeta(cc, "purchase") },
   };
   const baselineRef = baselineRefByTab[tab] || null;
