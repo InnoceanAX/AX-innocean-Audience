@@ -119,6 +119,383 @@ window.applyChartUnitLabel = function(canvasId, unitText){
      html2canvas@1.4.1 (MIT) / jspdf@2.5.1 (MIT) 자체 호스팅 (frontend/vendor/). -->
 <script src="vendor/html2canvas.min.js"></script>
 <script src="vendor/jspdf.umd.min.js"></script>
+/**
+ * persona-pool 배지 HTML
+ */
+function renderPersonaPoolBadge(badge) {
+  const count = badge?.count || badge?.totalPersonas || 0;
+  const country = badge?.country || '';
+  const icon = badge?.icon || '🧠';
+  return `
+    <div class="md-persona-badge">
+      <span class="md-persona-icon">${icon}</span>
+      <strong>합성소비자 N=${count}</strong>
+      <span class="md-persona-meta">${country ? country + ' · ' : ''}페르소나 풀 직접 집계</span>
+    </div>
+  `;
+}
+
+/**
+ * 차트 1: 채널 트리 (md-tree 영역 대체)
+ */
+function renderChart1Tree(channels) {
+  const wrap = document.getElementById('md-tree');
+  if (!wrap || !channels) return;
+  
+  const top15 = channels.slice(0, 15);
+  const html = top15.map(c => {
+    // ⚠️ personaChannels.channels.reach = 0~1 소수 → reachPct = 0~100 % (Sohee 백엔드 추가)
+    const reach = (c.reachPct != null ? c.reachPct : (c.reach || 0) * 100).toFixed(1);
+    const hours = (c.avgHoursPerDay || 0).toFixed(2);
+    const mentions = c.mentions || 0;
+    const channelLabel = escapeHtml(c.channel);
+    return `
+      <div class="md-tree-node md-tree-persona">
+        <span class="md-tree-icon">${channelIcon(c.channel)}</span>
+        <span class="md-tree-label">${channelLabel}</span>
+        <span class="md-tree-reach">도달 <b>${reach}%</b></span>
+        <span class="md-tree-hours">평균 <b>${hours}h/일</b></span>
+        <span class="md-tree-mentions">${mentions}명</span>
+      </div>
+    `;
+  }).join('');
+  
+  wrap.innerHTML = `
+    <div class="md-tree-header md-persona-section">
+      ${renderPersonaPoolBadge(window.state?._mediaPoolBadge || {})}
+      <h4 class="md-section-title">채널별 도달·시청시간 (상위 ${top15.length}개)</h4>
+    </div>
+    <div class="md-tree-body">${html}</div>
+  `;
+}
+
+function channelIcon(name) {
+  if (!name) return '📱';
+  const map = {
+    'YouTube': '📹', 'Instagram': '📷', 'KakaoTalk': '💬', 'Naver': '🔍',
+    'TikTok': '🎵', 'Coupang': '🛒', 'TV': '📺',
+    'LINE': '💬', 'WeChat': '💬', 'Douyin': '🎵', 'Weibo': '🐦',
+    'X (Twitter)': '🐦', 'Twitter': '🐦', 'Facebook': '📘', 'Pinterest': '📌',
+    'Netflix': '🎬', 'Disney+': '🏰', 'Tving': '🎬', 'Wavve': '🎬',
+    'Spotify': '🎧', '멜론': '🎧', 'Genie': '🎧',
+    'Musinsa': '👔', '29CM': '👔', 'Zigzag': '👔'
+  };
+  return map[name] || '📱';
+}
+
+/**
+ * 차트 2: 도달률 막대 (md-reach-chart 캔버스 갱신)
+ */
+function renderChart2ReachBar(labels, reach) {
+  const ctx = document.getElementById('md-reach-chart')?.getContext('2d');
+  if (!ctx) return;
+  
+  state._mdCharts = state._mdCharts || {};
+  if (state._mdCharts.reach) state._mdCharts.reach.destroy();
+  
+  const top10Labels = (labels || []).slice(0, 10);
+  const top10Reach = (reach || []).slice(0, 10).map(r => Number(r));
+  
+  state._mdCharts.reach = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: top10Labels,
+      datasets: [{
+        label: '도달률 (%)',
+        data: top10Reach,
+        backgroundColor: 'rgba(79, 70, 229, 0.7)',
+        borderColor: '#4F46E5',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true, max: 100,
+          title: { display: true, text: '단위: %' },
+          ticks: { callback: v => v + '%' }
+        },
+        x: { ticks: { maxRotation: 40, minRotation: 0, font: { size: 11 } } }
+      },
+      plugins: {
+        title: { display: true, text: '채널별 도달률 (페르소나 풀 N=' + (window.state?._mediaPoolN || '?') + ')' },
+        subtitle: { display: true, text: '출처: 합성소비자 풀 직접 집계 · 단위: %', font: { size: 11 } },
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end', align: 'top',
+          formatter: v => v.toFixed(0) + '%',
+          font: { weight: 'bold', size: 11 }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * 차트 3: 매트릭스 도달×시청시간 (md-matrix-chart 캔버스 갱신)
+ * 🎯 y축 trust → avgHoursPerDay 교체
+ */
+function renderChart3Matrix(matrix) {
+  const ctx = document.getElementById('md-matrix-chart')?.getContext('2d');
+  if (!ctx) return;
+  
+  state._mdCharts = state._mdCharts || {};
+  if (state._mdCharts.matrix) state._mdCharts.matrix.destroy();
+  
+  const data = (matrix || []).filter(m => m.x > 0 || m.y > 0).map(m => ({
+    x: m.x, y: m.y,
+    r: Math.max(4, Math.sqrt(m.mentions || 1) * 2.5),
+    label: m.label,
+    mentions: m.mentions || 0
+  }));
+  
+  // 사분면 분류 (광고주 인사이트)
+  const insights = classifyMatrixQuadrants(data);
+  
+  state._mdCharts.matrix = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: '채널 (도달×시청시간)',
+        data: data,
+        backgroundColor: 'rgba(79, 70, 229, 0.5)',
+        borderColor: '#4F46E5',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: { display: true, text: '도달률 (%) — 가로축' },
+          min: 0, max: 100, ticks: { callback: v => v + '%' }
+        },
+        y: {
+          title: { display: true, text: '평균 시청시간 (h/일) — 세로축' },
+          min: 0, max: 3, ticks: { callback: v => v + 'h' }
+        }
+      },
+      plugins: {
+        title: { display: true, text: '채널 도달 × 시청시간 매트릭스 (광고 효율 진단)' },
+        subtitle: { display: true, text: '버블 크기 = 페르소나 언급 수 · 우상단 = 광고 효율 최고', font: { size: 11 } },
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const r = ctx.raw;
+              return `${r.label}: 도달 ${r.x.toFixed(1)}% / ${r.y.toFixed(2)}h/일 / ${r.mentions}명`;
+            }
+          }
+        },
+        datalabels: {
+          formatter: (v, ctx) => ctx.raw?.label || '',
+          anchor: 'center', align: 'top', offset: 10,
+          font: { size: 10 },
+          color: '#374151',
+          display: ctx => (ctx.raw?.x || 0) >= 10 || (ctx.raw?.y || 0) >= 1.5  // 작은 점 라벨 생략
+        }
+      }
+    }
+  });
+  
+  // 인사이트 박스 자동 렌더 (md-matrix-insights 또는 md-insights 하단)
+  renderMatrixInsightsBox(insights);
+}
+
+function classifyMatrixQuadrants(data) {
+  const groups = { '광고 효율 최고': [], '마니아 채널': [], '광고 노출 최적': [], '광고 비효율': [] };
+  for (const d of data) {
+    let zone;
+    if (d.x >= 50 && d.y >= 1.5) zone = '광고 효율 최고';
+    else if (d.x < 50 && d.y >= 1.5) zone = '마니아 채널';
+    else if (d.x >= 50 && d.y < 1.5) zone = '광고 노출 최적';
+    else zone = '광고 비효율';
+    groups[zone].push(d.label);
+  }
+  return groups;
+}
+
+function renderMatrixInsightsBox(groups) {
+  let wrap = document.getElementById('md-matrix-insights');
+  if (!wrap) {
+    // 매트릭스 차트 아래 자동 삽입
+    const chart = document.getElementById('md-matrix-chart');
+    if (chart) {
+      wrap = document.createElement('div');
+      wrap.id = 'md-matrix-insights';
+      wrap.className = 'md-matrix-insights';
+      chart.parentNode.appendChild(wrap);
+    }
+  }
+  if (!wrap) return;
+  
+  const ZONE_META = {
+    '광고 효율 최고': { icon: '⭐', desc: '도달 + 시청시간 모두 강 → 핵심 매체 우선', color: '#10B981' },
+    '마니아 채널':    { icon: '🎯', desc: '도달 낮지만 깊은 몰입 → 정밀 타겟 최적', color: '#7C3AED' },
+    '광고 노출 최적': { icon: '📣', desc: '도달 넓음 + 짧은 노출 → 짧은 메시지 캠페인', color: '#0EA5E9' },
+    '광고 비효율':    { icon: '⚠️', desc: '도달·시청 모두 낮음 → 광고 예산 효율 낮음', color: '#9CA3AF' }
+  };
+  
+  let html = '<div class="md-matrix-insights-h">매트릭스 4사분면 인사이트 (자동 분류)</div>';
+  for (const [zone, channels] of Object.entries(groups)) {
+    if (!channels.length) continue;
+    const meta = ZONE_META[zone];
+    const shown = channels.slice(0, 4).map(c => `<span class="md-mi-ch">${escapeHtml(c)}</span>`).join('');
+    const more = channels.length > 4 ? `<span class="md-mi-more">외 ${channels.length - 4}개</span>` : '';
+    html += `
+      <div class="md-matrix-insight" style="border-left-color:${meta.color}">
+        <div class="md-mi-h">
+          <span class="md-mi-icon">${meta.icon}</span>
+          <strong>${zone}</strong>
+          <span class="md-mi-desc">${meta.desc}</span>
+        </div>
+        <div class="md-mi-channels">${shown}${more}</div>
+      </div>
+    `;
+  }
+  wrap.innerHTML = html;
+}
+
+/**
+ * 차트 4: 매체 테이블 (md-table 갱신)
+ */
+function renderChart4Table(channels) {
+  const tbl = document.getElementById('md-table');
+  if (!tbl || !channels) return;
+  
+  // ⚠️ reachPct (0~100 %) 우선, fallback c.reach * 100
+  const getReachPct = c => (c.reachPct != null ? c.reachPct : (c.reach || 0) * 100);
+  const sortedDesc = [...channels].sort((a, b) => getReachPct(b) - getReachPct(a));
+  
+  let html = `
+    <thead>
+      <tr>
+        <th>매체</th>
+        <th>도달률</th>
+        <th>평균 시청시간 (h/일)</th>
+        <th>페르소나 언급 수</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+  
+  for (const c of sortedDesc.slice(0, 20)) {
+    const reach = getReachPct(c).toFixed(1);
+    const hours = (c.avgHoursPerDay || 0).toFixed(2);
+    const mentions = c.mentions || 0;
+    const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${reach}%;background:#4F46E5"></div></div>`;
+    
+    html += `
+      <tr>
+        <td><strong>${escapeHtml(c.channel)}</strong></td>
+        <td>${reachBar}<span class="md-bar-v">${reach}%</span></td>
+        <td>${hours}</td>
+        <td>${mentions}명</td>
+      </tr>
+    `;
+  }
+  
+  tbl.innerHTML = html + '</tbody>';
+}
+
+/**
+ * 차트 5 (신규): 광고형식 수용도
+ * 컨테이너: md-receptivity-chart (신규 canvas 동적 생성)
+ */
+function renderChart5Receptivity(adReceptivity) {
+  if (!adReceptivity?.formats || !adReceptivity.formats.length) {
+    // 데이터 없음 = 영역 숨김
+    const existing = document.getElementById('md-receptivity-section');
+    if (existing) existing.style.display = 'none';
+    return;
+  }
+  
+  // 컨테이너 자동 생성 (매트릭스 차트 영역 다음에 추가)
+  let section = document.getElementById('md-receptivity-section');
+  if (!section) {
+    const matrixWrap = document.querySelector('.md-chart-wrap')?.parentNode;
+    if (!matrixWrap) return;
+    section = document.createElement('div');
+    section.id = 'md-receptivity-section';
+    section.className = 'md-receptivity-section';
+    section.innerHTML = `
+      <div class="md-chart-wrap"><canvas id="md-receptivity-chart"></canvas></div>
+      <div id="md-receptivity-insights" class="md-receptivity-insights"></div>
+    `;
+    matrixWrap.appendChild(section);
+  }
+  section.style.display = '';
+  
+  const ctx = document.getElementById('md-receptivity-chart').getContext('2d');
+  state._mdCharts = state._mdCharts || {};
+  if (state._mdCharts.receptivity) state._mdCharts.receptivity.destroy();
+  
+  const formats = adReceptivity.formats;  // 이미 desc sort
+  const colors = ['#4F46E5', '#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE'];
+  
+  state._mdCharts.receptivity = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: formats.map(f => f.format),
+      datasets: [{
+        label: '수용도 점수 (0~100)',
+        data: formats.map(f => f.avg),
+        backgroundColor: colors.slice(0, formats.length),
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',  // 가로 막대
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true, max: 100,
+          title: { display: true, text: '단위: 수용도 점수 (0~100, 페르소나 풀 평균)' }
+        }
+      },
+      plugins: {
+        title: { display: true, text: `광고 형식별 수용도 (페르소나 풀 N=${adReceptivity.total || 100})` },
+        subtitle: { display: true, text: '출처: 페르소나 풀 ad_receptivity 평균 (LLM narrative)', font: { size: 11 } },
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end', align: 'end',
+          formatter: v => v.toFixed(1) + '점',
+          font: { weight: 'bold', size: 11 }
+        }
+      }
+    }
+  });
+  
+  // 인사이트 박스
+  renderReceptivityInsightsBox(formats);
+}
+
+function renderReceptivityInsightsBox(formats) {
+  const wrap = document.getElementById('md-receptivity-insights');
+  if (!wrap || !formats.length) return;
+  
+  const top = formats[0];
+  const last = formats[formats.length - 1];
+  const search = formats.find(f => (f.format || '').includes('검색'));
+  const display = formats.find(f => (f.format || '').includes('디스플레이'));
+  
+  const insights = [];
+  if (top.avg >= 65) insights.push(`<strong>${top.format}</strong> ${top.avg.toFixed(1)}점 — 광고 형식 강력 채택 (광고 효과 최고)`);
+  if (top.avg - last.avg >= 30) insights.push(`형식 선호 격차 ${(top.avg - last.avg).toFixed(0)}점 — <strong>${top.format}</strong> 집중 권장`);
+  if (display && display.avg < 35) insights.push(`<strong>디스플레이</strong> ${display.avg.toFixed(1)}점 — 광고 회피 신호 (예산 비효율)`);
+  if (search && search.avg > 60) insights.push(`<strong>검색 광고</strong> ${search.avg.toFixed(1)}점 — 정보 검색 의도 강함 (검색 매체 우선)`);
+  
+  wrap.innerHTML = '<div class="md-receptivity-insights-h">광고형식 수용도 인사이트</div>' +
+    insights.map(i => `<div class="md-receptivity-insight">• ${i}</div>`).join('');
+}
+
+
 <style>
 :root{
   --ind:#4F46E5;
@@ -3990,6 +4367,27 @@ async function renderMediaSpend(data){
 async function renderMediaTab(data){
   // AI 합성 소비자 카드 (다른 탭과 동일)
   try{
+  // 🆕 persona-pool 모드 분기 (2026-06-23 Chaeyeon+Sohee)
+  if(data && data.source === 'persona-pool'){
+    const spendSection = document.getElementById('md-spend-summary');
+    if(spendSection) spendSection.style.display = 'none';
+    document.querySelectorAll('.md-tab-body').forEach(el => el.classList.add('md-persona-mode'));
+    state._mediaPoolBadge = data.badge || {};
+    state._mediaPoolN = data.badge?.count || data.badge?.totalPersonas || 0;
+    let insightHtml = renderPersonaPoolBadge(data.badge || {});
+    if(Array.isArray(data.insights)){
+      insightHtml += data.insights.map(i => `<div class="ov-insight ${i.type === 'blocked' ? 'notice' : ''}"><div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div><div class="ov-insight-x">${i.text}</div></div>`).join('');
+    }
+    document.getElementById('md-insights').innerHTML = insightHtml;
+    const pc = data.personaChart || {};
+    const channels = data.personaChannels?.channels || [];
+    renderChart1Tree(channels);
+    renderChart2ReachBar(pc.labels, pc.reach);
+    renderChart3Matrix(pc.matrix);
+    renderChart4Table(channels);
+    renderChart5Receptivity(pc.adReceptivity);
+    return;
+  }
     const synHtml = renderSynthSegment('media');
     const wrap = document.getElementById('md-insights');
     if(wrap && synHtml){
