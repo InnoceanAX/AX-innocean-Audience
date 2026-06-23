@@ -4601,6 +4601,14 @@ async function renderMediaTab(data){
     // CEO 2026-06-23: 요약은 파란박스로 통합 — 효율(CPM)/광고비 인사이트 제거, 차트 기준 요약만 표시
     let insightHtml = renderPersonaPoolBadge(data.badge || {}, data);
     document.getElementById('md-insights').innerHTML = insightHtml;
+    // CEO 2026-06-24: 미디어 탭도 다른 탭처럼 데이터 출처 라벨 표시 (media-src 갱신) — "데이터 로딩 중..." 고정 버그 해소
+    {
+      const _mdSrc = document.getElementById('media-src');
+      if(_mdSrc){
+        const _mdLabel = (data.source && data.source.primary) || (data.badge && data.badge.label) || 'AI 합성 페르소나 풀';
+        _mdSrc.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('media')" title="데이터 출처 자세히 보기"><span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">${_mdLabel}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+      }
+    }
     const pc = data.personaChart || {};
     const channels = data.personaChannels?.channels || [];
     renderChart1Tree(channels);
