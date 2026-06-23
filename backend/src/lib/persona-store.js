@@ -382,6 +382,21 @@ export function listBriefs() {
   return rows.map(briefRowToObject);
 }
 
+// 2026-06-23 (CEO 지시): brief 1개 완전 삭제 (4개 테이블 cascade).
+export function deleteBrief(id) {
+  if (!id) return { deleted: false, reason: "id required" };
+  const db = getDb();
+  const tx = db.transaction((bid) => {
+    db.prepare("DELETE FROM campaign_personas WHERE brief_id = ?").run(bid);
+    db.prepare("DELETE FROM campaign_insights WHERE brief_id = ?").run(bid);
+    db.prepare("DELETE FROM campaign_generation_state WHERE brief_id = ?").run(bid);
+    const r = db.prepare("DELETE FROM campaign_briefs WHERE id = ?").run(bid);
+    return r.changes;
+  });
+  const changes = tx(id);
+  return { deleted: changes > 0, brief_id: id };
+}
+
 // ───────────────────────────────────────────────────────────────────────
 // Public API — personas
 // ───────────────────────────────────────────────────────────────────────

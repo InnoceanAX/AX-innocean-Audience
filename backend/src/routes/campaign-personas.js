@@ -18,7 +18,7 @@ import { buildCohort, SUPPORTED_COUNTRIES } from "../lib/cohort-builder.js";
 import { synthesizeNarratives } from "../lib/persona-narrative.js";
 import { aggregateAll, buildInsightPayload } from "../lib/persona-aggregator.js";
 import {
-  saveBrief, getBrief, listBriefs,
+  saveBrief, getBrief, listBriefs, deleteBrief,
   appendPersonas, setPersonas, getPersonas, countPersonas,
   setInsights, getInsights,
   setGenerationState, getGenerationState, markCancelled,
@@ -44,6 +44,33 @@ campaignPersonasRouter.get("/presets", (_req, res) => {
 // GET /api/personas/briefs
 campaignPersonasRouter.get("/briefs", (_req, res) => {
   res.json({ ok: true, briefs: listBriefs() });
+});
+
+// POST /api/personas/briefs/cleanup
+// body: { keep: "brief_id" } — keep 외 모든 brief 삭제 (CEO 2026-06-23: 최종 1개만 보존)
+campaignPersonasRouter.post("/briefs/cleanup", (req, res) => {
+  const keep = req.body && req.body.keep;
+  if (!keep) return res.status(400).json({ ok: false, error: "keep brief_id required" });
+  const all = listBriefs();
+  const toDelete = all.map(b => b.id || b.brief_id).filter(id => id && id !== keep);
+  const results = [];
+  for (const id of toDelete) {
+    try { results.push(deleteBrief(id)); }
+    catch (e) { results.push({ deleted: false, brief_id: id, error: String(e && e.message || e) }); }
+  }
+  const deletedCount = results.filter(r => r.deleted).length;
+  res.json({ ok: true, kept: keep, deleted: deletedCount, total_targets: toDelete.length, results });
+});
+
+// DELETE /api/personas/brief/:id — 단일 brief 삭제
+campaignPersonasRouter.delete("/brief/:id", (req, res) => {
+  const id = req.params.id;
+  try {
+    const r = deleteBrief(id);
+    res.json({ ok: true, ...r });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e && e.message || e) });
+  }
 });
 
 // POST /api/personas/brief
