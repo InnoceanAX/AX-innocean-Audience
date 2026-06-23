@@ -1628,7 +1628,7 @@ audienceRouter.get("/summary-insight", async (req, res) => {
           `숫자·항목은 입력 그대로 인용. 새로운 정보 추가 금지.`;
         const out = await _siGenerateText({
           prompt, system, model: "gemini-2.5-flash",
-          temperature: 0.35, maxTokens: 768,
+          temperature: 0.35, maxTokens: 2048, // CEO 2026-06-24: 2.5-flash thinking 토큰 여유 — 768은 빈응답 원인
         });
         const txt = (out && out.text || "").trim();
         if (txt && txt.length >= 30) {
@@ -1639,6 +1639,7 @@ audienceRouter.get("/summary-insight", async (req, res) => {
         console.warn("[summary-insight] Gemini error:", e && e.message);
         _geminiErr = String(e && e.message || e);
       }
+      if (!insight && !_geminiErr) _geminiErr = "empty-or-short-response"; // 진단: 예외없이 빈응답
     }
     if (!insight) {
       insight = _siFallbackInsight({ rows, avgAge, n, countryName });

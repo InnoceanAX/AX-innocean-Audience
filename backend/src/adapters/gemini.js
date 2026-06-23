@@ -91,8 +91,11 @@ export async function generateText({ prompt, system, model = "gemini-2.5-flash",
   const result = await m.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
   });
-  const txt = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  return { text: txt, model, usage: result.response?.usageMetadata || null };
+  // CEO 2026-06-24: gemini-2.5-flash는 thinking 토큰 후 여러 parts로 나뉜 수 있어 전체 parts의 text를 합치기
+  const _parts = result.response?.candidates?.[0]?.content?.parts || [];
+  const txt = _parts.map(p => (p && p.text) || "").join("").trim()
+           || result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return { text: txt, model, usage: result.response?.usageMetadata || null, finishReason: result.response?.candidates?.[0]?.finishReason };
 }
 
 // JSON 구조화 출력 (Gemini는 응답 스키마 지원)
