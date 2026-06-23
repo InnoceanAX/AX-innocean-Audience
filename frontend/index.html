@@ -4605,8 +4605,8 @@ async function renderMediaTab(data){
     {
       const _mdSrc = document.getElementById('media-src');
       if(_mdSrc){
-        const _mdLabel = (data.source && data.source.primary) || (data.badge && data.badge.label) || 'AI 합성 페르소나 풀';
-        _mdSrc.innerHTML = `<button class="aud-src-clickable" onclick="openSourceModal('media')" title="데이터 출처 자세히 보기"><span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">${_mdLabel}</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>`;
+        // CEO 2026-06-24: 다른 탭(who/life 등) persona-pool 모드 출처 라벨과 완전 동일 형식 — 보라 배지 "AI 합성 페르소나" + badge.label (자세히 버튼 없음)
+        _mdSrc.innerHTML = '<span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">' + (data.badge?.label || '') + '</span>';
       }
     }
     const pc = data.personaChart || {};
