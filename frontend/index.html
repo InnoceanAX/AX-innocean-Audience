@@ -7185,6 +7185,8 @@ async function refreshSummaryTab(){
 // ============ AI 합성 세그먼트 카드 렌더링 ============
 // 한국 30명 패널 응답 샘플 렌더 (상단 합성 박스 위에 표시)
 function renderPanelSample(dim){
+  // CEO 2026-06-23: campaign 모드(persona-pool 100명)에서는 30명 임시 패널 샘플 숨김
+  if(state.activeBriefId || state.activePreset) return '';
   const panel = state.panelCache;
   if(!panel || !panel.aggregated) return '';
   // dim별 관련 질문 키 매핑
@@ -7433,7 +7435,8 @@ async function _refreshAudienceTabFetch(dim){
       return;
     }
     const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
-    const hasPanel = !!(state.panelCache && state.panelCache.aggregated);
+    // CEO 2026-06-23: campaign 모드(persona-pool)에서는 30명 임시 패널 배지 숨김 — persona-pool 배지 우선
+    const hasPanel = !!(state.panelCache && state.panelCache.aggregated) && !state.activeBriefId && !state.activePreset;
     let badgeHtml;
     if(hasPanel){
       badgeHtml = '<span class="aud-src-badge" style="background:#FEF3C7;color:#92400E"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:2px"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>AI 패널 30명</span> <span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
@@ -9415,7 +9418,8 @@ async function runAnalysis(opts){
       }catch(e){ console.warn('synthesize failed', e); }
 
       // 한국 단독: 30명 페르소나 패널 조회 (백그라운드, 도착 시 현재 탭만 조용히 갱신)
-      if(code === 'KR'){
+      // CEO 2026-06-23: campaign 모드(persona-pool 100명)에서는 30명 임시 패널 호출 차단 — 골조 정합
+      if(code === 'KR' && !state.activeBriefId && !state.activePreset){
         const f = state.filters || {};
         const ageRange = (Array.isArray(f.age) && f.age.length > 0 && f.age[0] !== '전체') ? f.age.join('|') : null;
         const gender = (Array.isArray(f.gender) && f.gender.length === 1 && f.gender[0] !== '전체') ? f.gender[0] : null;
