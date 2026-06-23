@@ -123,7 +123,7 @@ window.applyChartUnitLabel = function(canvasId, unitText){
 /**
  * persona-pool 배지 HTML
  */
-function renderPersonaPoolBadge(badge) {
+function renderPersonaPoolBadge(badge, mediaData) {
   const count = badge?.count || badge?.totalPersonas || 0;
   const country = badge?.country || '';
   const icon = badge?.icon || '🧠';
@@ -222,7 +222,7 @@ function renderChart2ReachBar(labels, reach) {
         x: { ticks: { maxRotation: 40, minRotation: 0, font: { size: 11 } } }
       },
       plugins: {
-        title: { display: true, text: '채널별 도달률 (페르소나 풀 N=' + (window.state?._mediaPoolN || '?') + ')' },
+        title: { display: true, text: '채널별 도달률 (페르소나 풀 N=' + (window.state?._mediaPoolN || (window.state?.activeBriefId ? 100 : '—')) + ')' },
         subtitle: { display: true, text: '출처: 합성소비자 풀 직접 집계 · 단위: %', font: { size: 11 } },
         legend: { display: false },
         datalabels: {
@@ -345,7 +345,7 @@ function renderMatrixInsightsBox(groups) {
   for (const [zone, channels] of Object.entries(groups)) {
     if (!channels.length) continue;
     const meta = ZONE_META[zone];
-    const shown = channels.slice(0, 4).map(c => `<span class="md-mi-ch">${escapeHtml(c)}</span>`).join('');
+    const shown = channels.slice(0, 4).map(c => `<span class="md-mi-ch">${escapeHtml(c)}</span>`).join(' ');
     const more = channels.length > 4 ? `<span class="md-mi-more">외 ${channels.length - 4}개</span>` : '';
     html += `
       <div class="md-matrix-insight" style="border-left-color:${meta.color}">
@@ -1282,6 +1282,16 @@ body.home-fade-out #screen-home{
 .md-table td{padding:10px 12px;border-bottom:1px solid var(--bdr);vertical-align:middle}
 .md-table tr:last-child td{border-bottom:none}
 .md-table tr.md-blocked{opacity:.4}
+/* CEO 2026-06-23: 매트릭스 4사분면 인사이트 CSS 복원 (채널명 붙음 해결) */
+.md-matrix-insights-h{font-size:13px;font-weight:700;color:#111;margin:14px 0 8px}
+.md-matrix-insight{background:#fff;border:1px solid var(--bdr);border-left:3px solid var(--ind);border-radius:8px;padding:10px 14px;margin-bottom:8px}
+.md-mi-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.md-mi-icon{font-size:14px}
+.md-mi-h strong{font-size:12.5px;color:#111}
+.md-mi-desc{font-size:11px;color:var(--tm)}
+.md-mi-channels{display:flex;flex-wrap:wrap;gap:6px}
+.md-mi-ch{display:inline-block;padding:2px 9px;background:#EEF2FF;color:var(--ind);border:1px solid #C7D2FE;border-radius:11px;font-size:11px;font-weight:600}
+.md-mi-more{display:inline-block;padding:2px 9px;background:#F3F4F6;color:var(--tm);border-radius:11px;font-size:11px}
 .md-tag{display:inline-block;padding:2px 8px;background:#EEF2FF;color:var(--ind);border-radius:4px;font-size:10.5px;font-weight:600}
 .md-bar{display:inline-block;width:140px;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:8px}
 .md-bar-fill{height:100%;background:linear-gradient(90deg,var(--ind),#7C3AED);border-radius:4px}
@@ -2336,7 +2346,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">인물상 (Who)</div>
-              <div class="aud-tab-s">이 타겟은 누구인가 — 연령 / 성별 / 가족 / 소득 / 거주</div>
+              <div class="aud-tab-s">이 타겟은 누구인가 — 연령 / 성별 / 지역 / 소득 사분위</div>
               <span class="aud-src" id="who-src">데이터 로딩 중…</span>
             </div>
             <div id="who-body"></div>
@@ -2347,7 +2357,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">라이프스타일 (Life)</div>
-              <div class="aud-tab-s">어떻게 살고 있는가 — 디지털 / 일과 / 여행 / 외식 / 활동</div>
+              <div class="aud-tab-s">어떻게 살고 있는가 — 라이프스타일 태그 / 직업 분포</div>
               <span class="aud-src" id="life-src">데이터 로딩 중…</span>
             </div>
             <div id="life-body"></div>
@@ -2358,7 +2368,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">가치관 (Mind)</div>
-              <div class="aud-tab-s">무엇을 믿는가 — 신뢰 / 세계관 / 가치관 / 혁신·전통</div>
+              <div class="aud-tab-s">무엇을 믿는가 — 핵심 가치관 태그 / 쇼핑 스타일 분포</div>
               <span class="aud-src" id="mind-src">데이터 로딩 중…</span>
             </div>
             <div id="mind-body"></div>
@@ -2369,7 +2379,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">관심사 (Love)</div>
-              <div class="aud-tab-s">무엇에 열정적인가 — 음악 / 운동 / 취미 / 패션 / 테크</div>
+              <div class="aud-tab-s">무엇에 열정적인가 — K·일반 패션 관심도 / K・콘텐츠 노출 / 브랜드 선호도</div>
               <span class="aud-src" id="love-src">데이터 로딩 중…</span>
             </div>
             <div id="love-body"></div>
@@ -2380,7 +2390,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">구매 행동 (Buy)</div>
-              <div class="aud-tab-s">어떻게 구매하는가 — 이커머스 / 결제 / 주요 카테고리 / 의사결정 요인</div>
+              <div class="aud-tab-s">어떻게 구매하는가 — 가격 민감도 / 쇼핑 스타일 / 브랜드 선호도 Top 10</div>
               <span class="aud-src" id="buy-src">데이터 로딩 중…</span>
             </div>
             <div id="buy-body"></div>
@@ -2392,7 +2402,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">미디어 (Media)</div>
-              <div class="aud-tab-s">어떤 매체로 만나는가 — TV·OTT / SNS / 검색 / 광고비 / 채널별 도달률</div>
+              <div class="aud-tab-s">어떤 매체로 만나는가 — 채널별 도달률 / 광고 형식 수용도 / 도달×시청시간 매트릭스</div>
               <span class="aud-src" id="media-src">데이터 로딩 중…</span>
             </div>
           </div>
@@ -4100,6 +4110,19 @@ async function refreshMediaTab(){
   }
   if(mdEmpty) mdEmpty.style.display = 'none';
 
+  // CEO 2026-06-23: 깜빡임 제거 — 같은 국가/brief 캐시가 있으면 로딩 없이 즉시 렌더 (탭 재방문 시 깜빡 방지)
+  const _mdCacheKey = `${state.currentCountry}::${state.activeBriefId||state.briefId||''}`;
+  if(!state.personaPolling && state.mediaData && state._mediaCacheKey === _mdCacheKey){
+    try{
+      const _b = document.getElementById('md-body'); const _l = document.getElementById('md-loading');
+      if(_l) _l.classList.add('hide');
+      if(_b) _b.classList.remove('hide');
+      renderMediaTab(state.mediaData);
+      if(state.mediaTree) renderMediaTree(state.mediaTree);
+      return; // 캐시 즉시 표시 — 깜빡임 없음
+    }catch(e){ /* fall through to fetch */ }
+  }
+
   try{
     const _mdLoadEl = document.getElementById('md-loading');
     if(_mdLoadEl) _mdLoadEl.classList.remove('hide');
@@ -4126,6 +4149,7 @@ async function refreshMediaTab(){
     if(!flat.ok || !tree.ok) throw new Error('media failed');
     state.mediaData = flat;
     state.mediaTree = tree;
+    state._mediaCacheKey = _mdCacheKey; // CEO 2026-06-23: 캐시 키 저장 — 재방문 시 깜빡 없이 즉시 표시
     renderMediaTab(flat);
     renderMediaTree(tree);
     document.getElementById('md-loading').classList.add('hide');
@@ -4399,8 +4423,9 @@ async function renderMediaTab(data){
     }
     document.querySelectorAll('.md-tab-body').forEach(el => el.classList.add('md-persona-mode'));
     state._mediaPoolBadge = data.badge || {};
-    state._mediaPoolN = data.badge?.count || data.badge?.totalPersonas || 0;
-    let insightHtml = renderPersonaPoolBadge(data.badge || {});
+    // CEO 2026-06-23: N=? 깨짐 수정 — badge.count 없으면 adReceptivity.total→100 fallback
+    state._mediaPoolN = data.badge?.count || data.badge?.totalPersonas || data.adReceptivity?.total || (data.personaChart?.adReceptivity?.total) || 100;
+    let insightHtml = renderPersonaPoolBadge(data.badge || {}, data);
     if(Array.isArray(data.insights)){
       insightHtml += data.insights.map(i => `<div class="ov-insight ${i.type === 'blocked' ? 'notice' : ''}"><div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div><div class="ov-insight-x">${i.text}</div></div>`).join('');
     }
