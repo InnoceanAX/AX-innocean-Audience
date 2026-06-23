@@ -1,5 +1,6 @@
 // narrative-helper.js
 // 6차원 요약 카드용 페르소나 풀 추출 helper
+import { canonicalizeChannel } from "./channel-canon.js";
 // CEO 2026-06-18 본질 일관성 + 보편성 100% 보장
 // 광고주 hard-code 0건, brief 기반 동적 슬롯
 
@@ -32,9 +33,12 @@ export function listMean(personas, key, subKey, top = 3) {
   const allItems = personas.flatMap(p => (p[key] || []));
   if (!allItems.length) return [];
   const acc = {};
+  const isBrand = subKey === 'brand';
   allItems.forEach(it => {
-    const k = it[subKey === 'brand' ? 'brand' : 'channel'];
-    const v = Number(it[subKey === 'brand' ? 'score' : 'hoursPerDay']);
+    let k = it[isBrand ? 'brand' : 'channel'];
+    // CEO 2026-06-23: 요약탭 채널명도 차트와 동일하게 정규화 ("YouTube (테크/패션)" → "YouTube")
+    if (!isBrand && k) k = canonicalizeChannel(k);
+    const v = Number(it[isBrand ? 'score' : 'hoursPerDay']);
     if (!k || isNaN(v)) return;
     if (!acc[k]) acc[k] = { sum: 0, cnt: 0 };
     acc[k].sum += v;
