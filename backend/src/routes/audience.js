@@ -1460,10 +1460,8 @@ function _siBuildBlueBoxRows(agg) {
       rows.media.push(["광고 수용도", s]);
     }
   }
-  if (Array.isArray(md.channels)) {
-    const totalH = md.channels.reduce((s, c) => s + Number(c.avgHoursPerDay || 0), 0);
-    if (totalH > 0) rows.media.push(["총 매체 사용", `${totalH.toFixed(1)}h/일`]);
-  }
+  // CEO 2026-06-24: "총 매체 사용"(채널 단순합산) 제거 — 중복시청 미고려로 비현실적 총합(21h등) 오해 소지.
+  //   채널별 시간과 광고 수용도만 유지.
 
   return rows;
 }

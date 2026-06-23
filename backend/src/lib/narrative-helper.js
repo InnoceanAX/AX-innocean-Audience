@@ -262,8 +262,7 @@ export function extractDimStats(personas, baseline, country, dim, briefMeta = {}
         if (channels.length > 1) {
           stats.push({ label: '2위 매체', value: `${channels[1].channel} ${channels[1].value}h/일`, source: 'persona' });
         }
-        const totalHours = channels.reduce((s, c) => s + c.value, 0);
-        stats.push({ label: '총 매체 사용', value: `${totalHours.toFixed(1)}h/일`, source: 'persona' });
+        // CEO 2026-06-24: '총 매체 사용'(단순합산) 제거 — 중복시청 미고려 비현실적 총합 오해 소지
       }
       break;
     }
