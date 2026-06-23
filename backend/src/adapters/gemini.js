@@ -81,11 +81,15 @@ export async function searchAndSummarize({ query, model = "gemini-2.5-flash", ma
 }
 
 // 일반 텍스트 생성
-export async function generateText({ prompt, system, model = "gemini-2.5-flash", temperature = 0.4, maxTokens = 1024 }) {
+export async function generateText({ prompt, system, model = "gemini-2.5-flash", temperature = 0.4, maxTokens = 1024, thinkingBudget = 0 }) {
   const client = getClient();
+  // CEO 2026-06-24: gemini-2.5-flash는 thinking이 기본 활성 — maxOutputTokens를 thinking으로 다 소비해 text=0(MAX_TOKENS) 버그.
+  //   표현·요약같은 단순 생성은 thinkingBudget=0으로 비활성화.
+  const genCfg = { temperature, maxOutputTokens: maxTokens };
+  if (thinkingBudget != null) genCfg.thinkingConfig = { thinkingBudget };
   const m = client.getGenerativeModel({
     model,
-    generationConfig: { temperature, maxOutputTokens: maxTokens },
+    generationConfig: genCfg,
     systemInstruction: system ? { parts: [{ text: system }] } : undefined,
   });
   const result = await m.generateContent({
