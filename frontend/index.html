@@ -124,16 +124,59 @@ window.applyChartUnitLabel = function(canvasId, unitText){
  * persona-pool 배지 HTML
  */
 function renderPersonaPoolBadge(badge, mediaData) {
-  const count = badge?.count || badge?.totalPersonas || 0;
+  const count = badge?.count || badge?.totalPersonas || (window.state?._mediaPoolN) || 0;
+  const country = badge?.country || '';
+  // CEO 2026-06-23: 다른 탭과 동일한 파란박스 "AI 합성 소비자 — 타겟 세그먼트 추정치" 형태
+  // 효율(CPM)/광고비 제거 — 보이는 차트(도달률/광고수용도/도달×시청) 기준으로 요약
+  let rows = '';
+  try{
+    const chs = (mediaData?.personaChannels?.channels) || [];
+    const ar = mediaData?.adReceptivity || (mediaData?.personaChart?.adReceptivity) || {};
+    const arItems = ar.items || ar.formats || [];
+    if(chs.length){
+      const byReach = [...chs].sort((a,b)=> ((b.reachPct!=null?b.reachPct:(b.reach||0)*100)) - ((a.reachPct!=null?a.reachPct:(a.reach||0)*100)));
+      const top = byReach[0];
+      const topReach = (top.reachPct!=null?top.reachPct:(top.reach||0)*100).toFixed(0);
+      const byHours = [...chs].sort((a,b)=> (b.avgHoursPerDay||0)-(a.avgHoursPerDay||0));
+      const th = byHours[0];
+      rows += _mdSumRow('최대 도달 채널', `${escapeHtml(top.channel)} — 도달률 ${topReach}% (페르소나 ${top.mentions||0}명 언급)`);
+      if(th) rows += _mdSumRow('최장 시청 채널', `${escapeHtml(th.channel)} — 일평균 ${(th.avgHoursPerDay||0).toFixed(2)}h 시청`);
+    }
+    if(arItems.length){
+      const byScore = [...arItems].sort((a,b)=> (b.score||b.value||0)-(a.score||a.value||0));
+      const ts = byScore[0];
+      if(ts) rows += _mdSumRow('광고 수용도 1위', `${escapeHtml(ts.label||ts.format||ts.key||'-')} — 수용 점수 ${(ts.score||ts.value||0).toFixed(0)} (0~100)`);
+    }
+    // 차단 매체는 insights에서 가져와 유지 (차트 외 구조 정보이나 유용)
+    const blocked = (mediaData?.insights||[]).find(i => i.type==='blocked' || /차단|제한/.test(i.title||''));
+    if(blocked) rows += _mdSumRow(blocked.title, blocked.text, true);
+  }catch(e){ console.warn('[mediaSummary]', e); }
+  return `<div style="margin-bottom:18px;padding:14px 16px;background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="color:var(--ind)"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
+      <span style="font-size:12px;font-weight:700;color:var(--ind)">AI 합성 소비자 — 타겟 세그먼트 추정치</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--tm)">${country ? country + ' · ' : ''}N=${count} 직접 집계</span>
+    </div>
+    ${rows || '<div style="font-size:11.5px;color:var(--tm)">차트 데이터를 불러오는 중…</div>'}
+  </div>`;
+}
+
+// CEO 2026-06-23: 채널 트리 헤더용 소형 배지 (파란박스 아님)
+function _mdSmallBadge(badge){
+  const count = badge?.count || badge?.totalPersonas || (window.state?._mediaPoolN) || 0;
   const country = badge?.country || '';
   const icon = badge?.icon || '🧠';
-  return `
-    <div class="md-persona-badge">
-      <span class="md-persona-icon">${icon}</span>
-      <strong>합성소비자 N=${count}</strong>
-      <span class="md-persona-meta">${country ? country + ' · ' : ''}페르소나 풀 직접 집계</span>
-    </div>
-  `;
+  return `<div class="md-persona-badge"><span class="md-persona-icon">${icon}</span><strong>합성소비자 N=${count}</strong><span class="md-persona-meta">${country ? country + ' · ' : ''}페르소나 풀 직접 집계</span></div>`;
+}
+
+// CEO 2026-06-23: 미디어 요약 파란박스 행 (다른 탭 스타일 통일)
+function _mdSumRow(label, text, warn){
+  const bd = warn ? '#F59E0B' : 'var(--ind)';
+  const bg = warn ? '#FEF3C7' : '#fff';
+  return `<div style="padding:9px 12px;background:${bg};border-left:3px solid ${bd};border-radius:7px;margin-bottom:7px">
+    <div style="font-size:11px;font-weight:700;color:#111;margin-bottom:2px">${label}</div>
+    <div style="font-size:11.5px;color:#374151">${text}</div>
+  </div>`;
 }
 
 /**
@@ -163,7 +206,7 @@ function renderChart1Tree(channels) {
   
   wrap.innerHTML = `
     <div class="md-tree-header md-persona-section">
-      ${renderPersonaPoolBadge(window.state?._mediaPoolBadge || {})}
+      ${_mdSmallBadge(window.state?._mediaPoolBadge || {})}
       <h4 class="md-section-title">채널별 도달·시청시간 (상위 ${top15.length}개)</h4>
     </div>
     <div class="md-tree-body">${html}</div>
@@ -4425,10 +4468,8 @@ async function renderMediaTab(data){
     state._mediaPoolBadge = data.badge || {};
     // CEO 2026-06-23: N=? 깨짐 수정 — badge.count 없으면 adReceptivity.total→100 fallback
     state._mediaPoolN = data.badge?.count || data.badge?.totalPersonas || data.adReceptivity?.total || (data.personaChart?.adReceptivity?.total) || 100;
+    // CEO 2026-06-23: 요약은 파란박스로 통합 — 효율(CPM)/광고비 인사이트 제거, 차트 기준 요약만 표시
     let insightHtml = renderPersonaPoolBadge(data.badge || {}, data);
-    if(Array.isArray(data.insights)){
-      insightHtml += data.insights.map(i => `<div class="ov-insight ${i.type === 'blocked' ? 'notice' : ''}"><div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div><div class="ov-insight-x">${i.text}</div></div>`).join('');
-    }
     document.getElementById('md-insights').innerHTML = insightHtml;
     const pc = data.personaChart || {};
     const channels = data.personaChannels?.channels || [];
