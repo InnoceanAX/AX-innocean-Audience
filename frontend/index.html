@@ -4103,8 +4103,11 @@ async function refreshMediaTab(){
   try{
     document.getElementById('md-loading').classList.remove('hide');
     document.getElementById('md-body').classList.add('hide');
+    // CEO 2026-06-23: briefId 전달 — persona-pool(합성소비자) 데이터 수신 (누락 시 baseline+광고비 fallback되던 버그 수정)
+    const _mediaBriefId = state.activeBriefId || state.briefId || state.currentBriefId || null;
+    const _mediaBriefQs = _mediaBriefId ? `&briefId=${encodeURIComponent(_mediaBriefId)}` : '';
     const [flat, tree] = await Promise.all([
-      fetch(`${API}/media/landscape?country=${state.currentCountry}`).then(r=>r.json()),
+      fetch(`${API}/media/landscape?country=${state.currentCountry}${_mediaBriefQs}`).then(r=>r.json()),
       fetch(`${API}/media/taxonomy?country=${state.currentCountry}`).then(r=>r.json()),
     ]);
     if(!flat.ok || !tree.ok) throw new Error('media failed');
@@ -4372,6 +4375,15 @@ async function renderMediaTab(data){
   if(data && data.source === 'persona-pool'){
     const spendSection = document.getElementById('md-spend-summary');
     if(spendSection) spendSection.style.display = 'none';
+    // CEO 2026-06-23: persona-pool 모드에서 광고비 요약 버튼/뷰 숨김 (시장지표 제외 골조)
+    const _spendBtn = document.querySelector('.md-vt[data-view="spend"]');
+    if(_spendBtn) _spendBtn.style.display = 'none';
+    const _spendView = document.getElementById('md-view-spend');
+    if(_spendView) _spendView.classList.add('hide');
+    // 기본 활성 뷰가 spend였으면 tree로 전환
+    if(_spendBtn && _spendBtn.classList.contains('active')){
+      if(typeof switchMediaView === 'function') switchMediaView('tree');
+    }
     document.querySelectorAll('.md-tab-body').forEach(el => el.classList.add('md-persona-mode'));
     state._mediaPoolBadge = data.badge || {};
     state._mediaPoolN = data.badge?.count || data.badge?.totalPersonas || 0;
@@ -5252,7 +5264,9 @@ async function aiSummary(){
   const loading = aiAddLoading();
   try {
     if(['who','life','mind','love','buy'].indexOf(tab) >= 0){
-      const res = await fetch(API + '/audience/' + tab + '?country=' + code);
+      const _aiBid = state.activeBriefId || state.briefId || state.currentBriefId || null;
+      const _aiBidQs = _aiBid ? '&briefId=' + encodeURIComponent(_aiBid) : '';
+      const res = await fetch(API + '/audience/' + tab + '?country=' + code + _aiBidQs);
       const data = await res.json();
       loading.remove();
       if(!data.ok || !data.data){ aiAddMsg('bot', '데이터 없음', false); return; }
