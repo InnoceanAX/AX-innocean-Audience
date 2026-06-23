@@ -41,7 +41,7 @@ export const PUBLIC_DATA_SOURCES = [
   },
   {
     id: "dataReportal",
-    name: "DataReportal Digital 2026 (We Are Social × Meltwater, 공개)",
+    name: "DataReportal Digital 2025 (We Are Social × Meltwater, 공개)",
     url: "https://datareportal.com/reports/digital-2025-global-overview-report",
     category: "매체별 사용률·시간 베이스라인",
     coverage: "매체별 사용률·시간 베이스라인",

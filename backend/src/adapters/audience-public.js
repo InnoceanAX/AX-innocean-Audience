@@ -3,7 +3,7 @@
 // Sources — 노출 혈용 출처만:
 //   - World Bank Open Data (공개)
 //   - Statista 공개 통계 (AMO 9세그먼트 + 시장 개요)
-//   - DataReportal Digital 2026 (We Are Social × Meltwater, 공개)
+//   - DataReportal Digital 2025 (We Are Social × Meltwater, 공개)
 //   - Reuters Digital News Report (공개)
 // 데이터는 2025 기준.
 //
@@ -104,12 +104,12 @@ export const DEMOGRAPHICS = {
 };
 
 // ============================================================
-// 2. LIFESTYLE (라이프스타일) - DataReportal Digital 2026
+// 2. LIFESTYLE (라이프스타일) - DataReportal Digital 2025
 //    (We Are Social × Meltwater, 공개) 기반 베이스라인
 //    인터넷 사용 시간, 소셜 미디어 사용, 디바이스 등
 // ============================================================
 export const LIFESTYLE = {
-  // Phase B-1 (2026-06-18): DataReportal Digital 2026 갱신 (6국: KR/JP/CN/TW/TH/PH)
+  // Phase B-1 (2026-06-18): DataReportal Digital 2025 갱신 (6국: KR/JP/CN/TW/TH/PH)
   KR: {
     internetPenetration: 97.9,    // % (DR 2026, +0.7)
     socialMediaUsers: 95.4,        // % (DR 2026, +10.8 큰 격차)
@@ -316,7 +316,7 @@ export const MINDSET = {
 
 // ============================================================
 // 4. INTERESTS (관심사)
-//    DataReportal Digital 2026 (공개) 카테고리 빈도 가중 베이스라인.
+//    DataReportal Digital 2025 (공개) 카테고리 빈도 가중 베이스라인.
 //    Google Trends 실 API 미연결 — 출처로 노출하지 않음.
 // ============================================================
 export const INTERESTS = {
@@ -404,7 +404,7 @@ export const INTERESTS = {
 
 // ============================================================
 // 5. PURCHASE BEHAVIOR (구매 행동)
-//    DataReportal Digital 2026 + Statista 공개 통계 (AMO + 시장 개요) 기반.
+//    DataReportal Digital 2025 + Statista 공개 통계 (AMO + 시장 개요) 기반.
 //    eMarketer Premium 미연결 — 출처로 노출하지 않음.
 // ============================================================
 export const PURCHASE_BEHAVIOR = {
@@ -480,42 +480,42 @@ export const AUDIENCE_SOURCES = {
 export const AUDIENCE_SOURCES_BY_COUNTRY = {
   KR: {
     demographics: { source: "UN World Population Prospects 2025", year: 2025, url: "https://population.un.org/wpp/", retrievedAt: "2026-06-18", dataKind: "official" },
-    lifestyle: { source: "DataReportal Digital 2026 South Korea", year: 2026, url: "https://datareportal.com/reports/digital-2026-south-korea", retrievedAt: "2026-06-18", dataKind: "official", notes: "Kepios + ITU + GSMA Intelligence 기반" },
+    lifestyle: { source: "DataReportal Digital 2025 South Korea", year: 2026, url: "https://datareportal.com/reports/digital-2026-south-korea", retrievedAt: "2026-06-18", dataKind: "official", notes: "Kepios + ITU + GSMA Intelligence 기반" },
     mindset: { source: "Reuters Institute Digital News Report 2026 South Korea + Hofstede Insights KR", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/south-korea", retrievedAt: "2026-06-18", dataKind: "official", notes: "숲폼 뉴스 +2배, AI Act 2026-01, Naver News Committee" },
     interests: { source: "큐레이션 추정 (KR 시장 일반론)", year: 2024, dataKind: "estimate", license: "paid-required", notes: "GWI Pro 라이선스 결정 시 정밀치 갱신" },
     purchase: { source: "Statista KR + 큐레이션", year: 2024, dataKind: "mixed", notes: "ecommerceShare/mobileCommerce는 Statista, 나머지는 큐레이션" },
   },
   JP: {
     demographics: { source: "UN WPP 2025", year: 2025, url: "https://population.un.org/wpp/", retrievedAt: "2026-06-18", dataKind: "official" },
-    lifestyle: { source: "DataReportal Digital 2026 Japan", year: 2026, url: "https://datareportal.com/reports/digital-2026-japan", retrievedAt: "2026-06-18", dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2025 Japan", year: 2026, url: "https://datareportal.com/reports/digital-2026-japan", retrievedAt: "2026-06-18", dataKind: "official" },
     mindset: { source: "Reuters DNR 2026 Japan + Hofstede JP", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/japan", retrievedAt: "2026-06-18", dataKind: "partial", notes: "Reuters 본문 짧음, 후반 정량 차트 Phase 1.5 fetch" },
     interests: { source: "큐레이션 추정", year: 2024, dataKind: "estimate", license: "paid-required" },
     purchase: { source: "Statista JP + 큐레이션", year: 2024, dataKind: "mixed" },
   },
   CN: {
     demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official" },
-    lifestyle: { source: "DataReportal Digital 2026 China", year: 2026, url: "https://datareportal.com/reports/digital-2026-china", retrievedAt: "2026-06-18", dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2025 China", year: 2026, url: "https://datareportal.com/reports/digital-2026-china", retrievedAt: "2026-06-18", dataKind: "official" },
     mindset: { source: "CNNIC 49차 인터넷 보고서 + Hofstede CN + 큐레이션", year: 2025, dataKind: "mixed", notes: "Reuters DNR 2026 중국 미포함 (404). CNNIC 영문 abstract 사용. CN mindset narrative 한계 명시." },
     interests: { source: "큐레이션 추정", year: 2024, dataKind: "estimate", license: "paid-required" },
     purchase: { source: "Statista CN + 큐레이션", year: 2024, dataKind: "mixed" },
   },
   TW: {
     demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official", notes: "신규 작성 (TW BASELINE 5dim 부재 해결)" },
-    lifestyle: { source: "DataReportal Digital 2026 Taiwan", year: 2026, url: "https://datareportal.com/reports/digital-2026-taiwan", retrievedAt: "2026-06-18", dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2025 Taiwan", year: 2026, url: "https://datareportal.com/reports/digital-2026-taiwan", retrievedAt: "2026-06-18", dataKind: "official" },
     mindset: { source: "Hofstede Insights TW + 큐레이션", year: 2026, dataKind: "mixed", notes: "Hofstede TW: IDV=17→28, LTO=93→76, UAI=69→58 (정규화 처리). Reuters TW 후반 fetch Phase 1.5." },
     interests: { source: "큐레이션 추정 (TW 시장)", year: 2024, dataKind: "estimate", license: "paid-required" },
     purchase: { source: "큐레이션 추정 (TW 시장)", year: 2024, dataKind: "estimate" },
   },
   TH: {
     demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official" },
-    lifestyle: { source: "DataReportal Digital 2026 Thailand", year: 2026, url: "https://datareportal.com/reports/digital-2026-thailand", retrievedAt: "2026-06-18", dataKind: "official" },
+    lifestyle: { source: "DataReportal Digital 2025 Thailand", year: 2026, url: "https://datareportal.com/reports/digital-2026-thailand", retrievedAt: "2026-06-18", dataKind: "official" },
     mindset: { source: "Reuters DNR 2026 Thailand + Hofstede TH", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/thailand", retrievedAt: "2026-06-18", dataKind: "partial", notes: "Reuters TH 본문 truncated, Phase 1.5 후반 fetch" },
     interests: { source: "큐레이션 추정", year: 2024, dataKind: "estimate", license: "paid-required" },
     purchase: { source: "Statista TH + 큐레이션", year: 2024, dataKind: "mixed" },
   },
   PH: {
     demographics: { source: "UN WPP 2025", year: 2025, dataKind: "official" },
-    lifestyle: { source: "DataReportal Digital 2026 Philippines", year: 2026, url: "https://datareportal.com/reports/digital-2026-philippines", retrievedAt: "2026-06-18", dataKind: "official", notes: "internet penetration 83.8% (Kepios+ITU). cf. Reuters DNR 2026 PH 67% (디지털 뉴스 소비 인구). 두 출처 정의 다름." },
+    lifestyle: { source: "DataReportal Digital 2025 Philippines", year: 2026, url: "https://datareportal.com/reports/digital-2026-philippines", retrievedAt: "2026-06-18", dataKind: "official", notes: "internet penetration 83.8% (Kepios+ITU). cf. Reuters DNR 2026 PH 67% (디지털 뉴스 소비 인구). 두 출처 정의 다름." },
     mindset: { source: "Reuters DNR 2026 Philippines + Hofstede PH", year: 2026, url: "https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/philippines", retrievedAt: "2026-06-18", dataKind: "official", notes: "Smart TV 뉴스 53%, 콘텐츠 크리에이터 36-46%, 디스인포 규제" },
     interests: { source: "Reuters DNR 2026 PH (contentCreator 36-46%) + 큐레이션", year: 2026, dataKind: "mixed", license: "partial-paid" },
     purchase: { source: "Statista PH + 큐레이션", year: 2024, dataKind: "mixed" },
@@ -535,3 +535,29 @@ export function getMindset(code) { return MINDSET[code] || null; }
 export function getInterests(code) { return INTERESTS[code] || null; }
 export function getPurchase(code) { return PURCHASE_BEHAVIOR[code] || null; }
 export function listAudienceSources() { return AUDIENCE_SOURCES; }
+// 실제 베이스라인이 적재된 국가 코드 목록 (DEMOGRAPHICS 기준 = coverage SoT)
+export function listBaselineCountries() { return Object.keys(DEMOGRAPHICS); }
+
+// ageBuckets 체계 정규화 (정합성 fix 2026-06-23):
+//   기존 KR/JP/CN/US = 5구간 (0-14/15-29/30-44/45-59/60+)
+//   신규 47국        = 6구간 (18-24/25-34/35-44/45-54/55-64/65+)
+// 두 체계가 compare/차트에서 섮이면 라벨 불일치로 비교가 깨짐.
+// 두 체계 모두에서 '60세+' / '15~29세(청년층)' 비율을 안전하게 추출.
+export function getAgeSeniorShare(buckets) {
+  if (!buckets || typeof buckets !== "object") return null;
+  // 5구간: 60+ / 6구간: 55-64 + 65+ (60세 이상 근사)
+  if (buckets["60+"] != null) return buckets["60+"];
+  if (buckets["65+"] != null) {
+    return Number(buckets["65+"] || 0) + Number(buckets["55-64"] || 0);
+  }
+  return null;
+}
+export function getAgeYouthShare(buckets) {
+  if (!buckets || typeof buckets !== "object") return null;
+  // 5구간: 15-29 / 6구간: 18-24 + 25-34의 절반 근사 (15~29세 대응)
+  if (buckets["15-29"] != null) return buckets["15-29"];
+  if (buckets["18-24"] != null) {
+    return Number(buckets["18-24"] || 0) + Number(buckets["25-34"] || 0) * 0.5;
+  }
+  return null;
+}

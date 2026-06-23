@@ -2477,7 +2477,7 @@ function showTier3Modal(code, name){
           <strong style="color:#1E293B">제공 부재 항목</strong>
           <ul style="margin:6px 0 12px 18px;padding:0;color:#94A3B8">
             <li>페르소나 100명 합성 (AI 내러티브)</li>
-            <li>인터넷/소셜 미디어 사용 (DataReportal Digital 2026)</li>
+            <li>인터넷/소셜 미디어 사용 (DataReportal Digital 2025)</li>
             <li>가치관 (Hofstede / WVS)</li>
             <li>관심사 / 구매 행동 (GWI Pro 라이선스 필요)</li>
           </ul>
@@ -2756,7 +2756,7 @@ function renderChatTurn(t, idx){
     aHtml = idx === 0
       ? '<div class="cb-a-loading">'
         + '<span class="loader"></span>'
-        + '<div><div class="cb-a-loading-txt">AI가 정밀 분석 중입니다… (약 15~30초 소요) (약 15~30초 소요)</div>'
+        + '<div><div class="cb-a-loading-txt">AI가 정밀 분석 중입니다… (약 15~30초 소요)</div>'
         + '<div class="cb-a-loading-sub">데이터 해석 · 서술 · 차트 · 인용 적용</div></div>'
         + '</div>'
       : '<div class="cb-a-bubble cb-a-bubble-loading"><span class="loader"></span><span style="color:var(--tm)">답변 작성 중… (약 15~30초 소요)</span></div>';
@@ -2960,7 +2960,7 @@ function showJumpLoading(tab, q){
   const safeQ = (q || '질문').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
   const html = '<div class="aud-jump-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;background:#FAFBFF;border:1px dashed #C7D2FE;border-radius:14px;margin:14px 0">'
     + '<div style="width:42px;height:42px;border:4px solid #E0E7FF;border-top:4px solid #6366F1;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px"></div>'
-    + '<div style="font-size:16px;font-weight:700;color:#4338CA;margin-bottom:6px">AI 페르소나 패널 합성 중… (약 20~40초 소요) (약 30~60초 소요)</div>'
+    + '<div style="font-size:16px;font-weight:700;color:#4338CA;margin-bottom:6px">AI 페르소나 패널 합성 중… (약 30~60초 소요)</div>'
     + '<div style="font-size:13px;color:#4B5563;line-height:1.6;max-width:520px">"' + safeQ + '"<br/>→ <b>' + (tabLabels[tab] || tab) + '</b> 표준 분석 데이터를 생성하고 있습니다</div>'
     + '<div style="font-size:11px;color:#9CA3AF;margin-top:12px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
     + '</div>';
@@ -4989,7 +4989,7 @@ document.addEventListener('keydown', function(e){
 const LEARNED_PUBLIC_DATA_BLOCKS = [
   { l: 'PUBLIC DATA #1', t: 'World Bank Open Data', d: '인구·GDP·인터넷·도시화 표준·공개 거시 통계. 공식 라이선스 자유.' },
   { l: 'PUBLIC DATA #2', t: 'Statista 공개 통계', d: 'AMO 9세그먼트 분류 체계 + 시장 개요. 매체 분류 체계·시장 규모 지표.' },
-  { l: 'PUBLIC DATA #3', t: 'DataReportal Digital 2026', d: 'We Are Social × Meltwater 공개 협업 보고서. 매체별 사용률·일일 사용 시간 베이스라인.' },
+  { l: 'PUBLIC DATA #3', t: 'DataReportal Digital 2025', d: 'We Are Social × Meltwater 공개 협업 보고서. 매체별 사용률·일일 사용 시간 베이스라인.' },
   { l: 'PUBLIC DATA #4', t: 'Reuters Digital News Report', d: '로이터 저널리즘 연구소 공개 연도보. 매체별 신뢰도 지표.' },
 ];
 const AI_SYNTHETIC_MODEL_BLOCKS = [
@@ -6641,7 +6641,7 @@ async function refreshSummaryTab(){
     const topMedia = c.who && c.life ? '' : '';
     dims.innerHTML = `
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg><div class="sm-dim-t">인물상</div><button class="sm-dim-more" onclick="switchTab('who')">자세히 →</button></div><div class="sm-dim-stat">중위 연령 <b>${who.medianAge?.toFixed(1)||'—'}세</b> · 도시화 <b>${who.urbanRate?.toFixed(1)||'—'}%</b> · 부양비 <b>${who.dependencyRatio?.toFixed(1)||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: World Bank 2024-2025 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
-      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: DataReportal 2026 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
+      <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="sm-dim-t">라이프스타일</div><button class="sm-dim-more" onclick="switchTab('life')">자세히 →</button></div><div class="sm-dim-stat">인터넷 <b>${life.digital?.avgInternetHours?.toFixed(1)||'—'}h/일</b> · TV <b>${life.digital?.avgTVHours?.toFixed(1)||'—'}h/일</b> · 해외여행 <b>${life.travel?.international||'—'}%</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: DataReportal 2025 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2a7 7 0 0 0-4 12.74V19a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4.26A7 7 0 0 0 15 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg><div class="sm-dim-t">가치관</div><button class="sm-dim-more" onclick="switchTab('mind')">자세히 →</button></div><div class="sm-dim-stat">신뢰도 평균 <b>${trustAvg||'—'}점</b> · 개인주의 <b>${mind.culture?.individualism||'—'}</b> · 장기지향 <b>${mind.culture?.longTermOrientation||'—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Reuters DNR 2026 + Hofstede <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><div class="sm-dim-t">관심사</div><button class="sm-dim-more" onclick="switchTab('love')">자세히 →</button></div><div class="sm-dim-stat">Top 3: <b>${top3 || '—'}</b></div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: audience-public baseline 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
       <div class="sm-dim-card"><div class="sm-dim-hd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><div class="sm-dim-t">구매</div><button class="sm-dim-more" onclick="switchTab('buy')">자세히 →</button></div><div class="sm-dim-stat">이커머스 <b>${buy.ecommerce?.shareOfRetail||'—'}%</b> · 모바일 <b>${buy.ecommerce?.mobileShare||'—'}%</b> · 가격민감도 <b>${buy.psychology?.priceSensitivity||'—'}</b>${topCat?` · 주요 카테고리 <b>${typeof catLabel==='function'?catLabel(topCat[0]):topCat[0]}</b>`:''}</div><div style="font-size:10px;color:#9CA3AF;margin-top:6px;padding-top:6px;border-top:1px dashed #E5E7EB">출처: Statista + audience-public 2024 <span style="background:#F3F4F6;padding:1px 5px;border-radius:4px;color:#6B7280;font-weight:600">국가 baseline</span></div></div>
@@ -6665,7 +6665,7 @@ async function refreshSummaryTab(){
           const dig = life.digital;
           if(dig){
             stat = `인터넷 <b>${dig.avgInternetHours?.toFixed(1) || '—'}h/일</b> · TV <b>${dig.avgTVHours?.toFixed(1) || '—'}h/일</b>`;
-            src = 'DataReportal Digital 2026';
+            src = 'DataReportal Digital 2025';
             badge = 'DataReportal baseline';
           } else {
             stat = `<span style="color:#DC2626;font-size:11px;font-weight:600">데이터 부재 — 풀/광고비/라이프 모두 미수신</span>`;
@@ -6688,7 +6688,7 @@ async function refreshSummaryTab(){
   }
   // delta 카드 렌더 (비동기 fetch)
   if(deltas){
-    deltas.innerHTML = '<div class="sm-delta-empty">타겟 데이터 분석 중… (약 15~30초 소요) (약 5~10초 소요)</div>';
+    deltas.innerHTML = '<div class="sm-delta-empty">타겟 데이터 분석 중… (약 5~10초 소요)</div>';
     (async () => {
       try {
         const briefId = (state.briefId || state.currentBriefId || '');
@@ -6988,7 +6988,7 @@ async function _refreshAudienceTabFetch(dim){
     if(data.ok && data.source === 'persona-pool'){
       const badgeHtmlPp = renderPersonaBadgeHtml(data.badge);
       if(data.generating){
-        body.innerHTML = badgeHtmlPp + '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>AI 합성 페르소나 생성 중… (약 2~4분 소요) (약 2~4분 소요)</div>';
+        body.innerHTML = badgeHtmlPp + '<div class="aud-loading"><svg style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;animation:spin 1.2s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>AI 합성 페르소나 생성 중… (약 2~4분 소요)</div>';
         body.dataset.cacheKey = '';   // do not cache placeholder
         if(src) src.innerHTML = '<span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">' + (data.badge?.label||'') + '</span>';
         pollPersonaStatus();
