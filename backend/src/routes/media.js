@@ -51,9 +51,11 @@ function buildMediaBadge(pool, code) {
 
 // persona-pool media_diet 집계 → personaChannels 배열
 //   2026-06-23 (CEO 지시): 광고형식별 수용도(adReceptivity)도 포함. 차트5 persona-pool SoT.
-function buildPersonaChannels(pool) {
+//   2026-06-23 (CEO 지시): countryCode 전파 — 국가별 미디어 상품 화이트리스트만으로 집계.
+function buildPersonaChannels(pool, countryCode) {
   if (!pool || !pool.personas) return null;
-  const agg = aggregateMedia(pool.personas); // { total, channels:[...], adReceptivity:{total,formats} }
+  const cc = countryCode || pool.country || null;
+  const agg = aggregateMedia(pool.personas, cc); // { total, channels:[...], adReceptivity:{total,formats} }
   const total = agg.total || pool.count || 0;
   const channels = (agg.channels || []).map(c => ({
     channel: c.channel,
@@ -339,7 +341,8 @@ mediaRouter.get("/landscape", async (req, res) => {
 
   // CEO 2026-06-17 TASK D: briefId 없으면 공개통계 원래 응답, 있으면 personaChannels 추가
   const pool = loadPersonaPool(req, code);
-  const personaChannelsPayload = buildPersonaChannels(pool);
+  // 2026-06-23 (CEO 지시): country 전파 — 국가별 미디어 상품 화이트리스트 필터
+  const personaChannelsPayload = buildPersonaChannels(pool, code);
 
   // 2026-06-23 (CEO 지시): persona-pool 모드에서는 시장지표(trust/spend) 제거, 타겟 기준(페르소나 풌) 차트가 메인.
   //   personaChart: 프론트가 바로 그릴 수 있는 페르소나 기반 차트 데이터 (reach/시청시간/광고수용도).
@@ -468,7 +471,8 @@ mediaRouter.get("/taxonomy", async (req, res) => {
   });
 
   const poolTax = loadPersonaPool(req, code);
-  const personaChannelsTax = buildPersonaChannels(poolTax);
+  // 2026-06-23 (CEO 지시): country 전파 — 국가별 미디어 상품 화이트리스트 필터
+  const personaChannelsTax = buildPersonaChannels(poolTax, code);
 
   res.json({
     ok: true,

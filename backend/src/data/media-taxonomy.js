@@ -481,6 +481,119 @@ export const COUNTRY_MEDIA_OVERRIDES = {
   },
 };
 
+// 2026-06-23 (CEO 지시): 미디어 차트 화이트리스트 빌더
+//   목적: 페르소나가 적은 채널이 "미디어 상품"인지 판정 (쇼핑/브랜드/커머스 제외)
+//   원칙: CHANNELS 라벨 + 일반 카테고리 별칭 + 국가코드 필터
+//   - 라벨에 국가 괄호가 없으면 글로벌 (모든 국가 허용)
+//   - 라벨에 "(KR)", "(JP)", "(CN)" 등 괄호 국가코드가 있으면 해당 국가만 허용
+//   - 일반 카테고리("음악 스트리밍", "팟캐스트", "라디오", "TV", "신문", "포털/뉴스", "옥외광고(OOH)")는 미디어 성격이므로 글로벌 허용
+
+// 라벨에서 "X" 또는 "X (CC)" 형태 파싱 → { name, countryCode | null }
+function parseLabelCountry(label) {
+  if (!label || typeof label !== "string") return { name: "", countryCode: null };
+  // 괄호 안 첫 2-3 글자 영문 대문자 코드만 국가코드로 인식 (예 "(KR)", "(JP)")
+  // "(Xiaohongshu, CN)" 같이 쉼표 뒤 코드도 처리
+  const m = label.match(/[（(]([^()）]*)[）)]\s*$/);
+  let countryCode = null;
+  let name = label.trim();
+  if (m) {
+    const inside = m[1].trim();
+    // 쉼표 분리 후 마지막 토큰이 2-3 글자 대문자면 국가코드
+    const tokens = inside.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    const last = tokens[tokens.length - 1] || "";
+    if (/^[A-Z]{2,3}$/.test(last)) {
+      countryCode = last;
+      // 이름은 괄호 떼고 정리 (괄호 안에 다른 텍스트 있으면 그건 부가 정보)
+      name = label.replace(/[（(][^()）]*[）)]\s*$/, "").trim();
+    }
+  }
+  return { name, countryCode };
+}
+
+// 미디어 일반 카테고리 별칭 (페르소나가 장르/카테고리로 적은 일반 표현 → 미디어로 인정)
+// canonicalizeChannel이 통합하는 일반 카테고리와 동일 명칭. 글로벌 허용.
+const GENERIC_MEDIA_ALIASES = [
+  "TV", "라디오", "신문", "옥외광고(OOH)", "팟캐스트", "포털/뉴스", "음악 스트리밍",
+  // 페르소나가 자연어로 적을 수 있는 추가 표현 (canonicalize가 흡수하지 못한 경우 대비)
+  "뉴스", "커뮤니티", "잡지", "OTT",
+];
+
+// canonicalizeChannel의 결과 별칭 (한글 명칭 / 로컬라이즈 명칭).
+// CHANNELS는 대부분 영문 라벨이지만 canonicalize가 한글 명칭으로 정규화함(예: Melon → 멜론).
+// 또한 CHANNELS에 등록되지 않은 주요 OTT/메시지(Coupang Play, 티빙, 웨이브, 왬차, Threads 등) 포함.
+const CANONICAL_MEDIA_ALIASES = {
+  // CHANNELS의 KR용 OTT/음악 한글 별칭 (KR에서만)
+  KR: [
+    "멜론", "지니뮤직", "FLO", "Tving", "Wavve", "Watcha", "Coupang Play",
+  ],
+  // CHANNELS의 JP용
+  JP: [
+    "U-NEXT", "ABEMA", "niconico", "Yahoo! Japan",
+  ],
+  // CHANNELS의 CN용 영문 명칭 / canonicalize 결과
+  CN: [
+    "Xiaohongshu", "Douyin", "Bilibili", "Kuaishou", "Zhihu",
+  ],
+  // 글로벌 별칭 (모든 국가)
+  GLOBAL: [
+    "Disney+", "X (Twitter)", "YouTube Music", "Apple Music", "Threads",
+    "Spotify Podcasts", "Apple Podcasts",
+  ],
+};
+
+// 라벨 → 매칭 키 변환 (소문자 + 공백 정리, 비교용)
+function normalizeKey(s) {
+  return String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/**
+ * 미디어 상품 화이트리스트 (Set) 반환.
+ *   - CHANNELS의 모든 media.label을 정규화하여 포함
+ *   - 라벨에 국가 괄호가 있으면 해당 countryCode와 일치할 때만 포함 (글로벌이면 무조건 포함)
+ *   - GENERIC_MEDIA_ALIASES는 글로벌 (모든 국가)
+ * @param {string} countryCode - "KR", "CN", "JP", "US" 등. 없으면 글로벌만.
+ * @returns {Set<string>} 정규화된 매칭 키 Set
+ */
+export function mediaProductWhitelist(countryCode) {
+  const cc = countryCode ? String(countryCode).toUpperCase() : null;
+  const out = new Set();
+  for (const ch of CHANNELS) {
+    for (const sub of ch.subchannels || []) {
+      for (const m of sub.media || []) {
+        const { name, countryCode: labelCc } = parseLabelCountry(m.label);
+        // 국가코드 없는 라벨 = 글로벌 (모든 국가 허용)
+        // 국가코드 있는 라벨 = 해당 국가일 때만
+        if (!labelCc || (cc && labelCc === cc)) {
+          if (name) out.add(normalizeKey(name));
+          // 원본 라벨 그대로도 등록 ("Melon (KR)" 같이 페르소나가 전체 표기 쓸 가능성)
+          out.add(normalizeKey(m.label));
+        }
+      }
+    }
+  }
+  // 일반 미디어 카테고리 별칭 (글로벌)
+  for (const alias of GENERIC_MEDIA_ALIASES) out.add(normalizeKey(alias));
+  // canonicalize 결과 별칭 — 글로벌 + 해당 국가
+  for (const alias of CANONICAL_MEDIA_ALIASES.GLOBAL) out.add(normalizeKey(alias));
+  if (cc && CANONICAL_MEDIA_ALIASES[cc]) {
+    for (const alias of CANONICAL_MEDIA_ALIASES[cc]) out.add(normalizeKey(alias));
+  }
+  // countryCode 없으면(글로벌 연산): 국가별 별칭은 제외 (채연이 KR 전용 멜론을 글로벌로 술지 않도록)
+  return out;
+}
+
+/**
+ * 채널명이 미디어 상품 화이트리스트에 속하는지 판정.
+ *   canonicalizeChannel 결과 또는 원본 채널명을 받아 화이트리스트와 매칭.
+ * @param {string} channel - 채널명 (canonical 또는 원본)
+ * @param {Set<string>} whitelist - mediaProductWhitelist() 결과
+ * @returns {boolean}
+ */
+export function isMediaProduct(channel, whitelist) {
+  if (!channel || !whitelist) return false;
+  return whitelist.has(normalizeKey(channel));
+}
+
 // 모든 미디어를 플랫 리스트로 추출 (도달 계산용)
 export function flattenMedia() {
   const out = [];

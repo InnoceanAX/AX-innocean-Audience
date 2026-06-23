@@ -1,7 +1,8 @@
 // persona-aggregator.js
 // Stage 3 — Pure functional aggregator that turns N merged personas into
 // 6 dashboard tabs (WHO/LIFE/MIND/LOVE/BUY/MEDIA).
-import { canonicalizePersonaMedia } from "./channel-canon.js";
+import { canonicalizePersonaMedia, canonicalizeChannel } from "./channel-canon.js";
+import { mediaProductWhitelist, isMediaProduct } from "../data/media-taxonomy.js";
 
 function tally(items, keyFn) {
   const m = new Map();
@@ -196,14 +197,34 @@ export function aggregateBuy(personas) {
 }
 
 // MEDIA — media_diet aggregated (channel → total hours and avg hours)
-export function aggregateMedia(personasRaw) {
+// 2026-06-23 (CEO 지시): 미디어 차트에서 제외할 순수 쇼핑/커머스 플랫폼.
+//   이들은 미디어(영상/SNS/검색/OTT/음악/뉴스)가 아니라 구매 채널 → 미디어 집계에서 빼다.
+//   (주의: "Coupang Play"는 OTT라 유지, 일반 "Coupang"만 제외)
+const MEDIA_EXCLUDE_SHOPPING = new Set([
+  "Musinsa", "Coupang", "11번가", "G마켓", "옥션", "위메프", "SSG", "SSG.COM", "Gmarket",
+  "29CM", "Zigzag", "지그재그", "아이허브", "패션 전문 앤", "패션앤", "패션 앤",
+  "당근마켓", "번개장터", "올리브영", "오늘의집", "클러스타", "Ably", "에이블리",
+  "Amazon", "아마존", "Taobao", "Tmall", "Rakuten", "Mercari", "Shopee", "Lazada",
+]);
+
+// 2026-06-23 (CEO 지시): country 인자 추가. 미디어 차트 = "국가별 미디어 상품 화이트리스트"만으로 구성.
+//   CHANNELS(95개 미디어 상품) + 국가코드 기반. 무신사/특정 브랜드 하드코딩 분기 없음.
+export function aggregateMedia(personasRaw, countryCode) {
   // 2026-06-23 (CEO 지시): 채널명 정규화 — LLM 표기 흔들림("YouTube (패션)" 등) 통합.
   const personas = canonicalizePersonaMedia(personasRaw);
   const total = personas.length;
+  // CEO 2026-06-23: 국가별 미디어 상품 화이트리스트 구성
+  const whitelist = mediaProductWhitelist(countryCode);
   const sums = new Map(); // channel → { totalHours, mentions }
   for (const p of personas) {
     for (const m of p.media_diet || []) {
       if (!m || !m.channel) continue;
+      // 보조 블랙리스트 (화이트리스트 통과 전 안전망) — 순수 쇼핑/커머스 차단
+      if (MEDIA_EXCLUDE_SHOPPING.has(m.channel)) continue;
+      // CEO 2026-06-23: 화이트리스트 기반 주필터 — 국가별 미디어 상품만 집계
+      //   canonical 또는 원본이 화이트리스트에 있어야 인정
+      const canon = canonicalizeChannel(m.channel) || m.channel;
+      if (!isMediaProduct(canon, whitelist) && !isMediaProduct(m.channel, whitelist)) continue;
       const cur = sums.get(m.channel) || { totalHours: 0, mentions: 0 };
       cur.totalHours += Number(m.hoursPerDay) || 0;
       cur.mentions += 1;
@@ -247,14 +268,15 @@ export function aggregateAdReceptivity(personas) {
 }
 
 // Bundle all 6 tabs for one scope (country or "all")
-export function aggregateAll(personas) {
+// 2026-06-23 (CEO 지시): aggregateMedia에 countryCode 전파
+export function aggregateAll(personas, countryCode) {
   return {
     who:   aggregateWho(personas),
     life:  aggregateLife(personas),
     mind:  aggregateMind(personas),
     love:  aggregateLove(personas),
     buy:   aggregateBuy(personas),
-    media: aggregateMedia(personas),
+    media: aggregateMedia(personas, countryCode),
   };
 }
 
@@ -268,8 +290,10 @@ export function buildInsightPayload(personas) {
     groups.get(cc).push(p);
   }
   for (const [cc, list] of groups.entries()) {
-    byCountry[cc] = aggregateAll(list);
+    // 국가별 집계: 해당 cc 전달 (?? = 알 수 없음, 글로벌만 매칭)
+    byCountry[cc] = aggregateAll(list, cc === "??" ? null : cc);
   }
-  const all = aggregateAll(personas);
+  // 전체 byTab: country 없음 (글로벌 채널만 적용)
+  const all = aggregateAll(personas, null);
   return { byCountry, byTab: all, total: personas.length };
 }
