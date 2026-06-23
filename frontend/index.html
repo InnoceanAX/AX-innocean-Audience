@@ -10852,7 +10852,11 @@ async function pollPersonaStatus(){
         // CEO 2026-06-23: media 탭은 별도 함수(refreshMediaTab) 사용 — 완료 시 미디어 탭도 persona-pool 재로드
         const _curTab = state.currentTab;
         if(_curTab === 'media' && typeof refreshMediaTab === 'function'){
+          // CEO 2026-06-24: 미디어 탭에 머물러 있는 채 완료된 경우 — 낡은 캐시/게이트 race로 "분석중"에 갇히는 버그.
+          //   캐시 키를 비워 강제 fresh fetch + 다음 틱에 한번 더 재호출(브리프 전파 지연 대비).
+          state._mediaCacheKey = null;
           refreshMediaTab();
+          setTimeout(()=>{ try{ if(state.currentTab==='media') refreshMediaTab(); }catch(e){} }, 600);
         } else if(typeof _refreshAudienceTabFetch === 'function' && _curTab){
           const dim = ['who','life','mind','love','buy'].includes(_curTab) ? _curTab : null;
           if(dim){
