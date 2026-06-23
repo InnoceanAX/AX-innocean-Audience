@@ -8511,15 +8511,23 @@ function _ppSummary(envelope){
 
 // CEO 2026-06-23: persona-pool 경로용 "AI 합성 소비자 추정치" 파란박스 (인물상~미디어 차트 상단).
 //   각 탭 핵심 요약을 파란박스에 담음. 차트 위 KPI 네모박스는 제거하고 이 박스로 대체.
-function _ppTopList(dist, n){
-  // dist: {key:{count,share}} 또는 [{key,count,share}] → 'A 41% · B 59%' 형태 상위 n
+function _ppTopList(dist, n, labelMap){
+  // dist: {key:{count,share}} 또는 [{key,count,share}] → 'A 41% · B 59%' 형태 상위 n.
+  // share=0인 항목은 자동 제거. labelMap이 있으면 key 표시명 치환.
   let arr = Array.isArray(dist) ? dist.slice() : _ppDistEntries(dist);
-  arr = arr.filter(x => x && (x.key!=null)).slice(0, n||3);
-  return arr.map(x => `${_ppEscape(x.key)} <b>${((x.share||0)*100).toFixed(0)}%</b>`).join(' · ');
+  arr = arr.filter(x => x && (x.key!=null) && ((x.share||0) > 0)).slice(0, n||3);
+  return arr.map(x => {
+    const lbl = (labelMap && labelMap[x.key]) ? labelMap[x.key] : x.key;
+    return `${_ppEscape(lbl)} <b>${((x.share||0)*100).toFixed(0)}%</b>`;
+  }).join(' · ');
 }
 function _ppTopActivities(actObj, n){
+  // {name: score} numeric → 'A 84 · B 75 · C 63'. score=0인 항목 제거.
   if(!actObj || typeof actObj!=='object') return '';
-  return Object.entries(actObj).sort((a,b)=>b[1]-a[1]).slice(0,n||3)
+  return Object.entries(actObj)
+    .filter(([k,v]) => Number(v||0) > 0)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,n||3)
     .map(([k,v]) => `${_ppEscape(k)} <b>${Number(v||0).toFixed(0)}</b>`).join(' · ');
 }
 function _ppMeanLikert(dist){
@@ -8530,37 +8538,52 @@ function _ppMeanLikert(dist){
   return n? (sum/n) : null;
 }
 function _ppSynthBox(dim, envelope){
+  // CEO 2026-06-23: 각 탭 파란박스를 그 탭에 실제 표시되는 차트와 1:1 매칭.
+  //   차트 없는 항목(지역/라이프스타일태그/topValuesTags/선호브랜드/가격민감도/쇼핑성향 등)은 제거.
+  //   차트에 있는데 박스에 빠진 항목(학력/도시규모/여행패턴/식생활/운동빈도/Big5/인플루언서/스포츠/결제/쇼핑채널/구매빈도/소비프로파일)은 추가.
+  //   share=0 또는 score=0 무의미 항목은 helper에서 자동 제외.
   const d = envelope.data || {};
   const cc = envelope.country || '';
   const cnt = envelope.count || 0;
   const rows = [];
   if(dim === 'who'){
-    const age = _ppTopList(d.age, 2);
-    const gen = (()=>{ const g=_ppDistEntries(d.gender); const f=g.find(x=>x.key==='female'); const m=g.find(x=>x.key==='male'); return f&&m? `여 ${(f.share*100).toFixed(0)}% · 남 ${(m.share*100).toFixed(0)}%`:''; })();
-    const reg = _ppTopList(d.region, 2);
-    if(age) rows.push(['연령', age]);
+    // 차트: 연령/직업/소득/학력/도시규모/성별 → 박스 5개 핵심 (연령·성별·소득·학력·직업)
+    const age = _ppTopList(d.age, 2); if(age) rows.push(['연령', age]);
+    const gen = (()=>{ const g=_ppDistEntries(d.gender); const f=g.find(x=>x.key==='female'); const m=g.find(x=>x.key==='male'); return f&&m? `여 <b>${(f.share*100).toFixed(0)}%</b> · 남 <b>${(m.share*100).toFixed(0)}%</b>`:''; })();
     if(gen) rows.push(['성별', gen]);
-    if(reg) rows.push(['주요 지역', reg]);
+    const incMap = { Q1:'Q1(최하위)', Q2:'Q2(하위)', Q3:'Q3(중위)', Q4:'Q4(상위)', Q5:'Q5(최상위)' };
+    const inc = _ppTopList(d.income, 2, incMap); if(inc) rows.push(['소득', inc]);
+    const eduMap = { highSchool:'고졸', bachelor:'학사', vocational:'전문학사', postgrad:'대학원' };
+    const edu = _ppTopList(d.education, 2, eduMap); if(edu) rows.push(['학력', edu]);
     const occ = _ppTopList(d.occupation, 2); if(occ) rows.push(['직업', occ]);
   } else if(dim === 'life'){
-    const tags = _ppTopList(d.topLifestyleTags, 3); if(tags) rows.push(['라이프스타일', tags]);
-    const acts = _ppTopActivities(d.activities, 3); if(acts) rows.push(['주요 활동(관심도)', acts]);
-    const food = _ppTopList(d.foodHabit, 2); if(food) rows.push(['식습관', food]);
+    // 차트: 활동관심도(radar)/여행패턴/활동시간대/식생활/운동빈도/여행빈도
+    const acts = _ppTopActivities(d.activities, 3); if(acts) rows.push(['활동 관심도', acts]);
+    const food = _ppTopList(d.foodHabit, 2); if(food) rows.push(['식생활', food]);
+    const day = _ppTopList(d.activeDaypart, 2); if(day) rows.push(['활동 시간대', day]);
+    const trv = _ppTopList(d.travelType, 2); if(trv) rows.push(['여행 패턴', trv]);
+    const tfq = _ppTopList(d.travelFreq, 2); if(tfq) rows.push(['여행 빈도', tfq]);
   } else if(dim === 'mind'){
-    const vals = _ppTopList(d.topValuesTags, 3); if(vals) rows.push(['핵심 가치', vals]);
-    const sty = _ppTopList(d.shoppingStyle, 2); if(sty) rows.push(['쇼핑 성향', sty]);
-    const cv = _ppTopActivities(d.coreValues, 3); if(cv) rows.push(['가치 점수', cv]);
+    // 차트: 핵심가치(radar)/마인드셋(radar)/사회관심사/의사결정스타일/정보소비채널/Big5(radar)
+    const cv = _ppTopActivities(d.coreValues, 3); if(cv) rows.push(['핵심 가치', cv]);
+    const ms = _ppTopActivities(d.mindset, 3); if(ms) rows.push(['마인드셋', ms]);
+    const bf = _ppTopActivities(d.bigFive, 3); if(bf) rows.push(['성격(Big5)', bf]);
+    const dec = _ppTopList(d.decisionStyle, 2); if(dec) rows.push(['의사결정 스타일', dec]);
+    const info = _ppTopList(d.infoSource, 2); if(info) rows.push(['정보 소비 채널', info]);
   } else if(dim === 'love'){
-    const intr = _ppTopList(d.interests, 3); if(intr) rows.push(['관심사', intr]);
-    const brand = Array.isArray(d.topBrandAffinity)&&d.topBrandAffinity.length ? d.topBrandAffinity.slice(0,3).map(b=>`${_ppEscape(b.brand)}`).join(' · ') : '';
-    if(brand) rows.push(['선호 브랜드', brand]);
+    // 차트: 관심사(radar/bar)/음악장르/콘텐츠장르/인플루언서/스포츠(radar)
+    const intr = _ppTopActivities(d.interests, 3); if(intr) rows.push(['관심사', intr]);
     const mus = _ppTopList(d.musicGenre, 2); if(mus) rows.push(['음악 장르', mus]);
+    const ctn = _ppTopList(d.contentGenre, 2); if(ctn) rows.push(['콘텐츠 장르', ctn]);
+    const inf = _ppTopList(d.influencerType, 2); if(inf) rows.push(['인플루언서', inf]);
+    const spt = _ppTopActivities(d.sportsAffinity, 3); if(spt) rows.push(['스포츠 친밀도', spt]);
   } else if(dim === 'buy'){
-    const ps = _ppMeanLikert(d.priceSensitivity); if(ps!=null) rows.push(['가격 민감도', `${ps.toFixed(1)}/5`]);
-    const brand = Array.isArray(d.topBrandAffinity)&&d.topBrandAffinity.length ? d.topBrandAffinity.slice(0,3).map(b=>`${_ppEscape(b.brand)}`).join(' · ') : '';
-    if(brand) rows.push(['선호 브랜드', brand]);
-    const sty = _ppTopList(d.shoppingStyle, 2); if(sty) rows.push(['쇼핑 성향', sty]);
-    const cat = _ppTopList(d.purchaseCategories, 2); if(cat) rows.push(['구매 카테고리', cat]);
+    // 차트: 구매카테고리/결제수단/쇼핑채널/구매의사결정(radar)/구매빈도/소비프로파일(radar)
+    const cat = _ppTopActivities(d.purchaseCategories, 3); if(cat) rows.push(['구매 카테고리', cat]);
+    const bf = _ppTopActivities(d.buyFactors, 3); if(bf) rows.push(['구매 의사결정', bf]);
+    const pay = _ppTopList(d.paymentMethod, 2); if(pay) rows.push(['결제 수단', pay]);
+    const ch = _ppTopList(d.shoppingChannel, 2); if(ch) rows.push(['쇼핑 채널', ch]);
+    const fq = _ppTopList(d.purchaseFreq, 2); if(fq) rows.push(['구매 빈도', fq]);
   } else if(dim === 'media'){
     const ch = Array.isArray(d.channels)? d.channels.slice(0,3) : [];
     if(ch.length) rows.push(['주요 채널', ch.map(c=>`${_ppEscape(c.channel)} ${Number(c.avgHoursPerDay||0).toFixed(1)}h`).join(' · ')]);
