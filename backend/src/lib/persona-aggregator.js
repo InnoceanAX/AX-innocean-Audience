@@ -50,7 +50,25 @@ export function aggregateWho(personas) {
   return { total, age, gender, region, income, education, occupation, cityTier };
 }
 
-// LIFE — lifestyle_tags top + occupation distribution
+// 2026-06-23: 점수형 객체 키별 평균 계산 헬퍼.
+//   p[field] = { keyA: 0~100, keyB: ... } 구조의 100명 평균을 동일 스키마로 난 하나의 객체로.
+function avgScoreObject(personas, field, keys) {
+  const sums = {}; const counts = {};
+  for (const k of keys) { sums[k] = 0; counts[k] = 0; }
+  for (const p of personas) {
+    const obj = p && p[field];
+    if (!obj || typeof obj !== "object") continue;
+    for (const k of keys) {
+      const v = Number(obj[k]);
+      if (Number.isFinite(v)) { sums[k] += v; counts[k] += 1; }
+    }
+  }
+  const out = {};
+  for (const k of keys) out[k] = counts[k] ? Math.round((sums[k] / counts[k]) * 10) / 10 : 0;
+  return out;
+}
+
+// LIFE — lifestyle_tags top + occupation distribution + baseline 차트 6개
 export function aggregateLife(personas) {
   const total = personas.length;
   const tags = new Map();
@@ -59,10 +77,19 @@ export function aggregateLife(personas) {
   }
   const topLifestyleTags = toRanked(tags, { topN: 20 });
   const occupation = distribution(tally(personas, p => p.occupationLabel || p.occupation), { total });
-  return { total, topLifestyleTags, occupation };
+  // 2026-06-23 baseline 차트 6개 집계
+  const LIFE_ACTIVITIES_KEYS = ["운동","독서","게임","여행","외식","쇼핑"];
+  const activities = avgScoreObject(personas, "activities", LIFE_ACTIVITIES_KEYS);
+  const travelType = distribution(tally(personas, p => p.travelType), { total });
+  const activeDaypart = distribution(tally(personas, p => p.activeDaypart), { total });
+  const foodHabit = distribution(tally(personas, p => p.foodHabit), { total });
+  const wellnessFreq = distribution(tally(personas, p => p.wellnessFreq), { total });
+  const travelFreq = distribution(tally(personas, p => p.travelFreq), { total });
+  return { total, topLifestyleTags, occupation,
+    activities, travelType, activeDaypart, foodHabit, wellnessFreq, travelFreq };
 }
 
-// MIND — values_tags top + shopping_style distribution
+// MIND — values_tags top + shopping_style distribution + baseline 차트 6개
 export function aggregateMind(personas) {
   const total = personas.length;
   const vals = new Map();
@@ -71,7 +98,18 @@ export function aggregateMind(personas) {
   }
   const topValuesTags = toRanked(vals, { topN: 20 });
   const shoppingStyle = distribution(tally(personas, p => p.shopping_style), { total });
-  return { total, topValuesTags, shoppingStyle };
+  // 2026-06-23 baseline 차트 6개 집계
+  const MIND_CORE_KEYS = ["성취","안정","자유","관계","성장"];
+  const MIND_MINDSET_KEYS = ["브랜드신뢰","리스크수용","미래낙관","개인낙관","스트레스"];
+  const MIND_BIG5_KEYS = ["개방성","성실성","외향성","우호성","신경성"];
+  const coreValues = avgScoreObject(personas, "coreValues", MIND_CORE_KEYS);
+  const mindset = avgScoreObject(personas, "mindset", MIND_MINDSET_KEYS);
+  const bigFive = avgScoreObject(personas, "bigFive", MIND_BIG5_KEYS);
+  const socialConcern = distribution(tally(personas, p => p.socialConcern), { total });
+  const decisionStyle = distribution(tally(personas, p => p.decisionStyle), { total });
+  const infoSource = distribution(tally(personas, p => p.infoSource), { total });
+  return { total, topValuesTags, shoppingStyle,
+    coreValues, mindset, bigFive, socialConcern, decisionStyle, infoSource };
 }
 
 // LOVE — K-fashion vs general fashion interest histograms + top brand_affinity
@@ -110,7 +148,17 @@ export function aggregateLove(personas) {
     .sort((a, b) => (b.mentions * b.avgScore) - (a.mentions * a.avgScore))
     .slice(0, 15);
 
-  return { total, kFashionHistogram, fashionHistogram, kCultureHistogram, topBrandAffinity };
+  // 2026-06-23 baseline 차트 6개 집계 (love)
+  const LOVE_INTERESTS_KEYS = ["패션","뷰티","테크","음식","여행","운동","게임","문화"];
+  const LOVE_SPORTS_KEYS = ["축구","야구","농구","골프","홈트"];
+  const interests = avgScoreObject(personas, "interests", LOVE_INTERESTS_KEYS);
+  const sportsAffinity = avgScoreObject(personas, "sportsAffinity", LOVE_SPORTS_KEYS);
+  const musicGenre = distribution(tally(personas, p => p.musicGenre), { total });
+  const contentGenre = distribution(tally(personas, p => p.contentGenre), { total });
+  const influencerType = distribution(tally(personas, p => p.influencerType), { total });
+
+  return { total, kFashionHistogram, fashionHistogram, kCultureHistogram, topBrandAffinity,
+    interests, sportsAffinity, musicGenre, contentGenre, influencerType };
 }
 
 // BUY — price_sensitivity distribution + top brand_affinity + shopping_style
@@ -133,7 +181,18 @@ export function aggregateBuy(personas) {
     .sort((a, b) => (b.mentions * b.avgScore) - (a.mentions * a.avgScore))
     .slice(0, 10);
   const shoppingStyle = distribution(tally(personas, p => p.shopping_style), { total });
-  return { total, priceSensitivity, topBrandAffinity, shoppingStyle };
+  // 2026-06-23 baseline 차트 6개 집계 (buy)
+  const BUY_CAT_KEYS = ["의류","뷰티","전자","식품","리빙","여행","문화","건강"];
+  const BUY_FACTORS_KEYS = ["가격","품질","브랜드","리뷰","디자인","배송"];
+  const BUY_PROFILE_KEYS = ["가격민감","브랜드충성","할인민감","리뷰영향","브랜드전환","윤리소비"];
+  const purchaseCategories = avgScoreObject(personas, "purchaseCategories", BUY_CAT_KEYS);
+  const buyFactors = avgScoreObject(personas, "buyFactors", BUY_FACTORS_KEYS);
+  const buyProfile = avgScoreObject(personas, "buyProfile", BUY_PROFILE_KEYS);
+  const paymentMethod = distribution(tally(personas, p => p.paymentMethod), { total });
+  const shoppingChannel = distribution(tally(personas, p => p.shoppingChannel), { total });
+  const purchaseFreq = distribution(tally(personas, p => p.purchaseFreq), { total });
+  return { total, priceSensitivity, topBrandAffinity, shoppingStyle,
+    purchaseCategories, buyFactors, buyProfile, paymentMethod, shoppingChannel, purchaseFreq };
 }
 
 // MEDIA — media_diet aggregated (channel → total hours and avg hours)

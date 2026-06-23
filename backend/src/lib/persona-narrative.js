@@ -49,11 +49,108 @@ const NARRATIVE_SCHEMA_ITEM = {
       },
       required: ["영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"],
     },
+    // 2026-06-23 (CEO 지시): 4개 탭 baseline 차트(탭당 6개) persona-pool SoT 확장.
+    // life — 활동 점수(radar) + 4종 dist + travelType
+    activities: {
+      type: "object",
+      properties: {
+        "운동": { type: "number" }, "독서": { type: "number" }, "게임": { type: "number" },
+        "여행": { type: "number" }, "외식": { type: "number" }, "쇼핑": { type: "number" },
+      },
+      required: ["운동", "독서", "게임", "여행", "외식", "쇼핑"],
+    },
+    travelType: { type: "string" },     // 국내|해외|국내+해외
+    activeDaypart: { type: "string" },   // 아침|낮|저녁|밤
+    foodHabit: { type: "string" },       // 집밥|외식|배달|간편식
+    wellnessFreq: { type: "string" },    // 안함|주1-2|주3-4|매일
+    travelFreq: { type: "string" },      // 연1회미만|연1-2회|연3-4회|연5회+
+    // mind — coreValues + mindset radar + 4종 dist + bigFive
+    coreValues: {
+      type: "object",
+      properties: {
+        "성취": { type: "number" }, "안정": { type: "number" }, "자유": { type: "number" },
+        "관계": { type: "number" }, "성장": { type: "number" },
+      },
+      required: ["성취", "안정", "자유", "관계", "성장"],
+    },
+    mindset: {
+      type: "object",
+      properties: {
+        "브랜드신뢰": { type: "number" }, "리스크수용": { type: "number" },
+        "미래낙관": { type: "number" }, "개인낙관": { type: "number" }, "스트레스": { type: "number" },
+      },
+      required: ["브랜드신뢰", "리스크수용", "미래낙관", "개인낙관", "스트레스"],
+    },
+    socialConcern: { type: "string" },   // 환경|공정|다양성|동물복지
+    decisionStyle: { type: "string" },   // 직관|분석|추천의존|가격우선
+    infoSource: { type: "string" },      // SNS|검색|지인|전문매체
+    bigFive: {
+      type: "object",
+      properties: {
+        "개방성": { type: "number" }, "성실성": { type: "number" }, "외향성": { type: "number" },
+        "우호성": { type: "number" }, "신경성": { type: "number" },
+      },
+      required: ["개방성", "성실성", "외향성", "우호성", "신경성"],
+    },
+    // love — interests radar/bar + music/content/influencer dist + sportsAffinity radar
+    interests: {
+      type: "object",
+      properties: {
+        "패션": { type: "number" }, "뷰티": { type: "number" }, "테크": { type: "number" },
+        "음식": { type: "number" }, "여행": { type: "number" }, "운동": { type: "number" },
+        "게임": { type: "number" }, "문화": { type: "number" },
+      },
+      required: ["패션", "뷰티", "테크", "음식", "여행", "운동", "게임", "문화"],
+    },
+    musicGenre: { type: "string" },      // K-pop|팝|힙합|인디|클래식|발라드
+    contentGenre: { type: "string" },    // 드라마|예능|영화|다큐|스포츠중계|애니
+    influencerType: { type: "string" },  // 메가|마이크로|전문가|연예인
+    sportsAffinity: {
+      type: "object",
+      properties: {
+        "축구": { type: "number" }, "야구": { type: "number" }, "농구": { type: "number" },
+        "골프": { type: "number" }, "홈트": { type: "number" },
+      },
+      required: ["축구", "야구", "농구", "골프", "홈트"],
+    },
+    // buy — categories + 3종 dist + buyFactors + buyProfile
+    purchaseCategories: {
+      type: "object",
+      properties: {
+        "의류": { type: "number" }, "뷰티": { type: "number" }, "전자": { type: "number" },
+        "식품": { type: "number" }, "리빙": { type: "number" }, "여행": { type: "number" },
+        "문화": { type: "number" }, "건강": { type: "number" },
+      },
+      required: ["의류", "뷰티", "전자", "식품", "리빙", "여행", "문화", "건강"],
+    },
+    paymentMethod: { type: "string" },   // 신용카드|간편결제|체크카드|현금
+    shoppingChannel: { type: "string" }, // 온라인몰|앱|오프라인|라이브커머스
+    purchaseFreq: { type: "string" },    // 주1회+|월2-3회|월1회|분기1회
+    buyFactors: {
+      type: "object",
+      properties: {
+        "가격": { type: "number" }, "품질": { type: "number" }, "브랜드": { type: "number" },
+        "리뷰": { type: "number" }, "디자인": { type: "number" }, "배송": { type: "number" },
+      },
+      required: ["가격", "품질", "브랜드", "리뷰", "디자인", "배송"],
+    },
+    buyProfile: {
+      type: "object",
+      properties: {
+        "가격민감": { type: "number" }, "브랜드충성": { type: "number" }, "할인민감": { type: "number" },
+        "리뷰영향": { type: "number" }, "브랜드전환": { type: "number" }, "윤리소비": { type: "number" },
+      },
+      required: ["가격민감", "브랜드충성", "할인민감", "리뷰영향", "브랜드전환", "윤리소비"],
+    },
   },
   required: [
     "persona_id", "quote", "jobs_to_be_done", "pain_points",
     "media_diet", "brand_affinity", "lifestyle_tags", "values_tags",
     "shopping_style", "price_sensitivity", "ad_receptivity",
+    "activities", "travelType", "activeDaypart", "foodHabit", "wellnessFreq", "travelFreq",
+    "coreValues", "mindset", "socialConcern", "decisionStyle", "infoSource", "bigFive",
+    "interests", "musicGenre", "contentGenre", "influencerType", "sportsAffinity",
+    "purchaseCategories", "paymentMethod", "shoppingChannel", "purchaseFreq", "buyFactors", "buyProfile",
   ],
 };
 
@@ -94,6 +191,31 @@ ${personaLines}
 - shopping_style: 정확히 하나 [bargain-hunter|brand-loyal|trend-chaser|value-seeker|curator]
 - price_sensitivity: 1~5 정수
 - ad_receptivity: 이 사람의 광고형식별 수용도(0~100 정수). 5개 키 모두 필수: {"영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"}. 이 사람의 연령·미디어 소비 성향에 맞게 차등 부여 (예: 소셜 많이 보면 소셜 피드·인플루언서 높게).
+
+[2026-06-23 확장 — 4개 탭(life/mind/love/buy) baseline 차트용 필수 필드. 모든 값은 한국어, 점수는 0~100 정수, dist는 정해진 enum 중 하나]
+- activities (life): 활동별 관심도 점수 0~100 정수. 키 6개 필수: {"운동","독서","게임","여행","외식","쇼핑"}
+- travelType (life): 여행 패턴 enum 하나 ["국내","해외","국내+해외"]
+- activeDaypart (life): 활동 시간대 enum 하나 ["아침","낮","저녁","밤"]
+- foodHabit (life): 식생활 enum 하나 ["집밥","외식","배달","간편식"]
+- wellnessFreq (life): 운동빈도 enum 하나 ["안함","주1-2","주3-4","매일"]
+- travelFreq (life): 여행빈도 enum 하나 ["연1회미만","연1-2회","연3-4회","연5회+"]
+- coreValues (mind): 가치 점수 0~100 정수. 키 5개 필수: {"성취","안정","자유","관계","성장"}
+- mindset (mind): 마인드셋 점수 0~100 정수. 키 5개 필수: {"브랜드신뢰","리스크수용","미래낙관","개인낙관","스트레스"}
+- socialConcern (mind): 사회 관심사 enum 하나 ["환경","공정","다양성","동물복지"]
+- decisionStyle (mind): 의사결정 스타일 enum 하나 ["직관","분석","추천의존","가격우선"]
+- infoSource (mind): 정보 소비 채널 enum 하나 ["SNS","검색","지인","전문매체"]
+- bigFive (mind): 빅5 성격 점수 0~100 정수. 키 5개 필수: {"개방성","성실성","외향성","우호성","신경성"}
+- interests (love): 관심사 점수 0~100 정수. 키 8개 필수: {"패션","뷰티","테크","음식","여행","운동","게임","문화"}
+- musicGenre (love): 선호 음악 enum 하나 ["K-pop","팝","힙합","인디","클래식","발라드"]
+- contentGenre (love): 콘텐츠 enum 하나 ["드라마","예능","영화","다큐","스포츠중계","애니"]
+- influencerType (love): 인플루언서 enum 하나 ["메가","마이크로","전문가","연예인"]
+- sportsAffinity (love): 스포츠 친밀도 점수 0~100 정수. 키 5개 필수: {"축구","야구","농구","골프","홈트"}
+- purchaseCategories (buy): 구매 카테고리 점수 0~100 정수. 키 8개 필수: {"의류","뷰티","전자","식품","리빙","여행","문화","건강"}
+- paymentMethod (buy): 결제수단 enum 하나 ["신용카드","간편결제","체크카드","현금"]
+- shoppingChannel (buy): 쇼핑채널 enum 하나 ["온라인몰","앱","오프라인","라이브커머스"]
+- purchaseFreq (buy): 구매빈도 enum 하나 ["주1회+","월2-3회","월1회","분기1회"]
+- buyFactors (buy): 의사결정 요인 점수 0~100 정수. 키 6개 필수: {"가격","품질","브랜드","리뷰","디자인","배송"}
+- buyProfile (buy): 소비 프로파일 점수 0~100 정수. 키 6개 필수: {"가격민감","브랜드충성","할인민감","리뷰영향","브랜드전환","윤리소비"}
 
 ⚠️ persona_id 필드에 위 입력 id를 정확히 그대로 복사해주세요.
 ⚠️ JSON 외 다른 텍스트 금지.`;
@@ -172,6 +294,30 @@ function fallbackNarrative(p) {
     shopping_style: shopping,
     price_sensitivity: p.price_sensitivity || p.priceSensitivityPrior || 3,
     ad_receptivity: defaultAdReceptivity(p),
+    // 2026-06-23 4개 탭 fallback
+    activities: defaultActivities(p),
+    travelType: _pickEnum(pid, "tt", LIFE_TRAVELTYPE),
+    activeDaypart: _pickEnum(pid, "dp", LIFE_DAYPART),
+    foodHabit: _pickEnum(pid, "fh", LIFE_FOOD),
+    wellnessFreq: _pickEnum(pid, "wf", LIFE_WELLNESS),
+    travelFreq: _pickEnum(pid, "tf", LIFE_TRAVELFREQ),
+    coreValues: defaultCoreValues(p),
+    mindset: defaultMindset(p),
+    socialConcern: _pickEnum(pid, "sc", MIND_SOCIAL),
+    decisionStyle: _pickEnum(pid, "ds", MIND_DECISION),
+    infoSource: _pickEnum(pid, "is", MIND_INFO),
+    bigFive: defaultBigFive(p),
+    interests: defaultInterests(p),
+    musicGenre: _pickEnum(pid, "mg", LOVE_MUSIC),
+    contentGenre: _pickEnum(pid, "cg", LOVE_CONTENT),
+    influencerType: _pickEnum(pid, "if", LOVE_INFLUENCER),
+    sportsAffinity: defaultSportsAffinity(p),
+    purchaseCategories: defaultPurchaseCategories(p),
+    paymentMethod: _pickEnum(pid, "pm", BUY_PAYMENT),
+    shoppingChannel: _pickEnum(pid, "ch", BUY_CHANNEL),
+    purchaseFreq: _pickEnum(pid, "pf", BUY_FREQ),
+    buyFactors: defaultBuyFactors(p),
+    buyProfile: defaultBuyProfile(p),
   };
 }
 
@@ -205,6 +351,163 @@ function normalizeAdReceptivity(narr, attr) {
     out[k] = v != null ? Math.min(100, Math.max(0, Math.round(v))) : fb[k];
   }
   return out;
+}
+
+// 2026-06-23: 4개 탭 baseline 차트 데이터 fallback/normalize 헬퍼.
+//   해시 시드 기반 결정적 100명 변동. LLM 부재/필드 누락 시 사용.
+function _hashSeed(personaId, salt) {
+  return Math.abs(hashStr(`${personaId}:${salt}`));
+}
+function _scoreFromSeed(personaId, salt, center, range = 30) {
+  // center ± range, 0~100 클램프. range=30 → ±30 변동.
+  const h = _hashSeed(personaId, salt);
+  const noise = ((h % 2001) / 1000 - 1) * range; // -range ~ +range
+  return Math.min(95, Math.max(5, Math.round(center + noise)));
+}
+function _pickEnum(personaId, salt, choices) {
+  return choices[_hashSeed(personaId, salt) % choices.length];
+}
+// 점수 객체 정규화: 키 목록 보장, 누락 시 fallback 병합, 0~100 클램프.
+function _normalizeScoreObject(src, keys, fallback) {
+  const out = {};
+  for (const k of keys) {
+    const v = src && typeof src[k] === "number" ? src[k] : null;
+    out[k] = v != null ? Math.min(100, Math.max(0, Math.round(v))) : fallback[k];
+  }
+  return out;
+}
+// enum 값 정규화: 유효하지 않으면 fallback.
+function _normalizeEnum(v, allowed, fallback) {
+  if (typeof v === "string" && allowed.includes(v)) return v;
+  return fallback;
+}
+
+// life 탭 — 점수형 1 + dist 5
+const LIFE_ACTIVITIES_KEYS = ["운동","독서","게임","여행","외식","쇼핑"];
+const LIFE_TRAVELTYPE = ["국내","해외","국내+해외"];
+const LIFE_DAYPART = ["아침","낮","저녁","밤"];
+const LIFE_FOOD = ["집밥","외식","배달","간편식"];
+const LIFE_WELLNESS = ["안함","주1-2","주3-4","매일"];
+const LIFE_TRAVELFREQ = ["연1회미만","연1-2회","연3-4회","연5회+"];
+function defaultActivities(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  // baseline: 외식·쇼핑·여행 중상, 운동 중, 독서·게임 낮
+  return {
+    "운동": _scoreFromSeed(pid, "act:운동", 55),
+    "독서": _scoreFromSeed(pid, "act:독서", 45),
+    "게임": _scoreFromSeed(pid, "act:게임", 40),
+    "여행": _scoreFromSeed(pid, "act:여행", 60),
+    "외식": _scoreFromSeed(pid, "act:외식", 65),
+    "쇼핑": _scoreFromSeed(pid, "act:쇼핑", 60),
+  };
+}
+// mind 탭
+const MIND_CORE_KEYS = ["성취","안정","자유","관계","성장"];
+const MIND_MINDSET_KEYS = ["브랜드신뢰","리스크수용","미래낙관","개인낙관","스트레스"];
+const MIND_BIG5_KEYS = ["개방성","성실성","외향성","우호성","신경성"];
+const MIND_SOCIAL = ["환경","공정","다양성","동물복지"];
+const MIND_DECISION = ["직관","분석","추천의존","가격우선"];
+const MIND_INFO = ["SNS","검색","지인","전문매체"];
+function defaultCoreValues(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "성취": _scoreFromSeed(pid, "cv:성취", 60),
+    "안정": _scoreFromSeed(pid, "cv:안정", 65),
+    "자유": _scoreFromSeed(pid, "cv:자유", 65),
+    "관계": _scoreFromSeed(pid, "cv:관계", 60),
+    "성장": _scoreFromSeed(pid, "cv:성장", 60),
+  };
+}
+function defaultMindset(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "브랜드신뢰": _scoreFromSeed(pid, "ms:브랜드신뢰", 55),
+    "리스크수용": _scoreFromSeed(pid, "ms:리스크수용", 45),
+    "미래낙관": _scoreFromSeed(pid, "ms:미래낙관", 60),
+    "개인낙관": _scoreFromSeed(pid, "ms:개인낙관", 60),
+    "스트레스": _scoreFromSeed(pid, "ms:스트레스", 50),
+  };
+}
+function defaultBigFive(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "개방성": _scoreFromSeed(pid, "b5:개방성", 55),
+    "성실성": _scoreFromSeed(pid, "b5:성실성", 60),
+    "외향성": _scoreFromSeed(pid, "b5:외향성", 50),
+    "우호성": _scoreFromSeed(pid, "b5:우호성", 60),
+    "신경성": _scoreFromSeed(pid, "b5:신경성", 45),
+  };
+}
+// love 탭
+const LOVE_INTERESTS_KEYS = ["패션","뷰티","테크","음식","여행","운동","게임","문화"];
+const LOVE_MUSIC = ["K-pop","팝","힙합","인디","클래식","발라드"];
+const LOVE_CONTENT = ["드라마","예능","영화","다큐","스포츠중계","애니"];
+const LOVE_INFLUENCER = ["메가","마이크로","전문가","연예인"];
+const LOVE_SPORTS_KEYS = ["축구","야구","농구","골프","홈트"];
+function defaultInterests(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "패션": _scoreFromSeed(pid, "int:패션", 60),
+    "뷰티": _scoreFromSeed(pid, "int:뷰티", 55),
+    "테크": _scoreFromSeed(pid, "int:테크", 55),
+    "음식": _scoreFromSeed(pid, "int:음식", 65),
+    "여행": _scoreFromSeed(pid, "int:여행", 60),
+    "운동": _scoreFromSeed(pid, "int:운동", 50),
+    "게임": _scoreFromSeed(pid, "int:게임", 40),
+    "문화": _scoreFromSeed(pid, "int:문화", 55),
+  };
+}
+function defaultSportsAffinity(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "축구": _scoreFromSeed(pid, "sp:축구", 50),
+    "야구": _scoreFromSeed(pid, "sp:야구", 45),
+    "농구": _scoreFromSeed(pid, "sp:농구", 40),
+    "골프": _scoreFromSeed(pid, "sp:골프", 35),
+    "홈트": _scoreFromSeed(pid, "sp:홈트", 50),
+  };
+}
+// buy 탭
+const BUY_CAT_KEYS = ["의류","뷰티","전자","식품","리빙","여행","문화","건강"];
+const BUY_PAYMENT = ["신용카드","간편결제","체크카드","현금"];
+const BUY_CHANNEL = ["온라인몰","앱","오프라인","라이브커머스"];
+const BUY_FREQ = ["주1회+","월2-3회","월1회","분기1회"];
+const BUY_FACTORS_KEYS = ["가격","품질","브랜드","리뷰","디자인","배송"];
+const BUY_PROFILE_KEYS = ["가격민감","브랜드충성","할인민감","리뷰영향","브랜드전환","윤리소비"];
+function defaultPurchaseCategories(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "의류": _scoreFromSeed(pid, "pc:의류", 60),
+    "뷰티": _scoreFromSeed(pid, "pc:뷰티", 50),
+    "전자": _scoreFromSeed(pid, "pc:전자", 55),
+    "식품": _scoreFromSeed(pid, "pc:식품", 65),
+    "리빙": _scoreFromSeed(pid, "pc:리빙", 50),
+    "여행": _scoreFromSeed(pid, "pc:여행", 50),
+    "문화": _scoreFromSeed(pid, "pc:문화", 45),
+    "건강": _scoreFromSeed(pid, "pc:건강", 50),
+  };
+}
+function defaultBuyFactors(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "가격": _scoreFromSeed(pid, "bf:가격", 70),
+    "품질": _scoreFromSeed(pid, "bf:품질", 70),
+    "브랜드": _scoreFromSeed(pid, "bf:브랜드", 55),
+    "리뷰": _scoreFromSeed(pid, "bf:리뷰", 65),
+    "디자인": _scoreFromSeed(pid, "bf:디자인", 60),
+    "배송": _scoreFromSeed(pid, "bf:배송", 55),
+  };
+}
+function defaultBuyProfile(p) {
+  const pid = p.persona_id || `${p.country}:0`;
+  return {
+    "가격민감": _scoreFromSeed(pid, "bp:가격민감", 60),
+    "브랜드충성": _scoreFromSeed(pid, "bp:브랜드충성", 50),
+    "할인민감": _scoreFromSeed(pid, "bp:할인민감", 60),
+    "리뷰영향": _scoreFromSeed(pid, "bp:리뷰영향", 60),
+    "브랜드전환": _scoreFromSeed(pid, "bp:브랜드전환", 50),
+    "윤리소비": _scoreFromSeed(pid, "bp:윤리소비", 45),
+  };
 }
 
 // M-7 fix (Chaeyeon 2026-06-17 21:43 → CTO 22:08):
@@ -334,6 +637,19 @@ export function mergePersona(attr, narr) {
   // Normalize shopping_style + price_sensitivity defensively
   const shoppingStyle = SHOPPING_STYLES.includes(narr?.shopping_style) ? narr.shopping_style : "trend-chaser";
   const priceSens = Math.min(5, Math.max(1, Math.round(narr?.price_sensitivity || attr.priceSensitivityPrior || 3)));
+  // 2026-06-23 4개 탭 baseline 차트 데이터 정규화
+  const fbLife = {
+    activities: defaultActivities(attr),
+    coreValues: defaultCoreValues(attr),
+    mindset: defaultMindset(attr),
+    bigFive: defaultBigFive(attr),
+    interests: defaultInterests(attr),
+    sportsAffinity: defaultSportsAffinity(attr),
+    purchaseCategories: defaultPurchaseCategories(attr),
+    buyFactors: defaultBuyFactors(attr),
+    buyProfile: defaultBuyProfile(attr),
+  };
+  const pid = attr.persona_id || `${attr.country}:0`;
   return {
     ...attr,
     quote: narr?.quote || "",
@@ -346,6 +662,33 @@ export function mergePersona(attr, narr) {
     shopping_style: shoppingStyle,
     price_sensitivity: priceSens,
     ad_receptivity: normalizeAdReceptivity(narr, attr),
+    // life
+    activities: _normalizeScoreObject(narr?.activities, LIFE_ACTIVITIES_KEYS, fbLife.activities),
+    travelType: _normalizeEnum(narr?.travelType, LIFE_TRAVELTYPE, _pickEnum(pid, "tt", LIFE_TRAVELTYPE)),
+    activeDaypart: _normalizeEnum(narr?.activeDaypart, LIFE_DAYPART, _pickEnum(pid, "dp", LIFE_DAYPART)),
+    foodHabit: _normalizeEnum(narr?.foodHabit, LIFE_FOOD, _pickEnum(pid, "fh", LIFE_FOOD)),
+    wellnessFreq: _normalizeEnum(narr?.wellnessFreq, LIFE_WELLNESS, _pickEnum(pid, "wf", LIFE_WELLNESS)),
+    travelFreq: _normalizeEnum(narr?.travelFreq, LIFE_TRAVELFREQ, _pickEnum(pid, "tf", LIFE_TRAVELFREQ)),
+    // mind
+    coreValues: _normalizeScoreObject(narr?.coreValues, MIND_CORE_KEYS, fbLife.coreValues),
+    mindset: _normalizeScoreObject(narr?.mindset, MIND_MINDSET_KEYS, fbLife.mindset),
+    socialConcern: _normalizeEnum(narr?.socialConcern, MIND_SOCIAL, _pickEnum(pid, "sc", MIND_SOCIAL)),
+    decisionStyle: _normalizeEnum(narr?.decisionStyle, MIND_DECISION, _pickEnum(pid, "ds", MIND_DECISION)),
+    infoSource: _normalizeEnum(narr?.infoSource, MIND_INFO, _pickEnum(pid, "is", MIND_INFO)),
+    bigFive: _normalizeScoreObject(narr?.bigFive, MIND_BIG5_KEYS, fbLife.bigFive),
+    // love
+    interests: _normalizeScoreObject(narr?.interests, LOVE_INTERESTS_KEYS, fbLife.interests),
+    musicGenre: _normalizeEnum(narr?.musicGenre, LOVE_MUSIC, _pickEnum(pid, "mg", LOVE_MUSIC)),
+    contentGenre: _normalizeEnum(narr?.contentGenre, LOVE_CONTENT, _pickEnum(pid, "cg", LOVE_CONTENT)),
+    influencerType: _normalizeEnum(narr?.influencerType, LOVE_INFLUENCER, _pickEnum(pid, "if", LOVE_INFLUENCER)),
+    sportsAffinity: _normalizeScoreObject(narr?.sportsAffinity, LOVE_SPORTS_KEYS, fbLife.sportsAffinity),
+    // buy
+    purchaseCategories: _normalizeScoreObject(narr?.purchaseCategories, BUY_CAT_KEYS, fbLife.purchaseCategories),
+    paymentMethod: _normalizeEnum(narr?.paymentMethod, BUY_PAYMENT, _pickEnum(pid, "pm", BUY_PAYMENT)),
+    shoppingChannel: _normalizeEnum(narr?.shoppingChannel, BUY_CHANNEL, _pickEnum(pid, "ch", BUY_CHANNEL)),
+    purchaseFreq: _normalizeEnum(narr?.purchaseFreq, BUY_FREQ, _pickEnum(pid, "pf", BUY_FREQ)),
+    buyFactors: _normalizeScoreObject(narr?.buyFactors, BUY_FACTORS_KEYS, fbLife.buyFactors),
+    buyProfile: _normalizeScoreObject(narr?.buyProfile, BUY_PROFILE_KEYS, fbLife.buyProfile),
   };
 }
 

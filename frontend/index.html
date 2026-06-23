@@ -8456,12 +8456,28 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     return summary + kpis + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">Top 라이프스타일 태그 (Top 10)</div>
+        <div class="aud-chart-t">활동 관심도 (radar · 0–100)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">직업 분포</div>
+        <div class="aud-chart-t">여행 패턴 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travel"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">활동 시간대 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-dayparts"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">식생활 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-food"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">운동 빈도 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-wellness"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">여행 빈도 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travelfreq"></canvas></div>
       </div>
     </div>`;
   }
@@ -8476,39 +8492,63 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     return summary + kpis + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">핵심 가치관 태그 (Top 10)</div>
+        <div class="aud-chart-t">핵심 가치 (radar · 0–100)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-values"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">쇼핑 스타일 분포</div>
+        <div class="aud-chart-t">마인드셋 (radar · 0–100)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-trust"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">사회 관심사 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-culture"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">의사결정 스타일 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-decision"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">정보 소비 채널 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-info"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">성격 (Big5 · radar · 0–100)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-personality"></canvas></div>
       </div>
     </div>`;
   }
   if(dim === 'love'){
     const brandItems = (d.topBrandAffinity||[]);
     const kpis = _ppGridOpen('repeat(3, 1fr)') +
-      _ppKpiTile('K-패션 관심도', '0→100', '5구간 히스토그램') +
-      _ppKpiTile('일반 패션 관심도', '0→100', '5구간 히스토그램') +
-      _ppKpiTile('브랜드 선호 Top', String(brandItems.length) + '개') +
+      _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
+      _ppKpiTile('관심사 축', '8개 (0–100)') +
+      _ppKpiTile('스포츠 친밀 축', '5개 (0–100)') +
       _ppGridClose();
     return summary + kpis + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">K-패션 관심도 분포</div>
+        <div class="aud-chart-t">관심사 (radar · 0–100)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">일반 패션 관심도 분포</div>
+        <div class="aud-chart-t">관심사 (bar · 0–100)</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-bar"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">K-콘텐츠 노출 분포</div>
+        <div class="aud-chart-t">선호 음악 장르 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-music"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">브랜드 선호도 Top</div>
+        <div class="aud-chart-t">콘텐츠 장르 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-content"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">인플루언서 타입 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-influencer"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">스포츠 친밀도 (radar · 0–100)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-love-sports"></canvas></div>
       </div>
     </div>`;
   }
@@ -8517,22 +8557,34 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     const brandItems = (d.topBrandAffinity||[]);
     const kpis = _ppGridOpen('repeat(3, 1fr)') +
       _ppKpiTile('표본 수', (d.total||0).toLocaleString() + '명') +
-      _ppKpiTile('가격 민감도 구간', '1→5') +
+      _ppKpiTile('카테고리 축', '8개 (0–100)') +
       _ppKpiTile('쇼핑 스타일', String(styleItems.length) + '개') +
       _ppGridClose();
     return summary + kpis + `
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
-        <div class="aud-chart-t">가격 민감도 분포 (1=매우 낮음, 5=매우 높음)</div>
+        <div class="aud-chart-t">구매 카테고리 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-cat"></canvas></div>
       </div>
       <div class="aud-chart-card">
-        <div class="aud-chart-t">쇼핑 스타일 분포</div>
+        <div class="aud-chart-t">결제 수단 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-pay"></canvas></div>
       </div>
-      <div class="aud-chart-card" style="grid-column:1 / -1">
-        <div class="aud-chart-t">브랜드 선호도 Top (평균 점수)</div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">쇼핑 채널 분포</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-channel"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">구매 의사결정 (radar · 0–100)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-decision"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">구매 빈도 분포</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-freq"></canvas></div>
+      </div>
+      <div class="aud-chart-card">
+        <div class="aud-chart-t">소비 프로파일 (radar · 0–100)</div>
+        <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-profile"></canvas></div>
       </div>
     </div>`;
   }
@@ -8606,83 +8658,169 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
     return;
   }
 
+  // 2026-06-23: 점수 객체 고정 순서 변환 (radar/bar 0~100 점수)
+  function scoresFixed(obj, order, labelFn){
+    return [
+      order.map(k => labelFn ? (labelFn(k) || k) : k),
+      order.map(k => +(Number((obj && obj[k]) || 0)).toFixed(1)),
+    ];
+  }
+
   if(dim === 'life'){
-    // 라이프스타일 태그 Top10 (막대)
+    // 1. 활동 radar (chart-life-radar) — 0~100 점수
     {
-      const arr = (d.topLifestyleTags||[]).slice(0, 10);
-      const labels = arr.map(t => t.key);
-      const vals = arr.map(t => +((t.share||0) * 100).toFixed(2));
-      renderChartSafe('chart-life-radar', 'bar', labels, vals, '#6366F1', { suffix: '%' });
+      const order = ['운동','독서','게임','여행','외식','쇼핑'];
+      const [labels, vals] = scoresFixed(d.activities, order);
+      renderChartSafe('chart-life-radar', 'radar', labels, vals, '#6366F1', { rmax: 100 });
     }
-    // 직업 (도널)
+    // 2. 여행 패턴 (chart-life-travel · doughnut)
     {
-      const [labels, vals] = distToLP(d.occupation, null, 8);
-      renderChartSafe('chart-life-travel', 'doughnut', labels, vals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B'], { suffix: '%' });
+      const [labels, vals] = distToLP(d.travelType, null, 8);
+      renderChartSafe('chart-life-travel', 'doughnut', labels, vals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6'], { suffix: '%' });
+    }
+    // 3. 시간대 (chart-life-dayparts · bar)
+    {
+      const order = ['아침','낮','저녁','밤'];
+      const [labels, vals] = distFixed(d.activeDaypart, order);
+      renderChartSafe('chart-life-dayparts', 'bar', labels, vals, '#0EA5E9', { suffix: '%' });
+    }
+    // 4. 식생활 (chart-life-food · doughnut)
+    {
+      const order = ['집밥','외식','배달','간편식'];
+      const [labels, vals] = distFixed(d.foodHabit, order);
+      renderChartSafe('chart-life-food', 'doughnut', labels, vals, ['#F59E0B','#EF4444','#10B981','#06B6D4','#8B5CF6'], { suffix: '%' });
+    }
+    // 5. 운동 빈도 (chart-life-wellness · doughnut)
+    {
+      const order = ['안함','주1-2','주3-4','매일'];
+      const [labels, vals] = distFixed(d.wellnessFreq, order);
+      renderChartSafe('chart-life-wellness', 'doughnut', labels, vals, ['#10B981','#84CC16','#F59E0B','#EF4444'], { suffix: '%' });
+    }
+    // 6. 여행 빈도 (chart-life-travelfreq · doughnut)
+    {
+      const order = ['연1회미만','연1-2회','연3-4회','연5회+'];
+      const [labels, vals] = distFixed(d.travelFreq, order);
+      renderChartSafe('chart-life-travelfreq', 'doughnut', labels, vals, ['#3B82F6','#6366F1','#8B5CF6','#A855F7'], { suffix: '%' });
     }
     return;
   }
 
   if(dim === 'mind'){
-    // 가치관 태그 Top10 (막대)
+    // 1. 핵심 가치 radar (chart-mind-values · radar 0~100)
     {
-      const arr = (d.topValuesTags||[]).slice(0, 10);
-      const labels = arr.map(t => t.key);
-      const vals = arr.map(t => +((t.share||0) * 100).toFixed(2));
-      renderChartSafe('chart-mind-values', 'bar', labels, vals, '#8B5CF6', { suffix: '%' });
+      const order = ['성취','안정','자유','관계','성장'];
+      const [labels, vals] = scoresFixed(d.coreValues, order);
+      renderChartSafe('chart-mind-values', 'radar', labels, vals, '#8B5CF6', { rmax: 100 });
     }
-    // 쇼핑 스타일 (도널)
+    // 2. 마인드셋 radar (chart-mind-trust · radar 0~100)
     {
-      const [labels, vals] = distToLP(d.shoppingStyle, _ppShoppingStyleLabel, 8);
-      renderChartSafe('chart-mind-culture', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981'], { suffix: '%' });
+      const order = ['브랜드신뢰','리스크수용','미래낙관','개인낙관','스트레스'];
+      const [labels, vals] = scoresFixed(d.mindset, order);
+      renderChartSafe('chart-mind-trust', 'radar', labels, vals, '#10B981', { rmax: 100 });
+    }
+    // 3. 사회 관심사 (chart-mind-culture · doughnut)
+    {
+      const order = ['환경','공정','다양성','동물복지'];
+      const [labels, vals] = distFixed(d.socialConcern, order);
+      renderChartSafe('chart-mind-culture', 'doughnut', labels, vals, ['#F59E0B','#EF4444','#06B6D4','#10B981','#8B5CF6'], { suffix: '%' });
+    }
+    // 4. 의사결정 (chart-mind-decision · doughnut)
+    {
+      const order = ['직관','분석','추천의존','가격우선'];
+      const [labels, vals] = distFixed(d.decisionStyle, order);
+      renderChartSafe('chart-mind-decision', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981'], { suffix: '%' });
+    }
+    // 5. 정보 소비 (chart-mind-info · doughnut)
+    {
+      const order = ['SNS','검색','지인','전문매체'];
+      const [labels, vals] = distFixed(d.infoSource, order);
+      renderChartSafe('chart-mind-info', 'doughnut', labels, vals, ['#0EA5E9','#06B6D4','#10B981','#F59E0B'], { suffix: '%' });
+    }
+    // 6. Big5 성격 radar (chart-mind-personality · radar 0~100)
+    {
+      const order = ['개방성','성실성','외향성','우호성','신경성'];
+      const [labels, vals] = scoresFixed(d.bigFive, order);
+      renderChartSafe('chart-mind-personality', 'radar', labels, vals, '#A855F7', { rmax: 100 });
     }
     return;
   }
 
   if(dim === 'love'){
-    const histOrder = ['0-20','21-40','41-60','61-80','81-100'];
-    // K-패션 히스토그램
+    const interestsOrder = ['패션','뷰티','테크','음식','여행','운동','게임','문화'];
+    // 1. 관심사 radar (chart-love-radar)
     {
-      const [labels, vals] = distFixed(d.kFashionHistogram, histOrder);
-      renderChartSafe('chart-love-radar', 'bar', labels, vals, '#EC4899', { suffix: '%' });
+      const [labels, vals] = scoresFixed(d.interests, interestsOrder);
+      renderChartSafe('chart-love-radar', 'radar', labels, vals, '#EC4899', { rmax: 100 });
     }
-    // 일반 패션 히스토그램
+    // 2. 관심사 bar (chart-love-bar — 같은 데이터)
     {
-      const [labels, vals] = distFixed(d.fashionHistogram, histOrder);
-      renderChartSafe('chart-love-bar', 'bar', labels, vals, '#A855F7', { suffix: '%' });
+      const [labels, vals] = scoresFixed(d.interests, interestsOrder);
+      renderChartSafe('chart-love-bar', 'bar', labels, vals, '#EC4899', { suffix: '' });
     }
-    // K-콘텐츠 히스토그램 (chart-love-music 재활용)
+    // 3. 음악 장르 (chart-love-music · doughnut)
     {
-      const [labels, vals] = distFixed(d.kCultureHistogram, histOrder);
-      renderChartSafe('chart-love-music', 'bar', labels, vals, '#6366F1', { suffix: '%' });
+      const order = ['K-pop','팝','힙합','인디','클래식','발라드'];
+      const [labels, vals] = distFixed(d.musicGenre, order);
+      renderChartSafe('chart-love-music', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4'], { suffix: '%' });
     }
-    // 브랜드 선호 Top (chart-love-content 재활용, avgScore 점수)
+    // 4. 콘텐츠 장르 (chart-love-content · doughnut)
     {
-      const arr = (d.topBrandAffinity||[]).slice(0, 12);
-      const labels = arr.map(b => b.brand);
-      const vals = arr.map(b => +(Number(b.avgScore||0)).toFixed(2));
-      renderChartSafe('chart-love-content', 'bar', labels, vals, '#0EA5E9', { suffix: '' });
+      const order = ['드라마','예능','영화','다큐','스포츠중계','애니'];
+      const [labels, vals] = distFixed(d.contentGenre, order);
+      renderChartSafe('chart-love-content', 'doughnut', labels, vals, ['#EF4444','#F59E0B','#10B981','#06B6D4','#3B82F6','#A855F7'], { suffix: '%' });
+    }
+    // 5. 인플루언서 (chart-love-influencer · doughnut)
+    {
+      const order = ['메가','마이크로','전문가','연예인'];
+      const [labels, vals] = distFixed(d.influencerType, order);
+      renderChartSafe('chart-love-influencer', 'doughnut', labels, vals, ['#EC4899','#A855F7','#8B5CF6','#6366F1'], { suffix: '%' });
+    }
+    // 6. 스포츠 친밀도 radar (chart-love-sports)
+    {
+      const order = ['축구','야구','농구','골프','홈트'];
+      const [labels, vals] = scoresFixed(d.sportsAffinity, order);
+      renderChartSafe('chart-love-sports', 'radar', labels, vals, '#10B981', { rmax: 100 });
     }
     return;
   }
 
   if(dim === 'buy'){
-    // 가격 민감도 1-5 (chart-buy-cat 재활용)
+    // 1. 구매 카테고리 (chart-buy-cat · doughnut top8)
     {
-      const psLabel = { '1':'1 매우 낮음', '2':'2 낮음', '3':'3 보통', '4':'4 높음', '5':'5 매우 높음' };
-      const [labels, vals] = distFixed(d.priceSensitivity, ['1','2','3','4','5'], k => psLabel[k]);
-      renderChartSafe('chart-buy-cat', 'bar', labels, vals, '#EF4444', { suffix: '%' });
+      const order = ['의류','뷰티','전자','식품','리빙','여행','문화','건강'];
+      const labels = order;
+      const vals = order.map(k => +(Number((d.purchaseCategories && d.purchaseCategories[k]) || 0)).toFixed(1));
+      renderChartSafe('chart-buy-cat', 'doughnut', labels, vals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B'], { suffix: '' });
     }
-    // 쇼핑 스타일 (chart-buy-pay 재활용, 도널)
+    // 2. 결제 수단 (chart-buy-pay · doughnut)
     {
-      const [labels, vals] = distToLP(d.shoppingStyle, _ppShoppingStyleLabel, 8);
-      renderChartSafe('chart-buy-pay', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981'], { suffix: '%' });
+      const order = ['신용카드','간편결제','체크카드','현금'];
+      const [labels, vals] = distFixed(d.paymentMethod, order);
+      renderChartSafe('chart-buy-pay', 'doughnut', labels, vals, ['#84CC16','#22C55E','#10B981','#06B6D4','#0EA5E9'], { suffix: '%' });
     }
-    // 브랜드 선호 Top (chart-buy-channel 재활용, avgScore)
+    // 3. 쇼핑 채널 (chart-buy-channel · doughnut)
     {
-      const arr = (d.topBrandAffinity||[]).slice(0, 10);
-      const labels = arr.map(b => b.brand);
-      const vals = arr.map(b => +(Number(b.avgScore||0)).toFixed(2));
-      renderChartSafe('chart-buy-channel', 'bar', labels, vals, '#0EA5E9', { suffix: '' });
+      const order = ['온라인몰','앱','오프라인','라이브커머스'];
+      const [labels, vals] = distFixed(d.shoppingChannel, order);
+      renderChartSafe('chart-buy-channel', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#0EA5E9'], { suffix: '%' });
+    }
+    // 4. 구매 의사결정 radar (chart-buy-decision)
+    {
+      const order = ['가격','품질','브랜드','리뷰','디자인','배송'];
+      const [labels, vals] = scoresFixed(d.buyFactors, order);
+      renderChartSafe('chart-buy-decision', 'radar', labels, vals, '#0EA5E9', { rmax: 100 });
+    }
+    // 5. 구매 빈도 (chart-buy-freq · doughnut)
+    {
+      const order = ['주1회+','월2-3회','월1회','분기1회'];
+      const [labels, vals] = distFixed(d.purchaseFreq, order);
+      renderChartSafe('chart-buy-freq', 'doughnut', labels, vals, ['#10B981','#84CC16','#F59E0B','#EF4444'], { suffix: '%' });
+    }
+    // 6. 소비 프로파일 radar (chart-buy-profile)
+    {
+      const order = ['가격민감','브랜드충성','할인민감','리뷰영향','브랜드전환','윤리소비'];
+      const [labels, vals] = scoresFixed(d.buyProfile, order);
+      renderChartSafe('chart-buy-profile', 'radar', labels, vals, '#A855F7', { rmax: 100 });
     }
     return;
   }
