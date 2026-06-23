@@ -1,6 +1,7 @@
 // persona-aggregator.js
 // Stage 3 — Pure functional aggregator that turns N merged personas into
 // 6 dashboard tabs (WHO/LIFE/MIND/LOVE/BUY/MEDIA).
+import { canonicalizePersonaMedia } from "./channel-canon.js";
 
 function tally(items, keyFn) {
   const m = new Map();
@@ -136,7 +137,9 @@ export function aggregateBuy(personas) {
 }
 
 // MEDIA — media_diet aggregated (channel → total hours and avg hours)
-export function aggregateMedia(personas) {
+export function aggregateMedia(personasRaw) {
+  // 2026-06-23 (CEO 지시): 채널명 정규화 — LLM 표기 흔들림("YouTube (패션)" 등) 통합.
+  const personas = canonicalizePersonaMedia(personasRaw);
   const total = personas.length;
   const sums = new Map(); // channel → { totalHours, mentions }
   for (const p of personas) {
