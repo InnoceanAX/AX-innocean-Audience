@@ -9793,6 +9793,8 @@ async function generatePersona(persona){
     const data = await res.json();
     if(!data.ok) throw new Error(data.error);
     state.ivPersona = data.persona;
+    // CEO 2026-06-24: 단일 페르소나를 앵커로 저장 — 4명 패널 생성 시 첫 번째로 고정 포함되도록
+    state.currentPersona = data.persona;
     state._personaPrewarmKey = _curKey;
     state._personaPrewarmMeta = data.meta || null;
     renderPersonaCard(data.persona, data.meta);
@@ -9819,7 +9821,9 @@ async function generatePanel(count = 4, opts){
     document.getElementById('iv-panel-contrast').innerHTML = '';
     const seedPersonas = (opts && opts.seedPersonas) || state.seedPersonas || [];
     const seedQuestion = (opts && opts.seedQuestion) || state.seedQuestion || (state.lastAsk?.question || '');
-    const anchorPersona = (opts && opts.anchorPersona) || null;
+    // CEO 2026-06-24: 앵커 폴백 체인 — opts.anchorPersona → currentPersona → ivPersona 순.
+    //   호출 경로가 앵커를 안 넘겨도 단일 페르소나(ivPersona)가 있으면 패널 첫 인물로 포함
+    const anchorPersona = (opts && opts.anchorPersona) || state.currentPersona || state.ivPersona || null;
     // CEO 2026-06-18 19:15 옵션 A: briefId 전달 — 패널이 프르소나 풀에서 샘플링되도록
     const _briefIdForPanel = state.activeBriefId || state.briefId || state.currentBriefId || null;
     const res = await fetch(`${API}/interview/panel`, {
