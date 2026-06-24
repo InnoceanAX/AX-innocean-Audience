@@ -51,15 +51,12 @@ function countryKr(code) {
 // seed: persona_id + gender + age (엔트로피 강화)
 // 규칙: "{region} {age}세 {gender성} {archetype}" 형식
 // archetype은 shopping_style 매핑 또는 별도 지정
-const _ARCHETYPE_NAME_MAP = {
-  'trend-chaser': '트렌디형',
-  'brand-loyal': '브랜드형',
-  'bargain-hunter': '가성비형',
-  'value-seeker': '가치추구형',
-  'curator': '큐레이터형',
-};
+// CEO 2026-06-24: 진짜 한국어 이름 부여 (지역/나이/성별/직업은 페르소나 정보에 별도 표시되므로 이름 자리엔 진짜 이름만)
+const _KR_SURNAMES = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍','유','고','문','양','손','배','백','허','남','심'];
+const _KR_GIVEN_FEMALE = ['서연','지우','서윤','지윤','하은','하윤','민서','지아','지민','수아','지혜','은서','예은','수빈','다은','예진','소이','윤서','지서','채원','지원','민지','혜원','예린','서현','지은','유진','아린','하람','은지','수연','민주','정원','혜진','보람','소연','나윤','윤아','진아','수지'];
+const _KR_GIVEN_MALE = ['도윤','서준','주원','시우','예준','하준','지호','준우','준서','건우','현우','지훈','우진','선우','서우','민준','현준','윤호','준혁','지우','성민','태양','민재','재우','동현','준영','승현','정우','기우','태현','혁준','우성','명준','종현','강민','세진','준호','현석','진우','도현'];
 function _fnv1aHash(str) {
-  // 결정적 32-bit FNV-1a hash (JS bigint 불필요, persona_id 길이 작음)
+  // 결정적 32-bit FNV-1a hash
   let hash = 0x811c9dc5;
   const s = String(str || '');
   for (let i = 0; i < s.length; i++) {
@@ -69,17 +66,14 @@ function _fnv1aHash(str) {
   return hash >>> 0;
 }
 function generatePersonaNameDeterministic(persona_id, gender, age, region, archetypeKey) {
-  // seed: persona_id + gender + age 결합 (충돌 방지)
-  // 출력: "{region_kr} {age}세 {gender_kr} {archetype_kr}" — 모든 호출에서 동일
-  const regionKrName = regionKr(region) || region || '지역미상';
-  const genderKr = gender === 'female' ? '여성' : gender === 'male' ? '남성' : '';
-  const ageStr = age ? `${age}세` : '';
-  const archetypeName = _ARCHETYPE_NAME_MAP[archetypeKey] || '가치추구형';
-  // hash 사용은 향후 variation seed 확장용 (현재는 순수 명시적 조합)
-  // persona_id seed 보존: 추후 같은 라벨이 여럿일 때 short suffix 부여 가능
-  void _fnv1aHash(`${persona_id}|${gender}|${age}`);
-  const parts = [regionKrName, ageStr, genderKr, archetypeName].filter(Boolean);
-  return parts.join(' ');
+  // CEO 2026-06-24: 진짜 한국어 이름. seed = persona_id (동일 persona_id → 항상 동일 이름)
+  // 지역/나이/성별/직업은 페르소나 카드 다른 필드에 나오므로 이름 자리엔 이름만
+  const seed = _fnv1aHash(String(persona_id || `${region}|${age}|${gender}`));
+  const surname = _KR_SURNAMES[seed % _KR_SURNAMES.length];
+  const pool = gender === 'male' ? _KR_GIVEN_MALE : _KR_GIVEN_FEMALE;
+  // 성과 이름 seed를 분리해 다양성 확보 (상위/하위 비트 구분)
+  const given = pool[(Math.floor(seed / _KR_SURNAMES.length)) % pool.length];
+  return `${surname}${given}`;
 }
 
 // CEO 2026-06-18 19:15: 옵션 A — 인터뷰 패널 = 페르소나 풀에서 다양성 sampling
@@ -174,14 +168,17 @@ function samplePanelFromPool(personas, n = 4, anchorPersona = null) {
       'value-seeker': '가치 추구형',
       'curator': '스타일 큐레이터',
     })[p.shopping_style] || (p._anchorArchetype || '가치 추구형');
-    // CEO 2026-06-24: 모든 panel 멤버 이름을 결정적으로 부여 — 동일 persona_id → 동일 이름
-    const _deterministicName = generatePersonaNameDeterministic(
-      p.persona_id || `idx-${idx}`,
-      p.gender,
-      p.age,
-      p.region,
-      p.shopping_style,
-    );
+    // CEO 2026-06-24: 진짜 이름. 앵커(첫 인물)는 Gemini 진짜 이름(_anchorSourceName) 우선 유지,
+    //   풀 인물은 persona_id 결정적 진짜 한국어 이름 부여 (동일 persona_id → 항상 동일 이름)
+    const _deterministicName = (p._isAnchor && p._anchorSourceName)
+      ? p._anchorSourceName
+      : generatePersonaNameDeterministic(
+          p.persona_id || `idx-${idx}`,
+          p.gender,
+          p.age,
+          p.region,
+          p.shopping_style,
+        );
     return {
       id: p._isAnchor ? `pool-anchor-${p.persona_id}` : `pool-${p.persona_id || `${idx}`}`,
       persona_id: p.persona_id,
