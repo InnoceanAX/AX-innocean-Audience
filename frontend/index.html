@@ -10001,9 +10001,13 @@ async function sendInterview(){
 // CEO 2026-06-12: 패널별 대화 기록 저장 키 생성
 function personaCacheKey(persona){
   if(!persona) return 'unknown';
-  // 백엔드가 부여한 id가 있으면 최우선 (패널 멤버간 표쇼 구별)
-  if(persona.id) return 'id:' + persona.id;
-  // name + age + occupation + country으로 고유 키 생성
+  // CEO 2026-06-24: 앵커(단일 페르소나 출신)는 id가 단일↔패널에서 달라(단일=id없음, 패널앵커=pool-anchor/panel-..)
+  //   대화 기록이 휘발됨. 앵커는 항상 '이름+나이+직업+국가' 기반 key로 통일해 단일↔패널 앵커가 같은 key를 갖게 함.
+  const _isAnchorMember = !!(persona._isAnchor || persona._anchorSourceName)
+    || (typeof persona.id === 'string' && /(^|[-_])anchor/i.test(persona.id));
+  // 백엔드가 부여한 id가 있으면 최우선 (패널 일반 멤버간 구별) — 단, 앵커는 제외
+  if(persona.id && !_isAnchorMember) return 'id:' + persona.id;
+  // name + age + occupation + country으로 고유 키 생성 (단일 페르소나 + 앵커 공통)
   const parts = [
     persona.name || '',
     persona.age || '',
