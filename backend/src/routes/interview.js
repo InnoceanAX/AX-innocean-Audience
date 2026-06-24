@@ -51,10 +51,53 @@ function countryKr(code) {
 // seed: persona_id + gender + age (엔트로피 강화)
 // 규칙: "{region} {age}세 {gender성} {archetype}" 형식
 // archetype은 shopping_style 매핑 또는 별도 지정
-// CEO 2026-06-24: 진짜 한국어 이름 부여 (지역/나이/성별/직업은 페르소나 정보에 별도 표시되므로 이름 자리엔 진짜 이름만)
-const _KR_SURNAMES = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍','유','고','문','양','손','배','백','허','남','심'];
-const _KR_GIVEN_FEMALE = ['서연','지우','서윤','지윤','하은','하윤','민서','지아','지민','수아','지혜','은서','예은','수빈','다은','예진','소이','윤서','지서','채원','지원','민지','혜원','예린','서현','지은','유진','아린','하람','은지','수연','민주','정원','혜진','보람','소연','나윤','윤아','진아','수지'];
-const _KR_GIVEN_MALE = ['도윤','서준','주원','시우','예준','하준','지호','준우','준서','건우','현우','지훈','우진','선우','서우','민준','현준','윤호','준혁','지우','성민','태양','민재','재우','동현','준영','승현','정우','기우','태현','혁준','우성','명준','종현','강민','세진','준호','현석','진우','도현'];
+// CEO 2026-06-24: 데이터-드리븐 NAME_POOLS — 6국(KR/JP/CN/TW/TH/PH) 현지 이름 + 미지원국 영문 일반 폴백
+// 광고주 보고 가독성: JP/CN/TW/TH는 한글 음차, PH는 영문/스페인계, 그 외 국가는 영문 일반
+// 시그니처: generatePersonaNameDeterministic(country, persona_id, gender, age, region, archetypeKey)
+// 동일 country+persona_id → 항상 동일 이름 (FNV-1a 결정적 해시)
+const NAME_POOLS = {
+  KR: {
+    surnames: ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍','유','고','문','양','손','배','백','허','남','심'],
+    female: ['서연','지우','서윤','지윤','하은','하윤','민서','지아','지민','수아','지혜','은서','예은','수빈','다은','예진','소이','윤서','지서','채원','지원','민지','혜원','예린','서현','지은','유진','아린','하람','은지','수연','민주','정원','혜진','보람','소연','나윤','윤아','진아','수지'],
+    male:   ['도윤','서준','주원','시우','예준','하준','지호','준우','준서','건우','현우','지훈','우진','선우','서우','민준','현준','윤호','준혁','지우','성민','태양','민재','재우','동현','준영','승현','정우','기우','태현','혁준','우성','명준','종현','강민','세진','준호','현석','진우','도현'],
+  },
+  JP: {
+    // 한글 음차 — 사토, 스즈키, 다카하시 등
+    surnames: ['사토','스즈키','다카하시','다나카','이토','와타나베','야마모토','나카무라','고바야시','가토','요시다','야마다','사사키','야마구치','마쓰모토','이노우에','기무라','하야시','시미즈','야마자키','모리','이케다','하시모토','이시카와','오가와'],
+    female: ['유이','아오이','히마리','메이','히나타','사쿠라','리오','미오','코코로','츠무기','유나','아카리','린','노아','하나','유아','이로하','미사키','아이','나오','마이','리나','아키','에리','마미','미키','케이코','유미','마유','치히로','에미','아야카','마나미','노조미','시오리'],
+    male:   ['렌','하루토','소타','유토','히로토','미나토','아오이','하야토','하루키','리쿠','쇼','다이키','유키','코타','겐키','쇼타','류세이','이쓰키','잇세이','류이치','다쿠미','켄','다이고','히로키','케이','마사토','요시키','히사시','다이스케','쇼헤이','히로유키','류','다이치','노부','요타'],
+  },
+  CN: {
+    // 한글 음차 — 왕(王), 리(李), 장(張/张) 등
+    surnames: ['왕','리','장','류','첸','양','자오','후앙','저우','우','쉬','쑨','마','주','후','궈','허','뤄','량','쑹','정','셰','한','탕','펑'],
+    female: ['팡','메이','잉','리리','샤오메이','후이','쥐안','옌','징','웨이웨이','쥔','리쥔','샤오리','샤오팡','윈','샤오윈','난','샹','롄','쟈오','신','신이','웨','쉐','루','민','샤오민','옌옌','시아','메이메이','샤오시아','롱','샤','루이','자'],
+    male:   ['웨이','강','레이','용','빈','지','젠','펑','하오','량','웨이밍','젠궈','샤오웨이','샤오밍','텅','쥔','쭈오','자오','졘','쉐','한','보','촹','펑','루이','시','광','진','쿤','샹','산','후이','샤오','종','롄','즈','샤오펑'],
+  },
+  TW: {
+    // 한글 음차 — 대만식 (천陳, 린林, 황黃 빈도 높음)
+    surnames: ['천','린','황','장','리','왕','우','류','차이','양','쉬','정','셰','궈','훙','추','쩡','랴오','예','시에','쉬에','펑','뤼','쑤','루'],
+    female: ['이팅','샤오민','자링','메이링','수친','후이쥔','야팅','페이','쉬안','이쉔','이쥔','샤오쥔','자위','자이','자치','이안','즈위','즈치','샤오웬','메이쥔','웨이쥔','자루이','샤오한','후이팡','펑이','샤오야','야웬','수원','웬링','샤오링','수페이','메이전','샤오전','후이전','츠이팡'],
+    male:   ['지웨이','쥔젠','지엔훙','쯔하오','셩한','츠리','자하오','셩제','즈웨이','쥔하오','샤오제','쥔훙','샤오훙','지엔이','자위','즈쉔','쩡웨이','보웬','지청','웬옌','한쩐','츠웨이','쥔량','즈위','쥔웨이','샤오위','지룽','츠한','즈한','즈평','쉬엔','셩이','자룽','한청','츠청'],
+  },
+  TH: {
+    // 태국식 한글 음차 — 솜차이, 니란 등
+    surnames: ['솜차이','니란','짜른','피야','수파','차이','분','프라윳','수닛','짜이','시리','캄','촘','싯티','파니','삭','분차이','수왓','피분','와차라','뎃','노이','솜분','캄팡','와라'],
+    female: ['솜','말리','쁠라','와니','짠','삐야다','피라야','수닛다','와사나','수원라이','니라낫','와라폰','싸이','수치','뼁','매이','시리','짠짜이','수파니','와라이','피라야','수반나','짠다','솜피','시리포른','말라','삐다','와사나','짠지라','짠야','피야와디','말라이','시리완','와라폰','짠리'],
+    male:   ['솜차이','쁘라윳','수왓','촘폰','니란','샛','삭다','짠','피삳','와차라','싯티','피야','와라폰','수왓디','뎃','삭','솜분','싸랏','마니','파니','파누','쁘라삳','수만','니콤','피사누','와루낫','싱하','촘차이','수파차이','솜폰','짠톤','와루','피라윳','싸야','파타나'],
+  },
+  PH: {
+    // 영문/스페인계 필리핀 이름
+    surnames: ['Santos','Cruz','Reyes','Garcia','Mendoza','Torres','Tan','Lim','Flores','Gonzales','Bautista','Villanueva','Ramos','Aquino','Castillo','Rivera','Diaz','Pascual','Domingo','Salazar','Navarro','Estrada','Valencia','Manalo','Soriano'],
+    female: ['Maria','Anna','Jasmine','Angel','Rose','Grace','Joy','Mary','Carmen','Liza','Cristina','Bea','Mae','Lyka','Andrea','Erika','Kristine','Princess','Daniela','Camille','Janella','Sofia','Patricia','Nicole','Hannah','Bianca','Isabel','Trisha','Kathryn','Julia','Aira','Marian','Yna','Sharon','Regine'],
+    male:   ['Jose','Mark','Juan','Carlo','John','Paolo','Miguel','Rafael','Gabriel','Diego','Daniel','Christian','Joshua','Allan','Ramon','Patrick','James','Kevin','Anthony','Manuel','Eduardo','Andres','Rodrigo','Vicente','Roberto','Enrique','Francisco','Joel','Jerome','Bryan','Earl','Aldrin','Coco','Vince','Aljur'],
+  },
+};
+// 6국 외 — 영문 일반 폴백 풀 (글로벌 일반 이름)
+const ENGLISH_FALLBACK_POOL = {
+  surnames: ['Smith','Lee','Kim','Garcia','Tanaka','Wang','Johnson','Brown','Williams','Jones','Müller','Silva','Rossi','Dubois','Nguyen','Singh','Patel','Cohen','Ali','Hassan','Anderson','Martin','Taylor','Schmidt','Lopez'],
+  female: ['Alex','Maria','Anna','Sofia','Emma','Olivia','Mia','Sara','Lina','Yuki','Mei','Aisha','Fatima','Elena','Chloe','Hannah','Julia','Lucia','Nina','Priya','Aya','Zoe','Layla','Ava','Ella','Grace','Ines','Marie','Lara','Noor','Amira','Camille','Sophie','Helena','Isabel'],
+  male:   ['Alex','John','Daniel','David','Michael','Lucas','Mateo','Liam','Noah','Ethan','Hiroshi','Wei','Ahmed','Omar','Carlos','Diego','Pedro','Marco','Pierre','Luca','Felix','Oscar','Henry','Sebastian','Adrian','Ivan','Andrei','Raj','Arjun','Yusuf','Ibrahim','Samuel','Leo','Max','Theo'],
+};
 function _fnv1aHash(str) {
   // 결정적 32-bit FNV-1a hash
   let hash = 0x811c9dc5;
@@ -65,15 +108,21 @@ function _fnv1aHash(str) {
   }
   return hash >>> 0;
 }
-function generatePersonaNameDeterministic(persona_id, gender, age, region, archetypeKey) {
-  // CEO 2026-06-24: 진짜 한국어 이름. seed = persona_id (동일 persona_id → 항상 동일 이름)
-  // 지역/나이/성별/직업은 페르소나 카드 다른 필드에 나오므로 이름 자리엔 이름만
+function generatePersonaNameDeterministic(country, persona_id, gender, age, region, archetypeKey) {
+  // CEO 2026-06-24: 데이터-드리븐 + 미지원국 영문 폴백
+  // 골조: pool = NAME_POOLS[country] || ENGLISH_FALLBACK_POOL — NAME_POOLS에 없는 country는 자동 영문
+  // seed: persona_id 결정적 (country는 풀 선택에만 사용. seed에 country를 섞으면 같은 persona_id가 country 바뀔 때 이름이 바뀌어
+  //        혼동 야기 가능하나, 페르소나 풀은 country별로 따로 생성되므로 실제 충돌 없음)
+  const upperCountry = String(country || '').toUpperCase();
+  const pool = NAME_POOLS[upperCountry] || ENGLISH_FALLBACK_POOL;
   const seed = _fnv1aHash(String(persona_id || `${region}|${age}|${gender}`));
-  const surname = _KR_SURNAMES[seed % _KR_SURNAMES.length];
-  const pool = gender === 'male' ? _KR_GIVEN_MALE : _KR_GIVEN_FEMALE;
+  const surname = pool.surnames[seed % pool.surnames.length];
+  const givenPool = gender === 'male' ? pool.male : pool.female;
   // 성과 이름 seed를 분리해 다양성 확보 (상위/하위 비트 구분)
-  const given = pool[(Math.floor(seed / _KR_SURNAMES.length)) % pool.length];
-  return `${surname}${given}`;
+  const given = givenPool[(Math.floor(seed / pool.surnames.length)) % givenPool.length];
+  // 영문 폴백/PH: 'Given Surname' 순서, 그 외(KR/JP/CN/TW/TH 한글계): '성+이름' 붙임
+  const isLatin = (pool === ENGLISH_FALLBACK_POOL) || (upperCountry === 'PH');
+  return isLatin ? `${given} ${surname}` : `${surname}${given}`;
 }
 
 // CEO 2026-06-18 19:15: 옵션 A — 인터뷰 패널 = 페르소나 풀에서 다양성 sampling
@@ -82,7 +131,7 @@ function generatePersonaNameDeterministic(persona_id, gender, age, region, arche
 //
 // 전략: archetype 다양성 우선 (shopping_style 기준 + occupation 다양) → 4명 stratified pick
 // CEO 2026-06-24: anchorPersona 있으면 picked[0]에 고정 + 모든 picked의 name을 결정적으로 부여
-function samplePanelFromPool(personas, n = 4, anchorPersona = null) {
+function samplePanelFromPool(personas, n = 4, anchorPersona = null, country = 'KR') {
   if (!Array.isArray(personas) || personas.length === 0) return [];
   // persona-store 반환 객체 = top-level flatten됨 (attributes/narrative 클래스화 안 됨)
   // 제공 필드: persona_id, country, age, gender, region, ageBucket, incomeQuintile, occupation, occupationLabel,
@@ -173,6 +222,7 @@ function samplePanelFromPool(personas, n = 4, anchorPersona = null) {
     const _deterministicName = (p._isAnchor && p._anchorSourceName)
       ? p._anchorSourceName
       : generatePersonaNameDeterministic(
+          country,
           p.persona_id || `idx-${idx}`,
           p.gender,
           p.age,
@@ -638,7 +688,7 @@ interviewRouter.post("/panel", async (req, res) => {
       const pool = getPersonas(briefId, String(country).toUpperCase());
       if (pool && pool.length > 0) {
         // CEO 2026-06-24: anchorPersona 전달 — picked[0]에 고정 + 결정적 이름 부여
-        const panel = samplePanelFromPool(pool, n, anchorPersona);
+        const panel = samplePanelFromPool(pool, n, anchorPersona, String(country).toUpperCase());
         if (panel.length > 0) {
           return res.json({
             ok: true,
