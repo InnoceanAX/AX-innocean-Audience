@@ -200,15 +200,23 @@ export function aggregateBuy(personas) {
 // 2026-06-23 (CEO 지시): 미디어 차트에서 제외할 순수 쇼핑/커머스 플랫폼.
 //   이들은 미디어(영상/SNS/검색/OTT/음악/뉴스)가 아니라 구매 채널 → 미디어 집계에서 빼다.
 //   (주의: "Coupang Play"는 OTT라 유지, 일반 "Coupang"만 제외)
+// 2026-06-24 (CEO 지시): 중고거래 마켓은 제외 제거. 무신사/쿠팡 같은 신상품 쇼핑몰과
+//   당근마켓/메루카리 같은 중고마켓은 다른 카테고리. 중고마켓은 미디어 포함.
 const MEDIA_EXCLUDE_SHOPPING = new Set([
+  // 순수 쇼핑몰 (신상품 커머스 플랫폼)
   "Musinsa", "Coupang", "11번가", "G마켓", "옥션", "위메프", "SSG", "SSG.COM", "Gmarket",
   "29CM", "Zigzag", "지그재그", "아이허브", "패션 전문 앤", "패션앤", "패션 앤",
-  "당근마켓", "번개장터", "올리브영", "오늘의집", "클러스타", "Ably", "에이블리",
-  "Amazon", "아마존", "Taobao", "Tmall", "Rakuten", "Mercari", "Shopee", "Lazada",
+  "올리브영", "오늘의집",
+  "Amazon", "아마존", "Taobao", "Tmall", "Rakuten", "Shopee", "Lazada",
+  // 중고거래 마켓은 제외함 (CEO 2026-06-24 지시):
+  //   당근마켓, 번개장터, Mercari, 메루카리, 클러스타, Ably, 에이블리
 ]);
 
 // 2026-06-23 (CEO 지시): country 인자 추가. 미디어 차트 = "국가별 미디어 상품 화이트리스트"만으로 구성.
 //   CHANNELS(95개 미디어 상품) + 국가코드 기반. 무신사/특정 브랜드 하드코딩 분기 없음.
+// 2026-06-24 (CEO 지시): 국가별 미디어 채널 화이트리스트 확장 (681채널 매핑표 기반).
+//   현지표기+영문명 각각 별칭으로 포함. JP/CN 페르소나가 현지채널 언급 시 화면 노출.
+//   브랜드 중립: 무신사 같은 특정 쇼핑몰 편향 없음. 순수 쇼핑몰만 제외, 중고마켓은 포함.
 export function aggregateMedia(personasRaw, countryCode) {
   // 2026-06-23 (CEO 지시): 채널명 정규화 — LLM 표기 흔들림("YouTube (패션)" 등) 통합.
   const personas = canonicalizePersonaMedia(personasRaw);
