@@ -9450,8 +9450,16 @@ function switchToPanel(count){
   generatePanel(count || 4, { anchorPersona: anchor, seedPersonas, seedQuestion });
 }
 function switchToSinglePersona(){
-  if(typeof toast==='function') toast('단일 페르소나를 생성합니다…');
-  generatePersona();
+  // CEO 2026-06-24: '단일 페르소나로' 버튼은 새로 생성하지 않고 기존 단일 페르소나(앵커)로 돌아가야 함.
+  //   이전엔 generatePersona() 인자없이 호출해 매번 새 LLM 페르소나 생성 → 기존 대화 휘발.
+  //   ivPersona/currentPersona(단일 페르소나)가 있으면 그 객체를 넘겨 대화 복원(이름기반 key 일치).
+  const _single = state.currentPersona || state.ivPersona || null;
+  if(_single){
+    generatePersona(_single); // 인자 있으면 해당 페르소나 key로 대화기록 복원
+  } else {
+    if(typeof toast==='function') toast('단일 페르소나를 생성합니다…');
+    generatePersona(); // 단일 페르소나가 아직 없으면 생성
+  }
 }
 
 // CEO 2026-06-12: AI 채팅 답변 페르소나 → 인터뷰 단일 모드 자동 시작
