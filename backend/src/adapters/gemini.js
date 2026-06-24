@@ -124,11 +124,15 @@ export async function generateJSON({ prompt, system, schema, model = "gemini-2.5
 }
 
 // 멀티턴 대화 (페르소나 인터뷰용)
-export async function chat({ messages, system, model = "gemini-2.5-flash", temperature = 0.7 }) {
+export async function chat({ messages, system, model = "gemini-2.5-flash", temperature = 0.7, maxTokens = 2048, thinkingBudget = 0 }) {
   const client = getClient();
+  // CEO 2026-06-24: gemini-2.5-flash는 thinking이 기본 활성 — maxOutputTokens를 thinking으로 다 소비해
+  //   답변이 문장 중간에 잘리는 버그(인터뷰 채팅 "디자인이 너무"에서 끊김). thinkingBudget=0 + maxTokens 상향 + 멀티파트 합치기로 수정.
+  const genCfg = { temperature, maxOutputTokens: maxTokens };
+  if (thinkingBudget != null) genCfg.thinkingConfig = { thinkingBudget };
   const m = client.getGenerativeModel({
     model,
-    generationConfig: { temperature, maxOutputTokens: 1024 },
+    generationConfig: genCfg,
     systemInstruction: system ? { parts: [{ text: system }] } : undefined,
   });
   const contents = messages.map(msg => ({
@@ -136,6 +140,9 @@ export async function chat({ messages, system, model = "gemini-2.5-flash", tempe
     parts: [{ text: msg.content }],
   }));
   const result = await m.generateContent({ contents });
-  const txt = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  return { text: txt, model };
+  // thinking 토큰 후 여러 parts로 나뉠 수 있어 전체 parts의 text를 합치기
+  const _parts = result.response?.candidates?.[0]?.content?.parts || [];
+  const txt = _parts.map(p => (p && p.text) || "").join("").trim()
+           || result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return { text: txt, model, finishReason: result.response?.candidates?.[0]?.finishReason };
 }
