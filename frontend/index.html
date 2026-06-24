@@ -11680,6 +11680,21 @@ async function downloadReportPDF(){
         if(tab.id === 'interview'){
           try { await _waitForInterviewCompleteContent(); await new Promise(r=>setTimeout(r, 500)); } catch(e){}
         }
+        // CEO 2026-06-24: 미디어 탭 보고서에 채널트리만 들어가던 문제 — 캡처 직전 모든 md-view(채널트리+전체매체표+차트)를 펼쳐 함께 포함.
+        //   광고비(spend)는 별도 섹션이므로 제외. 캡처 후 _restoreMdViews로 원복.
+        let _restoreMdViews = null;
+        if(tab.id === 'media'){
+          _restoreMdViews = [];
+          ['tree','flat','chart'].forEach(v => {
+            const _vEl = document.getElementById('md-view-' + v);
+            if(_vEl){
+              _restoreMdViews.push({ el: _vEl, had: _vEl.classList.contains('hide') });
+              _vEl.classList.remove('hide');
+            }
+          });
+          // 차트 렌더링 보장 위해 잠시 대기
+          await new Promise(r=>setTimeout(r, 600));
+        }
         // PDF 행은 캡처 직전 임시 hidden
         const tabBtnRow = tabEl.querySelector('.tab-pdf-row');
         if(tabBtnRow) tabBtnRow.style.visibility = 'hidden';
@@ -11707,6 +11722,10 @@ async function downloadReportPDF(){
           scrollX: 0, scrollY: 0, x: 0, y: 0
         });
         tabEl.style.overflow=_origEl.o; tabEl.style.overflowY=_origEl.oy; tabEl.style.overflowX=_origEl.ox;
+        // CEO 2026-06-24: 미디어 듷뷰 원복 (원래 hidden이었던 뷰만 다시 숨김)
+        if(_restoreMdViews){
+          _restoreMdViews.forEach(r => { if(r.had) r.el.classList.add('hide'); });
+        }
         _restoreOv.forEach(r => {
           if(r.rs){ r.el.scrollTop=r.st; r.el.scrollLeft=r.sl; }
           else { r.el.style.overflow=r.o; r.el.style.overflowY=r.oy; r.el.style.overflowX=r.ox; }
