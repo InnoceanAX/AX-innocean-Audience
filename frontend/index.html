@@ -3447,7 +3447,7 @@ function showJumpLoading(tab, q){
     + '<div style="width:42px;height:42px;border:4px solid #E0E7FF;border-top:4px solid #6366F1;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px"></div>'
     + '<div style="font-size:16px;font-weight:700;color:#4338CA;margin-bottom:6px">AI 페르소나 패널 합성 중… (약 30~60초 소요)</div>'
     + '<div style="font-size:13px;color:#4B5563;line-height:1.6;max-width:520px">"' + safeQ + '"<br/>→ <b>' + (tabLabels[tab] || tab) + '</b> 표준 분석 데이터를 생성하고 있습니다</div>'
-    + '<div style="font-size:11px;color:#9CA3AF;margin-top:12px">패널 30명 합성 + 6차원 지표 계산 — 약 30~60초 소요</div>'
+    + '<div style="font-size:11px;color:#9CA3AF;margin-top:12px">AI 합성 페르소나 풀(N=100) 기반 · 6차원 지표 계산</div>'
     + '</div>';
   // {tab}-body에만 주입 — 분석 완료 후 refreshAudienceTab이 다시 채워줌
   // CEO 2026-06-15: 점프 로딩 시 모든 빈 안내(empty state) 강제 숨김 — 모순 화면 방지
@@ -7540,10 +7540,11 @@ async function refreshSummaryTab(){
 }
 
 // ============ AI 합성 세그먼트 카드 렌더링 ============
-// 한국 30명 패널 응답 샘플 렌더 (상단 합성 박스 위에 표시)
+// CEO 2026-06-24: 30명 즉석 패널 경로 완전 제거 — 모든 화면은 100명 페르소나 풀로 통일.
+//   renderPanelSample은 레거시 호울장을 위해 존재. 항상 빈 문자열 반환 (state.panelCache 는 더 이상 세팅되지 않음).
 function renderPanelSample(dim){
-  // CEO 2026-06-23: campaign 모드(persona-pool 100명)에서는 30명 임시 패널 샘플 숨김
-  if(state.activeBriefId || state.activePreset) return '';
+  return '';
+  // 이하 레거시 코드 — 실행되지 않음 (state.panelCache 도달하지 않음)
   const panel = state.panelCache;
   if(!panel || !panel.aggregated) return '';
   // dim별 관련 질문 키 매핑
@@ -7768,10 +7769,11 @@ async function refreshAudienceTab(dim){
       const src = document.getElementById(dim + '-src');
       if(src && data.source){
         const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
-        const hasPanel = !!(state.panelCache && state.panelCache.aggregated);
+        // CEO 2026-06-24: 30명 패널 배지 제거 — 100명 풀로 통일.
+        const hasPanel = false;
         let badgeHtml;
         if(hasPanel){
-          badgeHtml = '<span class="aud-src-badge" style="background:#FEF3C7;color:#92400E"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:2px"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>AI 패널 30명</span> <span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
+          badgeHtml = '';
         } else if(hasSyn){
           badgeHtml = '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
         } else {
@@ -7862,11 +7864,11 @@ async function _refreshAudienceTabFetch(dim){
       return;
     }
     const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
-    // CEO 2026-06-23: campaign 모드(persona-pool)에서는 30명 임시 패널 배지 숨김 — persona-pool 배지 우선
-    const hasPanel = !!(state.panelCache && state.panelCache.aggregated) && !state.activeBriefId && !state.activePreset;
+    // CEO 2026-06-24: 30명 패널 배지 제거 — 100명 풀로 통일.
+    const hasPanel = false;
     let badgeHtml;
     if(hasPanel){
-      badgeHtml = '<span class="aud-src-badge" style="background:#FEF3C7;color:#92400E"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:2px"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>AI 패널 30명</span> <span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6">빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
+      badgeHtml = '';
     } else if(hasSyn){
       badgeHtml = '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>';
     } else {
@@ -10419,26 +10421,19 @@ async function runAnalysis(opts){
         }
       }catch(e){ console.warn('synthesize failed', e); }
 
-      // 한국 단독: 30명 페르소나 패널 조회 (백그라운드, 도착 시 현재 탭만 조용히 갱신)
-      // CEO 2026-06-23: campaign 모드(persona-pool 100명)에서는 30명 임시 패널 호출 차단 — 골조 정합
-      if(code === 'KR' && !state.activeBriefId && !state.activePreset){
-        const f = state.filters || {};
-        const ageRange = (Array.isArray(f.age) && f.age.length > 0 && f.age[0] !== '전체') ? f.age.join('|') : null;
-        const gender = (Array.isArray(f.gender) && f.gender.length === 1 && f.gender[0] !== '전체') ? f.gender[0] : null;
-        const interests = Array.isArray(f.interests) ? f.interests.filter(i => i !== '전체') : [];
-        // 백그라운드 fire-and-forget — 메인 흐름 차단 안됨
-        fetch(API + '/research/segment', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ country: 'KR', ageRange, gender, interests, panelSize: 30 }),
-        }).then(r => r.json()).then(panelD => {
-          if(panelD && panelD.ok){
-            state.panelCache = panelD;
-            // 현재 다이멘션 탭이면 조용히 갱신
-            if(['who','life','mind','love','buy'].includes(state.currentTab)){
-              refreshAudienceTab(state.currentTab);
+      // CEO 2026-06-24: 30명 즉석 패널 경로 제거 — AI 채팅도 100명 페르소나 풀로 통일.
+      //   briefId/activePreset 없을 때 자동 brief 생성 + 풀 생성 트리거 (ensureAdhocBrief).
+      //   풀이 완성될 때까지 탭은 persona-pool generating 배지로 진행 표시.
+      if(!state.activeBriefId && !state.activePreset && typeof ensureAdhocBrief === 'function'){
+        // fire-and-forget — 메인 흐름 차단 안됨. 완료 시 pollPersonaStatus가 현재 탭 갱신.
+        ensureAdhocBrief().then(bid => {
+          if(bid){
+            // 현재 다이멘션 탭이면 조용히 갱신 → persona-pool 'generating' 배지로 즉시 전환
+            if(['who','life','mind','love','buy','media'].includes(state.currentTab) && typeof refreshAudienceTab === 'function'){
+              try { refreshAudienceTab(state.currentTab); } catch(e){}
             }
           }
-        }).catch(e => console.warn('panel research failed', e));
+        }).catch(e => console.warn('[ensureAdhocBrief]', e));
       }
     }
     // CEO 2026-06-15: 분석 완료 — analyzing 해제 + 현재 탭 재갱신
@@ -10924,6 +10919,77 @@ async function ensureCampaignBrief(){
   }catch(e){
     console.warn('[ensureCampaignBrief]', e);
     if(typeof toast === 'function') toast('캠페인 분석 준비 실패: ' + e.message);
+    return null;
+  }
+}
+
+// CEO 2026-06-24: AI 채팅 (briefId/activePreset 없는 즉석 질문)용 brief 자동 생성.
+//   리서치/segment 30명 패널 대체 — 100명 페르소나 풀로 통일 (빌더·요약·6탭·인터뷰와 동일 풀 사용).
+//   country + filters 기준 이미 종료(completed) brief 있으면 재사용, 없으면 새로 생성 + generation 트리거.
+async function ensureAdhocBrief(){
+  try{
+    if(state.activeBriefId) return state.activeBriefId;
+    const code = state.currentCountry;
+    if(!code) return null;
+    // 동시 호출 가드 — 동일 filters로 이미 in-flight면 대기
+    const fkey = JSON.stringify({ c: code, f: state.filters || {} });
+    if(state._adhocBriefInFlightKey === fkey && state._adhocBriefInFlightPromise){
+      try { return await state._adhocBriefInFlightPromise; } catch(e){ /* fall through */ }
+    }
+    const inflight = (async () => {
+      const f = state.filters || {};
+      const ageArr = Array.isArray(f.age) ? f.age.filter(v => v !== '전체') : [];
+      const genderArr = Array.isArray(f.gender) ? f.gender.filter(v => v !== '전체') : [];
+      const interestsArr = Array.isArray(f.interests) ? f.interests.filter(v => v !== '전체') : [];
+      // targets 스키마 — 빌더/preset과 호환 (age range, gender, interests)
+      const targets = {
+        ageRange: ageArr.length ? ageArr.join('|') : null,
+        gender: genderArr.length === 1 ? genderArr[0] : null,
+        interests: interestsArr.length ? interestsArr : null,
+      };
+      const body = {
+        brand: 'AdHoc',
+        name: `AI Chat · ${code} · ${new Date().toISOString().slice(0,16)}`,
+        countries: [code],
+        targets,
+        filters: state.filters || null,
+        sizePerCountry: 100,
+        presetId: null,
+      };
+      const r = await fetch(`${API}/personas/brief`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body),
+      });
+      const d = await r.json();
+      if(!d.ok || !d.brief_id) throw new Error(d.error || 'adhoc brief failed');
+      state.activeBriefId = d.brief_id;
+      // 풀 생성 트리거 (해당 국가 100명)
+      await fetch(`${API}/personas/generate`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ brief_id: d.brief_id, countries: [code] }),
+      });
+      if(typeof toast === 'function') toast(`AI 합성 페르소나 풀 생성 시작 (${code} · 100명 · 약 3~5분 소요)`);
+      // 진행 상태 폴링 — 완료 시 현재 탭 자동 갱신
+      pollPersonaStatus();
+      return state.activeBriefId;
+    })();
+    state._adhocBriefInFlightKey = fkey;
+    state._adhocBriefInFlightPromise = inflight;
+    try {
+      const bid = await inflight;
+      return bid;
+    } finally {
+      // 종료 후 정리 (state.activeBriefId는 유지)
+      if(state._adhocBriefInFlightKey === fkey){
+        state._adhocBriefInFlightKey = null;
+        state._adhocBriefInFlightPromise = null;
+      }
+    }
+  }catch(e){
+    console.warn('[ensureAdhocBrief]', e);
+    if(typeof toast === 'function') toast('AI 페르소나 풀 생성 실패: ' + (e.message || e));
+    state._adhocBriefInFlightKey = null;
+    state._adhocBriefInFlightPromise = null;
     return null;
   }
 }
