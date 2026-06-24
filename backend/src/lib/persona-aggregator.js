@@ -100,7 +100,8 @@ export function aggregateMind(personas) {
   const topValuesTags = toRanked(vals, { topN: 20 });
   const shoppingStyle = distribution(tally(personas, p => p.shopping_style), { total });
   // 2026-06-23 baseline 차트 6개 집계
-  const MIND_CORE_KEYS = ["성취","안정","자유","관계","성장"];
+  // 2026-06-24 (CEO 지시): 핵심가치 Schwartz 기본가치 이론 5축 (자기성취/자기주도/안전보존/관계조화/보편이타)
+  const MIND_CORE_KEYS = ["자기성취","자기주도","안전보존","관계조화","보편이타"];
   const MIND_MINDSET_KEYS = ["브랜드신뢰","리스크수용","미래낙관","개인낙관","스트레스"];
   const MIND_BIG5_KEYS = ["개방성","성실성","외향성","우호성","신경성"];
   const coreValues = avgScoreObject(personas, "coreValues", MIND_CORE_KEYS);

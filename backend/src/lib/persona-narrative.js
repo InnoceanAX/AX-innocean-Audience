@@ -68,10 +68,10 @@ const NARRATIVE_SCHEMA_ITEM = {
     coreValues: {
       type: "object",
       properties: {
-        "성취": { type: "number" }, "안정": { type: "number" }, "자유": { type: "number" },
-        "관계": { type: "number" }, "성장": { type: "number" },
+        "자기성취": { type: "number" }, "자기주도": { type: "number" }, "안전보존": { type: "number" },
+        "관계조화": { type: "number" }, "보편이타": { type: "number" },
       },
-      required: ["성취", "안정", "자유", "관계", "성장"],
+      required: ["자기성취", "자기주도", "안전보존", "관계조화", "보편이타"],
     },
     mindset: {
       type: "object",
@@ -81,9 +81,9 @@ const NARRATIVE_SCHEMA_ITEM = {
       },
       required: ["브랜드신뢰", "리스크수용", "미래낙관", "개인낙관", "스트레스"],
     },
-    socialConcern: { type: "string" },   // 환경|공정|다양성|동물복지
-    decisionStyle: { type: "string" },   // 직관|분석|추천의존|가격우선
-    infoSource: { type: "string" },      // SNS|검색|지인|전문매체
+    socialConcern: { type: "string" },   // 환경·기후|일자리·경제|교육·육아|주거·부동산|건강·의료|공정·다양성|안전·치안
+    decisionStyle: { type: "string" },   // 이성·분석|감성·직관|추천의존|탐색후선택|가격민감|충동구매
+    infoSource: { type: "string" },      // SNS|검색엔진|뉴스앱·포털|지인·가족|TV·전통매체|전문가·리뷰|브랜드 공식채널|영상·팟캐스트
     bigFive: {
       type: "object",
       properties: {
@@ -199,11 +199,11 @@ ${personaLines}
 - foodHabit (life): 식생활 enum 하나 ["집밥","외식","배달","간편식"]
 - wellnessFreq (life): 운동빈도 enum 하나 ["안함","주1-2","주3-4","매일"]
 - travelFreq (life): 여행빈도 enum 하나 ["연1회미만","연1-2회","연3-4회","연5회+"]
-- coreValues (mind): 가치 점수 0~100 정수. 키 5개 필수: {"성취","안정","자유","관계","성장"}
+- coreValues (mind): 가치 점수 0~100 정수. 키 5개 필수 (Schwartz 기본가치 이론): {"자기성취","자기주도","안전보존","관계조화","보편이타"} (자기성취=성공·인정, 자기주도=독립·새경험, 안전보존=안정·질서·전통, 관계조화=가까운사람복지, 보편이타=모두·환경공정)
 - mindset (mind): 마인드셋 점수 0~100 정수. 키 5개 필수: {"브랜드신뢰","리스크수용","미래낙관","개인낙관","스트레스"}
-- socialConcern (mind): 사회 관심사 enum 하나 ["환경","공정","다양성","동물복지"]
-- decisionStyle (mind): 의사결정 스타일 enum 하나 ["직관","분석","추천의존","가격우선"]
-- infoSource (mind): 정보 소비 채널 enum 하나 ["SNS","검색","지인","전문매체"]
+- socialConcern (mind): 사회 관심사 enum 하나 (WVS/Pew 기반) ["환경·기후","일자리·경제","교육·육아","주거·부동산","건강·의료","공정·다양성","안전·치안"]
+- decisionStyle (mind): 의사결정 스타일 enum 하나 (Sproles&Kendall CSI) ["이성·분석","감성·직관","추천의존","탐색후선택","가격민감","충동구매"]
+- infoSource (mind): 정보 소비 채널 enum 하나 (DataReportal 2024) ["SNS","검색엔진","뉴스앱·포털","지인·가족","TV·전통매체","전문가·리뷰","브랜드 공식채널","영상·팟캐스트"]
 - bigFive (mind): 빅5 성격 점수 0~100 정수. 키 5개 필수: {"개방성","성실성","외향성","우호성","신경성"}
 - interests (love): 관심사 점수 0~100 정수. 키 8개 필수: {"패션","뷰티","테크","음식","여행","운동","게임","문화"}
 - musicGenre (love): 선호 음악 enum 하나 ["K-pop","팝","힙합","인디","클래식","발라드"]
@@ -402,20 +402,20 @@ function defaultActivities(p) {
   };
 }
 // mind 탭
-const MIND_CORE_KEYS = ["성취","안정","자유","관계","성장"];
+const MIND_CORE_KEYS = ["자기성취","자기주도","안전보존","관계조화","보편이타"];
 const MIND_MINDSET_KEYS = ["브랜드신뢰","리스크수용","미래낙관","개인낙관","스트레스"];
 const MIND_BIG5_KEYS = ["개방성","성실성","외향성","우호성","신경성"];
-const MIND_SOCIAL = ["환경","공정","다양성","동물복지"];
-const MIND_DECISION = ["직관","분석","추천의존","가격우선"];
-const MIND_INFO = ["SNS","검색","지인","전문매체"];
+const MIND_SOCIAL = ["환경·기후","일자리·경제","교육·육아","주거·부동산","건강·의료","공정·다양성","안전·치안"];
+const MIND_DECISION = ["이성·분석","감성·직관","추천의존","탐색후선택","가격민감","충동구매"];
+const MIND_INFO = ["SNS","검색엔진","뉴스앱·포털","지인·가족","TV·전통매체","전문가·리뷰","브랜드 공식채널","영상·팟캐스트"];
 function defaultCoreValues(p) {
   const pid = p.persona_id || `${p.country}:0`;
   return {
-    "성취": _scoreFromSeed(pid, "cv:성취", 60),
-    "안정": _scoreFromSeed(pid, "cv:안정", 65),
-    "자유": _scoreFromSeed(pid, "cv:자유", 65),
-    "관계": _scoreFromSeed(pid, "cv:관계", 60),
-    "성장": _scoreFromSeed(pid, "cv:성장", 60),
+    "자기성취": _scoreFromSeed(pid, "cv:자기성취", 62),
+    "자기주도": _scoreFromSeed(pid, "cv:자기주도", 65),
+    "안전보존": _scoreFromSeed(pid, "cv:안전보존", 65),
+    "관계조화": _scoreFromSeed(pid, "cv:관계조화", 60),
+    "보편이타": _scoreFromSeed(pid, "cv:보편이타", 58),
   };
 }
 function defaultMindset(p) {

@@ -700,7 +700,7 @@ audienceRouter.post("/synthesize", async (req, res) => {
   - love.fandomLevelDistribution (팬덤 수준 분포)
   - life.activityShares / wellnessFreq / travelFreq / dayparts / foodHabits / hobbyShares
   - life.sleepHours / workLifeBalance / homeOfficeRatio
-  - mind.decisionStyle / infoConsumption / personalityTrait
+  - mind.decisionStyle / infoSource / personalityTrait
   - mind.optimismScore / stressLevel / spiritualityScore
   - love.influencerTypes / sportsAffinity / hobbyShares / culturalConsumption
   - love.petAffinity / gamingAffinity
@@ -762,7 +762,7 @@ audienceRouter.post("/synthesize", async (req, res) => {
               socialConcerns: { type: "object", description: "사회적 관심사 점수 0-100 (환경/공정·다양성/안전·고용 등)", additionalProperties: { type: "number" } },
               futureOutlookScore: { type: "number", description: "미래 낙관도 0-100" },
               decisionStyle: { type: "object", description: "의사결정 스타일 분포 (이성·분석·감성·직관·사회적) % 합계 100", additionalProperties: { type: "number" } },
-              infoConsumption: { type: "object", description: "정보 소비 패턴 (심층·스키마·추천·탐색 등) % 합계 100", additionalProperties: { type: "number" } },
+              infoSource: { type: "object", description: "정보 소비 채널 (DataReportal 기본, SNS/검색/뉴스/지인/TV/전문가/브랜드/영상) % 합계 100", additionalProperties: { type: "number" } },
               lifeStage: { type: "string", description: "라이프스테이지 (예: 신혼·유자년·자녀독립·은퇴준비 등)" },
               optimismScore: { type: "number", description: "개인적 낙관·자존감 점수 0-100" },
               stressLevel: { type: "number", description: "장기 스트레스 수준 0-100" },
@@ -904,17 +904,19 @@ audienceRouter.post("/synthesize", async (req, res) => {
     if (synthesized.mind.futureOutlookScore == null) synthesized.mind.futureOutlookScore = 55;
     if (synthesized.mind.optimismScore == null) synthesized.mind.optimismScore = 60;
     if (synthesized.mind.stressLevel == null) synthesized.mind.stressLevel = 50;
+    // 2026-06-24 (CEO 지시): B경로 fallback 키 이름을 차트 order(표준분류)와 동일하게 통일.
+    //   Sproles&Kendall CSI 6축 / DataReportal 8축 / WVS·Pew 7축.
     if (!synthesized.mind.decisionStyle || Object.keys(synthesized.mind.decisionStyle).length === 0) {
-      synthesized.mind.decisionStyle = { "이성·분석": 35, "감성·직관": 25, "추천 따르기": 20, "탐색 후 선택": 15, "단순 충동": 5 };
+      synthesized.mind.decisionStyle = { "이성·분석": 30, "감성·직관": 22, "추천의존": 18, "탐색후선택": 15, "가격민감": 10, "충동구매": 5 };
     }
-    if (!synthesized.mind.infoConsumption || Object.keys(synthesized.mind.infoConsumption).length === 0) {
-      synthesized.mind.infoConsumption = { "심층 읽기": 22, "스키밍·요약": 38, "추천 알고리즘": 25, "능동적 탐색": 15 };
+    if (!synthesized.mind.infoSource || Object.keys(synthesized.mind.infoSource).length === 0) {
+      synthesized.mind.infoSource = { "SNS": 24, "검색엔진": 20, "뉴스앱·포털": 14, "지인·가족": 12, "TV·전통매체": 10, "전문가·리뷰": 9, "브랜드 공식채널": 6, "영상·팟캐스트": 5 };
     }
     if (!synthesized.mind.personalityTrait || Object.keys(synthesized.mind.personalityTrait).length === 0) {
       synthesized.mind.personalityTrait = { "외향성": 55, "개방성": 65, "성실성": 70, "신경성": 50, "친화성": 65 };
     }
     if (!synthesized.mind.socialConcerns || Object.keys(synthesized.mind.socialConcerns).length === 0) {
-      synthesized.mind.socialConcerns = { "교육·육아": 40, "주거·부동산": 35, "일자리·경제": 30, "건강·의료": 25, "환경·기후": 20 };
+      synthesized.mind.socialConcerns = { "환경·기후": 18, "일자리·경제": 20, "교육·육아": 16, "주거·부동산": 15, "건강·의료": 13, "공정·다양성": 10, "안전·치안": 8 };
     }
 
     // LOVE 차트 수단 해백

@@ -5628,6 +5628,14 @@ function _tabUsage(stageLabel) {
     { l: 'TAB USAGE', t: stageLabel, d: stageLabel + ' 데이터를 근거로 탭별 합성 소비자 프로필을 구성.' },
   ];
 }
+// 2026-06-24 (CEO 지시): 가치관 탭 범례 재설계 표준 출처 명시 (Schwartz/WVS·Pew/CSI/DataReportal/Big5)
+const MIND_METHOD_BLOCKS = [
+  { l: 'METHOD #1', t: '핵심가치 — Schwartz 기본가치 이론', d: 'Schwartz Theory of Basic Human Values (1992·2012), ESS·WVS 채택. 5축 축약: 자기성취·자기주도·안전보존·관계조화·보편이타.' },
+  { l: 'METHOD #2', t: '사회 관심사 — WVS / Pew Research', d: 'World Values Survey Wave 7 (2017–2022) + Pew “Most Important Problems” 2024. 7대 관심사 표준.' },
+  { l: 'METHOD #3', t: '의사결정 — Sproles & Kendall CSI', d: 'Consumer Styles Inventory (1986) 8축 → 6축 축약 (이성·분석/감성·직관/추천의존/탐색후선택/가격민감/충동구매).' },
+  { l: 'METHOD #4', t: '정보소비 — DataReportal Digital 2024', d: 'DataReportal Digital 2024 Global Overview + Reuters DNR. 정보원 8축 (SNS/검색엔진/뉴스앱·포털/지인·가족/TV·전통매체/전문가·리뷰/브랜드·공식/영상·팟캐스트).' },
+  { l: 'METHOD #5', t: '성격 — Big Five (OCEAN)', d: 'Costa & McCrae Big Five 학계 표준 5요인 (개방성·성실성·외향성·우호성·신경성) 유지.' },
+];
 const DATA_SOURCES = {
   who: {
     title: '인물상 (Who) — 인구통계',
@@ -5646,9 +5654,10 @@ const DATA_SOURCES = {
     ],
   },
   mind: {
-    title: '가치관 (Mind) — 신뢰·문화',
+    title: '가치관 (Mind) — 가치·성격·정보소비',
     blocks: [
       ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...MIND_METHOD_BLOCKS,
       ...AI_SYNTHETIC_MODEL_BLOCKS,
       ..._tabUsage('Stage 2 가치관·의사결정 스타일 태그'),
     ],
@@ -8212,9 +8221,9 @@ function renderDimCharts(dim, data){
         // 의사결정 스타일
         const ds = syn.decisionStyle || {};
         if(Object.keys(ds).length) renderChartSafe('chart-mind-decision', 'doughnut', Object.keys(ds), Object.values(ds).map(v=>+v||0), ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981'], { suffix: '%' });
-        // 정보 소비
-        const ic = syn.infoConsumption || {};
-        if(Object.keys(ic).length) renderChartSafe('chart-mind-info', 'doughnut', Object.keys(ic), Object.values(ic).map(v=>+v||0), ['#0EA5E9','#06B6D4','#10B981','#F59E0B'], { suffix: '%' });
+        // 정보 소비 (필드명 infoConsumption → infoSource 로 통일)
+        const infoSrc = syn.infoSource || {};
+        if(Object.keys(infoSrc).length) renderChartSafe('chart-mind-info', 'doughnut', Object.keys(infoSrc), Object.values(infoSrc).map(v=>+v||0), ['#0EA5E9','#06B6D4','#10B981','#F59E0B','#8B5CF6','#EC4899','#EF4444','#3B82F6'], { suffix: '%' });
         // 성격 (빅파이브)
         const pt = syn.personalityTrait || {};
         if(Object.keys(pt).length) renderChartSafe('chart-mind-personality', 'radar', Object.keys(pt), Object.values(pt).map(v=>+v||0), '#A855F7', { rmax: 100 });
@@ -9121,9 +9130,9 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
   }
 
   if(dim === 'mind'){
-    // 1. 핵심 가치 radar (chart-mind-values · radar 0~100)
+    // 1. 핵심 가치 radar (chart-mind-values · radar 0~100) — Schwartz 기본가치 5축
     {
-      const order = ['성취','안정','자유','관계','성장'];
+      const order = ['자기성취','자기주도','안전보존','관계조화','보편이타'];
       const [labels, vals] = scoresFixed(d.coreValues, order);
       renderChartSafe('chart-mind-values', 'radar', labels, vals, '#8B5CF6', { rmax: 100 });
     }
@@ -9133,23 +9142,23 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
       const [labels, vals] = scoresFixed(d.mindset, order);
       renderChartSafe('chart-mind-trust', 'radar', labels, vals, '#10B981', { rmax: 100 });
     }
-    // 3. 사회 관심사 (chart-mind-culture · doughnut)
+    // 3. 사회 관심사 (chart-mind-culture · doughnut) — WVS/Pew 7축
     {
-      const order = ['환경','공정','다양성','동물복지'];
+      const order = ['환경·기후','일자리·경제','교육·육아','주거·부동산','건강·의료','공정·다양성','안전·치안'];
       const [labels, vals] = distFixed(d.socialConcern, order);
-      renderChartSafe('chart-mind-culture', 'doughnut', labels, vals, ['#F59E0B','#EF4444','#06B6D4','#10B981','#8B5CF6'], { suffix: '%' });
+      renderChartSafe('chart-mind-culture', 'doughnut', labels, vals, ['#10B981','#F59E0B','#EF4444','#06B6D4','#8B5CF6','#EC4899','#3B82F6'], { suffix: '%' });
     }
-    // 4. 의사결정 (chart-mind-decision · doughnut)
+    // 4. 의사결정 (chart-mind-decision · doughnut) — Sproles&Kendall CSI 6축
     {
-      const order = ['직관','분석','추천의존','가격우선'];
+      const order = ['이성·분석','감성·직관','추천의존','탐색후선택','가격민감','충동구매'];
       const [labels, vals] = distFixed(d.decisionStyle, order);
-      renderChartSafe('chart-mind-decision', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981'], { suffix: '%' });
+      renderChartSafe('chart-mind-decision', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#EF4444'], { suffix: '%' });
     }
-    // 5. 정보 소비 (chart-mind-info · doughnut)
+    // 5. 정보 소비 (chart-mind-info · doughnut) — DataReportal 2024 정보원 8축
     {
-      const order = ['SNS','검색','지인','전문매체'];
+      const order = ['SNS','검색엔진','뉴스앱·포털','지인·가족','TV·전통매체','전문가·리뷰','브랜드 공식채널','영상·팟캐스트'];
       const [labels, vals] = distFixed(d.infoSource, order);
-      renderChartSafe('chart-mind-info', 'doughnut', labels, vals, ['#0EA5E9','#06B6D4','#10B981','#F59E0B'], { suffix: '%' });
+      renderChartSafe('chart-mind-info', 'doughnut', labels, vals, ['#0EA5E9','#06B6D4','#10B981','#F59E0B','#8B5CF6','#EC4899','#EF4444','#3B82F6'], { suffix: '%' });
     }
     // 6. Big5 성격 radar (chart-mind-personality · radar 0~100)
     {
