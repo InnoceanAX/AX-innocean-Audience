@@ -521,23 +521,452 @@ const GENERIC_MEDIA_ALIASES = [
 // canonicalizeChannel의 결과 별칭 (한글 명칭 / 로컬라이즈 명칭).
 // CHANNELS는 대부분 영문 라벨이지만 canonicalize가 한글 명칭으로 정규화함(예: Melon → 멜론).
 // 또한 CHANNELS에 등록되지 않은 주요 OTT/메시지(Coupang Play, 티빙, 웨이브, 왬차, Threads 등) 포함.
+// 2026-06-24 (CTO Sohee): 국가별 미디어 채널 화이트리스트 확장.
+//   매핑표 media-channel-mapping-FULL-KR-JP-CN.md(KR/JP/CN 9세그) 기반.
+//   현지표기·영문병기 각각 별칭 추출. 기존 항목 전부 보존 + 확장.
+//   순수 쇼핑/커머스 플랫폼(옥션/拼多多/중고나라/득물 등)은 제외(미디어 아님).
+//   브랜드 중립: 특정 브랜드(무신사 등) 하드코딩 없음.
 const CANONICAL_MEDIA_ALIASES = {
-  // CHANNELS의 KR용 OTT/음악 한글 별칭 (KR에서만)
+  // ─────────────────────────────────────────────────────────
+  // KR — 한국 전용·강세 채널 별칭
+  // ─────────────────────────────────────────────────────────
   KR: [
+    // ── 기존 항목 (유지) ──
     "멜론", "지니뮤직", "FLO", "Tving", "Wavve", "Watcha", "Coupang Play",
+    // ── TV / 지상파·종편·케이블 ──
+    "KBS", "KBS1", "KBS2", "MBC", "SBS", "EBS", "JTBC", "TV조선", "채널A", "MBN",
+    "YTN", "연합뉴스TV", "tvN", "OCN", "Mnet", "ENA", "CJ ENM",
+    // ── OTT / CTV ──
+    "티빙", "웨이브", "쿠팡플레이", "왓챠", "SPOTV NOW", "ENA Play",
+    // ── Online Video / UGC ──
+    "아프리카TV", "SOOP", "치지직", "CHZZK",
+    // ── Search ──
+    "네이버", "Naver", "네이버 검색", "다음", "Daum", "ZUM", "줌",
+    // ── Social ──
+    "네이버 카페", "Naver Cafe", "네이버 밴드", "BAND",
+    "디시인사이드", "DC Inside", "더쿠", "theqoo",
+    "뽐뿌", "Ppomppu", "클리앙", "Clien", "보배드림", "Bobaedream",
+    // ── Messenger ──
+    "카카오톡", "KakaoTalk", "카카오", "라인", "텔레그램", "디스코드",
+    "네이버 웍스", "Naver Works",
+    // ── Music streaming ──
+    "Melon", "Genie Music", "지니", "벅스", "Bugs",
+    "카카오뮤직",
+    // ── Podcast / Audiobook ──
+    "팟빵", "Podbbang", "네이버 오디오클립", "오디오클립", "Audio Clip",
+    "윌라", "Welaaa", "밀리의서재", "Millie",
+    // ── 라디오 ──
+    "KBS 라디오", "쿨FM", "MBC 라디오", "FM4U", "SBS 라디오", "파워FM", "러브FM",
+    "CBS", "EBS FM", "PBC", "평화방송", "BBS", "불교방송", "극동방송", "TBS 교통방송",
+    // ── 신문 ──
+    "조선일보", "Chosun Ilbo", "중앙일보", "JoongAng Ilbo",
+    "동아일보", "Dong-A Ilbo", "한겨레", "Hankyoreh",
+    "경향신문", "Kyunghyang", "한국일보", "Hankook Ilbo",
+    "매일경제", "Maeil Business", "한국경제", "Korea Economic Daily",
+    "서울경제", "Seoul Economic", "파이낸셜뉴스", "FN News",
+    "이데일리", "Edaily", "머니투데이", "Money Today",
+    // ── 잡지 ──
+    "VOGUE Korea", "ELLE Korea", "Harper's BAZAAR Korea", "GQ Korea",
+    "W Korea", "Marie Claire Korea", "Allure Korea", "Cosmopolitan Korea",
+    "Cine21", "시사IN", "한겨레21", "매경ECONOMY", "한경비즈니스",
+    // ── Display / Native / Programmatic (KR) ──
+    "카카오 비즈보드", "Bizboard", "카카오 모먼트", "Kakao Moment",
+    "네이트", "Nate", "Dable", "데이블", "Taboola Korea",
+    "Naver Smart Channel", "스마트채널", "MOLOCO", "Cauly", "카울리",
+    "애드픽", "Adpick", "모비온", "MOBION", "NasMedia", "메조미디어",
+    // ── Classifieds / Jobs ──
+    "사람인", "Saramin", "잡코리아", "JobKorea", "워크넷", "WorkNet",
+    "인크루트", "Incruit", "알바몬", "AlbaMon", "알바천국", "Alba Heaven",
+    "캐치", "Catch", "원티드", "Wanted", "점핏", "Jumpit",
+    "자소설닷컴", "코멘토",
+    // ── Real Estate ──
+    "직방", "Zigbang", "다방", "Dabang",
+    "호갱노노", "HogangNoNo", "네이버 부동산", "Naver Real Estate",
+    "KB부동산", "부동산114", "R114", "한방",
+    // ── Auto ──
+    "엔카닷컴", "엔카", "Encar", "KB차차차",
+    "첫차", "Cheotcha", "SK 엔카 직영",
+    "헤이딜러", "HEYDEALER", "차란차", "Chalancha",
+    // ── Marketplace / 중고 ──
+    "당근마켓", "당근", "Karrot", "Daangn",
+    "번개장터", "Bunjang", "크림", "KREAM", "솔드아웃", "SOLDOUT",
+    // ── Service classifieds ──
+    "숨고", "Soomgo", "크몽", "Kmong", "탈잉", "Taling",
+    // ── Influencer 플랫폼 ──
+    "Naver Blog", "네이버 블로그", "Tistory", "티스토리",
+    "Brunch", "브런치", "카카오TV", "Stibee", "메일리", "Maily",
+    // ── 라이브커머스 ──
+    "네이버 쇼핑라이브", "카카오 쇼핑라이브", "쿠팡 라이브", "Coupang Live",
+    "그립", "Grip", "11번가 라이브", "SSG 라이브",
+    // ── B2B ──
+    "디스콰이엇", "disquiet", "폴인", "folin", "퍼블리", "PUBLY",
   ],
-  // CHANNELS의 JP용
+
+  // ─────────────────────────────────────────────────────────
+  // JP — 일본 전용·강세 채널 별칭
+  // ─────────────────────────────────────────────────────────
   JP: [
+    // ── 기존 항목 (유지) ──
     "U-NEXT", "ABEMA", "niconico", "Yahoo! Japan",
+    // ── Linear TV ──
+    "NHK", "NHK 総合", "NHK General", "NHK Eテレ", "NHK Educational",
+    "日本テレビ", "Nippon TV", "テレビ朝日", "TV Asahi",
+    "TBSテレビ", "TBS", "テレビ東京", "TV Tokyo",
+    "フジテレビ", "Fuji TV", "TOKYO MX",
+    "WOWOW", "スカパー!", "SKY PerfecTV!", "J-COM",
+    "BS日テレ", "BS朝日", "BS-TBS", "BSテレ東", "BSフジ",
+    // ── OTT / CTV ──
+    "Hulu Japan", "TVer", "DAZN Japan", "dTV", "Lemino",
+    // ── Online Video ──
+    "ニコニコ動画", "17LIVE", "OPENREC.tv", "OPENREC",
+    // ── Search ──
+    "Yahoo! JAPAN 検索", "goo検索", "goo",
+    "Bing 日本", "Google 日本",
+    // ── Social ──
+    "mixi", "ミクシィ",
+    "アメーバブログ", "Ameba Blog", "Ameba",
+    "note", "ノート",
+    "5ちゃんねる", "5channel",
+    "ガールズちゃんねる", "Girls Channel",
+    "はてなブックマーク", "Hatena Bookmark",
+    "はてなブログ", "Hatena Blog",
+    // ── Messenger ──
+    "LINE", "Messenger", "Telegram", "Discord",
+    "Chatwork", "Slack", "WhatsApp",
+    // ── Music streaming ──
+    "Spotify Japan", "Apple Music", "Amazon Music", "YouTube Music",
+    "LINE MUSIC", "AWA", "dヒッツ", "d Hits", "レコチョク", "RecoChoku",
+    // ── Podcast ──
+    "Voicy", "Spotify Podcasts", "Apple Podcasts",
+    "Amazon Audible", "Audible", "LisBo", "Radiotalk", "stand.fm",
+    // ── Radio ──
+    "NHK 第1", "NHK 第2", "NHK FM",
+    "TBSラジオ", "TBS Radio", "文化放送", "Joqr",
+    "ニッポン放送", "J-WAVE", "FM TOKYO", "TFM",
+    "bayfm78", "NACK5", "FM yokohama", "InterFM897", "Radio NIKKEI",
+    // ── 신문 ──
+    "読売新聞", "Yomiuri Shimbun", "Yomiuri",
+    "朝日新聞", "Asahi Shimbun", "Asahi",
+    "毎日新聞", "Mainichi Shimbun", "Mainichi",
+    "産経新聞", "Sankei Shimbun", "Sankei",
+    "日本経済新聞", "Nikkei",
+    "スポーツニッポン", "Sponichi",
+    "日刊スポーツ", "Nikkan Sports",
+    "スポーツ報知", "Sports Hochi",
+    "デイリースポーツ", "Daily Sports",
+    "中日新聞", "Chunichi Shimbun",
+    "西日本新聞", "Nishinippon",
+    "北海道新聞", "Hokkaido Shimbun",
+    // ── 잡지 ──
+    "VOGUE JAPAN", "ELLE JAPON", "Harper's BAZAAR JAPAN", "GQ JAPAN",
+    "Numero TOKYO", "25ans", "anan", "non-no",
+    "週刊文春", "Bunshun", "週刊新潮", "Shincho",
+    "週刊現代", "週刊ポスト", "週刊朝日",
+    "日経ビジネス", "Nikkei Business", "月刊 文藝春秋", "文藝春秋",
+    "dancyu", "クロワッサン",
+    // ── Display / Native / Programmatic (JP) ──
+    "朝日新聞デジタル", "Asahi Digital",
+    "読売新聞オンライン", "Yomiuri Online",
+    "毎日新聞デジタル", "Mainichi Digital",
+    "livedoor ニュース", "livedoor",
+    "gooニュース", "4Gamer.net", "ファミ通.com", "ファミ通",
+    "Outbrain Japan", "Outbrain",
+    "Taboola Japan", "Taboola",
+    "LINE NEWS", "SmartNews", "グノシー", "Gunosy",
+    "Yahoo! JAPAN ブランドパネル",
+    "MicroAd BLADE", "MicroAd",
+    "i-mobile", "fluct", "GMO TECH", "Geniee", "Geniee SSP",
+    "LINE 広告", "LINE Ads Platform",
+    // ── Classifieds / Jobs ──
+    "リクナビNEXT", "Rikunabi NEXT", "リクナビ",
+    "マイナビ転職", "Mynavi Tenshoku", "マイナビ",
+    "doda", "エン転職", "en転職",
+    "バイトル", "Baitoru",
+    "タウンワーク", "TownWork",
+    "リクルートエージェント",
+    "type", "@type",
+    "ビズリーチ", "BIZREACH",
+    "キャリトレ", "careertrek",
+    "Indeed Japan", "Indeed", "LinkedIn Jobs",
+    // ── Real Estate ──
+    "SUUMO", "HOMES", "LIFULL HOME'S",
+    "アットホーム", "at home",
+    "アパマンショップ", "Apamanshop",
+    "mansion-review",
+    "LIVABLE", "東急リバブル",
+    // ── Auto ──
+    "カーセンサー", "Carsensor",
+    "グーネット", "Goo-net",
+    "カーセブン", "Car Seven",
+    "カーチス", "Carchs",
+    "ガリバー", "Gulliver", "IDOM",
+    "ネクステージ", "NextStage",
+    "楽天Car", "Rakuten Car",
+    "Yahoo!オークション", "ヤフオク!", "ヤフオク",
+    // ── Marketplace ──
+    "メルカリ", "Mercari",
+    "ラクマ", "Rakuma",
+    "PayPayフリマ", "PayPay Flea Market",
+    "ジモティー", "Jimoty",
+    "スニーカーダンク", "SNKRDUNK",
+    "モノカブ", "monokabu",
+    // ── Service classifieds ──
+    "くらしのマーケット", "Kurashi no Market",
+    "ココナラ", "Coconala",
+    "ストアカ", "Street Academy",
+    "タスカジ", "TaskAji",
+    // ── Influencer 플랫폼 ──
+    "livedoor Blog",
+    "LINE BLOG", "Substack",
+    // ── 라이브커머스 ──
+    "楽天市場 ライブ", "Rakuten Live",
+    "Yahoo!ショッピング ライブ",
+    "TikTok Shop Live", "SHOP CHANNEL", "QVC Japan",
+    // ── B2B ──
+    "note PRO", "Wantedly", "YOUTRUST",
   ],
-  // CHANNELS의 CN용 영문 명칭 / canonicalize 결과
+
+  // ─────────────────────────────────────────────────────────
+  // CN — 중국 전용·강세 채널 별칭
+  // ─────────────────────────────────────────────────────────
   CN: [
-    "Xiaohongshu", "Douyin", "Bilibili", "Kuaishou", "Zhihu",
+    // ── Linear TV ──
+    "CCTV-1", "CCTV-3", "CCTV-5", "CCTV-6", "CCTV-13", "CCTV",
+    "东方卫视", "Dragon TV",
+    "浙江卫视", "Zhejiang TV",
+    "江苏卫视", "Jiangsu TV",
+    "湖南卫视", "Hunan TV",
+    "北京卫视", "Beijing TV",
+    "天津卫视", "Tianjin TV",
+    "上海新闻综合", "SH News",
+    "杭州综合", "Hangzhou General",
+    // ── OTT / CTV ──
+    "爱奇艺", "iQiyi",
+    "优酷", "Youku",
+    "腾讯视频", "Tencent Video",
+    "芒果TV", "Mango TV",
+    "Bilibili 大屏",
+    "咪咕视频", "MIGU Video",
+    "西瓜视频", "Xigua Video", "Xigua",
+    "央视频", "CCTV+",
+    // ── Online Video ──
+    "小红书 视频", "Xiaohongshu Video",
+    "视频号", "WeChat Channels",
+    "Douyin", "Kuaishou",
+    "抖音", "快手",
+    // ── Search ──
+    "百度", "Baidu",
+    "搜狗", "Sogou",
+    "360搜索", "So.com", "360 Search",
+    "神马搜索", "Shenma",
+    "头条搜索", "Toutiao Search",
+    "微信搜一搜", "WeChat Sou Yi Sou",
+    "抖音搜索", "Douyin Search",
+    "夸克", "Quark",
+    "必应中国", "Bing China",
+    // ── Social ──
+    "微博", "Weibo",
+    "小红书", "Xiaohongshu", "RED",
+    "QQ空间", "QZone",
+    "知乎", "Zhihu",
+    "哔哩哔哩", "Bilibili",
+    "豆瓣", "Douban",
+    "哔哩哔哩 动态", "Bilibili Dynamic",
+    "视频号 社区",
+    "脉脉", "Maimai",
+    "即刻", "Jike",
+    "最右", "Zuiyou",
+    "贴吧", "Baidu Tieba",
+    // ── Messenger ──
+    "微信", "WeChat",
+    "QQ", "腾讯QQ",
+    "钉钉", "DingTalk",
+    "飞书", "Feishu", "Lark",
+    "企业微信", "WeCom",
+    // ── Music streaming ──
+    "QQ音乐", "QQ Music",
+    "网易云音乐", "NetEase Cloud Music",
+    "酷狗音乐", "Kugou",
+    "酷我音乐", "Kuwo",
+    "咪咕音乐", "MIGU Music",
+    "汽水音乐", "Qishui Yinyue",
+    // ── Podcast ──
+    "喜马拉雅FM", "喜马拉雅", "Ximalaya",
+    "蜻蜓FM", "Qingting FM",
+    "荔枝FM", "Lizhi",
+    "懒人听书", "Lazy Audio",
+    "网易云音乐 播客",
+    "小宇宙 播客", "小宇宙", "Cosmos Podcast",
+    "QQ音乐 播客",
+    "蜻蜓 听书",
+    // ── Radio ──
+    "中央人民广播电台", "CNR",
+    "上海广播电台", "SMG Radio",
+    "浙江广播电视台 之声", "Zhejiang Radio",
+    "杭州电台", "Hangzhou Radio",
+    "天津人民广播电台", "Tianjin Radio",
+    "北京交通广播",
+    // ── 신문 ──
+    "人民日报", "People's Daily",
+    "新华每日电讯", "Xinhua Daily",
+    "光明日报", "Guangming Daily",
+    "经济日报", "Economic Daily",
+    "解放日报", "Jiefang Daily",
+    "文汇报", "Wen Wei Po",
+    "钱江晚报", "Qianjiang Evening",
+    "浙江日报", "Zhejiang Daily",
+    "今晚报", "Jinwan Bao",
+    "天津日报", "Tianjin Daily",
+    "21世纪经济报道", "21st Century Business Herald",
+    "第一财经日报", "China Business Network",
+    // ── 잡지 ──
+    "VOGUE 服饰与美容", "VOGUE China",
+    "ELLE 世界时装之苑", "ELLE China",
+    "Harper's BAZAAR China", "时尚芭莎",
+    "GQ 智族", "GQ China",
+    "InStyle 优家画报", "InStyle China",
+    "Marie Claire 嘉人", "Marie Claire China",
+    "时尚先生", "Esquire China",
+    "时尚健康", "Cosmopolitan China",
+    "三联生活周刊", "Sanlian Life Weekly",
+    "财经", "Caijing",
+    "第一财经周刊", "Yi Magazine",
+    "看天下", "VistaStory",
+    "中国新闻周刊", "China Newsweek",
+    "瑞丽", "Rayli",
+    "男人装", "FHM China",
+    // ── Display / Native / Programmatic (CN) ──
+    "百度联盟", "Baidu Union",
+    "腾讯广告", "Tencent Ads", "优量汇", "广点通",
+    "阿里妈妈", "Alimama",
+    "巨量引擎", "OceanEngine",
+    "网易广告", "NetEase Ads",
+    "新浪扶翼", "Sina Fuyi",
+    "搜狐汇算", "Sohu",
+    "凤凰网广告", "ifeng",
+    "36氪", "36氪 广告",
+    "知乎 广告",
+    "头条 信息流", "Toutiao In-feed", "头条号", "Toutiao Hao",
+    "微信 朋友圈", "WeChat Moments",
+    "抖音 信息流", "Douyin In-feed",
+    "快手 信息流", "Kuaishou In-feed",
+    "小红书 信息流", "Xiaohongshu In-feed",
+    "UC头条 信息流", "UC头条",
+    "腾讯广告 ADX", "Tencent Ad Exchange",
+    "阿里妈妈 UniDesk", "UniDesk",
+    "京东京准通", "JD Joyzonton",
+    "百度 营销中心", "Baidu Marketing",
+    "新潮传媒", "New Potential Media",
+    "多盟", "Domob",
+    "InMobi 中国", "InMobi",
+    // ── OOH 매체 ──
+    "分众传媒", "Focus Media",
+    "兆讯传媒", "Zhaoxun",
+    // ── Cinema ──
+    "万达影城", "Wanda Cinemas",
+    "CGV",
+    "横店影视城", "Hengdian",
+    "大地影院", "Dadi Cinema",
+    "金逸影城", "Jinyi",
+    "中影南方", "上海联和电影院线",
+    "时光网", "Mtime",
+    // ── Classifieds / Jobs ──
+    "智联招聘", "Zhaopin",
+    "前程无忧", "51job",
+    "BOSS直聘", "BOSS Zhipin",
+    "拉勾", "Lagou",
+    "猎聘", "Liepin",
+    "看准网", "Kanzhun",
+    "中华英才网", "ChinaHR",
+    "实习僧", "Shixiseng",
+    "应届生求职网", "YingJieSheng",
+    "脉脉 招聘", "Maimai Jobs",
+    // ── Real Estate ──
+    "贝壳找房", "Beike",
+    "链家", "Lianjia",
+    "安居客", "Anjuke",
+    "房天下", "Fang.com", "SouFun",
+    "我爱我家", "5i5j",
+    "中原地产", "Centaline",
+    "房多多", "Fangdd",
+    // ── Auto ──
+    "懂车帝", "Dongchedi",
+    "汽车之家", "Autohome",
+    "易车", "Bitauto", "Yiche",
+    "瓜子二手车", "Guazi",
+    "优信二手车", "Uxin",
+    "人人车", "Renrenche",
+    "太平洋汽车", "PCAuto",
+    "车300", "Che300",
+    // ── Marketplace ──
+    "闲鱼", "Xianyu",
+    "转转", "Zhuanzhuan",
+    "京东拍拍", "JD Paipai",
+    "58同城", "58.com",
+    "赶集网", "Ganji",
+    "Poizon",
+    // ── Service classifieds ──
+    "美团点评", "Meituan Dianping", "美团",
+    "大众点评", "Dazhong Dianping",
+    "抖音生活服务", "Douyin Life Services",
+    // ── Influencer 플랫폼 ──
+    "抖音 达人", "Douyin KOL",
+    "快手 网红", "Kuaishou KOL",
+    "哔哩哔哩 UP主", "Bilibili UP",
+    "视频号 创作者",
+    "小红书 视频博主", "Xiaohongshu Video KOC",
+    "西瓜视频 创作者",
+    "小红书 博主", "Xiaohongshu Bloggers",
+    "微博 大V", "Weibo Big-V",
+    "抖音 图文 博主", "Douyin Graphic",
+    "微信公众号", "WeChat 公众号",
+    "知乎 答主", "Zhihu Answerer",
+    "百度百家号", "Baidu Baijiahao",
+    "简书", "Jianshu",
+    // ── 라이브커머스 ──
+    "抖音 直播", "Douyin Live",
+    "淘宝直播", "Taobao Live",
+    "快手 直播", "Kuaishou Live",
+    "京东直播", "JD Live",
+    "小红书 直播", "Xiaohongshu Live",
+    "视频号 直播", "WeChat Channels Live",
+    // ── B2B ──
+    "脉脉 大V", "Maimai KOL",
+    "知乎 行业专家",
+    "36氪 作者",
+    "雪球", "Xueqiu",
+    "虎嗅", "Huxiu",
   ],
-  // 글로벌 별칭 (모든 국가)
+
+  // ─────────────────────────────────────────────────────────
+  // GLOBAL — 모든 국가 공통 (차단국 별도 처리)
+  // ─────────────────────────────────────────────────────────
   GLOBAL: [
+    // ── 기존 항목 (유지) ──
     "Disney+", "X (Twitter)", "YouTube Music", "Apple Music", "Threads",
     "Spotify Podcasts", "Apple Podcasts",
+    // ── OTT / CTV ──
+    "Netflix", "Apple TV+", "Amazon Prime Video", "Prime Video",
+    "YouTube on TV", "YouTube TV",
+    // ── Online Video ──
+    "YouTube", "Twitch", "Instagram Reels", "Reels",
+    // ── Search ──
+    "Google", "Bing", "Microsoft Bing", "Yahoo!",
+    // ── Social ──
+    "Instagram", "Facebook", "X", "Twitter", "TikTok",
+    "LinkedIn", "Pinterest", "Snapchat", "Reddit",
+    // ── Messenger ──
+    "WhatsApp", "Telegram", "Discord", "Messenger",
+    // ── Music streaming ──
+    "Spotify", "Amazon Music",
+    // ── Podcast ──
+    "YouTube Podcasts",
+    // ── Display / Programmatic (global) ──
+    "Google DV360", "DV360", "Google Ads",
+    "The Trade Desk", "TTD",
+    "Criteo",
+    // ── Classifieds (global) ──
+    "Indeed", "LinkedIn Jobs",
   ],
 };
 
