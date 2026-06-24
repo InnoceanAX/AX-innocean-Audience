@@ -4605,8 +4605,14 @@ async function renderMediaTab(data){
     {
       const _mdSrc = document.getElementById('media-src');
       if(_mdSrc){
-        // CEO 2026-06-24: 다른 탭(who/life 등) persona-pool 모드 출처 라벨과 완전 동일 형식 — 보라 배지 "AI 합성 페르소나" + badge.label (자세히 버튼 없음)
-        _mdSrc.innerHTML = '<span class="aud-src-badge" style="background:#EEF2FF;color:#3730A3">AI 합성 페르소나</span> <span class="aud-src-txt">' + (data.badge?.label || '') + '</span>';
+        // CEO 2026-06-24: 미디어 탭 출처 라벨을 다른 탭(who/life/buy 등)과 완전 동일한 4배지 구조로 통일:
+        //   [빌더 합성] [실데이터] [AI 합성 페르소나 풀] [자세히 >] — openSourceModal('media') 연결
+        const _mdHasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments.media)
+          || !!(state.poolSummary) || !!(data.badge);
+        const _mdBadgeHtml = _mdHasSyn
+          ? '<span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span>'
+          : '<span class="aud-src-badge">실데이터</span>';
+        _mdSrc.innerHTML = '<button class="aud-src-clickable" onclick="openSourceModal(\'media\')" title="데이터 출처 자세히 보기">' + _mdBadgeHtml + ' <span class="aud-src-txt">AI 합성 페르소나 풀</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>';
       }
     }
     const pc = data.personaChart || {};
