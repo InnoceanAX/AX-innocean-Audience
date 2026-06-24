@@ -7869,7 +7869,12 @@ async function _refreshAudienceTabFetch(dim){
       src.textContent = '데이터 없음';
       return;
     }
-    const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
+    // CEO 2026-06-24: 파이프라인 통일 후 풀(persona-pool) 모드에서 synthCache가 비어 '빌더 합성' 라벨이 사라진 회귀 —
+    //   풀 모드(badge/persona-pool/poolSummary)에서도 '빌더 합성' 표시하도록 조건 확장
+    const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim])
+      || !!(data && data.badge)
+      || (data && data.source === 'persona-pool')
+      || !!(state.poolSummary);
     // CEO 2026-06-24: 30명 패널 배지 제거 — 100명 풀로 통일.
     const hasPanel = false;
     let badgeHtml;
