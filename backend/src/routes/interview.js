@@ -86,10 +86,10 @@ const NAME_POOLS = {
     male:   ['솜차이','쁘라윳','수왓','촘폰','니란','샛','삭다','짠','피삳','와차라','싯티','피야','와라폰','수왓디','뎃','삭','솜분','싸랏','마니','파니','파누','쁘라삳','수만','니콤','피사누','와루낫','싱하','촘차이','수파차이','솜폰','짠톤','와루','피라윳','싸야','파타나'],
   },
   PH: {
-    // 영문/스페인계 필리핀 이름
-    surnames: ['Santos','Cruz','Reyes','Garcia','Mendoza','Torres','Tan','Lim','Flores','Gonzales','Bautista','Villanueva','Ramos','Aquino','Castillo','Rivera','Diaz','Pascual','Domingo','Salazar','Navarro','Estrada','Valencia','Manalo','Soriano'],
-    female: ['Maria','Anna','Jasmine','Angel','Rose','Grace','Joy','Mary','Carmen','Liza','Cristina','Bea','Mae','Lyka','Andrea','Erika','Kristine','Princess','Daniela','Camille','Janella','Sofia','Patricia','Nicole','Hannah','Bianca','Isabel','Trisha','Kathryn','Julia','Aira','Marian','Yna','Sharon','Regine'],
-    male:   ['Jose','Mark','Juan','Carlo','John','Paolo','Miguel','Rafael','Gabriel','Diego','Daniel','Christian','Joshua','Allan','Ramon','Patrick','James','Kevin','Anthony','Manuel','Eduardo','Andres','Rodrigo','Vicente','Roberto','Enrique','Francisco','Joel','Jerome','Bryan','Earl','Aldrin','Coco','Vince','Aljur'],
+    // CEO 2026-06-24: 필리핀 이름 한글 음차 (다른 5국과 표기 통일). 스페인계/영문명 → 한글 음차
+    surnames: ['산토스','크루스','레이에스','가르시아','멘도자','토레스','탄','림','플로레스','공잘레스','바우티스타','빌라누에바','라모스','아키노','카스틸리요','리베라','디아스','파스쾄','도밍고','살라자르','나바로','에스트라다','발렌시아','마날로','소리아노'],
+    female: ['마리아','안나','쟀민','엔젤','로즈','그레이스','조이','메리','카르멘','리자','크리스티나','베아','매이','리카','안드레아','에리카','크리스틴','프린세스','다니엘라','카밀','자넬라','소피아','패트리시아','니콜','한나','비앙카','이사벨','트리샤','캐스린','줄리아'],
+    male:   ['호세','마크','후안','카를로','존','파올로','미구엘','라파엘','가브리엘','디에고','다니엘','크리스차','조슈아','앤런','라몬','패트릭','제임스','케빈','앤소니','마누엘','에두아르도','안드레스','로드리고','비센테','로베르토','엔리케','프란시스코','조엘','제롬','브라이언'],
   },
 };
 // 6국 외 — 영문 일반 폴백 풀 (글로벌 일반 이름)
@@ -121,8 +121,11 @@ function generatePersonaNameDeterministic(country, persona_id, gender, age, regi
   // 성과 이름 seed를 분리해 다양성 확보 (상위/하위 비트 구분)
   const given = givenPool[(Math.floor(seed / pool.surnames.length)) % givenPool.length];
   // 영문 폴백/PH: 'Given Surname' 순서, 그 외(KR/JP/CN/TW/TH 한글계): '성+이름' 붙임
-  const isLatin = (pool === ENGLISH_FALLBACK_POOL) || (upperCountry === 'PH');
-  return isLatin ? `${given} ${surname}` : `${surname}${given}`;
+  // CEO 2026-06-24: PH도 한글 음차로 통일 — 필리핀은 '이름 성' 순서이므로 음차 후 '이름 성' 띄어쓰기 유지
+  // 영문 폴백(NAME_POOLS 없는 국가)만 'Given Surname' 영문, KR/JP/CN/TW/TH 한글계는 '성+이름' 붙임
+  if (pool === ENGLISH_FALLBACK_POOL) return `${given} ${surname}`;
+  if (upperCountry === 'PH') return `${given} ${surname}`; // 한글 음차 + 필리핀식 '이름 성' 순서
+  return `${surname}${given}`;
 }
 
 // CEO 2026-06-18 19:15: 옵션 A — 인터뷰 패널 = 페르소나 풀에서 다양성 sampling
