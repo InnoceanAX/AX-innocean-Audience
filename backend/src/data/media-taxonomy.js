@@ -1064,20 +1064,22 @@ export const MEDIA_LABEL_CATEGORY = (() => {
   const m = {};
   const add = (cat, names) => { for (const n of names) m[normalizeKey(n)] = cat; };
 
-  // ── Digital: 검색 ──
+  // ── Digital: 검색 (CEO 2026-06-25: Yandex / JP 「検索」 표기 보강) ──
   add("Digital", [
     "네이버", "Naver", "네이버 검색", "다음", "Daum", "ZUM", "줌",
     "Google", "Bing", "Microsoft Bing", "Yahoo!", "Yahoo! JAPAN", "Yahoo! Japan", "goo검색", "goo",
+    "Yandex", "Yahoo! JAPAN 検索", "goo検索", "Bing 日本", "Google 日本",
     "百度", "Baidu", "搜狗", "Sogou", "360搜索", "So.com", "360 Search",
     "神马搜索", "Shenma", "头条搜索", "Toutiao Search",
     "微信搜一搜", "WeChat Sou Yi Sou", "抖音搜索", "Douyin Search",
     "夸克", "Quark", "必应中国", "Bing China",
   ]);
 
-  // ── Digital: 소셜 ──
+  // ── Digital: 소셜 (CEO 2026-06-25: VKontakte RU 보강) ──
   add("Digital", [
     "Instagram", "Facebook", "X", "Twitter", "X (Twitter)", "TikTok",
     "LinkedIn", "Pinterest", "Snapchat", "Reddit", "Threads",
+    "VKontakte", "VKontakte (RU)", "VK",
     "네이버 카페", "Naver Cafe", "네이버 밴드", "BAND",
     "디시인사이드", "DC Inside", "더쿠", "theqoo",
     "뽐뿌", "Ppomppu", "클리앙", "Clien", "보배드림", "Bobaedream",
@@ -1104,8 +1106,9 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "企业微信", "WeCom",
   ]);
 
-  // ── Digital: OTT/CTV/Online Video ──
+  // ── Digital: OTT/CTV/Online Video (CEO 2026-06-25: Twitch 스트리머 보강) ──
   add("Digital", [
+    "Twitch 스트리머",
     "Netflix", "Disney+", "Apple TV+", "Amazon Prime Video", "Prime Video",
     "YouTube", "YouTube on TV", "YouTube TV", "Twitch", "Instagram Reels", "Reels",
     "Tving", "티빙", "Wavve", "웨이브", "Watcha", "왓챠", "Coupang Play", "쿠팡플레이",
@@ -1135,9 +1138,10 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "음악 스트리밍",
   ]);
 
-  // ── Digital: 팟캐스트 ──
+  // ── Digital: 팟캐스트 (CEO 2026-06-25: CN 팟캐스트 보강) ──
   add("Digital", [
     "Spotify Podcasts", "Apple Podcasts", "YouTube Podcasts",
+    "网易云音乐 播客", "QQ音乐 播客", "蜻蜓 听书",
     "팟빵", "Podbbang", "네이버 오디오클립", "오디오클립", "Audio Clip",
     "윌라", "Welaaa", "밀리의서재", "Millie",
     "Voicy", "Amazon Audible", "Audible", "LisBo", "Radiotalk", "stand.fm",
@@ -1148,8 +1152,11 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "팟캐스트",
   ]);
 
-  // ── Digital: 디스플레이/네이티브/프로그래매틱 ──
+  // ── Digital: 디스플레이/네이티브/프로그래매틱 (CEO 2026-06-25: 한글 배너/네이티브 라벨 + CN 디스플레이 보강) ──
   add("Digital", [
+    // CHANNELS 한글 배너/네이티브 라벨
+    "표준 배너 (DA)", "리치미디어", "전면 광고 (Interstitial)",
+    "피드 Native", "검색 결과 Native", "DSP (RTB)", "PMP (Private Marketplace)",
     "Google DV360", "DV360", "Google Ads",
     "The Trade Desk", "TTD", "Criteo",
     "카카오 비즈보드", "Bizboard", "카카오 모먼트", "Kakao Moment",
@@ -1185,6 +1192,7 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "京东京准通", "JD Joyzonton",
     "百度 营销中心", "Baidu Marketing",
     "多盟", "Domob", "InMobi 中国", "InMobi",
+    "新潮传媒", "New Potential Media",
   ]);
 
   // ── Digital: 포털·뉴스 (브랜드 미특정 표현 포함, category는 Digital) ──
@@ -1192,8 +1200,14 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "포털/뉴스", "포털·뉴스", "포털 뉴스", "뉴스", "커뮤니티", "OTT",
   ]);
 
-  // ── Digital: 인플루언서 플랫폼 ──
+  // ── Digital: 인플루언서 플랫폼 (CEO 2026-06-25: KR/JP/CN B2B 크리에이터 보강) ──
   add("Digital", [
+    // KR B2B
+    "디스콰이엇", "disquiet", "폴인", "folin", "퍼블리", "PUBLY",
+    // JP B2B
+    "note PRO", "Wantedly", "YOUTRUST",
+    // CN B2B
+    "脉脉 大V", "Maimai KOL", "知乎 行业专家", "36氪 作者", "雪球", "Xueqiu", "虎嗅", "Huxiu",
     "Naver Blog", "네이버 블로그", "Tistory", "티스토리",
     "Brunch", "브런치", "카카오TV", "Stibee", "메일리", "Maily",
     "livedoor Blog", "LINE BLOG", "Substack",
@@ -1227,9 +1241,11 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "视频号 直播", "WeChat Channels Live",
   ]);
 
-  // ── ATL: TV (Linear) ──
+  // ── ATL: TV (Linear) (CEO 2026-06-25: 한글 TV 세부 라벨 보강) ──
   add("ATL", [
     "TV",
+    // CHANNELS 한글 TV 세부 라벨 보강
+    "지상파 종합편성", "지상파 뉴스", "케이블 엔터테인먼트", "케이블 스포츠",
     "KBS", "KBS1", "KBS2", "MBC", "SBS", "EBS", "JTBC", "TV조선", "채널A", "MBN",
     "YTN", "연합뉴스TV", "tvN", "OCN", "Mnet", "ENA", "CJ ENM",
     "NHK", "NHK 総合", "NHK General", "NHK Eテレ", "NHK Educational",
@@ -1263,9 +1279,11 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "北京交通广播",
   ]);
 
-  // ── ATL: 신문 ──
+  // ── ATL: 신문 (CEO 2026-06-25: 한글 일간지/경제지/지역지 일반명 보강) ──
   add("ATL", [
     "신문",
+    // CHANNELS 한글 신문 세부 라벨 보강
+    "종합 일간지", "경제·산업지", "지역지",
     "조선일보", "Chosun Ilbo", "중앙일보", "JoongAng Ilbo",
     "동아일보", "Dong-A Ilbo", "한겨레", "Hankyoreh",
     "경향신문", "Kyunghyang", "한국일보", "Hankook Ilbo",
@@ -1298,9 +1316,11 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "第一财经日报", "China Business Network",
   ]);
 
-  // ── ATL: 잡지 ──
+  // ── ATL: 잡지 (CEO 2026-06-25: 전문지·B2B 보강) ──
   add("ATL", [
     "잡지",
+    // CHANNELS 한글 잡지 세부 라벨 보강
+    "전문지·B2B",
     "VOGUE Korea", "ELLE Korea", "Harper's BAZAAR Korea", "GQ Korea",
     "W Korea", "Marie Claire Korea", "Allure Korea", "Cosmopolitan Korea",
     "Cine21", "시사IN", "한겨레21", "매경ECONOMY", "한경비즈니스",
@@ -1327,10 +1347,15 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "男人装", "FHM China",
   ]);
 
-  // ── BTL: OOH / 시네마 ──
+  // ── BTL: OOH / 시네마 (CEO 2026-06-25: 한글 OOH/Cinema 라벨 보강 + L1333 한자 오타 정정) ──
   add("BTL", [
     "옥외광고(OOH)", "OOH", "DOOH",
-    "분众传媒", "Focus Media",
+    // CHANNELS 한글 OOH 세부 라벨 보강
+    "고속도로 빌보드", "도심 빌보드", "스트리트 퍼니처",
+    "도심 LED 스크린", "디지털 교통 광고", "쇼핑몰 디지털", "매장 내 디지털",
+    "지하철 광고", "버스 광고", "공항 광고", "택시 광고",
+    "영화관 프리롤", "영화관 로비",
+    "分众传媒", "Focus Media",
     "兆讯传媒", "Zhaoxun",
     "万达影城", "Wanda Cinemas",
     "CGV",
@@ -1341,8 +1366,8 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "时光网", "Mtime",
   ]);
 
-  // ── BTL: classifieds (jobs/real estate/auto/marketplace) ──
-  add("BTL", [
+  // ── Digital: classifieds (jobs/real estate/auto/marketplace) (CEO 2026-06-25: BTL → Digital 이동 — 디지털 앱·웹 광고면) ──
+  add("Digital", [
     "사람인", "Saramin", "잡코리아", "JobKorea", "워크넷", "WorkNet",
     "인크루트", "Incruit", "알바몬", "AlbaMon", "알바천국", "Alba Heaven",
     "캐치", "Catch", "원티드", "Wanted", "점핏", "Jumpit",
@@ -1364,6 +1389,8 @@ export const MEDIA_LABEL_CATEGORY = (() => {
     "type", "@type", "ビズリーチ", "BIZREACH",
     "キャリトレ", "careertrek",
     "Indeed Japan", "Indeed", "LinkedIn Jobs",
+    // GLOBAL classifieds (CHANNELS class_realestate/class_auto/class_marketplace — 영문 라벨 보강)
+    "Zillow", "Auto Trader", "Craigslist",
     "SUUMO", "HOMES", "LIFULL HOME'S",
     "アットホーム", "at home",
     "アパマンショップ", "Apamanshop",
@@ -1414,7 +1441,7 @@ export const MEDIA_LABEL_CATEGORY = (() => {
 // 키워드 fallback (부분 문자열 매칭). 정확매칭 실패 시 사용.
 //   브랜드 중립: 매체 유형/공통 일반명만 패턴화. 광고주명 사용 금지.
 const _CAT_KEYWORD_RULES = [
-  // Digital — 일반 형식·플랫폼·접미어
+  // Digital — 일반 형식·플랫폼·접미어 (CEO 2026-06-25: classifieds 디지털 앱 일반명 보강)
   { cat: "Digital", patterns: [
     "youtube", "tiktok", "instagram", "facebook", "twitter", "threads", "reddit",
     "pinterest", "snapchat", "linkedin", "discord", "telegram", "whatsapp", "messenger",
@@ -1422,6 +1449,9 @@ const _CAT_KEYWORD_RULES = [
     "메신저", "messenger", "ott", "ctv", "streaming", "스트리밍",
     "포털", "portal", "뉴스", "news", "커뮤니티", "community",
     "digital", "online",
+    // Classifieds 디지털 앱 일반명 (CEO 2026-06-25)
+    "classifieds", "classified", "마켓플레이스", "marketplace",
+    "잡 매칭", "job", "구인구직 앱", "부동산 앱", "중고 앱",
   ] },
   // ATL — TV/라디오/신문/잡지 일반어
   { cat: "ATL", patterns: [
@@ -1429,11 +1459,11 @@ const _CAT_KEYWORD_RULES = [
     "잡지", "magazine", "vogue", "elle", "bazaar", "gq", "esquire", "cosmopolitan",
     "marie claire", "weekly", "周刊", "日报", "晚报",
   ] },
-  // BTL — OOH·시네마·클래시파이드
+  // BTL — OOH·시네마·이벤트 (CEO 2026-06-25: classifieds 키워드 제거 — 디지털 앱 오읽방지)
   { cat: "BTL", patterns: [
-    "옥외", "ooh", "dooh", "시네마", "cinema", "극장",
-    "분류광고", "classified", "중고", "구인", "recruit", "부동산", "real estate",
-    "채용", "jobs",
+    "옥외", "ooh", "dooh", "시네마", "cinema", "극장", "영화관",
+    "빌보드", "billboard", "전광판", "스크린",
+    "이벤트마케팅", "프로모션", "promotion", "dm",
   ] },
 ];
 

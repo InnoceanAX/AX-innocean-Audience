@@ -649,11 +649,31 @@ export const MEDIA_CATEGORY = {
   audio_spotify:    "Digital",
   audio_pod_spotify:"Digital",
   audio_podcast:    "Digital",
+  // Audio digital (streaming + podcast — 누락 보강 2026-06-25)
+  audio_apple_music:    "Digital",
+  audio_amazon_music:   "Digital",
+  audio_melon:          "Digital",
+  audio_pod_apple:      "Digital",
+  audio_pod_yt:         "Digital",
   // Influencer
   inf_youtube:      "Digital",
   inf_instagram:    "Digital",
   inf_naver_blog:   "Digital",
   inf_tiktok:       "Digital",
+  // Classifieds digital (앱·웹 광고면 — 누락 보강 2026-06-25)
+  class_indeed:         "Digital",
+  class_linkedin_jobs:  "Digital",
+  class_saramin:        "Digital",
+  class_jobkorea:       "Digital",
+  class_zillow:         "Digital",
+  class_dabang:         "Digital",
+  class_zigbang:        "Digital",
+  class_autotrader:     "Digital",
+  class_encar:          "Digital",
+  class_kbcarcar:       "Digital",
+  class_craigslist:     "Digital",
+  class_carrot:         "Digital",
+  class_ebay_kr:        "Digital",
 };
 
 // 채널(channelId) 폴백 — 매체 단위가 매핑에 없을 때 사용
@@ -668,7 +688,7 @@ export const CHANNEL_CATEGORY_FALLBACK = {
   social:      "Digital",
   banner:      "Digital",
   influencer:  "Digital",
-  classifieds: "BTL",
+  classifieds: "Digital",  // CEO 2026-06-25: BTL → Digital (Statista AMO 디지털 클래시파이드)
 };
 
 export function getMediaCategory(mediaId, channelId) {
