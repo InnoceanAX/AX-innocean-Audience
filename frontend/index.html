@@ -587,7 +587,7 @@ function renderChart5Receptivity(adReceptivity) {
         }
       },
       plugins: {
-        title: { display: true, text: `광고 형식별 수용도 (페르소나 풀 N=${adReceptivity.total || 100})` },
+        title: { display: true, text: `디지털 광고형식 수용도 (페르소나 풀 N=${adReceptivity.total || 100})` },
         subtitle: { display: true, text: '출처: 페르소나 풀 ad_receptivity 평균 (LLM narrative)', font: { size: 11 } },
         legend: { display: false },
         datalabels: {
@@ -618,7 +618,7 @@ function renderReceptivityInsightsBox(formats) {
   if (display && display.avg < 35) insights.push(`<strong>디스플레이</strong> ${display.avg.toFixed(1)}점 — 광고 회피 신호 (예산 비효율)`);
   if (search && search.avg > 60) insights.push(`<strong>검색 광고</strong> ${search.avg.toFixed(1)}점 — 정보 검색 의도 강함 (검색 매체 우선)`);
   
-  wrap.innerHTML = '<div class="md-receptivity-insights-h">광고형식 수용도 인사이트</div>' +
+  wrap.innerHTML = '<div class="md-receptivity-insights-h">디지털 광고형식 수용도 인사이트</div>' +
     insights.map(i => `<div class="md-receptivity-insight">• ${i}</div>`).join('');
 }
 </script>
@@ -2571,12 +2571,12 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
                 <div class="md-chart-wrap"><canvas id="md-reach-chart"></canvas></div>
               </div>
               <div class="ov-section">
-                <div class="ov-section-t">광고 형식별 수용도</div>
-                <div id="md-receptivity-host"></div>
-              </div>
-              <div class="ov-section">
                 <div class="ov-section-t">도달률 × 시청시간 매트릭스</div>
                 <div class="md-chart-wrap"><canvas id="md-matrix-chart"></canvas></div>
+              </div>
+              <div class="ov-section">
+                <div class="ov-section-t">디지털 광고형식 수용도</div>
+                <div id="md-receptivity-host"></div>
               </div>
             </div>
           </div>
