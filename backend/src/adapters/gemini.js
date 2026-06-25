@@ -103,24 +103,81 @@ export async function generateText({ prompt, system, model = "gemini-2.5-flash",
 }
 
 // JSON 구조화 출력 (Gemini는 응답 스키마 지원)
-export async function generateJSON({ prompt, system, schema, model = "gemini-2.5-flash", temperature = 0.2, maxOutputTokens = 8192 }) {
+// 2026-06-26 (CEO 승인): JP 풀 fallback 28% 사고 대응. K절 §K4 즉시 조치 적용.
+//   - thinkingBudget=0 추가(default): generateText/chat과 동일하게 thinking 토큰의 maxOutputTokens 잠식 차단
+//   - retry 3회 + exponential backoff (250ms / 750ms / 2000ms, 429·5xx 는 5000ms)
+//   - per-call timeout(default 90s) + AbortController 적용 → 무한 hang 방지
+//   - finishReason MAX_TOKENS 진단 라벨 + 멀티파트 텍스트 합치기(thinking + JSON 분리되는 경우 대비)
+export async function generateJSON({
+  prompt,
+  system,
+  schema,
+  model = "gemini-2.5-flash",
+  temperature = 0.2,
+  maxOutputTokens = 8192,
+  thinkingBudget = 0,
+  timeoutMs = 90000,
+  maxRetries = 3,
+}) {
   const client = getClient();
+  const genCfg = {
+    temperature,
+    maxOutputTokens,
+    responseMimeType: "application/json",
+    responseSchema: schema,
+  };
+  if (thinkingBudget != null) genCfg.thinkingConfig = { thinkingBudget };
   const m = client.getGenerativeModel({
     model,
-    generationConfig: {
-      temperature,
-      maxOutputTokens,
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    },
+    generationConfig: genCfg,
     systemInstruction: system ? { parts: [{ text: system }] } : undefined,
   });
-  const result = await m.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-  });
-  const txt = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-  try { return { json: JSON.parse(txt), model }; }
-  catch (e) { return { json: null, error: "JSON parse failed", raw: txt }; }
+
+  let lastErr = null;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const ac = new AbortController();
+    const tid = setTimeout(() => ac.abort(new Error(`generateJSON timeout after ${timeoutMs}ms`)), timeoutMs);
+    try {
+      const result = await m.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        // Vertex SDK 일부 버전은 abortSignal 지원, 미지원 시 무시되지만 timeout race로 보호
+        abortSignal: ac.signal,
+      });
+      clearTimeout(tid);
+      const _parts = result.response?.candidates?.[0]?.content?.parts || [];
+      const txt = _parts.map(p => (p && p.text) || "").join("").trim()
+              || result.response?.candidates?.[0]?.content?.parts?.[0]?.text
+              || "{}";
+      const finishReason = result.response?.candidates?.[0]?.finishReason;
+      try {
+        const parsed = JSON.parse(txt);
+        return { json: parsed, model, usage: result.response?.usageMetadata || null, finishReason, attempt };
+      } catch (e) {
+        lastErr = new Error(`JSON parse failed (finishReason=${finishReason}): ${e.message}`);
+        // truncate/parse 실패는 재시도해도 같은 결과일 가능성 큼 → 1회만 재시도 후 raw 반환
+        if (attempt >= 1) {
+          return { json: null, error: lastErr.message, raw: txt, finishReason, attempt };
+        }
+      }
+    } catch (e) {
+      clearTimeout(tid);
+      lastErr = e;
+      // 429 / 5xx 감지 → 더 긴 백오프
+      const msg = String(e?.message || "");
+      const code = e?.code || e?.status || 0;
+      const isRateLimit = /\b429\b|RESOURCE_EXHAUSTED|rate.?limit/i.test(msg) || code === 429;
+      const isServerErr = /\b5\d\d\b|UNAVAILABLE|INTERNAL/i.test(msg) || (code >= 500 && code < 600);
+      if (attempt < maxRetries - 1) {
+        const baseDelays = [250, 750, 2000];
+        let delay = baseDelays[Math.min(attempt, baseDelays.length - 1)];
+        if (isRateLimit || isServerErr) delay = 5000;
+        console.warn(`[gemini.generateJSON] attempt ${attempt + 1}/${maxRetries} failed (${msg.slice(0, 120)}) — retry in ${delay}ms`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+    }
+  }
+  return { json: null, error: lastErr ? `JSON parse failed after ${maxRetries} attempts: ${lastErr.message}` : "JSON parse failed", raw: "" };
 }
 
 // 멀티턴 대화 (페르소나 인터뷰용)

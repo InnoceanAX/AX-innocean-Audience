@@ -3073,7 +3073,24 @@ function selectCountry(code){
   if(c.trendsUnavailable){
     toast(`${c.name}: Trends 만 일시로 제외 — World Bank·인사이트·페르소나는 정상 제공됩니다.`);
   }
+  // 2026-06-26 (CEO 승인 §H2-5): 국가 swap 시 캠시 명시적 invalidate + activeBriefId 가드.
+  //   이전 국가의 audience/media 캐시가 새 국가 테브 렌더링에 새는 cross-leak 차단.
+  const prevCode = state.currentCountry;
+  if (prevCode && prevCode !== code) {
+    state.audienceCache = {};
+    state.mediaCache = null;
+    state.mediaData = null;
+    state._mediaCacheKey = null;
+    // brief 자체도 국가별 1:1 매핑이므로 invalidate → ensureCampaignBrief가 새 국가용 cached/생성을 다시 해서.
+    state.activeBriefId = null;
+    state.briefId = null;
+    state.currentBriefId = null;
+    // 이전 국가에서 진행 중이던 polling 의 레이스 괄 — 항아 입국하는 polling 루프는 activeBriefId 가 null 이므로 break.
+    state._adhocBriefInFlightKey = null;
+    state._adhocBriefInFlightPromise = null;
+  }
   state.currentCountry = code;
+  state.activeCountry = code;
   // 사용자가 명시적으로 국가를 선택 — entryBuilder/entryExplore 에서 상태 리셋 시 보존
   state.userPickedCountry = true;
   // 기준국이 비교국 목록에 있으면 제거 (중복 방지)
@@ -11199,12 +11216,19 @@ async function pollPersonaStatus(){
   if(state.personaPolling) return;
   if(!state.activeBriefId) return;
   state.personaPolling = true;
+  // 2026-06-26 (CEO §B5): briefId 비교 가드. polling 시작 시점의 briefId를 고정하고,
+  //   이후 selectCountry·프리셋 교체로 activeBriefId 가 바뀌면 이전 polling 도 즉시 좌결.
+  const pollBriefId = state.activeBriefId;
   try{
-    while(state.activeBriefId){
-      const r = await fetch(`${API}/personas/status?brief_id=${state.activeBriefId}`);
+    while(state.activeBriefId === pollBriefId){
+      const r = await fetch(`${API}/personas/status?brief_id=${pollBriefId}`);
+      // race 재확인: fetch 중 brief 교체되었으면 이 줝니 콜은 제거.
+      if(state.activeBriefId !== pollBriefId){ break; }
       const d = await r.json();
       if(!d.ok){ break; }
       if(d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled'){
+        // race 재확인: 완료 이벤트 해석 시점에도 brief가 여전히 동일해야 안전하게 탭 UI 갱신.
+        if(state.activeBriefId !== pollBriefId){ break; }
         if(d.status === 'completed' && typeof toast === 'function') toast('AI 페르소나 생성 완료 — 합성소비자 100명 풀 반영');
         // CEO 2026-06-24: 미디어 무한 "분석중" 버그 수정 — refreshMediaTab 게이트가 personaPolling을 보므로,
         //   탭 재호출 전에 polling 플래그를 먼저 내려야 로딩 화면에 갇히지 않음.

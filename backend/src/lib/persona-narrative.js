@@ -249,6 +249,7 @@ function competitorsFor(country) {
 }
 
 // CEO 2026-06-18 21:34 긴급: fallback 단일 quote/tags 다양화 (hash 기반 deterministic 분산)
+// 2026-06-26 (CEO 승인 §K4): JP 풀 fallback 28% 중복 완화 → 풀 확대 (Quotes 8→24, Jobs/Pains 4→12, Lifestyles 5→12, Values 4→12).
 const FALLBACK_QUOTES = [
   "요즘 관심 있는 브랜드를 비교하고 최선의 선택을 하고 싶어요.",
   "트렌디하면서도 가성비 좋은 걸 찾는 게 제일 중요해요.",
@@ -258,18 +259,54 @@ const FALLBACK_QUOTES = [
   "편리하면서도 품질 좋은 걸 원해요.",
   "환경이나 윤리적 소비에도 신경 쓰는 편이에요.",
   "가족/친구 추천이 구매에 큰 영향을 줘요.",
+  // 수단·편의 스타일
+  "일상을 조금 더 편하게 만들어주는 제품이 좋아요.",
+  "최소한의 소지품으로 충분한 만족감을 느끼고 싶어요.",
+  "모바일 하나로 모든 걸 해결하고 싶어요.",
+  "마일리지가 항상 차있으면 좋겠어요.",
+  // 세분성·취향
+  "남들이 잘 모르는 숨겨진 제품을 찾는 재미가 있어요.",
+  "디자인이 조금 더 개성 있으면 추가 지출도 괜찮아요.",
+  "이야기가 있는 브랜드는 자연스레 손이 가요.",
+  "수집 취미와 좀 동떨어져서 소비 패턴에도 영향을 줘요.",
+  // 안정·필수
+  "큰 실패없는 안정적인 선택을 선호해요.",
+  "적절한 가격에 적절한 품질이면 충분해요.",
+  "구독/정기배송과 같은 고정 소비에 익숙해졌어요.",
+  // 경험·커뮤니티
+  "커뮤니티 안에서 공유되는 리뷰와 정보의 가치를 중요하게 생각해요.",
+  "구매 여정 자체가 즐거움이어야 해요.",
+  "첨단 기능보다 의미 있는 뒤릿의 소고 철학이 중요해요.",
+  "감당 필요없는 처음 대합을 원하지 않아요.",
+  "이제는 소비도 자기 표현의 연장이라고 생각해요.",
 ];
 const FALLBACK_JOBS = [
   ["최적의 가성비 제품 찾기", "내 라이프스타일에 맞는 브랜드 발견", "빠르고 편한 구매 경험"],
   ["리뷰 비교로 실패 줄이기", "할인/프로모션 최대 활용", "새로운 트렌드 파악"],
   ["주변 추천 제품 확인", "장기적으로 믿을 수 있는 브랜드 선택", "일상의 편의성 향상"],
   ["환경 부담 적은 소비 실천", "정보 과부하 속 핵심만 파악", "나만의 큐레이션 구축"],
+  ["자기 시간 보호와 효율 극대화", "구독/멤버십 혜택 최대화", "일상을 더 시각적으로 정돈하기"],
+  ["건강과 테그 관리 시스템화", "취미·취향 샘플링 잘하기", "잊혀진 일상의 재발견"],
+  ["가족·친구와의 시간 퀄리티 향상", "다행 구매·필요 구매 구분", "구매 이용률·자기활용 극대화"],
+  ["장기적 자산 설계와 소비 계획", "브랜드/제품 간 철학 공감 교차확인", "SNS 파장력 있는 아이템 발굴"],
+  ["터무니에서 다양하고 신뢰할 수 있는 정보 수집", "점포·온라인 사용성 비교", "구매 증빙·결제를 가장 심리적으로 안정되게"],
+  ["부담 없는 시도 이후 판단", "접근성 좋은 AS·매장으로 안심 확인", "프리미엄·컴포트 경험의 일상화"],
+  ["과도한 광고가 아닌 진짜 소비자 목소리 청차", "아이디어 석월·적용의 손쉬움", "일상의 특별한 순간을 고품질로 만들기"],
+  ["소니의 소재 이야기의 수광·탐구", "단순한 구매를 넘어서의 추억/이야기 속의 획득", "소비 축세·환경 부하 종합적인 고려"],
 ];
 const FALLBACK_PAINS = [
   ["정보가 많아서 선택 장애", "배송/반품 절차 번거로움"],
   ["리뷰 신뢰도 판단 어려움", "가격 비교에 시간 소요"],
   ["원하는 제품 품절/재고 부족", "광고성 콘텐츠 피로감"],
   ["개인정보 노출 우려", "브랜드 간 품질 편차"],
+  ["메인 프로모션 절을 다 축소되서 논이 석혁", "메세지 과하에 광고 피로"],
+  ["구독/자동결제가 누적되며 비용 장애", "취소 철회의 복잡하다"],
+  ["AS/CS 응대가 느린 마이", "제품·프로모션의 다양성 부족"],
+  ["차이점 이해가 어려운 브랜드/계단", "결제 클래익 과정이 길며 끝난이대니"],
+  ["탁월한 환경 국제·명해 이니셔티브 파악 어려움", "활용·적용 대상 파악 어려움"],
+  ["좀 더 고품질인 도움·서비스를 원하면 고액의 추가 가격·구독", "첨단 기능보다 일상적 편의 부족"],
+  ["다양한 세분화 인권·면적 부족", "구매 이력으로 수와의 광고가 절대 일치하지 않음"],
+  ["팬더미티·제조사·윤리성 등 증도 판단 어려움", "고객 섬테일 리타입 조게 소설·파괴 완화"],
 ];
 const FALLBACK_LIFESTYLES = [
   ["주말 카페", "운동 루틴", "넷플릭스", "친구 모임", "맛집 탐방"],
@@ -277,12 +314,27 @@ const FALLBACK_LIFESTYLES = [
   ["전시/공연", "독서", "새 브랜드 탐색", "라이프스타일 매거진", "독립서점"],
   ["반려동물 케어", "드라이브", "일상 기록", "요리", "가족 시간"],
   ["e커머스 쇼핑", "브이로그 감상", "SNS 큐레이션", "자기계발", "외식"],
+  ["마이 일상·출퇴근길 테크", "드라마 시청", "떨어진 친구와의 연락", "다이어리 관리", "테크 가제"],
+  ["일찍 기상·자기 루틴", "채식·로컬 식재·동네 상권 탐구", "새벽 운동", "테크 트렌드 수종", "속소한 레시피·소품 DIY"],
+  ["투자·자산 관리 스터디", "주중 바·와인 컨어린", "주말 서울·근교 당일 여행", "공공·한정 공연삽", "함승 테니스·테니스"],
+  ["골프·하이킹 주말·장차", "개인과외 이벤트·파티", "이모·공연·파제 제적 수록·석이", "테크 키트 수주·조립", "쿠킹·홈찜 디자이너"],
+  ["그림·임하스트 고술 뢔원 키우기", "고양이·강아지 섭제대", "레이우르·마라톤", "포터블·소설 책 독서", "대중교통 대신 건강을 자채 걸으며"],
+  ["환경·지속가능 소비 접근", "명상·복골 쇼핑", "동네 카페·독립서점 쑥덩", "공유 주방·코워킹", "졸은 잉장·공방 이용"],
+  ["제주·국내 장기 워케이션", "디지털 노마드 라이프", "아낌 프로그램 코칭 티치", "개인 콘텐츠 채널 운영", "NFT/Web3 소팔·쿨렉포렉"],
 ];
 const FALLBACK_VALUES = [
   ["자기표현", "트렌드 감각", "가성비", "지속가능", "커뮤니티"],
   ["실용성", "품질", "신뢰", "효율", "가족"],
   ["개성", "독창성", "최신 트렌드", "소셜 노출", "자존감"],
   ["윤리소비", "지역 우선", "공정 거래", "환경", "발자취"],
+  ["경험 우선", "적절함", "관계 적대", "탐구·호기심", "이야기"],
+  ["프리미엄", "디테일 완성", "장인정신", "탄소·환경 소비감소", "헌삽·고객"],
+  ["허업없음", "경제적 자도", "자기 계발", "건강·웰빙", "지적·문화 소비"],
+  ["업·창의", "자유 시간", "대안적 라이프스타일", "테크 서킹", "다양성 존중"],
+  ["황고", "프레스티지", "레거시가 있는 소비", "움게 골 수집·파안", "평와 안정"],
+  ["자기 대의 결광", "추억·이야기 수집", "소속감·판단", "고용 경험·고공에게·소비 안정", "될·지적 경험"],
+  ["자사 고양으로 추구", "철학·디자인", "바이어 소비 좌표·독립", "일상의 재발견·고품질 일상", "프레스프·고수·극소비"],
+  ["장인·장인적 조화", "명상·혜택 필광", "이야기·최대 자기표현", "수월·세월 소비", "명헛·하이엔드"],
 ];
 
 function _pickByHash(arr, key, salt) {
@@ -609,6 +661,40 @@ function hashStr(s) {
   return h;
 }
 
+// per-persona 단발 재호출 — batch 에서 돌아온 누락분을 1명씩 다시 채움.
+// 2026-06-26 (CEO §K4): JP fallback 28% 완화용. 솋각이라 출력 길이 짧고 truncate 위험 적음.
+async function _retryPerPersona(missing, opts) {
+  const { brand, countryName, country } = opts;
+  const localCompetitors = competitorsFor(country);
+  const out = [];
+  for (const p of missing) {
+    try {
+      const prompt = buildBatchPrompt([p], { brand, countryName, localCompetitors });
+      const system = `당신은 글로벌 소비자 인사이트 리서치 전문가입니다. 주어진 합성 페르소나 속성에 맞는 narrative를 JSON 스키마에 맞게 정확히 생성합니다. 모든 텍스트는 한국어로 작성합니다.`;
+      const result = await generateJSON({
+        prompt, system,
+        schema: NARRATIVE_SCHEMA,
+        model: "gemini-2.5-flash",
+        temperature: 0.6,
+        maxOutputTokens: 8192,
+        thinkingBudget: 0,
+        timeoutMs: 45000,
+        maxRetries: 2,
+      });
+      if (result.json?.personas && result.json.personas.length > 0) {
+        out.push(result.json.personas[0]);
+      } else {
+        console.warn(`[narrative] per-persona retry empty for ${p.persona_id} (${country})`);
+        out.push(fallbackNarrative(p));
+      }
+    } catch (e) {
+      console.warn(`[narrative] per-persona retry failed for ${p.persona_id}: ${e.message}`);
+      out.push(fallbackNarrative(p));
+    }
+  }
+  return out;
+}
+
 // Run one batch through Gemini and merge results back into attribute records
 async function runOneBatch(batch, opts) {
   const { brand, countryName, country } = opts;
@@ -621,7 +707,8 @@ async function runOneBatch(batch, opts) {
 
   // CEO 2026-06-18 21:34 긴급: 풀 v4 600명 전체 fallback hardcoded 사고 fix
   // 원인: maxOutputTokens 8192 + n=20 = 출력 truncate → JSON parse fail
-  // Fix: maxOutputTokens 32768 + retry on fail (split batch in half)
+  // Fix: maxOutputTokens 16384 + retry on fail (split batch in half)
+  // 2026-06-26 (CEO §K4): thinkingBudget=0 + 3회 retry + 90s timeout + per-persona 누락 재호출
   try {
     const result = await generateJSON({
       prompt,
@@ -630,9 +717,20 @@ async function runOneBatch(batch, opts) {
       model: "gemini-2.5-flash",
       temperature: 0.7,
       maxOutputTokens: 16384,
+      thinkingBudget: 0,
+      timeoutMs: 90000,
+      maxRetries: 3,
     });
     if (!result.json?.personas || !Array.isArray(result.json.personas) || result.json.personas.length === 0) {
       throw new Error("Bad LLM output");
+    }
+    // 2026-06-26 (CEO §K4 per-persona retry): batch 일부만 돌아온 경우 누락분만 1명 단위 재호출.
+    const returnedIds = new Set(result.json.personas.map(p => p && p.persona_id).filter(Boolean));
+    const missing = batch.filter(p => !returnedIds.has(p.persona_id));
+    if (missing.length > 0 && missing.length < batch.length) {
+      console.warn(`[narrative] batch returned ${result.json.personas.length}/${batch.length} for ${country} — per-persona retry for ${missing.length}`);
+      const recovered = await _retryPerPersona(missing, opts);
+      return [...result.json.personas, ...recovered];
     }
     return result.json.personas;
   } catch (e) {
