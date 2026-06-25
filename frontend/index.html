@@ -478,21 +478,20 @@ function renderChart4Table(channels, items) {
     if (it && it.label) _itemByLabel[String(it.label).toLowerCase()] = it;
   }
   const _lookupMeta = (name) => _itemByLabel[String(name || '').toLowerCase()] || null;
+  // 2026-06-25 (CEO): 목적(purposeTag) 컬럼 제거 — 유형축(ATL/BTL/Digital)만 표기.
+  //   유형 미매칭 항목(TV/커뮤니티/포털·뉴스 등 브랜드 미특정)은 ATL/Digital과 동일 크기 회색 "매체 미특정" 박스.
+  const _CAT_BOX = (label, gray) => `<span style="display:inline-block;padding:2px 8px;background:#fff;color:${gray?'#6B7280':'#555'};border:1px solid ${gray?'#9CA3AF':'var(--bdr)'};font-size:10px;font-weight:600;border-radius:0">${label}</span>`;
   const _tags = (meta) => {
-    if (!meta) return '';
-    const pt = meta.purposeTag;
-    const ptBadge = pt ? `<span style="display:inline-block;padding:2px 7px;background:${_PT_TONE[pt] || 'var(--ind)'};color:#fff;font-size:10px;font-weight:700;border-radius:0;margin-left:6px">${pt}</span>` : '';
-    const cat = meta.category;
-    const catBadge = cat ? `<span style="display:inline-block;padding:2px 7px;background:#fff;color:#555;border:1px solid var(--bdr);font-size:10px;font-weight:600;border-radius:0;margin-left:6px">${cat}</span>` : '';
-    const genBadge = meta.isGeneric ? `<span style="display:inline-block;padding:2px 7px;background:#fff;color:#6B7280;border:1px solid #9CA3AF;font-size:10px;font-weight:600;border-radius:0;margin-left:6px">카테고리</span>` : '';
-    return catBadge + ptBadge + genBadge;
+    const cat = meta && meta.category;
+    if (cat) return _CAT_BOX(cat, false);
+    return _CAT_BOX('매체 미특정', true);
   };
 
   let html = `
     <thead>
       <tr>
         <th>매체</th>
-        <th>유형 · 목적</th>
+        <th>유형</th>
         <th>도달률</th>
         <th>평균 시청시간 (h/일)</th>
         <th>페르소나 언급 수</th>
@@ -507,7 +506,7 @@ function renderChart4Table(channels, items) {
     const mentions = c.mentions || 0;
     const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${reach}%;background:#4F46E5"></div></div>`;
     const meta = _lookupMeta(c.channel);
-    const tagCell = _tags(meta) || '<span style="color:#9CA3AF;font-size:11px">—</span>';
+    const tagCell = _tags(meta);
     
     html += `
       <tr>
@@ -535,11 +534,12 @@ function renderChart5Receptivity(adReceptivity) {
     return;
   }
   
-  // 컨테이너 자동 생성 (매트릭스 차트 영역 다음에 추가)
+  // 2026-06-25 (CEO): 광고 수용도 차트는 차트뷰 전용 독립 박스(md-receptivity-host)에 붙인다.
+  //   (이전엔 .md-chart-wrap 첫 요소의 부모=도달률 박스에 끼어들어 타이틀 불일치 발생)
   let section = document.getElementById('md-receptivity-section');
   if (!section) {
-    const matrixWrap = document.querySelector('.md-chart-wrap')?.parentNode;
-    if (!matrixWrap) return;
+    const host = document.getElementById('md-receptivity-host');
+    if (!host) return;
     section = document.createElement('div');
     section.id = 'md-receptivity-section';
     section.className = 'md-receptivity-section';
@@ -547,7 +547,7 @@ function renderChart5Receptivity(adReceptivity) {
       <div class="md-chart-wrap"><canvas id="md-receptivity-chart"></canvas></div>
       <div id="md-receptivity-insights" class="md-receptivity-insights"></div>
     `;
-    matrixWrap.appendChild(section);
+    host.appendChild(section);
   }
   section.style.display = '';
   
@@ -2538,9 +2538,9 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div id="md-body" class="hide">
             <div id="md-insights" class="ov-section"></div>
             <div class="md-view-tabs">
-              <button class="md-vt active" data-view="tree" onclick="switchMediaView('tree')">채널 트리 (Statista 9)</button>
+              <button class="md-vt active" data-view="tree" onclick="switchMediaView('tree')">채널 트리</button>
               <button class="md-vt" data-view="flat" onclick="switchMediaView('flat')">전체 매체 표</button>
-              <button class="md-vt" data-view="chart" onclick="switchMediaView('chart')">차트</button>
+              <button class="md-vt" data-view="chart" onclick="switchMediaView('chart')">매체 비교</button>
               <button class="md-vt" data-view="spend" onclick="switchMediaView('spend')">광고비 요약</button>
             </div>
             <!-- View 1: 채널 트리 -->
@@ -2550,7 +2550,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             </div>
             <!-- View 2: 전체 매체 표 -->
             <div id="md-view-flat" class="md-view hide">
-              <div class="md-flat-desc" style="font-size:13px;color:var(--ts);line-height:1.5;margin:0 0 12px;padding:12px 14px;background:#F9FAFB;border:1px solid var(--bdr);border-left:3px solid var(--ind)">이 타겟에게 가장 효율적인 광고 매체를 찾는 미디어 플래닝 의사결정 — 유형(ATL/BTL/Digital) × 목적(인지/전환/신뢰) 2축 분류</div>
+              <div class="md-flat-desc" style="font-size:13px;color:var(--ts);line-height:1.5;margin:0 0 12px;padding:12px 14px;background:#F9FAFB;border:1px solid var(--bdr);border-left:3px solid var(--ind)">이 타겟에게 가장 효율적인 광고 매체를 찾는 미디어 플래닝 의사결정 — 매체별 도달률·유형(ATL/BTL/Digital)·신뢰도 한눈에</div>
               <div class="md-table-wrap"><table id="md-table" class="md-table"></table></div>
             </div>
             <!-- View 4: 광고비 요약 -->
@@ -2561,11 +2561,15 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             <div id="md-view-chart" class="md-view hide">
               <div class="md-view-desc" style="font-size:12px;color:#9CA3AF;font-weight:400;margin:0 0 10px;line-height:1.4">매체별 도달률·시청시간·광고 수용도를 시각적으로 비교</div>
               <div class="ov-section">
-                <div class="ov-section-t">도달률 차트 — 상위 10개 채널</div>
+                <div class="ov-section-t">채널별 도달률 (상위 10개)</div>
                 <div class="md-chart-wrap"><canvas id="md-reach-chart"></canvas></div>
               </div>
               <div class="ov-section">
-                <div class="ov-section-t">도달률 × 신뢰도 매트릭스</div>
+                <div class="ov-section-t">광고 형식별 수용도</div>
+                <div id="md-receptivity-host"></div>
+              </div>
+              <div class="ov-section">
+                <div class="ov-section-t">도달률 × 시청시간 매트릭스</div>
                 <div class="md-chart-wrap"><canvas id="md-matrix-chart"></canvas></div>
               </div>
             </div>
