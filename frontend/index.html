@@ -4717,19 +4717,9 @@ async function renderMediaTab(data){
       }).join('')
       + '</div>';
   }
-  // 기존 인사이트 (차단·기타 유형) — 4종 타입은 상단 카드로 이미 노출되므로 제외
-  let insightHtml = _md4Html + (data.insights || [])
-    .filter(i => !_MD_4CARDS_ORDER.includes(i.type))
-    .map(i => `
-    <div class="ov-insight ${i.type==='blocked'?'notice':''}">
-      <div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div>
-      <div class="ov-insight-x">${i.text}</div>
-    </div>`).join('');
-  // 데이터 소스 메타 — 활성 출처만 노출 (CEO 정책: 적용 예정 출처 노출 금지, 2026-06-17 21:35 F-3 픽스)
-  if(data.sources && Array.isArray(data.sources.active)){
-    const active = data.sources.active.map(s => `<span class="md-src md-src-on">${s.name} · 신뢰 ${s.confidence}</span>`).join('');
-    insightHtml += `<div class="md-sources"><div class="md-src-h">데이터 소스</div><div class="md-src-row"><span class="md-src-l">활성:</span>${active}</div></div>`;
-  }
+  // 2026-06-26 (CEO): 채널트리 위에는 파란 박스(미디어 플래닝 4종)만 노출.
+  //   차단·제한 등 기타 인사이트(notice) + 데이터 소스 박스는 이 영역에서 제거.
+  let insightHtml = _md4Html;
   document.getElementById('md-insights').innerHTML = insightHtml;
 
   // 표 — 2026-06-25 (CEO): 카테고리/브랜드 분리 (isGeneric 플래그)
