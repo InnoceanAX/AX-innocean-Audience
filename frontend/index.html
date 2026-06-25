@@ -462,18 +462,37 @@ function renderMatrixInsightsBox(groups) {
 /**
  * 차트 4: 매체 테이블 (md-table 갱신)
  */
-function renderChart4Table(channels) {
+function renderChart4Table(channels, items) {
   const tbl = document.getElementById('md-table');
   if (!tbl || !channels) return;
   
   // ⚠️ reachPct (0~100 %) 우선, fallback c.reach * 100
   const getReachPct = c => (c.reachPct != null ? c.reachPct : (c.reach || 0) * 100);
   const sortedDesc = [...channels].sort((a, b) => getReachPct(b) - getReachPct(a));
-  
+
+  // 2026-06-25 (CEO): 백엔드 items[]의 purposeTag(인지/전환/신뢰)·category(ATL/BTL/Digital)·isGeneric을
+  //   매체명(label) 기준으로 persona-pool 표에 결합. 데이터 없으면 배지 생략(회귀안전).
+  const _PT_TONE = { '인지': '#4F46E5', '전환': '#059669', '신뢰': '#7C3AED' };
+  const _itemByLabel = {};
+  for (const it of (items || [])) {
+    if (it && it.label) _itemByLabel[String(it.label).toLowerCase()] = it;
+  }
+  const _lookupMeta = (name) => _itemByLabel[String(name || '').toLowerCase()] || null;
+  const _tags = (meta) => {
+    if (!meta) return '';
+    const pt = meta.purposeTag;
+    const ptBadge = pt ? `<span style="display:inline-block;padding:2px 7px;background:${_PT_TONE[pt] || 'var(--ind)'};color:#fff;font-size:10px;font-weight:700;border-radius:0;margin-left:6px">${pt}</span>` : '';
+    const cat = meta.category;
+    const catBadge = cat ? `<span style="display:inline-block;padding:2px 7px;background:#fff;color:#555;border:1px solid var(--bdr);font-size:10px;font-weight:600;border-radius:0;margin-left:6px">${cat}</span>` : '';
+    const genBadge = meta.isGeneric ? `<span style="display:inline-block;padding:2px 7px;background:#fff;color:#6B7280;border:1px solid #9CA3AF;font-size:10px;font-weight:600;border-radius:0;margin-left:6px">카테고리</span>` : '';
+    return catBadge + ptBadge + genBadge;
+  };
+
   let html = `
     <thead>
       <tr>
         <th>매체</th>
+        <th>유형 · 목적</th>
         <th>도달률</th>
         <th>평균 시청시간 (h/일)</th>
         <th>페르소나 언급 수</th>
@@ -487,10 +506,13 @@ function renderChart4Table(channels) {
     const hours = (c.avgHoursPerDay || 0).toFixed(2);
     const mentions = c.mentions || 0;
     const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${reach}%;background:#4F46E5"></div></div>`;
+    const meta = _lookupMeta(c.channel);
+    const tagCell = _tags(meta) || '<span style="color:#9CA3AF;font-size:11px">—</span>';
     
     html += `
       <tr>
         <td><strong>${escapeHtml(c.channel)}</strong></td>
+        <td>${tagCell}</td>
         <td>${reachBar}<span class="md-bar-v">${reach}%</span></td>
         <td>${hours}</td>
         <td>${mentions}명</td>
@@ -2499,7 +2521,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">미디어 (Media)</div>
-              <div class="aud-tab-s">이 타겟에게 가장 효율적인 광고 매체를 찾는 미디어 플래닝 의사결정 — 유형(ATL/BTL/Digital) × 목적(인지/전환/신뢰) 2축 분류</div>
+              <div class="aud-tab-s">어떤 매체로 만나는가 — 채널별 도달률 / 광고 형식 수용도 / 도달×시청시간 매트릭스</div>
               <span class="aud-src" id="media-src">데이터 로딩 중…</span>
             </div>
           </div>
@@ -2526,6 +2548,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             </div>
             <!-- View 2: 전체 매체 표 -->
             <div id="md-view-flat" class="md-view hide">
+              <div class="md-flat-desc" style="font-size:13px;color:var(--ts);line-height:1.5;margin:0 0 12px;padding:12px 14px;background:#F9FAFB;border:1px solid var(--bdr);border-left:3px solid var(--ind)">이 타겟에게 가장 효율적인 광고 매체를 찾는 미디어 플래닝 의사결정 — 유형(ATL/BTL/Digital) × 목적(인지/전환/신뢰) 2축 분류</div>
               <div class="md-table-wrap"><table id="md-table" class="md-table"></table></div>
             </div>
             <!-- View 4: 광고비 요약 -->
@@ -4620,7 +4643,7 @@ async function renderMediaTab(data){
     renderChart1Tree(channels);
     renderChart2ReachBar(pc.labels, pc.reach, state._mediaPoolN || data.badge?.count || data.adReceptivity?.total || 100);
     renderChart3Matrix(pc.matrix);
-    renderChart4Table(channels);
+    renderChart4Table(channels, data.items || []);
     renderChart5Receptivity(pc.adReceptivity);
     return;
   }
