@@ -7840,6 +7840,9 @@ async function refreshAudienceTab(dim){
         <div style="font-size:12.5px;color:var(--ts);line-height:1.5">합성소비자 풀이 완성되면 <b>모든 탭이 한 번에</b> 표시됩니다. (약 5~6분 소요)<br>잠시만 기다려주세요.</div>
       </div>`;
     }
+    // CEO 2026-06-25 픽스2: personaPolling 중에도 src 배지를 generating 라벨로 갱신해 "데이터 로딩 중…" 잔존 frame 제거
+    const src = document.getElementById(dim + '-src');
+    if(src) src.innerHTML = '<button class="aud-src-clickable" onclick="openSourceModal(\'' + dim + '\')" title="데이터 출처 자세히 보기"><span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span> <span class="aud-src-txt">AI 합성 페르소나 풀</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>';
     return;
   }
   // CEO 2026-06-15: 분석 진행 중이면 loading UI
@@ -7852,6 +7855,9 @@ async function refreshAudienceTab(dim){
         <div style="font-size:12.5px;color:var(--ts);line-height:1.5">실데이터 + AI 합성 세그먼트 분석 중입니다. (약 15~30초 소요)<br>완료 후 자동으로 표시됩니다.</div>
       </div>`;
     }
+    // CEO 2026-06-25 픽스2: analyzing 중에도 src 배지를 분석 진행 중 라벨로 갱신
+    const src = document.getElementById(dim + '-src');
+    if(src) src.innerHTML = '<button class="aud-src-clickable" onclick="openSourceModal(\'' + dim + '\')" title="데이터 출처 자세히 보기"><span class="aud-src-badge" style="background:#EDE9FE;color:#5B21B6"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>빌더 합성</span> <span class="aud-src-badge">실데이터</span> <span class="aud-src-txt">분석 진행 중</span> <span class="aud-src-more">자세히 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></span></button>';
     return;
   }
   // 캐시가 있으면 우선 사용
@@ -7872,7 +7878,11 @@ async function refreshAudienceTab(dim){
       // 출처 배지도 갱신
       const src = document.getElementById(dim + '-src');
       if(src && data.source){
-        const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim]);
+        // CEO 2026-06-25: L7974와 동일 확장 정의로 통일 — 캐시-hit 분기에서 풀 모드(badge/persona-pool/poolSummary) 라벨 누락 회귀 픽스
+        const hasSyn = !!(state.synthCache && state.synthCache.segments && state.synthCache.segments[dim])
+          || !!(data && data.badge)
+          || (data && data.source === 'persona-pool')
+          || !!(state.poolSummary);
         // CEO 2026-06-24: 30명 패널 배지 제거 — 100명 풀로 통일.
         const hasPanel = false;
         let badgeHtml;

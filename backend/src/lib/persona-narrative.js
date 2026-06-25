@@ -183,6 +183,13 @@ function buildBatchPrompt(batch, { brand, countryName, localCompetitors }) {
 [합성 페르소나 ${batch.length}명 — 통계 기반 속성]
 ${personaLines}
 
+[중요 — gender 일관성 절대 준수 (CEO 2026-06-25)]
+- 각 페르소나의 gender(male/female) 는 위 입력값을 절대 변경하지 말고 narrative 전반에서 일관되게 반영.
+- gender=male 인 경우: "엄마", "주부", "임신", "육아 전담", "남편 옷", "딸/아들 엄마", "아내", "모유" 등 여성 화자 어휘 금지.
+- gender=female 인 경우: "아빠", "남편 역할" 어휘 금지.
+- occupation=homemaker(주부/가사) 와 gender 가 사회 통념과 다를 수 있음. 그 경우에도 gender 어휘를 우선하고 occupation 은 "가사 담당", "전업" 같은 중립 표현으로 풀어쓸 것.
+- quote/jobs_to_be_done/pain_points/lifestyle_tags/values_tags 모두 동일 규칙 적용. 일본어/중국어 페르소나도 한국어 출력이므로 동일 규칙.
+
 위 각 페르소나에 대해 다음 narrative를 **반드시 한국어로만** 작성하세요. (보고서는 한국 CEO가 읽음)
 **언어 규칙 절대 준수 — 다음 예외 없음**:
 - 타겟 국가가 어디이든 **모든 서술(quote, jobs_to_be_done, pain_points, lifestyle_tags, values_tags)는 한국어로**
@@ -649,8 +656,56 @@ async function runOneBatch(batch, opts) {
   }
 }
 
+// CEO 2026-06-25 안전망 (C): gender↔어휘 검증. LLM이 프롬프트 gender 일관성 명령을 지키지 못했을 때 그 필드만 중립 표현으로 안전 fallback.
+// 적용 대상: gender=male 이고 텍스트에 여성 화자 어휘(엄마/주부/육아/살림/임신/모유/남편/아내)가 검출되면 해당 필드만 fallback. female 의 경우 "아빠" 검출 시 fallback. 매칭 없으면 원본 유지.
+const FEMALE_SPEAKER_RE = /엄마|주부|육아|살림|임신|모유|남편|아내|기저귀/;
+const MALE_SPEAKER_RE = /아빠|남편 역할/;
+function _genderMismatch(text, gender) {
+  if (typeof text !== "string" || !text) return false;
+  if (gender === "male") return FEMALE_SPEAKER_RE.test(text);
+  if (gender === "female") return MALE_SPEAKER_RE.test(text);
+  return false;
+}
+function _sanitizeNarrativeGender(narr, attr) {
+  if (!narr || !attr || !attr.gender) return narr;
+  const g = attr.gender;
+  const fb = fallbackNarrative(attr);
+  let touched = false;
+  const out = { ...narr };
+  // quote: 단일 문자열
+  if (_genderMismatch(out.quote, g)) {
+    out.quote = fb.quote;
+    touched = true;
+  }
+  // jobs_to_be_done: 배열. 항목별 검사, 한개라도 mismatch 면 전체를 fb로 교체(맥락 일관성 확보)
+  if (Array.isArray(out.jobs_to_be_done) && out.jobs_to_be_done.some(j => _genderMismatch(j, g))) {
+    out.jobs_to_be_done = fb.jobs_to_be_done;
+    touched = true;
+  }
+  // pain_points: 동일
+  if (Array.isArray(out.pain_points) && out.pain_points.some(p => _genderMismatch(p, g))) {
+    out.pain_points = fb.pain_points;
+    touched = true;
+  }
+  // lifestyle_tags / values_tags: 태그 단위 교체
+  if (Array.isArray(out.lifestyle_tags) && out.lifestyle_tags.some(t => _genderMismatch(t, g))) {
+    out.lifestyle_tags = fb.lifestyle_tags;
+    touched = true;
+  }
+  if (Array.isArray(out.values_tags) && out.values_tags.some(t => _genderMismatch(t, g))) {
+    out.values_tags = fb.values_tags;
+    touched = true;
+  }
+  if (touched) {
+    console.warn(`[narrative-sanitize] gender=${g} mismatch repaired for ${attr.persona_id} (${attr.country})`);
+  }
+  return out;
+}
+
 // Merge attribute + narrative into final persona object
 export function mergePersona(attr, narr) {
+  // CEO 2026-06-25: gender 일관성 안전망—프롬프트 명령 위반 시 당해 필드만 중립 fallback으로 교체
+  narr = _sanitizeNarrativeGender(narr, attr);
   // Normalize shopping_style + price_sensitivity defensively
   const shoppingStyle = SHOPPING_STYLES.includes(narr?.shopping_style) ? narr.shopping_style : "trend-chaser";
   const priceSens = Math.min(5, Math.max(1, Math.round(narr?.price_sensitivity || attr.priceSensitivityPrior || 3)));
