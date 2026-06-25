@@ -320,7 +320,7 @@ function renderChart2ReachBar(labels, reach, nArg) {
           // top10만 표시되므로 레이블도 명확하게
           return '채널별 도달률 — 상위 10개 채널 (페르소나 풀 N=' + (n || '100') + ')';
         })() },
-        subtitle: { display: true, text: '출처: 합성소비자 풀 직접 집계 · 단위: %', font: { size: 11 } },
+        subtitle: { display: true, text: '출처: 합성소비자 풀 직접 집계 · 단위: %', align: 'end', font: { size: 11 } },
         legend: { display: false },
         datalabels: {
           anchor: 'end', align: 'top',
@@ -379,7 +379,7 @@ function renderChart3Matrix(matrix) {
       },
       plugins: {
         title: { display: true, text: '채널 도달 × 시청시간 매트릭스 (광고 효율 진단)' },
-        subtitle: { display: true, text: '버블 크기 = 페르소나 언급 수 · 우상단 = 광고 효율 우수', font: { size: 11 } },
+        subtitle: { display: true, text: '버블 크기 = 페르소나 언급 수 · 우상단 = 광고 효율 우수', align: 'end', font: { size: 11 } },
         legend: { display: false },
         tooltip: {
           callbacks: {
@@ -589,7 +589,7 @@ function renderChart5Receptivity(adReceptivity) {
       },
       plugins: {
         title: { display: true, text: `디지털 광고형식 수용도 (페르소나 풀 N=${adReceptivity.total || 100})` },
-        subtitle: { display: true, text: '출처: 페르소나 풀 ad_receptivity 평균 (LLM narrative)', font: { size: 11 } },
+        subtitle: { display: true, text: '출처: 페르소나 풀 ad_receptivity 평균 (LLM narrative)', align: 'end', font: { size: 11 } },
         legend: { display: false },
         datalabels: {
           anchor: 'end', align: 'end',
