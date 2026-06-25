@@ -51,16 +51,18 @@ const NARRATIVE_SCHEMA_ITEM = {
     },
     // 2026-06-23 (CEO 지시): 4개 탭 baseline 차트(탭당 6개) persona-pool SoT 확장.
     // life — 활동 점수(radar) + 4종 dist + travelType
+    // 2026-06-25 (CEO P2 지시): 활동 8축 (생활시간조사, radar 가독성) / 시간대 6축 (닐슨 TV시청률)
     activities: {
       type: "object",
       properties: {
-        "운동": { type: "number" }, "독서": { type: "number" }, "게임": { type: "number" },
-        "여행": { type: "number" }, "외식": { type: "number" }, "쇼핑": { type: "number" },
+        "운동·신체활동": { type: "number" }, "독서·학습": { type: "number" }, "게임": { type: "number" },
+        "여행·관광": { type: "number" }, "외식": { type: "number" }, "쇼핑": { type: "number" },
+        "미디어·SNS": { type: "number" }, "가족·교제": { type: "number" },
       },
-      required: ["운동", "독서", "게임", "여행", "외식", "쇼핑"],
+      required: ["운동·신체활동", "독서·학습", "게임", "여행·관광", "외식", "쇼핑", "미디어·SNS", "가족·교제"],
     },
     travelType: { type: "string" },     // 국내|해외|국내+해외
-    activeDaypart: { type: "string" },   // 아침|낮|저녁|밤
+    activeDaypart: { type: "string" },   // 새벽(00-06)|아침(06-09)|오전(09-12)|오후(12-18)|저녁(18-22)|심야(22-24)
     foodHabit: { type: "string" },       // 집밥|외식|배달|간편식
     wellnessFreq: { type: "string" },    // 안함|주1-2|주3-4|매일
     travelFreq: { type: "string" },      // 연1회미만|연1-2회|연3-4회|연5회+
@@ -102,7 +104,7 @@ const NARRATIVE_SCHEMA_ITEM = {
       },
       required: ["패션", "뷰티", "테크", "음식", "여행", "운동", "게임", "문화"],
     },
-    musicGenre: { type: "string" },      // K-pop|팝|힙합|인디|클래식|발라드
+    musicGenre: { type: "string" },      // K-pop|팝|발라드|힙합·R&B|록|인디|일렉트로닉·EDM|클래식|재즈 (IFPI 9축)
     contentGenre: { type: "string" },    // 드라마|예능|영화|다큐|스포츠중계|애니
     influencerType: { type: "string" },  // 메가|마이크로|전문가|연예인
     sportsAffinity: {
@@ -114,25 +116,29 @@ const NARRATIVE_SCHEMA_ITEM = {
       required: ["축구", "야구", "농구", "골프", "홈트"],
     },
     // buy — categories + 3종 dist + buyFactors + buyProfile
+    // 2026-06-25 (CEO P2 지시): 구매카테고리 11축 (통계청 가계동향 12대 비목, 주류담배 제외)
+    //   / 쇼핑채널 6축 (통계청 온라인쇼핑동향) / 의사결정 8축 (학술표준)
     purchaseCategories: {
       type: "object",
       properties: {
-        "의류": { type: "number" }, "뷰티": { type: "number" }, "전자": { type: "number" },
-        "식품": { type: "number" }, "리빙": { type: "number" }, "여행": { type: "number" },
-        "문화": { type: "number" }, "건강": { type: "number" },
+        "식료품": { type: "number" }, "의류·신발": { type: "number" }, "주거·수도·광열": { type: "number" },
+        "가정용품": { type: "number" }, "보건·의료": { type: "number" }, "교통": { type: "number" },
+        "통신": { type: "number" }, "오락·문화": { type: "number" }, "교육": { type: "number" },
+        "음식·숙박": { type: "number" }, "기타상품·서비스": { type: "number" },
       },
-      required: ["의류", "뷰티", "전자", "식품", "리빙", "여행", "문화", "건강"],
+      required: ["식료품", "의류·신발", "주거·수도·광열", "가정용품", "보건·의료", "교통", "통신", "오락·문화", "교육", "음식·숙박", "기타상품·서비스"],
     },
     paymentMethod: { type: "string" },   // 신용카드|간편결제|체크카드|현금
-    shoppingChannel: { type: "string" }, // 온라인몰|앱|오프라인|라이브커머스
+    shoppingChannel: { type: "string" }, // PC 온라인몰|모바일 앱|오프라인 종합매장|오프라인 전문점|라이브커머스|소셜커머스 (통계청 온라인쇼핑동향 6축)
     purchaseFreq: { type: "string" },    // 주1회+|월2-3회|월1회|분기1회
     buyFactors: {
       type: "object",
       properties: {
         "가격": { type: "number" }, "품질": { type: "number" }, "브랜드": { type: "number" },
-        "리뷰": { type: "number" }, "디자인": { type: "number" }, "배송": { type: "number" },
+        "리뷰·평판": { type: "number" }, "디자인": { type: "number" }, "배송·편의": { type: "number" },
+        "AS·보증": { type: "number" }, "추천": { type: "number" },
       },
-      required: ["가격", "품질", "브랜드", "리뷰", "디자인", "배송"],
+      required: ["가격", "품질", "브랜드", "리뷰·평판", "디자인", "배송·편의", "AS·보증", "추천"],
     },
     buyProfile: {
       type: "object",
@@ -193,9 +199,9 @@ ${personaLines}
 - ad_receptivity: 이 사람의 광고형식별 수용도(0~100 정수). 5개 키 모두 필수: {"영상 광고", "검색 광고", "디스플레이", "소셜 피드", "인플루언서"}. 이 사람의 연령·미디어 소비 성향에 맞게 차등 부여 (예: 소셜 많이 보면 소셜 피드·인플루언서 높게).
 
 [2026-06-23 확장 — 4개 탭(life/mind/love/buy) baseline 차트용 필수 필드. 모든 값은 한국어, 점수는 0~100 정수, dist는 정해진 enum 중 하나]
-- activities (life): 활동별 관심도 점수 0~100 정수. 키 6개 필수: {"운동","독서","게임","여행","외식","쇼핑"}
+- activities (life): 활동별 관심도 점수 0~100 정수. 키 8개 필수 (통계청 생활시간조사 행동분류 기반, radar 8축 가독성): {"운동·신체활동","독서·학습","게임","여행·관광","외식","쇼핑","미디어·SNS","가족·교제"}
 - travelType (life): 여행 패턴 enum 하나 ["국내","해외","국내+해외"]
-- activeDaypart (life): 활동 시간대 enum 하나 ["아침","낮","저녁","밤"]
+- activeDaypart (life): 활동 시간대 enum 하나 (닐슨 TV시청률 6구간) ["새벽(00-06)","아침(06-09)","오전(09-12)","오후(12-18)","저녁(18-22)","심야(22-24)"]
 - foodHabit (life): 식생활 enum 하나 ["집밥","외식","배달","간편식"]
 - wellnessFreq (life): 운동빈도 enum 하나 ["안함","주1-2","주3-4","매일"]
 - travelFreq (life): 여행빈도 enum 하나 ["연1회미만","연1-2회","연3-4회","연5회+"]
@@ -206,15 +212,15 @@ ${personaLines}
 - infoSource (mind): 정보 소비 채널 enum 하나 (DataReportal 2024) ["SNS","검색엔진","뉴스앱·포털","지인·가족","TV·전통매체","전문가·리뷰","브랜드 공식채널","영상·팟캐스트"]
 - bigFive (mind): 빅5 성격 점수 0~100 정수. 키 5개 필수: {"개방성","성실성","외향성","우호성","신경성"}
 - interests (love): 관심사 점수 0~100 정수. 키 8개 필수: {"패션","뷰티","테크","음식","여행","운동","게임","문화"}
-- musicGenre (love): 선호 음악 enum 하나 ["K-pop","팝","힙합","인디","클래식","발라드"]
+- musicGenre (love): 선호 음악 enum 하나 (IFPI Global Music Report 2024 + 한국음저협 9장르) ["K-pop","팝","발라드","힙합·R&B","록","인디","일렉트로닉·EDM","클래식","재즈"]
 - contentGenre (love): 콘텐츠 enum 하나 ["드라마","예능","영화","다큐","스포츠중계","애니"]
 - influencerType (love): 인플루언서 enum 하나 ["메가","마이크로","전문가","연예인"]
 - sportsAffinity (love): 스포츠 친밀도 점수 0~100 정수. 키 5개 필수: {"축구","야구","농구","골프","홈트"}
-- purchaseCategories (buy): 구매 카테고리 점수 0~100 정수. 키 8개 필수: {"의류","뷰티","전자","식품","리빙","여행","문화","건강"}
+- purchaseCategories (buy): 구매 카테고리 점수 0~100 정수. 키 11개 필수 (통계청 가계동향조사 12대 비목, 주류담배 제외): {"식료품","의류·신발","주거·수도·광열","가정용품","보건·의료","교통","통신","오락·문화","교육","음식·숙박","기타상품·서비스"}
 - paymentMethod (buy): 결제수단 enum 하나 ["신용카드","간편결제","체크카드","현금"]
-- shoppingChannel (buy): 쇼핑채널 enum 하나 ["온라인몰","앱","오프라인","라이브커머스"]
+- shoppingChannel (buy): 쇼핑채널 enum 하나 (통계청 온라인쇼핑동향 6채널) ["PC 온라인몰","모바일 앱","오프라인 종합매장","오프라인 전문점","라이브커머스","소셜커머스"]
 - purchaseFreq (buy): 구매빈도 enum 하나 ["주1회+","월2-3회","월1회","분기1회"]
-- buyFactors (buy): 의사결정 요인 점수 0~100 정수. 키 6개 필수: {"가격","품질","브랜드","리뷰","디자인","배송"}
+- buyFactors (buy): 의사결정 요인 점수 0~100 정수. 키 8개 필수 (학술표준 소비자 구매결정 요인): {"가격","품질","브랜드","리뷰·평판","디자인","배송·편의","AS·보증","추천"}
 - buyProfile (buy): 소비 프로파일 점수 0~100 정수. 키 6개 필수: {"가격민감","브랜드충성","할인민감","리뷰영향","브랜드전환","윤리소비"}
 
 ⚠️ persona_id 필드에 위 입력 id를 정확히 그대로 복사해주세요.
@@ -383,9 +389,10 @@ function _normalizeEnum(v, allowed, fallback) {
 }
 
 // life 탭 — 점수형 1 + dist 5
-const LIFE_ACTIVITIES_KEYS = ["운동","독서","게임","여행","외식","쇼핑"];
+// 2026-06-25 (CEO P2 지시): 활동 8축 (생활시간조사, radar 가독성) / 시간대 6축 (닐슨 TV시청률)
+const LIFE_ACTIVITIES_KEYS = ["운동·신체활동","독서·학습","게임","여행·관광","외식","쇼핑","미디어·SNS","가족·교제"];
 const LIFE_TRAVELTYPE = ["국내","해외","국내+해외"];
-const LIFE_DAYPART = ["아침","낮","저녁","밤"];
+const LIFE_DAYPART = ["새벽(00-06)","아침(06-09)","오전(09-12)","오후(12-18)","저녁(18-22)","심야(22-24)"];
 const LIFE_FOOD = ["집밥","외식","배달","간편식"];
 const LIFE_WELLNESS = ["안함","주1-2","주3-4","매일"];
 const LIFE_TRAVELFREQ = ["연1회미만","연1-2회","연3-4회","연5회+"];
@@ -393,12 +400,14 @@ function defaultActivities(p) {
   const pid = p.persona_id || `${p.country}:0`;
   // baseline: 외식·쇼핑·여행 중상, 운동 중, 독서·게임 낮
   return {
-    "운동": _scoreFromSeed(pid, "act:운동", 55),
-    "독서": _scoreFromSeed(pid, "act:독서", 45),
+    "운동·신체활동": _scoreFromSeed(pid, "act:운동", 55),
+    "독서·학습": _scoreFromSeed(pid, "act:독서", 45),
     "게임": _scoreFromSeed(pid, "act:게임", 40),
-    "여행": _scoreFromSeed(pid, "act:여행", 60),
+    "여행·관광": _scoreFromSeed(pid, "act:여행", 60),
     "외식": _scoreFromSeed(pid, "act:외식", 65),
     "쇼핑": _scoreFromSeed(pid, "act:쇼핑", 60),
+    "미디어·SNS": _scoreFromSeed(pid, "act:미디어", 70),
+    "가족·교제": _scoreFromSeed(pid, "act:교제", 55),
   };
 }
 // mind 탭
@@ -439,8 +448,9 @@ function defaultBigFive(p) {
   };
 }
 // love 탭
+// 2026-06-25 (CEO P2 지시): 음악 장르 9축 (IFPI Global Music Report 2024 + 한국음저협)
 const LOVE_INTERESTS_KEYS = ["패션","뷰티","테크","음식","여행","운동","게임","문화"];
-const LOVE_MUSIC = ["K-pop","팝","힙합","인디","클래식","발라드"];
+const LOVE_MUSIC = ["K-pop","팝","발라드","힙합·R&B","록","인디","일렉트로닉·EDM","클래식","재즈"];
 const LOVE_CONTENT = ["드라마","예능","영화","다큐","스포츠중계","애니"];
 const LOVE_INFLUENCER = ["메가","마이크로","전문가","연예인"];
 const LOVE_SPORTS_KEYS = ["축구","야구","농구","골프","홈트"];
@@ -468,23 +478,28 @@ function defaultSportsAffinity(p) {
   };
 }
 // buy 탭
-const BUY_CAT_KEYS = ["의류","뷰티","전자","식품","리빙","여행","문화","건강"];
+// 2026-06-25 (CEO P2 지시): 구매카테고리 11축 (통계청 가계동향조사 12대 비목, 주류·담배 제외)
+//   / 쇼핑채널 6축 (통계청 온라인쇼핑동향조사) / 의사결정 8축 (학술 소비자 구매결정 요인 표준)
+const BUY_CAT_KEYS = ["식료품","의류·신발","주거·수도·광열","가정용품","보건·의료","교통","통신","오락·문화","교육","음식·숙박","기타상품·서비스"];
 const BUY_PAYMENT = ["신용카드","간편결제","체크카드","현금"];
-const BUY_CHANNEL = ["온라인몰","앱","오프라인","라이브커머스"];
+const BUY_CHANNEL = ["PC 온라인몰","모바일 앱","오프라인 종합매장","오프라인 전문점","라이브커머스","소셜커머스"];
 const BUY_FREQ = ["주1회+","월2-3회","월1회","분기1회"];
-const BUY_FACTORS_KEYS = ["가격","품질","브랜드","리뷰","디자인","배송"];
+const BUY_FACTORS_KEYS = ["가격","품질","브랜드","리뷰·평판","디자인","배송·편의","AS·보증","추천"];
 const BUY_PROFILE_KEYS = ["가격민감","브랜드충성","할인민감","리뷰영향","브랜드전환","윤리소비"];
 function defaultPurchaseCategories(p) {
   const pid = p.persona_id || `${p.country}:0`;
   return {
-    "의류": _scoreFromSeed(pid, "pc:의류", 60),
-    "뷰티": _scoreFromSeed(pid, "pc:뷰티", 50),
-    "전자": _scoreFromSeed(pid, "pc:전자", 55),
-    "식품": _scoreFromSeed(pid, "pc:식품", 65),
-    "리빙": _scoreFromSeed(pid, "pc:리빙", 50),
-    "여행": _scoreFromSeed(pid, "pc:여행", 50),
-    "문화": _scoreFromSeed(pid, "pc:문화", 45),
-    "건강": _scoreFromSeed(pid, "pc:건강", 50),
+    "식료품": _scoreFromSeed(pid, "pc:식료품", 65),
+    "의류·신발": _scoreFromSeed(pid, "pc:의류", 60),
+    "주거·수도·광열": _scoreFromSeed(pid, "pc:주거", 55),
+    "가정용품": _scoreFromSeed(pid, "pc:가정용품", 50),
+    "보건·의료": _scoreFromSeed(pid, "pc:보건", 55),
+    "교통": _scoreFromSeed(pid, "pc:교통", 55),
+    "통신": _scoreFromSeed(pid, "pc:통신", 60),
+    "오락·문화": _scoreFromSeed(pid, "pc:오락", 50),
+    "교육": _scoreFromSeed(pid, "pc:교육", 45),
+    "음식·숙박": _scoreFromSeed(pid, "pc:음식", 60),
+    "기타상품·서비스": _scoreFromSeed(pid, "pc:기타", 40),
   };
 }
 function defaultBuyFactors(p) {
@@ -493,9 +508,11 @@ function defaultBuyFactors(p) {
     "가격": _scoreFromSeed(pid, "bf:가격", 70),
     "품질": _scoreFromSeed(pid, "bf:품질", 70),
     "브랜드": _scoreFromSeed(pid, "bf:브랜드", 55),
-    "리뷰": _scoreFromSeed(pid, "bf:리뷰", 65),
+    "리뷰·평판": _scoreFromSeed(pid, "bf:리뷰", 65),
     "디자인": _scoreFromSeed(pid, "bf:디자인", 60),
-    "배송": _scoreFromSeed(pid, "bf:배송", 55),
+    "배송·편의": _scoreFromSeed(pid, "bf:배송", 55),
+    "AS·보증": _scoreFromSeed(pid, "bf:AS", 50),
+    "추천": _scoreFromSeed(pid, "bf:추천", 55),
   };
 }
 function defaultBuyProfile(p) {

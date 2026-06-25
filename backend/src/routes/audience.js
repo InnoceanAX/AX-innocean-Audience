@@ -925,8 +925,9 @@ audienceRouter.post("/synthesize", async (req, res) => {
       synthesized.love.topInterests = ["육아·자녀 교육", "홈데코", "웰브·피트니스", "쇼핑", "드라마·예능", "여행", "재테크"];
       synthesized.love.interestsScore = { "육아·자녀 교육": 85, "홈데코": 70, "웰브·피트니스": 65, "쇼핑": 75, "드라마·예능": 60, "여행": 55, "재테크": 50 };
     }
+    // 2026-06-25 (CEO P2 지시): B경로 fallback 키를 A경로 차트 order(IFPI 9장르)와 동일하게 통일
     if (!synthesized.love.musicGenreShares || !Object.keys(synthesized.love.musicGenreShares).length) {
-      synthesized.love.musicGenreShares = { "K-Pop": 35, "발라드": 25, "팔롬": 15, "클래식": 10, "재즈·R&B": 15 };
+      synthesized.love.musicGenreShares = { "K-pop": 28, "팝": 14, "발라드": 18, "힙합·R&B": 14, "록": 6, "인디": 6, "일렉트로닉·EDM": 6, "클래식": 5, "재즈": 3 };
     }
     if (!synthesized.love.contentGenreShares || !Object.keys(synthesized.love.contentGenreShares).length) {
       synthesized.love.contentGenreShares = { "드라마": 30, "예능·리얼리티": 25, "육아·세삼": 15, "뉴스·시사": 10, "다큐·교양": 10, "스포츠": 10 };
@@ -971,17 +972,20 @@ audienceRouter.post("/synthesize", async (req, res) => {
     if (synthesized.buy.reviewInfluence == null) synthesized.buy.reviewInfluence = 70;
     if (synthesized.buy.brandSwitching == null) synthesized.buy.brandSwitching = 50;
     if (synthesized.buy.ethicalConsumerScore == null) synthesized.buy.ethicalConsumerScore = 55;
+    // 2026-06-25 (CEO P2 지시): B경로 fallback 키를 A경로 차트 order와 동일하게 통일
+    //   구매카테고리 11축 (통계청 가계동향 12대 비목, 주류·담배 제외) / 의사결정 8축 (학술표준)
     if (!synthesized.buy.categoryShares || !Object.keys(synthesized.buy.categoryShares).length) {
-      synthesized.buy.categoryShares = { "식품·생활": 25, "육아용품": 18, "의류·패션": 12, "뉴트리·건강식품": 10, "교육·도서": 12, "외식·커피": 10, "화장품·뷰티": 8, "여행·여가": 5 };
+      synthesized.buy.categoryShares = { "식료품": 14, "의류·신발": 10, "주거·수도·광열": 16, "가정용품": 5, "보건·의료": 8, "교통": 10, "통신": 6, "오락·문화": 7, "교육": 8, "음식·숙박": 13, "기타상품·서비스": 3 };
     }
     if (!synthesized.buy.decisionFactors || !Object.keys(synthesized.buy.decisionFactors).length) {
-      synthesized.buy.decisionFactors = { "가격": 75, "품질": 85, "브랜드": 60, "리뷰": 80, "프로모션": 65, "추천": 55 };
+      synthesized.buy.decisionFactors = { "가격": 75, "품질": 85, "브랜드": 60, "리뷰·평판": 80, "디자인": 65, "배송·편의": 60, "AS·보증": 55, "추천": 50 };
     }
     if (!synthesized.buy.paymentDistribution || !Object.keys(synthesized.buy.paymentDistribution).length) {
       synthesized.buy.paymentDistribution = { "신용카드": 45, "간편결제": 30, "계좌이체": 15, "현금": 10 };
     }
+    // 2026-06-25 (CEO P2 지시): 쇼핑채널 6축 (통계청 온라인쇼핑동향조사)
     if (!synthesized.buy.channelMix || !Object.keys(synthesized.buy.channelMix).length) {
-      synthesized.buy.channelMix = { "쿠팡·온라인종합": 35, "대형마트": 25, "편의점": 15, "소셜커머스": 10, "백화점·프리미엄": 8, "전문쇼핑몰": 4, "올라인마켓": 3 };
+      synthesized.buy.channelMix = { "PC 온라인몰": 18, "모바일 앱": 35, "오프라인 종합매장": 20, "오프라인 전문점": 12, "라이브커머스": 8, "소셜커머스": 7 };
     }
     if (!synthesized.buy.purchaseFrequency || !Object.keys(synthesized.buy.purchaseFrequency).length) {
       synthesized.buy.purchaseFrequency = { "주 수회": 40, "주 1회": 30, "월 2–3회": 20, "월 1회 이하": 10 };
@@ -995,11 +999,13 @@ audienceRouter.post("/synthesize", async (req, res) => {
     if (!synthesized.life.digitalUsage || !Object.keys(synthesized.life.digitalUsage).length) {
       synthesized.life.digitalUsage = { "소셜·메신저": 3.5, "동영상 OTT": 2.5, "뉴스·정보": 1.5, "쇼핑·이커머스": 1.5, "업무·생산성": 4.0 };
     }
+    // 2026-06-25 (CEO P2 지시): B경로 fallback 키를 A경로 차트 order와 동일하게 통일
+    //   활동 8축 (통계청 생활시간조사) / 시간대 6축 (닐슨 TV시청률)
     if (!synthesized.life.activityShares || !Object.keys(synthesized.life.activityShares).length) {
-      synthesized.life.activityShares = { "가쇄·육아": 25, "가족·친구": 20, "휴식·잠": 15, "운동·알시가": 12, "취미·학습": 13, "쇼핑·산책": 10, "종교·봉사": 5 };
+      synthesized.life.activityShares = { "운동·신체활동": 14, "독서·학습": 10, "게임": 8, "여행·관광": 9, "외식": 13, "쇼핑": 13, "미디어·SNS": 20, "가족·교제": 13 };
     }
     if (!synthesized.life.dayparts || !Object.keys(synthesized.life.dayparts).length) {
-      synthesized.life.dayparts = { "이른 아침": 15, "아침·오전": 30, "점심·오후": 35, "저녁·회식": 25, "밤 9–12시": 40, "심야": 10 };
+      synthesized.life.dayparts = { "새벽(00-06)": 4, "아침(06-09)": 12, "오전(09-12)": 15, "오후(12-18)": 25, "저녁(18-22)": 32, "심야(22-24)": 12 };
     }
     if (!synthesized.life.foodHabits || !Object.keys(synthesized.life.foodHabits).length) {
       synthesized.life.foodHabits = { "집밥·직접 조리": 40, "배달·도식": 25, "외식": 15, "HMR·간편식": 15, "공동조리·외회워": 5 };

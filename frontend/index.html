@@ -5636,6 +5636,19 @@ const MIND_METHOD_BLOCKS = [
   { l: 'METHOD #4', t: '정보소비 — DataReportal Digital 2024', d: 'DataReportal Digital 2024 Global Overview + Reuters DNR. 정보원 8축 (SNS/검색엔진/뉴스앱·포털/지인·가족/TV·전통매체/전문가·리뷰/브랜드·공식/영상·팟캐스트).' },
   { l: 'METHOD #5', t: '성격 — Big Five (OCEAN)', d: 'Costa & McCrae Big Five 학계 표준 5요인 (개방성·성실성·외향성·우호성·신경성) 유지.' },
 ];
+// 2026-06-25 (CEO P2 지시): 라이프·관심사·구매 탭 범례 재설계 표준 출처 (가계동향/생활시간조사/닐슨/IFPI/온라인쇼핑동향/학술표준)
+const LIFE_METHOD_BLOCKS = [
+  { l: 'METHOD #1', t: '활동 radar — 통계청 생활시간조사', d: '통계청 「2024 생활시간조사」 11대 행동분류 → radar 가독성 8축 압축 (운동·신체활동/독서·학습/게임/여행·관광/외식/쇼핑/미디어·SNS/가족·교제).' },
+  { l: 'METHOD #2', t: '시간대 — 닐슨코리아 TV시청률', d: '닐슨코리아 TV시청률 표준 6구간 (새벽 00-06/아침 06-09/오전 09-12/오후 12-18/저녁 18-22/심야 22-24).' },
+];
+const LOVE_METHOD_BLOCKS = [
+  { l: 'METHOD #1', t: '음악 장르 — IFPI Global Music Report 2024', d: 'IFPI Global Music Report 2024 + 한국음악저작권협회 장르분류. 9장르 (K-pop/팝/발라드/힙합·R&B/록/인디/일렉트로닉·EDM/클래식/재즈).' },
+];
+const BUY_METHOD_BLOCKS = [
+  { l: 'METHOD #1', t: '구매카테고리 — 통계청 가계동향조사', d: '통계청 「2023 가계동향조사」 12대 비목 → 광고 적합성 (주류·담배 제외) 11축 (식료품/의류·신발/주거·수도·광열/가정용품/보건·의료/교통/통신/오락·문화/교육/음식·숙박/기타).' },
+  { l: 'METHOD #2', t: '쇼핑채널 — 통계청 온라인쇼핑동향조사', d: '통계청 「온라인쇼핑동향조사」 2024 채널분류. 6채널 (PC 온라인몰/모바일 앱/오프라인 종합매장/오프라인 전문점/라이브커머스/소셜커머스).' },
+  { l: 'METHOD #3', t: '구매의사결정 — 소비자구매결정 학술표준', d: '한국소비자원 「소비자 구매결정 요인 분석」 + 마케팅 학술표준 8축 (가격/품질/브랜드/리뷰·평판/디자인/배송·편의/AS·보증/추천).' },
+];
 const DATA_SOURCES = {
   who: {
     title: '인물상 (Who) — 인구통계',
@@ -5649,6 +5662,7 @@ const DATA_SOURCES = {
     title: '라이프스타일 (Life) — 디지털·일상',
     blocks: [
       ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...LIFE_METHOD_BLOCKS,
       ...AI_SYNTHETIC_MODEL_BLOCKS,
       ..._tabUsage('Stage 2 라이프스타일·일상 활동 태그'),
     ],
@@ -5666,6 +5680,7 @@ const DATA_SOURCES = {
     title: '관심사 (Love) — 흥미·열정',
     blocks: [
       ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...LOVE_METHOD_BLOCKS,
       ...AI_SYNTHETIC_MODEL_BLOCKS,
       ..._tabUsage('Stage 2 관심사·브랜드 친화도 태그'),
     ],
@@ -5674,6 +5689,7 @@ const DATA_SOURCES = {
     title: '구매 (Buy) — 이커머스·결정',
     blocks: [
       ...LEARNED_PUBLIC_DATA_BLOCKS,
+      ...BUY_METHOD_BLOCKS,
       ...AI_SYNTHETIC_MODEL_BLOCKS,
       ..._tabUsage('Stage 2 쇼핑 스타일·가격 민감도 태그'),
     ],
@@ -9091,9 +9107,9 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
   }
 
   if(dim === 'life'){
-    // 1. 활동 radar (chart-life-radar) — 0~100 점수
+    // 1. 활동 radar (chart-life-radar) — 0~100 점수 — 통계청 생활시간조사 8축
     {
-      const order = ['운동','독서','게임','여행','외식','쇼핑'];
+      const order = ['운동·신체활동','독서·학습','게임','여행·관광','외식','쇼핑','미디어·SNS','가족·교제'];
       const [labels, vals] = scoresFixed(d.activities, order);
       renderChartSafe('chart-life-radar', 'radar', labels, vals, '#6366F1', { rmax: 100 });
     }
@@ -9102,9 +9118,9 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
       const [labels, vals] = distToLP(d.travelType, null, 8);
       renderChartSafe('chart-life-travel', 'doughnut', labels, vals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6'], { suffix: '%' });
     }
-    // 3. 시간대 (chart-life-dayparts · bar)
+    // 3. 시간대 (chart-life-dayparts · bar) — 닐슨 TV시청률 6구간
     {
-      const order = ['아침','낮','저녁','밤'];
+      const order = ['새벽(00-06)','아침(06-09)','오전(09-12)','오후(12-18)','저녁(18-22)','심야(22-24)'];
       const [labels, vals] = distFixed(d.activeDaypart, order);
       renderChartSafe('chart-life-dayparts', 'bar', labels, vals, '#0EA5E9', { suffix: '%' });
     }
@@ -9176,11 +9192,11 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
       const [labels, vals] = scoresFixed(d.interests, interestsOrder);
       renderChartSafe('chart-love-radar', 'radar', labels, vals, '#EC4899', { rmax: 100 });
     }
-    // 2. 음악 장르 (chart-love-music · doughnut)
+    // 2. 음악 장르 (chart-love-music · doughnut) — IFPI Global Music Report 9장르
     {
-      const order = ['K-pop','팝','힙합','인디','클래식','발라드'];
+      const order = ['K-pop','팝','발라드','힙합·R&B','록','인디','일렉트로닉·EDM','클래식','재즈'];
       const [labels, vals] = distFixed(d.musicGenre, order);
-      renderChartSafe('chart-love-music', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4'], { suffix: '%' });
+      renderChartSafe('chart-love-music', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#0EA5E9','#A855F7','#EF4444'], { suffix: '%' });
     }
     // 4. 콘텐츠 장르 (chart-love-content · doughnut)
     {
@@ -9204,12 +9220,12 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
   }
 
   if(dim === 'buy'){
-    // 1. 구매 카테고리 (chart-buy-cat · doughnut top8)
+    // 1. 구매 카테고리 (chart-buy-cat · doughnut 11축) — 통계청 가계동향 12대 비목 (주류·담배 제외)
     {
-      const order = ['의류','뷰티','전자','식품','리빙','여행','문화','건강'];
+      const order = ['식료품','의류·신발','주거·수도·광열','가정용품','보건·의료','교통','통신','오락·문화','교육','음식·숙박','기타상품·서비스'];
       const labels = order;
       const vals = order.map(k => +(Number((d.purchaseCategories && d.purchaseCategories[k]) || 0)).toFixed(1));
-      renderChartSafe('chart-buy-cat', 'doughnut', labels, vals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B'], { suffix: '' });
+      renderChartSafe('chart-buy-cat', 'doughnut', labels, vals, ['#06B6D4','#0EA5E9','#3B82F6','#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B','#10B981','#EF4444','#84CC16'], { suffix: '' });
     }
     // 2. 결제 수단 (chart-buy-pay · doughnut)
     {
@@ -9217,15 +9233,15 @@ function _renderPersonaPoolDimCharts(dim, d, envelope){
       const [labels, vals] = distFixed(d.paymentMethod, order);
       renderChartSafe('chart-buy-pay', 'doughnut', labels, vals, ['#84CC16','#22C55E','#10B981','#06B6D4','#0EA5E9'], { suffix: '%' });
     }
-    // 3. 쇼핑 채널 (chart-buy-channel · doughnut)
+    // 3. 쇼핑 채널 (chart-buy-channel · doughnut) — 통계청 온라인쇼핑동향 6채널
     {
-      const order = ['온라인몰','앱','오프라인','라이브커머스'];
+      const order = ['PC 온라인몰','모바일 앱','오프라인 종합매장','오프라인 전문점','라이브커머스','소셜커머스'];
       const [labels, vals] = distFixed(d.shoppingChannel, order);
-      renderChartSafe('chart-buy-channel', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4','#0EA5E9'], { suffix: '%' });
+      renderChartSafe('chart-buy-channel', 'doughnut', labels, vals, ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#06B6D4'], { suffix: '%' });
     }
-    // 4. 구매 의사결정 radar (chart-buy-decision)
+    // 4. 구매 의사결정 radar (chart-buy-decision) — 학술 소비자 구매결정 요인 8축
     {
-      const order = ['가격','품질','브랜드','리뷰','디자인','배송'];
+      const order = ['가격','품질','브랜드','리뷰·평판','디자인','배송·편의','AS·보증','추천'];
       const [labels, vals] = scoresFixed(d.buyFactors, order);
       renderChartSafe('chart-buy-decision', 'radar', labels, vals, '#0EA5E9', { rmax: 100 });
     }

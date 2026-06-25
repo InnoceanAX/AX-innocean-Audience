@@ -79,7 +79,8 @@ export function aggregateLife(personas) {
   const topLifestyleTags = toRanked(tags, { topN: 20 });
   const occupation = distribution(tally(personas, p => p.occupationLabel || p.occupation), { total });
   // 2026-06-23 baseline 차트 6개 집계
-  const LIFE_ACTIVITIES_KEYS = ["운동","독서","게임","여행","외식","쇼핑"];
+  // 2026-06-25 (CEO P2 지시): 통계청 생활시간조사 8축 (radar 가독성)
+  const LIFE_ACTIVITIES_KEYS = ["운동·신체활동","독서·학습","게임","여행·관광","외식","쇼핑","미디어·SNS","가족·교제"];
   const activities = avgScoreObject(personas, "activities", LIFE_ACTIVITIES_KEYS);
   const travelType = distribution(tally(personas, p => p.travelType), { total });
   const activeDaypart = distribution(tally(personas, p => p.activeDaypart), { total });
@@ -184,8 +185,9 @@ export function aggregateBuy(personas) {
     .slice(0, 10);
   const shoppingStyle = distribution(tally(personas, p => p.shopping_style), { total });
   // 2026-06-23 baseline 차트 6개 집계 (buy)
-  const BUY_CAT_KEYS = ["의류","뷰티","전자","식품","리빙","여행","문화","건강"];
-  const BUY_FACTORS_KEYS = ["가격","품질","브랜드","리뷰","디자인","배송"];
+  // 2026-06-25 (CEO P2 지시): 구매카테고리 11축 (통계청 가계동향, 주류·담배 제외) / 의사결정 8축 (학술표준)
+  const BUY_CAT_KEYS = ["식료품","의류·신발","주거·수도·광열","가정용품","보건·의료","교통","통신","오락·문화","교육","음식·숙박","기타상품·서비스"];
+  const BUY_FACTORS_KEYS = ["가격","품질","브랜드","리뷰·평판","디자인","배송·편의","AS·보증","추천"];
   const BUY_PROFILE_KEYS = ["가격민감","브랜드충성","할인민감","리뷰영향","브랜드전환","윤리소비"];
   const purchaseCategories = avgScoreObject(personas, "purchaseCategories", BUY_CAT_KEYS);
   const buyFactors = avgScoreObject(personas, "buyFactors", BUY_FACTORS_KEYS);
