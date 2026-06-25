@@ -2155,6 +2155,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
 .aud-chart-grid-3{grid-template-columns:repeat(3,1fr)}
 .aud-chart-card{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:14px 16px}
 .aud-chart-t{font-size:12.5px;font-weight:700;color:#111;margin-bottom:10px}
+.aud-chart-sub{font-size:11px;color:#9CA3AF;font-weight:400;margin:-4px 0 10px;line-height:1.4}
 .aud-chart-canvas-wrap{position:relative;height:240px}
 .aud-chart-grid-3 .aud-chart-canvas-wrap{height:220px}
 @media (max-width:980px){.aud-chart-grid,.aud-chart-grid-3{grid-template-columns:1fr}}
@@ -2544,6 +2545,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             </div>
             <!-- View 1: 채널 트리 -->
             <div id="md-view-tree" class="md-view">
+              <div class="md-view-desc" style="font-size:12px;color:#9CA3AF;font-weight:400;margin:0 0 10px;line-height:1.4">타겟이 실제 이용하는 매체를 채널별로 한눈에</div>
               <div id="md-tree"></div>
             </div>
             <!-- View 2: 전체 매체 표 -->
@@ -2557,6 +2559,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
             </div>
             <!-- View 3: 차트 -->
             <div id="md-view-chart" class="md-view hide">
+              <div class="md-view-desc" style="font-size:12px;color:#9CA3AF;font-weight:400;margin:0 0 10px;line-height:1.4">매체별 도달률·시청시간·광고 수용도를 시각적으로 비교</div>
               <div class="ov-section">
                 <div class="ov-section-t">도달률 차트 — 상위 10개 채널</div>
                 <div class="md-chart-wrap"><canvas id="md-reach-chart"></canvas></div>
@@ -8443,26 +8446,32 @@ function renderAudienceDim(dim, data){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">연령 분포</div>
+        <div class="aud-chart-sub">이 타겟은 주로 어떤 연령대인가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-doughnut"></canvas><div id="baseline-note-age" class="aud-baseline-note"></div></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">직업 분포</div>
+        <div class="aud-chart-sub">어떤 직업군에 분포하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-occupation"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">소득 구간 분포</div>
+        <div class="aud-chart-sub">소득 수준은 어떻게 분포하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-income"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">학력 분포</div>
+        <div class="aud-chart-sub">학력 구성은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-education"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">도시 규모 분포</div>
+        <div class="aud-chart-sub">어떤 규모의 지역에 사는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-city"></canvas><div id="baseline-note-urban" class="aud-baseline-note"></div></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">성별 비율</div>
+        <div class="aud-chart-sub">성별 구성은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-gender"></canvas></div>
       </div>
     </div>
@@ -8482,26 +8491,32 @@ function renderAudienceDim(dim, data){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">디지털 사용 시간 (레이더)</div>
+        <div class="aud-chart-sub">하루 중 어떤 디지털 활동에 시간을 쓰는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">주요 활동 분포</div>
+        <div class="aud-chart-sub">주로 어떤 활동을 즐기는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travel"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">시간대별 활동 강도</div>
+        <div class="aud-chart-sub">하루 중 언제 가장 활동적인가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-dayparts"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">식생활 패턴</div>
+        <div class="aud-chart-sub">식생활 성향은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-food"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">운동 빈도</div>
+        <div class="aud-chart-sub">얼마나 자주 운동하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-wellness"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">여행 빈도</div>
+        <div class="aud-chart-sub">얼마나 자주 여행하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travelfreq"></canvas></div>
       </div>
     </div>
@@ -8514,26 +8529,32 @@ function renderAudienceDim(dim, data){
     return `<div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">핵심 가치관 (레이더)</div>
+        <div class="aud-chart-sub">어떤 가치를 가장 중시하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-values"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">신뢰·리스크·낙관</div>
+        <div class="aud-chart-sub">세상을 어떤 태도로 바라보는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-trust"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">사회적 관심사</div>
+        <div class="aud-chart-sub">어떤 사회 이슈에 관심이 많은가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-culture"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">의사결정 스타일</div>
+        <div class="aud-chart-sub">구매·선택을 어떻게 결정하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-decision"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">정보 소비 패턴</div>
+        <div class="aud-chart-sub">정보를 주로 어디서 얻는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-info"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">성격 (빅 파이브)</div>
+        <div class="aud-chart-sub">성격 특성은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-personality"></canvas></div>
       </div>
     </div>
@@ -8545,22 +8566,27 @@ function renderAudienceDim(dim, data){
     return `<div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">Top 관심사 (레이더)</div>
+        <div class="aud-chart-sub">무엇에 가장 관심이 많은가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">음악 장르 점유율</div>
+        <div class="aud-chart-sub">어떤 음악을 즐겨 듣는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-music"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">콘텐츠 장르 점유율</div>
+        <div class="aud-chart-sub">어떤 콘텐츠를 즐겨 보는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-content"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">인플루언서 선호 유형</div>
+        <div class="aud-chart-sub">어떤 인플루언서에 끌리는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-influencer"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">스포츠 선호도</div>
+        <div class="aud-chart-sub">어떤 스포츠를 좋아하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-sports"></canvas></div>
       </div>
     </div>
@@ -8591,26 +8617,32 @@ function renderAudienceDim(dim, data){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">주요 카테고리 점유율</div>
+        <div class="aud-chart-sub">어디에 돈을 가장 많이 쓰는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-cat"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 결정 요인</div>
+        <div class="aud-chart-sub">무엇을 보고 구매를 결정하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-decision"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">결제 수단 분포</div>
+        <div class="aud-chart-sub">어떤 방식으로 결제하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-pay"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">쇼핑 채널 세분</div>
+        <div class="aud-chart-sub">어디서 주로 쇼핑하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-channel"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 주기</div>
+        <div class="aud-chart-sub">얼마나 자주 구매하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-freq"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 속성 프로파일</div>
+        <div class="aud-chart-sub">구매 성향은 어떤 프로파일인가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-profile"></canvas></div>
       </div>
     </div>
@@ -8951,26 +8983,32 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">연령 분포</div>
+        <div class="aud-chart-sub">이 타겟은 주로 어떤 연령대인가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-doughnut"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">직업 분포</div>
+        <div class="aud-chart-sub">어떤 직업군에 분포하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-occupation"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">소득 구간 분포</div>
+        <div class="aud-chart-sub">소득 수준은 어떻게 분포하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-income"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">학력 분포</div>
+        <div class="aud-chart-sub">학력 구성은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-education"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">도시 규모 분포</div>
+        <div class="aud-chart-sub">어떤 규모의 지역에 사는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-city"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">성별 비율</div>
+        <div class="aud-chart-sub">성별 구성은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-who-gender"></canvas></div>
       </div>
     </div>`;
@@ -8982,26 +9020,32 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">활동 관심도 (radar · 0–100)</div>
+        <div class="aud-chart-sub">주로 어떤 활동을 즐기는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">여행 패턴 분포</div>
+        <div class="aud-chart-sub">어떤 여행 스타일을 선호하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travel"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">활동 시간대 분포</div>
+        <div class="aud-chart-sub">하루 중 언제 가장 활동적인가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-dayparts"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">식생활 분포</div>
+        <div class="aud-chart-sub">식생활 성향은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-food"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">운동 빈도 분포</div>
+        <div class="aud-chart-sub">얼마나 자주 운동하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-wellness"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">여행 빈도 분포</div>
+        <div class="aud-chart-sub">얼마나 자주 여행하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-life-travelfreq"></canvas></div>
       </div>
     </div>`;
@@ -9013,26 +9057,32 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">핵심 가치 (radar · 0–100)</div>
+        <div class="aud-chart-sub">어떤 가치를 가장 중시하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-values"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">마인드셋 (radar · 0–100)</div>
+        <div class="aud-chart-sub">세상을 어떤 태도로 바라보는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-trust"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">사회 관심사 분포</div>
+        <div class="aud-chart-sub">어떤 사회 이슈에 관심이 많은가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-culture"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">의사결정 스타일 분포</div>
+        <div class="aud-chart-sub">구매·선택을 어떻게 결정하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-decision"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">정보 소비 채널 분포</div>
+        <div class="aud-chart-sub">정보를 주로 어디서 얻는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-info"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">성격 (Big5 · radar · 0–100)</div>
+        <div class="aud-chart-sub">성격 특성은 어떠한가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-mind-personality"></canvas></div>
       </div>
     </div>`;
@@ -9043,22 +9093,27 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">관심사 (0–100)</div>
+        <div class="aud-chart-sub">무엇에 가장 관심이 많은가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-radar"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">선호 음악 장르 분포</div>
+        <div class="aud-chart-sub">어떤 음악을 즐겨 듣는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-music"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">콘텐츠 장르 분포</div>
+        <div class="aud-chart-sub">어떤 콘텐츠를 즐겨 보는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-content"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">인플루언서 타입 분포</div>
+        <div class="aud-chart-sub">어떤 인플루언서에 끌리는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-influencer"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">스포츠 친밀도 (radar · 0–100)</div>
+        <div class="aud-chart-sub">어떤 스포츠를 좋아하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-love-sports"></canvas></div>
       </div>
     </div>`;
@@ -9070,26 +9125,32 @@ function renderPersonaPoolDimChartjs(dim, envelope){
     <div class="aud-chart-grid">
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 카테고리 분포</div>
+        <div class="aud-chart-sub">어디에 돈을 가장 많이 쓰는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-cat"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">결제 수단 분포</div>
+        <div class="aud-chart-sub">어떤 방식으로 결제하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-pay"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">쇼핑 채널 분포</div>
+        <div class="aud-chart-sub">어디서 주로 쇼핑하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-channel"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 의사결정 (radar · 0–100)</div>
+        <div class="aud-chart-sub">무엇을 보고 구매를 결정하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-decision"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">구매 빈도 분포</div>
+        <div class="aud-chart-sub">얼마나 자주 구매하는가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-freq"></canvas></div>
       </div>
       <div class="aud-chart-card">
         <div class="aud-chart-t">소비 프로파일 (radar · 0–100)</div>
+        <div class="aud-chart-sub">구매 성향은 어떤 프로파일인가?</div>
         <div class="aud-chart-canvas-wrap"><canvas id="chart-buy-profile"></canvas></div>
       </div>
     </div>`;
