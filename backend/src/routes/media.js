@@ -15,7 +15,7 @@ import {
   calculateYoY,
   listAdspendSources,
 } from "../adapters/adspend-public.js";
-import { CHANNELS, COUNTRY_MEDIA_OVERRIDES, flattenMedia } from "../data/media-taxonomy.js";
+import { CHANNELS, COUNTRY_MEDIA_OVERRIDES, flattenMedia, GENERIC_MEDIA_ALIASES } from "../data/media-taxonomy.js";
 import { getBrief, getPersonas } from "../lib/persona-store.js";
 import { aggregateMedia } from "../lib/persona-aggregator.js";
 import { buildPersonaPoolBadge, buildPublicDataBadge } from "../lib/persona-badge.js";
@@ -299,6 +299,52 @@ mediaRouter.get("/landscape", async (req, res) => {
   }
   items.sort((a, b) => b.reach - a.reach);
 
+  // 2026-06-25 (CEO): 유형×목적 2축 분류 — purposeTag 명명
+  //   유형축(ATL/BTL/Digital)은 getMediaCategory(기존) 그대로 사용, 변경 없음.
+  //   목적축(신규): 각 매체의 reach / 효율(reach*trust/cpm) / trust 세 지표를 백분위 정규화 후
+  //   최대 축으로 라벨: "인지"(reach강) / "전환"(효율강) / "신뢰"(trust강).
+  //   계산식만 추가 — 기존 reach/trust/cpm/spend 로직 무변경.
+  {
+    const n = items.length;
+    const rankPct = (vals) => {
+      // 백분위: 안정적인 랜키 기반 (tie-safe, 0~1)
+      const sorted = vals.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+      const out = new Array(vals.length);
+      sorted.forEach(([_, origIdx], rank) => {
+        out[origIdx] = n > 1 ? rank / (n - 1) : 0.5;
+      });
+      return out;
+    };
+    const reachVals = items.map(i => i.reach);
+    const effVals = items.map(i => i.effIndex);
+    const trustVals = items.map(i => i.trust);
+    const rPct = rankPct(reachVals);
+    const ePct = rankPct(effVals);
+    const tPct = rankPct(trustVals);
+    items.forEach((it, i) => {
+      const scores = { "인지": rPct[i], "전환": ePct[i], "신뢰": tPct[i] };
+      let tag = "인지", max = -1;
+      for (const [k, v] of Object.entries(scores)) { if (v > max) { max = v; tag = k; } }
+      it.purposeTag = tag;
+      it.purposeScores = {
+        인지: Number(rPct[i].toFixed(3)),
+        전환: Number(ePct[i].toFixed(3)),
+        신뢰: Number(tPct[i].toFixed(3)),
+      };
+    });
+  }
+
+  // 2026-06-25 (CEO): 카테고리/브랜드 분리 — isGeneric 플래그
+  //   media-taxonomy.GENERIC_MEDIA_ALIASES("포털/뉴스","음악 스트리밍" 등)에 해당하는 label은
+  //   "브랜드 미특정 카테고리"로 구분하여 프론트 md-table에서 별도 표기.
+  {
+    const genericSet = new Set((GENERIC_MEDIA_ALIASES || []).map(s => String(s).toLowerCase().trim()));
+    items.forEach(it => {
+      const lbl = String(it.label || "").toLowerCase().trim();
+      it.isGeneric = genericSet.has(lbl);
+    });
+  }
+
   // 인사이트
   const insights = [];
   const topReach = items[0];
@@ -329,6 +375,25 @@ mediaRouter.get("/landscape", async (req, res) => {
     title: "광고비 1위 매체 (2025)",
     text: `${topSpend.label} (${topSpend.channel}) — 연 추정 $${(topSpend.spend / 1_000_000).toFixed(1)}M (전체 광고시장의 ${topSpend.spendShare}%)`,
   });
+
+  // 2026-06-25 (CEO): 타겟 적합 매체 — 페르소나 풀 실제 언급(mentions) 1위
+  //   persona-pool이 있을 때만 노출. 없으면 insight 자체 추가하지 않음 (프론트는 4카드 렌더링 시 존재 필터).
+  {
+    const _pool = loadPersonaPool(req, code);
+    const _pc = buildPersonaChannels(_pool, code);
+    const topMention = _pc?.channels?.length
+      ? [..._pc.channels].sort((a, b) => (b.mentions || 0) - (a.mentions || 0))[0]
+      : null;
+    if (topMention && (topMention.mentions || 0) > 0) {
+      insights.push({
+        type: "top-mentions",
+        title: "타겟 적합 매체 (페르소나 언급 1위)",
+        text: `${topMention.channel} — 페르소나 ${topMention.mentions}명 언급 (도달률 ${(topMention.reachPct != null ? topMention.reachPct : (topMention.reach || 0) * 100).toFixed(1)}%)`,
+        mentions: topMention.mentions,
+        channel: topMention.channel,
+      });
+    }
+  }
 
   // 3년 spend payload — 동일 items 재사용·연도별 재계산
   const spend2024 = buildYearSpendPayload({ year: 2024, items, ind: indFlatWithPop, code });

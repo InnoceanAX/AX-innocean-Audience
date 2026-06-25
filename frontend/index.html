@@ -2499,7 +2499,7 @@ body.home-mode .ai-toggle,body.home-mode .ai-toggle-tip{display:none !important}
           <div class="aud-tab">
             <div class="aud-tab-h">
               <div class="aud-tab-t">미디어 (Media)</div>
-              <div class="aud-tab-s">어떤 매체로 만나는가 — 채널별 도달률 / 광고 형식 수용도 / 도달×시청시간 매트릭스</div>
+              <div class="aud-tab-s">이 타겟에게 가장 효율적인 광고 매체를 찾는 미디어 플래닝 의사결정 — 유형(ATL/BTL/Digital) × 목적(인지/전환/신뢰) 2축 분류</div>
               <span class="aud-src" id="media-src">데이터 로딩 중…</span>
             </div>
           </div>
@@ -4633,8 +4633,31 @@ async function renderMediaTab(data){
   }catch(e){ /* silent */ }
   // 광고비 리더링
   renderMediaSpend(data);
-  // 인사이트
-  let insightHtml = data.insights.map(i => `
+  // 2026-06-25 (CEO): 미디어 플래닝 의사결정 프레임 — 4종 인사이트 카드 상단 노출
+  //   ①도달우선(top-reach) ②효율우선(top-eff) ③예산현실(top-spend) ④타겟적합(top-mentions)
+  //   기존 ov-insight 카드 렌더 + 타입 필터링만 추가, 재활용
+  const _MD_4CARDS_ORDER = ['top-reach','top-eff','top-spend','top-mentions'];
+  const _MD_4CARDS_META = {
+    'top-reach':    { badge: '인지 우선', tone: '#4F46E5' },
+    'top-eff':      { badge: '전환 우선', tone: '#059669' },
+    'top-spend':    { badge: '예산 현실', tone: '#D97706' },
+    'top-mentions': { badge: '타겟 적합', tone: '#7C3AED' },
+  };
+  const _md4 = _MD_4CARDS_ORDER.map(t => (data.insights||[]).find(i => i.type === t)).filter(Boolean);
+  let _md4Html = '';
+  if(_md4.length){
+    _md4Html = '<div class="md-frame-h" style="font-size:12px;font-weight:700;color:#111;margin:2px 0 8px;display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:3px;height:14px;background:var(--ind)"></span>미디어 플래닝 의사결정 — 4종 관점</div>'
+      + '<div class="md-4cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px">'
+      + _md4.map(i => {
+        const meta = _MD_4CARDS_META[i.type] || { badge: '', tone: 'var(--ind)' };
+        return `<div style="border:2px solid var(--bdr);background:#fff;padding:12px 14px;border-radius:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="display:inline-block;padding:2px 7px;background:${meta.tone};color:#fff;font-size:10px;font-weight:700;border-radius:0">${meta.badge}</span><span style="font-size:12px;font-weight:700;color:#111">${i.title}</span></div><div style="font-size:11.5px;color:#374151;line-height:1.5">${i.text}</div></div>`;
+      }).join('')
+      + '</div>';
+  }
+  // 기존 인사이트 (차단·기타 유형) — 4종 타입은 상단 카드로 이미 노출되므로 제외
+  let insightHtml = _md4Html + (data.insights || [])
+    .filter(i => !_MD_4CARDS_ORDER.includes(i.type))
+    .map(i => `
     <div class="ov-insight ${i.type==='blocked'?'notice':''}">
       <div class="ov-insight-h"><div class="ov-insight-t">${i.title}</div></div>
       <div class="ov-insight-x">${i.text}</div>
@@ -4646,12 +4669,32 @@ async function renderMediaTab(data){
   }
   document.getElementById('md-insights').innerHTML = insightHtml;
 
-  // 표
+  // 표 — 2026-06-25 (CEO): 카테고리/브랜드 분리 (isGeneric 플래그)
+  //   브랜드(일반) 섹션 먼저 + 카테고리(브랜드 미특정) 섹션 아래 + 시각적 구분.
+  //   기존 5열 구조 유지(매체|Channel|Subchannel|도달률|신뢰도) + 목적태그 추가 열.
   const tbl = document.getElementById('md-table');
-  let html = `<thead><tr><th>매체</th><th>Channel</th><th>Subchannel</th><th>도달률</th><th>신뢰도</th></tr></thead><tbody>`;
-  for(const it of data.items){
+  const _PT_TONE = { '인지': '#4F46E5', '전환': '#059669', '신뢰': '#7C3AED' };
+  const _renderMdRow = (it) => {
     const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${it.reach}%"></div></div>`;
-    html += `<tr${it.reach===0?' class="md-blocked"':''}><td><strong>${it.label}</strong></td><td><span class="md-tag">${it.channel}</span></td><td><span class="md-tag md-tag-sub">${it.subchannel}</span></td><td>${reachBar}<span class="md-bar-v">${it.reach}%</span></td><td>${it.trust}</td></tr>`;
+    const ptag = it.purposeTag || '';
+    const ptTone = _PT_TONE[ptag] || 'var(--ind)';
+    const ptBadge = ptag ? `<span style="display:inline-block;padding:2px 7px;background:${ptTone};color:#fff;font-size:10px;font-weight:700;border-radius:0;margin-left:6px">${ptag}</span>` : '';
+    const genericBadge = it.isGeneric ? `<span style="display:inline-block;padding:2px 7px;background:#fff;color:#6B7280;border:1px solid #9CA3AF;font-size:10px;font-weight:600;border-radius:0;margin-left:6px">카테고리</span>` : '';
+    return `<tr${it.reach===0?' class="md-blocked"':''}><td><strong>${it.label}</strong>${genericBadge}${ptBadge}</td><td><span class="md-tag">${it.channel}</span></td><td><span class="md-tag md-tag-sub">${it.subchannel}</span></td><td>${reachBar}<span class="md-bar-v">${it.reach}%</span></td><td>${it.trust}</td></tr>`;
+  };
+  const _brandItems = (data.items || []).filter(it => !it.isGeneric);
+  const _genericItems = (data.items || []).filter(it => it.isGeneric);
+  let html = `<thead><tr><th>매체</th><th>Channel</th><th>Subchannel</th><th>도달률</th><th>신뢰도</th></tr></thead><tbody>`;
+  if(_brandItems.length){
+    html += `<tr class="md-group-h"><td colspan="5" style="background:#F9FAFB;font-size:11px;font-weight:700;color:#111;padding:8px 12px;border-top:2px solid var(--bdr);border-bottom:1px solid var(--bdr)">■ 브랜드 매체 (${_brandItems.length}개)</td></tr>`;
+    for(const it of _brandItems){ html += _renderMdRow(it); }
+  }
+  if(_genericItems.length){
+    html += `<tr class="md-group-h"><td colspan="5" style="background:#F9FAFB;font-size:11px;font-weight:700;color:#6B7280;padding:8px 12px;border-top:2px solid var(--bdr);border-bottom:1px solid var(--bdr)">□ 카테고리 — 브랜드 미특정 (${_genericItems.length}개)</td></tr>`;
+    for(const it of _genericItems){ html += _renderMdRow(it); }
+  }
+  if(!_brandItems.length && !_genericItems.length){
+    for(const it of (data.items || [])){ html += _renderMdRow(it); }
   }
   tbl.innerHTML = html + `</tbody>`;
 

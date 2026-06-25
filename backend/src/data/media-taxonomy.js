@@ -512,7 +512,8 @@ function parseLabelCountry(label) {
 
 // 미디어 일반 카테고리 별칭 (페르소나가 장르/카테고리로 적은 일반 표현 → 미디어로 인정)
 // canonicalizeChannel이 통합하는 일반 카테고리와 동일 명칭. 글로벌 허용.
-const GENERIC_MEDIA_ALIASES = [
+// 2026-06-25 (CEO): export — media.js landscape items[].isGeneric 플래그 판정용
+export const GENERIC_MEDIA_ALIASES = [
   "TV", "라디오", "신문", "옥외광고(OOH)", "팟캐스트", "포털/뉴스", "음악 스트리밍",
   // 페르소나가 자연어로 적을 수 있는 추가 표현 (canonicalize가 흡수하지 못한 경우 대비)
   "뉴스", "커뮤니티", "잡지", "OTT",
