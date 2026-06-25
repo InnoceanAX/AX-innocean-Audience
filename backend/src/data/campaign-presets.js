@@ -3,7 +3,7 @@
 
 export const CAMPAIGN_PRESETS = [
   {
-    id: "musinsa-kfashion-2034-global",
+    id: "fashion-2034-global",
     name: "Musinsa fashion 2034MF",
     brand: "Musinsa",
     countries: ["KR", "JP", "CN"],
