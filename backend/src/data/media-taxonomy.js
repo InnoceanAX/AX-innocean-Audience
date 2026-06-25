@@ -1044,3 +1044,426 @@ export function flattenMedia() {
   }
   return out;
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// 2026-06-25 (CEO): persona-pool 채널명 → 카테고리(ATL/BTL/Digital) 분류
+//   배경:
+//     - frontend renderChart4Table은 landscape items[].label 정확매칭(_lookupMeta)으로 category를 찾음.
+//     - persona-pool media_diet가 만든 채널명(Douyin/Bilibili/Tencent Video/GQ China 등)이
+//       landscape 라벨과 표기 차이로 매칭 실패 → "매체 미특정" 박스 회색 처리.
+//   해법:
+//     - 채널명을 정규화(소문자/공백) 후 키워드/별칭 패턴으로 직접 분류.
+//     - 모르면 null 반환 → 프론트가 진짜 미특정 표기.
+//   브랜드 중립: 무신사/특정 광고주 하드코딩 없음. 매체/플랫폼 일반 분류만 사용.
+//   회귀안전: 신규 export. 기존 코드 호출 없으면 동작 변화 없음.
+// ────────────────────────────────────────────────────────────────────────────
+
+// 명시적 매체명 → category 매핑 (정확매칭, 정규화키 기준).
+// 우선순위 1순위로 사용. (키워드 기반 fallback보다 우선)
+export const MEDIA_LABEL_CATEGORY = (() => {
+  const m = {};
+  const add = (cat, names) => { for (const n of names) m[normalizeKey(n)] = cat; };
+
+  // ── Digital: 검색 ──
+  add("Digital", [
+    "네이버", "Naver", "네이버 검색", "다음", "Daum", "ZUM", "줌",
+    "Google", "Bing", "Microsoft Bing", "Yahoo!", "Yahoo! JAPAN", "Yahoo! Japan", "goo검색", "goo",
+    "百度", "Baidu", "搜狗", "Sogou", "360搜索", "So.com", "360 Search",
+    "神马搜索", "Shenma", "头条搜索", "Toutiao Search",
+    "微信搜一搜", "WeChat Sou Yi Sou", "抖音搜索", "Douyin Search",
+    "夸克", "Quark", "必应中国", "Bing China",
+  ]);
+
+  // ── Digital: 소셜 ──
+  add("Digital", [
+    "Instagram", "Facebook", "X", "Twitter", "X (Twitter)", "TikTok",
+    "LinkedIn", "Pinterest", "Snapchat", "Reddit", "Threads",
+    "네이버 카페", "Naver Cafe", "네이버 밴드", "BAND",
+    "디시인사이드", "DC Inside", "더쿠", "theqoo",
+    "뽐뿌", "Ppomppu", "클리앙", "Clien", "보배드림", "Bobaedream",
+    "mixi", "ミクシィ", "アメーバブログ", "Ameba Blog", "Ameba",
+    "note", "ノート", "5ちゃんねる", "5channel",
+    "ガールズちゃんねる", "Girls Channel",
+    "はてなブックマーク", "Hatena Bookmark", "はてなブログ", "Hatena Blog",
+    "微博", "Weibo", "小红书", "Xiaohongshu", "RED",
+    "QQ空间", "QZone", "知乎", "Zhihu",
+    "哔哩哔哩", "Bilibili", "豆瓣", "Douban",
+    "哔哩哔哩 动态", "Bilibili Dynamic", "视频号 社区",
+    "脉脉", "Maimai", "即刻", "Jike", "最右", "Zuiyou",
+    "贴吧", "Baidu Tieba",
+  ]);
+
+  // ── Digital: 메신저 ──
+  add("Digital", [
+    "WhatsApp", "Telegram", "Discord", "Messenger",
+    "카카오톡", "KakaoTalk", "카카오", "라인", "텔레그램", "디스코드",
+    "네이버 웍스", "Naver Works",
+    "LINE", "Chatwork", "Slack",
+    "微信", "WeChat", "QQ", "腾讯QQ",
+    "钉钉", "DingTalk", "飞书", "Feishu", "Lark",
+    "企业微信", "WeCom",
+  ]);
+
+  // ── Digital: OTT/CTV/Online Video ──
+  add("Digital", [
+    "Netflix", "Disney+", "Apple TV+", "Amazon Prime Video", "Prime Video",
+    "YouTube", "YouTube on TV", "YouTube TV", "Twitch", "Instagram Reels", "Reels",
+    "Tving", "티빙", "Wavve", "웨이브", "Watcha", "왓챠", "Coupang Play", "쿠팡플레이",
+    "SPOTV NOW", "ENA Play",
+    "아프리카TV", "SOOP", "치지직", "CHZZK",
+    "U-NEXT", "ABEMA", "niconico", "Yahoo! Japan",
+    "Hulu Japan", "TVer", "DAZN Japan", "dTV", "Lemino",
+    "ニコニコ動画", "17LIVE", "OPENREC.tv", "OPENREC",
+    "爱奇艺", "iQiyi", "优酷", "Youku",
+    "腾讯视频", "Tencent Video",
+    "芒果TV", "Mango TV", "Bilibili 大屏",
+    "咪咕视频", "MIGU Video", "西瓜视频", "Xigua Video", "Xigua",
+    "央视频", "CCTV+",
+    "小红书 视频", "Xiaohongshu Video",
+    "视频号", "WeChat Channels",
+    "Douyin", "Kuaishou", "抖音", "快手",
+  ]);
+
+  // ── Digital: 음악 스트리밍 ──
+  add("Digital", [
+    "Spotify", "Apple Music", "Amazon Music", "YouTube Music",
+    "멜론", "Melon", "지니뮤직", "지니", "Genie Music", "Genie", "FLO", "벅스", "Bugs", "카카오뮤직",
+    "Spotify Japan", "LINE MUSIC", "AWA", "dヒッツ", "d Hits", "レコチョク", "RecoChoku",
+    "QQ音乐", "QQ Music", "网易云音乐", "NetEase Cloud Music",
+    "酷狗音乐", "Kugou", "酷我音乐", "Kuwo",
+    "咪咕音乐", "MIGU Music", "汽水音乐", "Qishui Yinyue",
+    "음악 스트리밍",
+  ]);
+
+  // ── Digital: 팟캐스트 ──
+  add("Digital", [
+    "Spotify Podcasts", "Apple Podcasts", "YouTube Podcasts",
+    "팟빵", "Podbbang", "네이버 오디오클립", "오디오클립", "Audio Clip",
+    "윌라", "Welaaa", "밀리의서재", "Millie",
+    "Voicy", "Amazon Audible", "Audible", "LisBo", "Radiotalk", "stand.fm",
+    "喜马拉雅FM", "喜马拉雅", "Ximalaya",
+    "蜻蜓FM", "Qingting FM", "荔枝FM", "Lizhi",
+    "懒人听书", "Lazy Audio",
+    "小宇宙 播客", "小宇宙", "Cosmos Podcast",
+    "팟캐스트",
+  ]);
+
+  // ── Digital: 디스플레이/네이티브/프로그래매틱 ──
+  add("Digital", [
+    "Google DV360", "DV360", "Google Ads",
+    "The Trade Desk", "TTD", "Criteo",
+    "카카오 비즈보드", "Bizboard", "카카오 모먼트", "Kakao Moment",
+    "네이트", "Nate", "Dable", "데이블", "Taboola Korea",
+    "Naver Smart Channel", "스마트채널", "MOLOCO", "Cauly", "카울리",
+    "애드픽", "Adpick", "모비온", "MOBION", "NasMedia", "메조미디어",
+    "朝日新聞デジタル", "Asahi Digital",
+    "読売新聞オンライン", "Yomiuri Online",
+    "毎日新聞デジタル", "Mainichi Digital",
+    "livedoor ニュース", "livedoor",
+    "gooニュース", "4Gamer.net", "ファミ通.com", "ファミ通",
+    "Outbrain Japan", "Outbrain", "Taboola Japan", "Taboola",
+    "LINE NEWS", "SmartNews", "グノシー", "Gunosy",
+    "Yahoo! JAPAN ブランドパネル",
+    "MicroAd BLADE", "MicroAd",
+    "i-mobile", "fluct", "GMO TECH", "Geniee", "Geniee SSP",
+    "LINE 広告", "LINE Ads Platform",
+    "百度联盟", "Baidu Union",
+    "腾讯广告", "Tencent Ads", "优量汇", "广点通",
+    "阿里妈妈", "Alimama",
+    "巨量引擎", "OceanEngine",
+    "网易广告", "NetEase Ads",
+    "新浪扶翼", "Sina Fuyi", "搜狐汇算", "Sohu",
+    "凤凰网广告", "ifeng", "36氪", "36氪 广告", "知乎 广告",
+    "头条 信息流", "Toutiao In-feed", "头条号", "Toutiao Hao",
+    "微信 朋友圈", "WeChat Moments",
+    "抖音 信息流", "Douyin In-feed",
+    "快手 信息流", "Kuaishou In-feed",
+    "小红书 信息流", "Xiaohongshu In-feed",
+    "UC头条 信息流", "UC头条",
+    "腾讯广告 ADX", "Tencent Ad Exchange",
+    "阿里妈妈 UniDesk", "UniDesk",
+    "京东京准通", "JD Joyzonton",
+    "百度 营销中心", "Baidu Marketing",
+    "多盟", "Domob", "InMobi 中国", "InMobi",
+  ]);
+
+  // ── Digital: 포털·뉴스 (브랜드 미특정 표현 포함, category는 Digital) ──
+  add("Digital", [
+    "포털/뉴스", "포털·뉴스", "포털 뉴스", "뉴스", "커뮤니티", "OTT",
+  ]);
+
+  // ── Digital: 인플루언서 플랫폼 ──
+  add("Digital", [
+    "Naver Blog", "네이버 블로그", "Tistory", "티스토리",
+    "Brunch", "브런치", "카카오TV", "Stibee", "메일리", "Maily",
+    "livedoor Blog", "LINE BLOG", "Substack",
+    "抖音 达人", "Douyin KOL",
+    "快手 网红", "Kuaishou KOL",
+    "哔哩哔哩 UP主", "Bilibili UP",
+    "视频号 创作者",
+    "小红书 视频博主", "Xiaohongshu Video KOC",
+    "西瓜视频 创作者",
+    "小红书 博主", "Xiaohongshu Bloggers",
+    "微博 大V", "Weibo Big-V",
+    "抖音 图文 博主", "Douyin Graphic",
+    "微信公众号", "WeChat 公众号",
+    "知乎 答主", "Zhihu Answerer",
+    "百度百家号", "Baidu Baijiahao",
+    "简书", "Jianshu",
+  ]);
+
+  // ── Digital: 라이브커머스 ──
+  add("Digital", [
+    "네이버 쇼핑라이브", "카카오 쇼핑라이브", "쿠팡 라이브", "Coupang Live",
+    "그립", "Grip", "11번가 라이브", "SSG 라이브",
+    "楽天市場 ライブ", "Rakuten Live",
+    "Yahoo!ショッピング ライブ",
+    "TikTok Shop Live", "SHOP CHANNEL", "QVC Japan",
+    "抖音 直播", "Douyin Live",
+    "淘宝直播", "Taobao Live",
+    "快手 直播", "Kuaishou Live",
+    "京东直播", "JD Live",
+    "小红书 直播", "Xiaohongshu Live",
+    "视频号 直播", "WeChat Channels Live",
+  ]);
+
+  // ── ATL: TV (Linear) ──
+  add("ATL", [
+    "TV",
+    "KBS", "KBS1", "KBS2", "MBC", "SBS", "EBS", "JTBC", "TV조선", "채널A", "MBN",
+    "YTN", "연합뉴스TV", "tvN", "OCN", "Mnet", "ENA", "CJ ENM",
+    "NHK", "NHK 総合", "NHK General", "NHK Eテレ", "NHK Educational",
+    "日本テレビ", "Nippon TV", "テレビ朝日", "TV Asahi",
+    "TBSテレビ", "TBS", "テレビ東京", "TV Tokyo",
+    "フジテレビ", "Fuji TV", "TOKYO MX",
+    "WOWOW", "スカパー!", "SKY PerfecTV!", "J-COM",
+    "BS日テレ", "BS朝日", "BS-TBS", "BSテレ東", "BSフジ",
+    "CCTV-1", "CCTV-3", "CCTV-5", "CCTV-6", "CCTV-13", "CCTV",
+    "东方卫视", "Dragon TV",
+    "浙江卫视", "Zhejiang TV", "江苏卫视", "Jiangsu TV",
+    "湖南卫视", "Hunan TV", "北京卫视", "Beijing TV",
+    "天津卫视", "Tianjin TV",
+    "上海新闻综合", "SH News", "杭州综合", "Hangzhou General",
+  ]);
+
+  // ── ATL: 라디오 ──
+  add("ATL", [
+    "라디오",
+    "KBS 라디오", "쿨FM", "MBC 라디오", "FM4U", "SBS 라디오", "파워FM", "러브FM",
+    "CBS", "EBS FM", "PBC", "평화방송", "BBS", "불교방송", "극동방송", "TBS 교통방송",
+    "NHK 第1", "NHK 第2", "NHK FM",
+    "TBSラジオ", "TBS Radio", "文化放送", "Joqr",
+    "ニッポン放送", "J-WAVE", "FM TOKYO", "TFM",
+    "bayfm78", "NACK5", "FM yokohama", "InterFM897", "Radio NIKKEI",
+    "中央人民广播电台", "CNR",
+    "上海广播电台", "SMG Radio",
+    "浙江广播电视台 之声", "Zhejiang Radio",
+    "杭州电台", "Hangzhou Radio",
+    "天津人民广播电台", "Tianjin Radio",
+    "北京交通广播",
+  ]);
+
+  // ── ATL: 신문 ──
+  add("ATL", [
+    "신문",
+    "조선일보", "Chosun Ilbo", "중앙일보", "JoongAng Ilbo",
+    "동아일보", "Dong-A Ilbo", "한겨레", "Hankyoreh",
+    "경향신문", "Kyunghyang", "한국일보", "Hankook Ilbo",
+    "매일경제", "Maeil Business", "한국경제", "Korea Economic Daily",
+    "서울경제", "Seoul Economic", "파이낸셜뉴스", "FN News",
+    "이데일리", "Edaily", "머니투데이", "Money Today",
+    "読売新聞", "Yomiuri Shimbun", "Yomiuri",
+    "朝日新聞", "Asahi Shimbun", "Asahi",
+    "毎日新聞", "Mainichi Shimbun", "Mainichi",
+    "産経新聞", "Sankei Shimbun", "Sankei",
+    "日本経済新聞", "Nikkei",
+    "スポーツニッポン", "Sponichi",
+    "日刊スポーツ", "Nikkan Sports",
+    "スポーツ報知", "Sports Hochi",
+    "デイリースポーツ", "Daily Sports",
+    "中日新聞", "Chunichi Shimbun",
+    "西日本新聞", "Nishinippon",
+    "北海道新聞", "Hokkaido Shimbun",
+    "人民日报", "People's Daily",
+    "新华每日电讯", "Xinhua Daily",
+    "光明日报", "Guangming Daily",
+    "经济日报", "Economic Daily",
+    "解放日报", "Jiefang Daily",
+    "文汇报", "Wen Wei Po",
+    "钱江晚报", "Qianjiang Evening",
+    "浙江日报", "Zhejiang Daily",
+    "今晚报", "Jinwan Bao",
+    "天津日报", "Tianjin Daily",
+    "21世纪经济报道", "21st Century Business Herald",
+    "第一财经日报", "China Business Network",
+  ]);
+
+  // ── ATL: 잡지 ──
+  add("ATL", [
+    "잡지",
+    "VOGUE Korea", "ELLE Korea", "Harper's BAZAAR Korea", "GQ Korea",
+    "W Korea", "Marie Claire Korea", "Allure Korea", "Cosmopolitan Korea",
+    "Cine21", "시사IN", "한겨레21", "매경ECONOMY", "한경비즈니스",
+    "VOGUE JAPAN", "ELLE JAPON", "Harper's BAZAAR JAPAN", "GQ JAPAN",
+    "Numero TOKYO", "25ans", "anan", "non-no",
+    "週刊文春", "Bunshun", "週刊新潮", "Shincho",
+    "週刊現代", "週刊ポスト", "週刊朝日",
+    "日経ビジネス", "Nikkei Business", "月刊 文藝春秋", "文藝春秋",
+    "dancyu", "クロワッサン",
+    "VOGUE 服饰与美容", "VOGUE China",
+    "ELLE 世界时装之苑", "ELLE China",
+    "Harper's BAZAAR China", "时尚芭莎",
+    "GQ 智族", "GQ China",
+    "InStyle 优家画报", "InStyle China",
+    "Marie Claire 嘉人", "Marie Claire China",
+    "时尚先生", "Esquire China",
+    "时尚健康", "Cosmopolitan China",
+    "三联生活周刊", "Sanlian Life Weekly",
+    "财经", "Caijing",
+    "第一财经周刊", "Yi Magazine",
+    "看天下", "VistaStory",
+    "中国新闻周刊", "China Newsweek",
+    "瑞丽", "Rayli",
+    "男人装", "FHM China",
+  ]);
+
+  // ── BTL: OOH / 시네마 ──
+  add("BTL", [
+    "옥외광고(OOH)", "OOH", "DOOH",
+    "분众传媒", "Focus Media",
+    "兆讯传媒", "Zhaoxun",
+    "万达影城", "Wanda Cinemas",
+    "CGV",
+    "横店影视城", "Hengdian",
+    "大地影院", "Dadi Cinema",
+    "金逸影城", "Jinyi",
+    "中影南方", "上海联和电影院线",
+    "时光网", "Mtime",
+  ]);
+
+  // ── BTL: classifieds (jobs/real estate/auto/marketplace) ──
+  add("BTL", [
+    "사람인", "Saramin", "잡코리아", "JobKorea", "워크넷", "WorkNet",
+    "인크루트", "Incruit", "알바몬", "AlbaMon", "알바천국", "Alba Heaven",
+    "캐치", "Catch", "원티드", "Wanted", "점핏", "Jumpit",
+    "자소설닷컴", "코멘토",
+    "직방", "Zigbang", "다방", "Dabang",
+    "호갱노노", "HogangNoNo", "네이버 부동산", "Naver Real Estate",
+    "KB부동산", "부동산114", "R114", "한방",
+    "엔카닷컴", "엔카", "Encar", "KB차차차",
+    "첫차", "Cheotcha", "SK 엔카 직영",
+    "헤이딜러", "HEYDEALER", "차란차", "Chalancha",
+    "당근마켓", "당근", "Karrot", "Daangn",
+    "번개장터", "Bunjang", "크림", "KREAM", "솔드아웃", "SOLDOUT",
+    "숨고", "Soomgo", "크몽", "Kmong", "탈잉", "Taling",
+    "リクナビNEXT", "Rikunabi NEXT", "リクナビ",
+    "マイナビ転職", "Mynavi Tenshoku", "マイナビ",
+    "doda", "エン転職", "en転職",
+    "バイトル", "Baitoru", "タウンワーク", "TownWork",
+    "リクルートエージェント",
+    "type", "@type", "ビズリーチ", "BIZREACH",
+    "キャリトレ", "careertrek",
+    "Indeed Japan", "Indeed", "LinkedIn Jobs",
+    "SUUMO", "HOMES", "LIFULL HOME'S",
+    "アットホーム", "at home",
+    "アパマンショップ", "Apamanshop",
+    "mansion-review", "LIVABLE", "東急リバブル",
+    "カーセンサー", "Carsensor",
+    "グーネット", "Goo-net",
+    "カーセブン", "Car Seven", "カーチス", "Carchs",
+    "ガリバー", "Gulliver", "IDOM",
+    "ネクステージ", "NextStage",
+    "楽天Car", "Rakuten Car",
+    "Yahoo!オークション", "ヤフオク!", "ヤフオク",
+    "メルカリ", "Mercari", "ラクマ", "Rakuma",
+    "PayPayフリマ", "PayPay Flea Market",
+    "ジモティー", "Jimoty",
+    "スニーカーダンク", "SNKRDUNK", "モノカブ", "monokabu",
+    "くらしのマーケット", "Kurashi no Market",
+    "ココナラ", "Coconala",
+    "ストアカ", "Street Academy",
+    "タスカジ", "TaskAji",
+    "智联招聘", "Zhaopin",
+    "前程无忧", "51job",
+    "BOSS直聘", "BOSS Zhipin",
+    "拉勾", "Lagou", "猎聘", "Liepin",
+    "看准网", "Kanzhun", "中华英才网", "ChinaHR",
+    "实习僧", "Shixiseng",
+    "应届生求职网", "YingJieSheng",
+    "脉脉 招聘", "Maimai Jobs",
+    "贝壳找房", "Beike", "链家", "Lianjia",
+    "安居客", "Anjuke",
+    "房天下", "Fang.com", "SouFun",
+    "我爱我家", "5i5j", "中原地产", "Centaline",
+    "房多多", "Fangdd",
+    "懂车帝", "Dongchedi", "汽车之家", "Autohome",
+    "易车", "Bitauto", "Yiche",
+    "瓜子二手车", "Guazi", "优信二手车", "Uxin",
+    "人人车", "Renrenche", "太平洋汽车", "PCAuto", "车300", "Che300",
+    "闲鱼", "Xianyu", "转转", "Zhuanzhuan",
+    "京东拍拍", "JD Paipai",
+    "58同城", "58.com", "赶集网", "Ganji", "Poizon",
+    "美团点评", "Meituan Dianping", "美团",
+    "大众点评", "Dazhong Dianping",
+    "抖音生活服务", "Douyin Life Services",
+  ]);
+
+  return m;
+})();
+
+// 키워드 fallback (부분 문자열 매칭). 정확매칭 실패 시 사용.
+//   브랜드 중립: 매체 유형/공통 일반명만 패턴화. 광고주명 사용 금지.
+const _CAT_KEYWORD_RULES = [
+  // Digital — 일반 형식·플랫폼·접미어
+  { cat: "Digital", patterns: [
+    "youtube", "tiktok", "instagram", "facebook", "twitter", "threads", "reddit",
+    "pinterest", "snapchat", "linkedin", "discord", "telegram", "whatsapp", "messenger",
+    "podcast", "팟캐스트", "검색", "search", "블로그", "blog", "카페", "cafe",
+    "메신저", "messenger", "ott", "ctv", "streaming", "스트리밍",
+    "포털", "portal", "뉴스", "news", "커뮤니티", "community",
+    "digital", "online",
+  ] },
+  // ATL — TV/라디오/신문/잡지 일반어
+  { cat: "ATL", patterns: [
+    "tv", "방송", "라디오", "radio", "fm ", " fm", "신문", "newspaper",
+    "잡지", "magazine", "vogue", "elle", "bazaar", "gq", "esquire", "cosmopolitan",
+    "marie claire", "weekly", "周刊", "日报", "晚报",
+  ] },
+  // BTL — OOH·시네마·클래시파이드
+  { cat: "BTL", patterns: [
+    "옥외", "ooh", "dooh", "시네마", "cinema", "극장",
+    "분류광고", "classified", "중고", "구인", "recruit", "부동산", "real estate",
+    "채용", "jobs",
+  ] },
+];
+
+/**
+ * 채널명(c.channel) → 카테고리(ATL/BTL/Digital). 모르면 null.
+ *   1) 정확매칭: MEDIA_LABEL_CATEGORY[normalize(channel)]
+ *   2) parseLabelCountry로 국가 괄호 제거 후 정확매칭
+ *   3) 키워드 fallback: _CAT_KEYWORD_RULES (부분 문자열)
+ * @param {string} channel
+ * @returns {("ATL"|"BTL"|"Digital"|null)}
+ */
+export function getCategoryForChannelLabel(channel) {
+  if (!channel) return null;
+  const raw = String(channel);
+  const key = normalizeKey(raw);
+  if (MEDIA_LABEL_CATEGORY[key]) return MEDIA_LABEL_CATEGORY[key];
+  // 국가 괄호 (KR)/(JP)/(CN) 등 제거 후 재시도
+  try {
+    const { name } = parseLabelCountry(raw);
+    if (name) {
+      const k2 = normalizeKey(name);
+      if (MEDIA_LABEL_CATEGORY[k2]) return MEDIA_LABEL_CATEGORY[k2];
+    }
+  } catch (_e) { /* parseLabelCountry 실패 무시 */ }
+  // 키워드 부분 문자열 fallback
+  const lower = key;
+  for (const rule of _CAT_KEYWORD_RULES) {
+    for (const p of rule.patterns) {
+      if (p && lower.indexOf(p) !== -1) return rule.cat;
+    }
+  }
+  return null;
+}

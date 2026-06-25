@@ -15,7 +15,7 @@ import {
   calculateYoY,
   listAdspendSources,
 } from "../adapters/adspend-public.js";
-import { CHANNELS, COUNTRY_MEDIA_OVERRIDES, flattenMedia, GENERIC_MEDIA_ALIASES } from "../data/media-taxonomy.js";
+import { CHANNELS, COUNTRY_MEDIA_OVERRIDES, flattenMedia, GENERIC_MEDIA_ALIASES, getCategoryForChannelLabel } from "../data/media-taxonomy.js";
 import { getBrief, getPersonas } from "../lib/persona-store.js";
 import { aggregateMedia } from "../lib/persona-aggregator.js";
 import { buildPersonaPoolBadge, buildPublicDataBadge } from "../lib/persona-badge.js";
@@ -65,6 +65,10 @@ function buildPersonaChannels(pool, countryCode) {
     totalHoursPerDay: Number((c.totalHoursPerDay || 0).toFixed(2)),
     reach: Number((c.reach || 0).toFixed(4)),        // 0~1 소수 (하위호환)
     reachPct: Number(((c.reach || 0) * 100).toFixed(1)),  // 2026-06-23: % 단위 통일 (프론트 차트1/4 용)
+    // 2026-06-25 (CEO): 채널명→카테고리 직접 부여 (ATL/BTL/Digital). 분류 실패 시 null.
+    //   프론트 renderChart4Table은 landscape items[].category(=meta.category) 우선,
+    //   없으면 이 c.category 사용, 그래도 없으면 "매체 미특정" 표기.
+    category: getCategoryForChannelLabel(c.channel) || null,
   }));
   return { total, channels, adReceptivity: agg.adReceptivity || null };
 }

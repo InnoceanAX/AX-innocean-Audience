@@ -274,8 +274,12 @@ function renderChart2ReachBar(labels, reach, nArg) {
   state._mdCharts = state._mdCharts || {};
   if (state._mdCharts.reach) state._mdCharts.reach.destroy();
   
-  const top10Labels = (labels || []).slice(0, 10);
-  const top10Reach = (reach || []).slice(0, 10).map(r => Number(r));
+  // 2026-06-25 (CEO): 도달률 내림차순 랜킹 정렬 후 상위 10개. (label–reach 쌍으로 묶어 정렬 — 백엔드 정렬 의존 제거)
+  const _pairs = (labels || []).map((lb, i) => ({ lb, rv: Number((reach || [])[i]) || 0 }))
+    .sort((a, b) => b.rv - a.rv)
+    .slice(0, 10);
+  const top10Labels = _pairs.map(p => p.lb);
+  const top10Reach = _pairs.map(p => p.rv);
   
   state._mdCharts.reach = new Chart(ctx, {
     type: 'bar',
@@ -481,8 +485,10 @@ function renderChart4Table(channels, items) {
   // 2026-06-25 (CEO): 목적(purposeTag) 컬럼 제거 — 유형축(ATL/BTL/Digital)만 표기.
   //   유형 미매칭 항목(TV/커뮤니티/포털·뉴스 등 브랜드 미특정)은 ATL/Digital과 동일 크기 회색 "매체 미특정" 박스.
   const _CAT_BOX = (label, gray) => `<span style="display:inline-block;padding:2px 8px;background:#fff;color:${gray?'#6B7280':'#555'};border:1px solid ${gray?'#9CA3AF':'var(--bdr)'};font-size:10px;font-weight:600;border-radius:0">${label}</span>`;
-  const _tags = (meta) => {
-    const cat = meta && meta.category;
+  // 2026-06-25 (CEO): meta.category(landscape 정확매칭) 우선, 없으면 c.category(백엔드 personaChannels 분류) 폴백.
+  //   둘 다 없는 경우에만 "매체 미특정"(회색). CN 매체(Douyin/Bilibili/Tencent Video/GQ China/Vogue China 등) 분류 해소.
+  const _tags = (meta, c) => {
+    const cat = (meta && meta.category) || (c && c.category);
     if (cat) return _CAT_BOX(cat, false);
     return _CAT_BOX('매체 미특정', true);
   };
@@ -506,7 +512,7 @@ function renderChart4Table(channels, items) {
     const mentions = c.mentions || 0;
     const reachBar = `<div class="md-bar"><div class="md-bar-fill" style="width:${reach}%;background:#4F46E5"></div></div>`;
     const meta = _lookupMeta(c.channel);
-    const tagCell = _tags(meta);
+    const tagCell = _tags(meta, c);
     
     html += `
       <tr>
