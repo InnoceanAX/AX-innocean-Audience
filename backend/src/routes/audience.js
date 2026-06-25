@@ -913,7 +913,19 @@ audienceRouter.post("/synthesize", async (req, res) => {
       synthesized.mind.infoSource = { "SNS": 24, "검색엔진": 20, "뉴스앱·포털": 14, "지인·가족": 12, "TV·전통매체": 10, "전문가·리뷰": 9, "브랜드 공식채널": 6, "영상·팟캐스트": 5 };
     }
     if (!synthesized.mind.personalityTrait || Object.keys(synthesized.mind.personalityTrait).length === 0) {
-      synthesized.mind.personalityTrait = { "외향성": 55, "개방성": 65, "성실성": 70, "신경성": 50, "친화성": 65 };
+      // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 KEYS와 통일. "친화성"→"우호성".
+      synthesized.mind.personalityTrait = { "개방성": 65, "성실성": 70, "외향성": 55, "우호성": 65, "신경성": 50 };
+    }
+    // 2026-06-25 (CEO P3 지시): M2 마인드셋 객체형 통일 (단일 scalar 유지 + 객체 추가).
+    //   A경로 MIND_MINDSET_KEYS = [브랜드신뢰/리스크수용/미래낙관/개인낙관/스트레스]
+    if (!synthesized.mind.mindset || Object.keys(synthesized.mind.mindset).length === 0) {
+      synthesized.mind.mindset = {
+        "브랜드신뢰": +synthesized.mind.brandTrustScore || 60,
+        "리스크수용": +synthesized.mind.riskScore || 45,
+        "미래낙관": +synthesized.mind.futureOutlookScore || 55,
+        "개인낙관": +synthesized.mind.optimismScore || 60,
+        "스트레스": +synthesized.mind.stressLevel || 50
+      };
     }
     if (!synthesized.mind.socialConcerns || Object.keys(synthesized.mind.socialConcerns).length === 0) {
       synthesized.mind.socialConcerns = { "환경·기후": 18, "일자리·경제": 20, "교육·육아": 16, "주거·부동산": 15, "건강·의료": 13, "공정·다양성": 10, "안전·치안": 8 };
@@ -921,22 +933,26 @@ audienceRouter.post("/synthesize", async (req, res) => {
 
     // LOVE 차트 수단 해백
     synthesized.love = synthesized.love || {};
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LOVE_INTERESTS_KEYS와 통일 (CEO 유지확정 8축).
     if (!synthesized.love.topInterests || !synthesized.love.topInterests.length) {
-      synthesized.love.topInterests = ["육아·자녀 교육", "홈데코", "웰브·피트니스", "쇼핑", "드라마·예능", "여행", "재테크"];
-      synthesized.love.interestsScore = { "육아·자녀 교육": 85, "홈데코": 70, "웰브·피트니스": 65, "쇼핑": 75, "드라마·예능": 60, "여행": 55, "재테크": 50 };
+      synthesized.love.topInterests = ["패션", "뷰티", "테크", "음식", "여행", "운동", "게임", "문화"];
+      synthesized.love.interestsScore = { "패션": 70, "뷰티": 65, "테크": 60, "음식": 75, "여행": 70, "운동": 55, "게임": 50, "문화": 60 };
     }
     // 2026-06-25 (CEO P2 지시): B경로 fallback 키를 A경로 차트 order(IFPI 9장르)와 동일하게 통일
     if (!synthesized.love.musicGenreShares || !Object.keys(synthesized.love.musicGenreShares).length) {
       synthesized.love.musicGenreShares = { "K-pop": 28, "팝": 14, "발라드": 18, "힙합·R&B": 14, "록": 6, "인디": 6, "일렉트로닉·EDM": 6, "클래식": 5, "재즈": 3 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LOVE_CONTENT KEYS와 통일.
     if (!synthesized.love.contentGenreShares || !Object.keys(synthesized.love.contentGenreShares).length) {
-      synthesized.love.contentGenreShares = { "드라마": 30, "예능·리얼리티": 25, "육아·세삼": 15, "뉴스·시사": 10, "다큐·교양": 10, "스포츠": 10 };
+      synthesized.love.contentGenreShares = { "드라마": 28, "예능": 22, "영화": 18, "다큐": 10, "스포츠중계": 12, "애니": 10 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LOVE_INFLUENCER KEYS와 통일.
     if (!synthesized.love.influencerTypes || !Object.keys(synthesized.love.influencerTypes).length) {
-      synthesized.love.influencerTypes = { "육아 인플루언서": 35, "라이프스타일": 30, "연예인": 20, "전문가·교수": 15 };
+      synthesized.love.influencerTypes = { "메가": 25, "마이크로": 35, "전문가": 20, "연예인": 20 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LOVE_SPORTS_KEYS와 통일 (CEO 유지확정 5축).
     if (!synthesized.love.sportsAffinity || !Object.keys(synthesized.love.sportsAffinity).length) {
-      synthesized.love.sportsAffinity = { "요가·필라테스": 60, "걸키·러닝": 55, "수영": 35, "등산": 40, "탄니스": 25, "골프": 15, "자전거": 30 };
+      synthesized.love.sportsAffinity = { "축구": 55, "야구": 50, "농구": 35, "골프": 30, "홈트": 60 };
     }
 
     // BUY 차트 수단 해백
@@ -980,15 +996,29 @@ audienceRouter.post("/synthesize", async (req, res) => {
     if (!synthesized.buy.decisionFactors || !Object.keys(synthesized.buy.decisionFactors).length) {
       synthesized.buy.decisionFactors = { "가격": 75, "품질": 85, "브랜드": 60, "리뷰·평판": 80, "디자인": 65, "배송·편의": 60, "AS·보증": 55, "추천": 50 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 BUY_PAYMENT KEYS와 통일 ("계좌이체"→"체크카드").
     if (!synthesized.buy.paymentDistribution || !Object.keys(synthesized.buy.paymentDistribution).length) {
-      synthesized.buy.paymentDistribution = { "신용카드": 45, "간편결제": 30, "계좌이체": 15, "현금": 10 };
+      synthesized.buy.paymentDistribution = { "신용카드": 45, "간편결제": 30, "체크카드": 15, "현금": 10 };
     }
     // 2026-06-25 (CEO P2 지시): 쇼핑채널 6축 (통계청 온라인쇼핑동향조사)
     if (!synthesized.buy.channelMix || !Object.keys(synthesized.buy.channelMix).length) {
       synthesized.buy.channelMix = { "PC 온라인몰": 18, "모바일 앱": 35, "오프라인 종합매장": 20, "오프라인 전문점": 12, "라이브커머스": 8, "소셜커머스": 7 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 BUY_FREQ KEYS와 통일.
     if (!synthesized.buy.purchaseFrequency || !Object.keys(synthesized.buy.purchaseFrequency).length) {
-      synthesized.buy.purchaseFrequency = { "주 수회": 40, "주 1회": 30, "월 2–3회": 20, "월 1회 이하": 10 };
+      synthesized.buy.purchaseFrequency = { "주1회+": 35, "월2-3회": 30, "월1회": 20, "분기1회": 15 };
+    }
+    // 2026-06-25 (CEO P3 지시): B6 소비 프로파일 객체형 통일 (단일 scalar 유지 + 객체 추가).
+    //   A경로 BUY_PROFILE_KEYS = [가격민감/브랜드충성/할인민감/리뷰영향/브랜드전환/윤리소비]
+    if (!synthesized.buy.buyProfile || Object.keys(synthesized.buy.buyProfile).length === 0) {
+      synthesized.buy.buyProfile = {
+        "가격민감": +synthesized.buy.priceSensitivityScore || 60,
+        "브랜드충성": +synthesized.buy.brandLoyaltyScore || 55,
+        "할인민감": +synthesized.buy.discountSensitivity || 65,
+        "리뷰영향": +synthesized.buy.reviewInfluence || 70,
+        "브랜드전환": +synthesized.buy.brandSwitching || 50,
+        "윤리소비": +synthesized.buy.ethicalConsumerScore || 55
+      };
     }
 
     // LIFE 차트 수단 해백
@@ -1007,14 +1037,17 @@ audienceRouter.post("/synthesize", async (req, res) => {
     if (!synthesized.life.dayparts || !Object.keys(synthesized.life.dayparts).length) {
       synthesized.life.dayparts = { "새벽(00-06)": 4, "아침(06-09)": 12, "오전(09-12)": 15, "오후(12-18)": 25, "저녁(18-22)": 32, "심야(22-24)": 12 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LIFE_FOOD KEYS와 통일.
     if (!synthesized.life.foodHabits || !Object.keys(synthesized.life.foodHabits).length) {
-      synthesized.life.foodHabits = { "집밥·직접 조리": 40, "배달·도식": 25, "외식": 15, "HMR·간편식": 15, "공동조리·외회워": 5 };
+      synthesized.life.foodHabits = { "집밥": 40, "외식": 20, "배달": 25, "간편식": 15 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LIFE_WELLNESS KEYS와 통일.
     if (!synthesized.life.wellnessFreq || !Object.keys(synthesized.life.wellnessFreq).length) {
-      synthesized.life.wellnessFreq = { "매일": 25, "주 3–4회": 30, "주 1–2회": 25, "월 1–2회 이하": 20 };
+      synthesized.life.wellnessFreq = { "안함": 20, "주1-2": 30, "주3-4": 25, "매일": 25 };
     }
+    // 2026-06-25 (CEO P3 지시): B경로 fallback 키를 A경로 LIFE_TRAVELFREQ KEYS와 통일.
     if (!synthesized.life.travelFreq || !Object.keys(synthesized.life.travelFreq).length) {
-      synthesized.life.travelFreq = { "분기·1회": 40, "월 1회": 25, "반기 1회": 20, "연 1회": 15 };
+      synthesized.life.travelFreq = { "연1회미만": 25, "연1-2회": 40, "연3-4회": 20, "연5회+": 15 };
     }
 
     // WHO 차트 수단 해백 — 필터가 있으면 필터 기반 분포 사용
