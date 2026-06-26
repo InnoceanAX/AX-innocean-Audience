@@ -163,6 +163,7 @@ function renderPersonaPoolBadge(badge, mediaData) {
         '마니아 채널':   {label:'도달은 좋지만 집중도 높음', advice:'관심사 정밀 타겟에 적합', color:'#7C3AED'},
         '광고 노출 최적':{label:'넓게 도달 + 짧게 시청', advice:'짧고 강한 메시지 캠페인', color:'#0EA5E9'},
         '광고 비효율':   {label:'도달·시청 모두 낮음',  advice:'우선순위 낮음', color:'#9CA3AF'},
+        '표본 부족':     {label:'응답자 적음(통계 대표성 낮음)', advice:'추천 근거로 부적합 — 참고용', color:'#D97706'},
       };
       const qrows = Object.entries(groups).filter(([z,ch])=>ch.length).map(([z,ch])=>{
         const m = ZMETA[z]||{label:z,advice:'',color:'#9CA3AF'};
@@ -406,9 +407,14 @@ function renderChart3Matrix(matrix) {
   if(_oldBox) _oldBox.innerHTML = '';
 }
 
+// CEO 2026-06-26: 표본 최소 기준 — 응답자 n개 미만 매체는 통계적 대표성 없음.
+//   예: TV 1명이 1.5h 답했다고 '핵심 매체'로 추천되는 오류 차단. n<5는 '표본 부족'으로 분리.
+const MATRIX_MIN_SAMPLE = 5;
 function classifyMatrixQuadrants(data) {
-  const groups = { '광고 효율 우수': [], '마니아 채널': [], '광고 노출 최적': [], '광고 비효율': [] };
+  const groups = { '광고 효율 우수': [], '마니아 채널': [], '광고 노출 최적': [], '광고 비효율': [], '표본 부족': [] };
   for (const d of data) {
+    const n = Number(d.mentions || 0);
+    if (n < MATRIX_MIN_SAMPLE) { groups['표본 부족'].push(d.label); continue; }
     let zone;
     if (d.x >= 50 && d.y >= 1.5) zone = '광고 효율 우수';
     else if (d.x < 50 && d.y >= 1.5) zone = '마니아 채널';
@@ -438,7 +444,8 @@ function renderMatrixInsightsBox(groups) {
     '광고 효율 우수': { tag: 'CORE',   desc: '도달 + 시청시간 모두 강 → 핵심 매체 우선', color: '#10B981' },
     '마니아 채널':    { tag: 'NICHE',  desc: '도달 낮지만 깊은 몰입 → 정밀 타겟 최적', color: '#7C3AED' },
     '광고 노출 최적': { tag: 'REACH',  desc: '도달 넓음 + 짧은 노출 → 짧은 메시지 캠페인', color: '#0EA5E9' },
-    '광고 비효율':    { tag: 'LOW',    desc: '도달·시청 모두 낮음 → 광고 예산 효율 낮음', color: '#9CA3AF' }
+    '광고 비효율':    { tag: 'LOW',    desc: '도달·시청 모두 낮음 → 광고 예산 효율 낮음', color: '#9CA3AF' },
+    '표본 부족':      { tag: 'N/A',    desc: '응답자 ' + MATRIX_MIN_SAMPLE + '명 미만 → 통계적 대표성 낮음, 추천 참고용', color: '#D97706' }
   };
   
   // CEO 2026-06-23: 미디어 파란박스는 상단 1개만 — 하단 4사분면 인사이트는 파란박스 배경 제거(차트 카드 내부 요소화).

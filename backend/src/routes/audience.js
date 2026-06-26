@@ -22,6 +22,14 @@ import { isGeminiAvailable as _siGeminiAvailable, generateText as _siGenerateTex
 
 export const audienceRouter = express.Router();
 
+// CEO 2026-06-26: synthesize 결과 캐시 — 같은 brief+country+filters+풀크기면 재계산(LLM ~100s) 생략.
+//   풀이 바뀌면(personas count 변동) 키가 달라져 자동 무효화. in-memory(재시작 시 비움) — 시연 속도 핵심.
+const _synthesizeCache = new Map(); // key → { payload, atMs }
+const _SYNTH_CACHE_MAX = 200;
+function _synthCacheKey(briefId, code, filters, poolCount) {
+  return JSON.stringify({ b: briefId || null, c: code, f: filters || {}, n: poolCount || 0 });
+}
+
 // ────────────────────────────────────────────────────────────
 // Persona-pool helpers (Step 3)
 // ────────────────────────────────────────────────────────────
@@ -597,12 +605,14 @@ audienceRouter.post("/synthesize", async (req, res) => {
   // briefId가 있으면 페르소나 풀에서 직접 stats 산출 → 분석 탭/요약/패널/단일 페르소나 모두 같은 풀
   // = 모든 6탭 을 한 풀에서 수입 + 요약과 페르소나가 모순 없음
   let poolSynthesis = null;
+  let _poolCount = 0;
   if (briefId) {
     try {
       const brief = getBrief(briefId);
       if (brief) {
         const personas = getPersonas(briefId, { country: meta.code });
         if (personas && personas.length >= 10) {
+          _poolCount = personas.length;
           poolSynthesis = aggregateAll(personas);
           // method tag
           console.log(`[synthesize] using persona pool: briefId=${briefId} country=${meta.code} n=${personas.length}`);
@@ -610,6 +620,16 @@ audienceRouter.post("/synthesize", async (req, res) => {
       }
     } catch (e) {
       console.warn(`[synthesize] persona pool fetch failed: ${e.message} — fallback to baseline+LLM`);
+    }
+  }
+
+  // CEO 2026-06-26: 캐시 조회 — 같은 brief+country+filters+풀크기면 즉시 반환(LLM 재호출 생략).
+  const _synKey = _synthCacheKey(briefId, meta.code, filters, _poolCount);
+  {
+    const _hit = _synthesizeCache.get(_synKey);
+    if (_hit && _hit.payload) {
+      console.log(`[synthesize] cache HIT key=${_synKey}`);
+      return res.json({ ..._hit.payload, cached: true });
     }
   }
 
@@ -1177,7 +1197,7 @@ audienceRouter.post("/synthesize", async (req, res) => {
     };
   }
 
-  res.json({
+  const _synthPayload = {
     ok: true,
     country: meta,
     filters,
@@ -1194,7 +1214,18 @@ audienceRouter.post("/synthesize", async (req, res) => {
     source: finalSource,
     method: finalMethod,
     integrity: poolSynthesis ? "pool-aligned" : "baseline-only",
-  });
+  };
+
+  // CEO 2026-06-26: 캐시 저장 — 다음 동일 요청은 즉시 반환. 풀이 바뀌면 키(풀크기) 달라져 자동 무효화.
+  try {
+    _synthesizeCache.set(_synKey, { payload: _synthPayload, atMs: Date.now() });
+    if (_synthesizeCache.size > _SYNTH_CACHE_MAX) {
+      const _oldest = _synthesizeCache.keys().next().value;
+      if (_oldest !== undefined) _synthesizeCache.delete(_oldest);
+    }
+  } catch (e) { /* cache set best-effort */ }
+
+  res.json({ ..._synthPayload, cached: false });
 });
 
 // ────────────────────────────────────────────────────────────
