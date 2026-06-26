@@ -11226,10 +11226,18 @@ async function pollPersonaStatus(){
       if(state.activeBriefId !== pollBriefId){ break; }
       const d = await r.json();
       if(!d.ok){ break; }
-      if(d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled'){
+      // CEO 2026-06-26: 'partial'(부분 생성 — Vertex 일부 배치 실패) 도 폴링 종료 조건에 포함.
+      //   partial을 종료조건에 안 넣으면 폴링 무한 지속 → 화면 "분석중" 갇힘.
+      if(d.status === 'completed' || d.status === 'partial' || d.status === 'failed' || d.status === 'cancelled'){
         // race 재확인: 완료 이벤트 해석 시점에도 brief가 여전히 동일해야 안전하게 탭 UI 갱신.
         if(state.activeBriefId !== pollBriefId){ break; }
         if(d.status === 'completed' && typeof toast === 'function') toast('AI 페르소나 생성 완료 — 합성소비자 100명 풀 반영');
+        // CEO 2026-06-26: 부분 생성 안내 — 일부 배치가 AI 과부하로 실패. 풀은 표시하되 재실행 유도.
+        if(d.status === 'partial' && typeof toast === 'function'){
+          const _g = d.progress?.done ?? d.generatedCount ?? '?';
+          const _t = d.progress?.total ?? d.requestedCount ?? 100;
+          toast(`AI 생성 일부 완료 (${_g}/${_t}) — 다시 분석을 누르면 나머지가 채워집니다`);
+        }
         // CEO 2026-06-24: 미디어 무한 "분석중" 버그 수정 — refreshMediaTab 게이트가 personaPolling을 보므로,
         //   탭 재호출 전에 polling 플래그를 먼저 내려야 로딩 화면에 갇히지 않음.
         state.personaPolling = false;

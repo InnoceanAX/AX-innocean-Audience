@@ -121,7 +121,8 @@ async function generateForCountry(brief, country, sizePerCountry) {
     country,
     countryName: resolveCountryName(country),
     batchSize: 20,
-    concurrency: 5,
+    // CEO 2026-06-26: Vertex AI 429 과부하 방지 — 동시성 5→3 (연속 재생성 시 rate-limit 완화)
+    concurrency: 3,
     shouldCancel: () => !!(getGenerationState(briefId)?.cancelled),
     onBatchDone: (doneInCountry, totalInCountry) => {
       const s = getGenerationState(briefId) || {};
@@ -134,10 +135,12 @@ async function generateForCountry(brief, country, sizePerCountry) {
 
   appendPersonas(briefId, merged);
 
-  // Mark country done.
+  // Mark country done — CEO 2026-06-26: state.done 정직화.
+  //   기존엔 byCountry[country]=sizePerCountry로 강제 → 부분 생성(merged.length<size)이어도
+  //   "100/100 완료"로 거짓 보고됨. 실제 적재된 merged.length만 기록.
   const s = getGenerationState(briefId) || {};
   const byCountry = { ...(s.byCountry || {}) };
-  byCountry[country] = sizePerCountry;
+  byCountry[country] = merged.length;
   const done = Object.values(byCountry).reduce((sum, n) => sum + n, 0);
   setGenerationState(briefId, { byCountry, done });
 
@@ -146,12 +149,18 @@ async function generateForCountry(brief, country, sizePerCountry) {
   const payload = buildInsightPayload(all);
   setInsights(briefId, payload);
 
+  // CEO 2026-06-26: 부분 생성 시 status를 partial로 — 화면이 "완료"라고 거짓말 안 하게.
+  //   merged.length < sizePerCountry면 Vertex 일부 배치 실패로 부족분 발생.
+  //   partial이면 caller(maybePersonaPoolPayload)가 generating 유지 → 부족분 재시도 가능.
   const finishedAt = new Date().toISOString();
+  const isPartial = merged.length < sizePerCountry;
   setGenerationState(briefId, {
-    status: "completed",
+    status: isPartial ? "partial" : "completed",
+    generatedCount: merged.length,
+    requestedCount: sizePerCountry,
     finishedAt,
   });
-  console.log(`[persona-ensure] ${briefId}/${country}: completed (${merged.length})`);
+  console.log(`[persona-ensure] ${briefId}/${country}: ${isPartial ? "PARTIAL" : "completed"} (${merged.length}/${sizePerCountry})`);
 
   // CEO 2026-06-18 20:11 지시: country 완료 즉시 force upload
   // (debounce 우회 — 다음 country 시작 전 GCS 영속화)
