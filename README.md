@@ -6,31 +6,54 @@ AI 페르소나 기반 오디언스 인사이트 솔루션 (Beta).
 
 ---
 
+## 디렉토리 구조 (중요)
+
+- **`frontend/`** — 운영 프론트엔드. **`frontend/index.html`이 라이브 솔루션의 진짜 단일 HTML 파일**입니다.
+- **`backend/`** — Node 백엔드 API (페르소나 생성/영속, GCS, Vertex AI).
+- 루트에는 더 이상 index.html / Dockerfile / nginx.conf 가 없습니다 (2026-06-26 제거 — 구버전 오배포 사고 방지).
+
 ## 빠른 시작
 
-별도 빌드 도구 없음 — `index.html`을 브라우저로 열면 됩니다.
+별도 빌드 도구 없음 — `frontend/index.html`을 브라우저로 열면 됩니다.
 
 ```bash
 git clone https://github.com/InnoceanAX/AX-innocean-Audience.git
 cd AX-innocean-Audience
-open index.html
-# 또는 python3 -m http.server 8000 후 http://localhost:8000
+open frontend/index.html
+# 또는 cd frontend && python3 -m http.server 8000 후 http://localhost:8000
 ```
 
 ## Cloud Run 배포
 
 GCP 프로젝트: `innocean-perf-apac-kr` (291757702623), 리전: `asia-northeast3`
 
+### ★ 프론트엔드 배포 — 반드시 `./frontend` 디렉토리에서
+
 ```bash
 gcloud run deploy innocean-audience \
-  --source . \
+  --source ./frontend \
   --region asia-northeast3 \
   --allow-unauthenticated \
   --port 8080 \
   --quiet
 ```
 
-배포는 `Dockerfile`(nginx:alpine) + `nginx.conf`(port 8080, Cache-Control: no-store)로 처리됩니다.
+> ⚠️ **주의**: `--source .`(루트)로 배포하지 마세요. 루트엔 배포용 Dockerfile이 없으며,
+> 과거 루트의 구버전 index.html이 잘못 배포돼 라이브 UI가 옛 랜딩 화면으로 뒤바뀐 사고가 있었습니다(2026-06-26).
+> 프론트 배포 소스는 **항상 `./frontend`** 입니다.
+
+배포는 `frontend/Dockerfile`(nginx:alpine) + `frontend/nginx.conf`(port 8080, Cache-Control: no-store)로 처리됩니다.
+
+### 백엔드 배포 — `./backend`
+
+```bash
+gcloud run deploy innocean-audience-api \
+  --source ./backend \
+  --region asia-northeast3 \
+  --min-instances 1 --max-instances 1 \
+  --quiet
+# ★ PERSONA_GCS_BUCKET 등 기존 env / min=max=1 스케일 보존 필수
+```
 
 ## 배포 후 검증
 
@@ -38,6 +61,11 @@ gcloud run deploy innocean-audience \
 URL="https://innocean-audience-291757702623.asia-northeast3.run.app"
 curl -sI "$URL/" | grep -i "cache-control"
 # cache-control: no-store 확인 필수
+
+# ★ UI 버전 검증 (오배포 방지) — 최신 대시보드 UI 마커가 떠야 함
+curl -s "$URL/" | grep -oE "Target Insight Solution|BETA v0.1"
+# 'Target Insight Solution' / 'BETA v0.1' 이 나오면 최신(정상).
+# '데이터를 묻지 말고' 가 나오면 루트 구버전이 잘못 배포된 것 → ./frontend 로 재배포.
 ```
 
 ---
