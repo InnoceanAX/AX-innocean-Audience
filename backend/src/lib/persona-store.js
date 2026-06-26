@@ -456,6 +456,8 @@ export function deleteBrief(id) {
     return r.changes;
   });
   const changes = tx(id);
+  // CEO 2026-06-26: 삭제 후 GCS 동기화 — 이게 없으면 재시작 시 GCS 백업에서 삭제된 brief가 부활함.
+  if (changes > 0) scheduleDbUpload();
   return { deleted: changes > 0, brief_id: id };
 }
 
