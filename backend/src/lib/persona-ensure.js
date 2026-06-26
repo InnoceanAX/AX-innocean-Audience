@@ -114,6 +114,7 @@ async function generateForCountry(brief, country, sizePerCountry) {
     seed: `${briefId}:${country}`,
     regions: brief.regions?.[country] || null,
     targets: brief.targets || null,
+    briefId, // PK Hotfix (CEO 2026-06-26): brief-scoped persona_id
   });
 
   const merged = await synthesizeNarratives(cohort, {

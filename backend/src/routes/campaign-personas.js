@@ -284,6 +284,7 @@ async function runGeneration(brief) {
       seed: `${briefId}:${country}`,
       regions: regionOverride,
       targets: brief.targets || null,
+      briefId, // PK Hotfix (CEO 2026-06-26): brief-scoped persona_id
     });
     console.log(`[campaign-personas] ${country}: cohort built (${cohort.length})`);
 

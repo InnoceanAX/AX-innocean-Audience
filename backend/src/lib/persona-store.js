@@ -85,7 +85,7 @@ export function getDb() {
         attributes TEXT NOT NULL,
         narrative TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        PRIMARY KEY (persona_id)
+        PRIMARY KEY (brief_id, persona_id)
       );
       CREATE INDEX IF NOT EXISTS idx_personas_brief_country
         ON campaign_personas(brief_id, country);
@@ -118,12 +118,74 @@ export function getDb() {
     `);
 
     console.log(`[persona-store] SQLite ready at ${DB_PATH}`);
+    // PK Hotfix (CEO 2026-06-26): campaign_personas PK (persona_id) → (brief_id, persona_id)
+    // 같은 PK persona_id로 brief간 INSERT OR REPLACE 덮어쓰기 해결.
+    migrateCampaignPersonasPk();
     maybeMigrateLegacyJson();
   } catch (e) {
     console.error("[persona-store] failed to open SQLite:", e.message);
     throw e;
   }
   return _db;
+}
+
+// PK Hotfix (CEO 2026-06-26 승인): campaign_personas PK 마이그레이션.
+// SQLite는 ALTER로 PK 변경 불가 → 새 테이블 생성 + 데이터 복사 + 교체.
+// 멱등: 이미 복합키면 noop. 데이터 손실 0.
+function migrateCampaignPersonasPk() {
+  try {
+    // 현재 PK 컬럼 목록 조회. (table_info에서 pk>0 컬럼들이 PK 구성)
+    const cols = _db.prepare("PRAGMA table_info(campaign_personas)").all();
+    const pkCols = cols.filter((c) => c.pk > 0).sort((a, b) => a.pk - b.pk).map((c) => c.name);
+    const isComposite = pkCols.length === 2 && pkCols.includes("brief_id") && pkCols.includes("persona_id");
+    if (isComposite) {
+      // 이미 마이그레이션 완료.
+      return;
+    }
+    const beforeCount = _db.prepare("SELECT COUNT(*) AS n FROM campaign_personas").get()?.n || 0;
+    console.log(`[persona-store][migrate-pk] starting: current PK=${JSON.stringify(pkCols)} rows=${beforeCount}`);
+    const tx = _db.transaction(() => {
+      // 신 테이블 생성 (복합키)
+      _db.exec(`
+        CREATE TABLE IF NOT EXISTS campaign_personas_v2 (
+          persona_id TEXT NOT NULL,
+          brief_id TEXT NOT NULL,
+          country TEXT NOT NULL,
+          region TEXT,
+          age INTEGER,
+          gender TEXT,
+          attributes TEXT NOT NULL,
+          narrative TEXT,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          PRIMARY KEY (brief_id, persona_id)
+        );
+      `);
+      // 전체 데이터 복사. PK가 단독(persona_id)이었어도 row 자체는 그대로.
+      // (brief_id, persona_id) 복합키는 더 느슨하므로 충돌 가능성 없음.
+      _db.prepare(`
+        INSERT INTO campaign_personas_v2
+          (persona_id, brief_id, country, region, age, gender, attributes, narrative, created_at)
+        SELECT persona_id, brief_id, country, region, age, gender, attributes, narrative, created_at
+        FROM campaign_personas
+      `).run();
+      // 구 테이블 삭제 + 신 테이블 rename + 인덱스 재생성.
+      _db.exec(`DROP TABLE campaign_personas;`);
+      _db.exec(`ALTER TABLE campaign_personas_v2 RENAME TO campaign_personas;`);
+      _db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_personas_brief_country
+          ON campaign_personas(brief_id, country);
+      `);
+    });
+    tx();
+    const afterCount = _db.prepare("SELECT COUNT(*) AS n FROM campaign_personas").get()?.n || 0;
+    console.log(`[persona-store][migrate-pk] done: ${beforeCount} → ${afterCount} rows`);
+    if (afterCount !== beforeCount) {
+      console.error(`[persona-store][migrate-pk] !!! row count mismatch ${beforeCount}→${afterCount}`);
+    }
+  } catch (e) {
+    console.error("[persona-store][migrate-pk] failed:", e.message);
+    throw e;
+  }
 }
 
 // One-time backfill from the old /tmp/innocean-personas.json snapshot.

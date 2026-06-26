@@ -178,7 +178,7 @@ function buildRegions(demo, overrideRegionNames) {
  * @param {string} [opts.targets.gender]        "female" / "male" / "all" — gender override
  * @returns {Array<Object>} attribute personas
  */
-export function buildCohort({ country, size = 100, seed, regions: regionOverride, targets } = {}) {
+export function buildCohort({ country, size = 100, seed, regions: regionOverride, targets, briefId = null } = {}) {
   const cc = String(country || "").toUpperCase();
   const demo = COUNTRY_DEMO[cc] || DEFAULT_DEMO;
   const rng = makeRng(seed || `cohort:${cc}:${size}`);
@@ -256,8 +256,14 @@ export function buildCohort({ country, size = 100, seed, regions: regionOverride
     const cityTier      = weightedPick(rng, demo.cityTier);
     const priceSensitivity = randInt(rng, 1, 5);
 
+    // PK Hotfix (CEO 2026-06-26): brief-scoped persona_id
+    // 기존 `${cc}-${i+1}` (KR-001 등) → 같은 국가 새 brief가 이전 풀 덮었음.
+    // 신: `${briefId}-${cc}-${i+1}` (brief단위 고유). briefId 없으면 구 형식 fallback (하위호환).
+    const personaIdx = String(i + 1).padStart(3, "0");
     out.push({
-      persona_id: `${cc}-${String(i + 1).padStart(3, "0")}`,
+      persona_id: briefId
+        ? `${briefId}-${cc}-${personaIdx}`
+        : `${cc}-${personaIdx}`,
       country: cc,
       ageBucket,
       age,
